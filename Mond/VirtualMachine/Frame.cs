@@ -22,6 +22,9 @@
                 current = current.Previous;
             }
 
+            if (index < 0 || index >= current.Values.Length)
+                return MondValue.Undefined;
+
             return current.Values[index];
         }
 
@@ -33,6 +36,9 @@
             {
                 current = current.Previous;
             }
+
+            if (index < 0 || index >= current.Values.Length)
+                return;
 
             current.Values[index] = value;
         }

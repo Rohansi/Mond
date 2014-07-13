@@ -42,13 +42,24 @@ namespace Mond.Compiler.Expressions
         {
             context.Line(FileName, Line);
 
+            // load "this" value
+            var field = Method as FieldExpression;
+            if (field != null)
+            {
+                CompileCheck(context, field.Left, 1);
+            }
+            else
+            {
+                context.LoadUndefined();
+            }
+
             foreach (var argument in Arguments)
             {
                 CompileCheck(context, argument, 1);
             }
 
             CompileCheck(context, Method, 1);
-            context.Call(Arguments.Count);
+            context.Call(Arguments.Count + 1);
 
             return 1;
         }

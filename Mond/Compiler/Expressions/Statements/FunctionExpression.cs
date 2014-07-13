@@ -56,11 +56,13 @@ namespace Mond.Compiler.Expressions.Statements
 
             context.PushFrame();
 
+            functionContext.DefineArgument(0, "this");
+
             for (var i = 0; i < Arguments.Count; i++)
             {
                 var name = Arguments[i];
 
-                if (!functionContext.DefineArgument(i, name))
+                if (!functionContext.DefineArgument(i + 1, name))
                     throw new MondCompilerException(FileName, Line, "Identifier '{0}' was previously defined in this scope", name);
             }
 

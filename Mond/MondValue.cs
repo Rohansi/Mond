@@ -312,6 +312,9 @@ namespace Mond
                         return prototype;
                     break;
 
+                case MondValueType.Array:
+                    return ArrayPrototype.Value;
+
                 default:
                     return null; // TODO: provide prototypes for other types
             }

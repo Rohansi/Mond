@@ -1,16 +1,17 @@
-﻿using Mond.VirtualMachine;
+﻿using System.Linq;
+using Mond.VirtualMachine;
 
 namespace Mond
 {
-    public delegate MondValue MondFunction(params MondValue[] arguments);
+    public delegate MondValue MondFunction(MondState state, MondValue instance, params MondValue[] arguments);
 
-    public sealed class MondState
+    public class MondState
     {
         private Machine _machine;
 
         public MondState()
         {
-            _machine = new Machine();
+            _machine = new Machine(this);
         }
 
         public MondValue this[MondValue index]
@@ -24,8 +25,9 @@ namespace Mond
             return _machine.Load(program);
         }
 
-        public MondValue Call(MondValue closure, params MondValue[] arguments)
+        public MondValue Call(MondValue closure, MondValue instance, params MondValue[] arguments)
         {
+            arguments = Enumerable.Repeat(instance, 1).Concat(arguments).ToArray();
             return _machine.Call(closure, arguments);
         }
     }

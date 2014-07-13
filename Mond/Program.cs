@@ -6,7 +6,6 @@ namespace Mond
     {
         static void Main()
         {
-            // TODO: out of bound access in Frame returns undefined
             // TODO: prototypes for built-in types
             // TODO: tests!!
             // TODO: variable length function args (needs arrays)
@@ -59,26 +58,26 @@ namespace Mond
             /*const string source1 = @"
                 function Base() {
                     return {
-                        lick: fun () -> 1
+                        one: fun () -> 1
                     };
                 }
 
                 function Class() {
-                    var base, this = {
-                        lick: fun () -> base.lick() + 1,
+                    var base, inst = {
+                        one: fun () -> base.one() + 1,
 
                         prototype: Base()
                     };
 
-                    base = this.prototype;
-                    return this;
+                    base = inst.prototype;
+                    return inst;
                 }
 
                 var a = Class();
-                return a.lick();
+                return a.one();
             ";*/
 
-            const string source1 = @"
+            /*const string source1 = @"
                 function hello(x) {
                     return ""hi "" + x;
                 }
@@ -88,21 +87,26 @@ namespace Mond
 
             const string source2 = @"
                 return hello(""brian"");
+            ";*/
+
+            const string source1 = @"
+                var a = [1, 2, 3];
+                return a.length();
             ";
 
             try
             {
                 var state = new MondState();
-                state["call"] = new MondValue(args => state.Call(args[0], args[1]));
+                state["call"] = new MondFunction((_, inst, args) => state.Call(args[0], inst, args[1]));
 
                 var program1 = MondProgram.Compile(source1, "test1.mnd");
-                var program2 = MondProgram.Compile(source2, "test2.mnd");
+                //var program2 = MondProgram.Compile(source2, "test2.mnd");
 
                 var result1 = state.Load(program1);
-                var result2 = state.Load(program2);
+                //var result2 = state.Load(program2);
 
                 Console.WriteLine(result1.ToString());
-                Console.WriteLine(result2.ToString());
+                //Console.WriteLine(result2.ToString());
             }
             catch (MondException e)
             {

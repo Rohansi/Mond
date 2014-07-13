@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Mond.Compiler;
 
 namespace Mond.VirtualMachine
 {
     class Machine
     {
+        private readonly MondState _state;
         private readonly List<MondProgram> _programs;
 
         private readonly Stack<ReturnAddress> _callStack;
@@ -14,15 +16,16 @@ namespace Mond.VirtualMachine
 
         public MondValue Global;
 
-        public Machine()
+        public Machine(MondState state)
         {
-            Global = new MondValue(MondValueType.Object);
-
+            _state = state;
             _programs = new List<MondProgram>();
 
             _callStack = new Stack<ReturnAddress>();
             _localStack = new Stack<Frame>();
             _evalStack = new Stack<MondValue>();
+
+            Global = new MondValue(MondValueType.Object);
         }
 
         public MondValue Load(MondProgram program)
@@ -427,7 +430,9 @@ namespace Mond.VirtualMachine
                                 }
                                 else
                                 {
-                                    var result = closureValue.NativeFunction(argFrame.Values);
+                                    var instance = argFrame.Values[0];
+                                    var arguments = argFrame.Values.Skip(1).TakeWhile(v => true).ToArray();
+                                    var result = closureValue.NativeFunction(_state, instance, arguments);
                                     _evalStack.Push(result);
                                 }
 

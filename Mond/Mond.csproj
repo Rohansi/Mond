@@ -120,6 +120,7 @@
     <Compile Include="MondCompilerException.cs" />
     <Compile Include="MondException.cs" />
     <Compile Include="MondValue.Operators.cs" />
+    <Compile Include="VirtualMachine\ArrayPrototype.cs" />
     <Compile Include="VirtualMachine\Closure.cs" />
     <Compile Include="VirtualMachine\DebugInfo.cs" />
     <Compile Include="VirtualMachine\Machine.cs" />
