@@ -144,7 +144,7 @@ namespace Mond
 
         public static bool operator <(MondValue left, MondValue right)
         {
-            return left >= right;
+            return !(left >= right);
         }
 
         public static bool operator <=(MondValue left, MondValue right)
