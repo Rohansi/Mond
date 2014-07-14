@@ -78,7 +78,6 @@ namespace Mond.Compiler
                 { "NaN", TokenType.NaN },
                 { "Infinity", TokenType.Infinity },
                 { "var", TokenType.Var },
-                { "function", TokenType.Function },
                 { "fun", TokenType.Fun },
                 { "return", TokenType.Return },
                 { "if", TokenType.If },

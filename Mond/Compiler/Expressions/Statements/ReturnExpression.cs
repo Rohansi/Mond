@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Mond.Compiler.Expressions
+namespace Mond.Compiler.Expressions.Statements
 {
     class ReturnExpression : Expression
     {

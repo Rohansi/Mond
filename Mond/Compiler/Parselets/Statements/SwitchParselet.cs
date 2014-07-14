@@ -6,10 +6,10 @@ namespace Mond.Compiler.Parselets.Statements
 {
     class SwitchParselet : IStatementParselet
     {
-        public bool TrailingSemicolon { get { return false; } }
-
-        public Expression Parse(Parser parser, Token token)
+        public Expression Parse(Parser parser, Token token, out bool trailingSemicolon)
         {
+            trailingSemicolon = false;
+
             parser.Take(TokenType.LeftParen);
 
             var expression = parser.ParseExpession();

@@ -1,10 +1,10 @@
 ﻿using System;
 
-namespace Mond.Compiler.Expressions
+namespace Mond.Compiler.Expressions.Statements
 {
-    class ContinueExpression : Expression, IBlockStatementExpression
+    class BreakExpression : Expression, IBlockStatementExpression
     {
-        public ContinueExpression(Token token)
+        public BreakExpression(Token token)
             : base(token.FileName, token.Line)
         {
             
@@ -15,14 +15,14 @@ namespace Mond.Compiler.Expressions
             var indentStr = new string(' ', indent);
 
             Console.Write(indentStr);
-            Console.WriteLine("Continue");
+            Console.WriteLine("Break");
         }
 
         public override int Compile(CompilerContext context)
         {
             context.Line(FileName, Line);
 
-            var target = context.ContinueLabel();
+            var target = context.BreakLabel();
             if (target == null)
                 throw new MondCompilerException(FileName, Line, "Unresolved jump");
 

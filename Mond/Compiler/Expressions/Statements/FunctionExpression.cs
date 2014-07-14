@@ -38,19 +38,20 @@ namespace Mond.Compiler.Expressions.Statements
         {
             context.Line(FileName, Line);
 
+            var isStatement = Parent is IBlockStatementExpression;
+
+            if (Name == null && isStatement)
+                throw new MondCompilerException(FileName, Line, "Function is never used");
+
             IdentifierOperand identifier = null;
-            var global = context.FrameIndex == 0;
 
             if (Name != null)
             {
-                if (!global)
-                {
-                    context.DefineIdentifier(Name);
-                    identifier = context.Identifier(Name);
-                }
+                context.DefineIdentifier(Name);
+                identifier = context.Identifier(Name);
             }
 
-            var label = context.Label("func");
+            var label = context.Label("fun");
             var functionContext = context.MakeContext();
             functionContext.Function(FileName, Name);
 
@@ -76,19 +77,15 @@ namespace Mond.Compiler.Expressions.Statements
 
             context.Closure(label);
 
-            if (Name != null)
+            if (identifier != null)
             {
-                if (!global)
-                {
-                    context.Store(identifier);
-                }
-                else
-                {
-                    context.LoadGlobal();
-                    context.StoreField(context.String(Name));
-                }
+                if (!isStatement) // statements should leave nothing on the stack
+                    context.Dup();
 
-                return 0;
+                context.Store(identifier);
+
+                if (isStatement)
+                    return 0;
             }
 
             return 1;

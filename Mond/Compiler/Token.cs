@@ -13,7 +13,6 @@
         Infinity,
 
         Var,
-        Function,
         Fun,
         Return,
         If,

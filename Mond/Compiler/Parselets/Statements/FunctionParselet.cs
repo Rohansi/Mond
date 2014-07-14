@@ -4,17 +4,24 @@ using Mond.Compiler.Expressions.Statements;
 
 namespace Mond.Compiler.Parselets.Statements
 {
-    class FunctionParselet : IStatementParselet
+    class FunctionParselet : IStatementParselet, IPrefixParselet
     {
-        public bool TrailingSemicolon { get { return false; } }
-
-        public Expression Parse(Parser parser, Token token)
+        public Expression Parse(Parser parser, Token token, out bool trailingSemicolon)
         {
-            var name = parser.Take(TokenType.Identifier).Contents;
+            trailingSemicolon = false;
 
-            parser.Take(TokenType.LeftParen);
-
+            string name = null;
             var arguments = new List<string>();
+            BlockExpression body;
+
+            // optional name
+            if (parser.Match(TokenType.Identifier))
+            {
+                name = parser.Take(TokenType.Identifier).Contents;
+            }
+
+            // parse argument list
+            parser.Take(TokenType.LeftParen);
 
             if (!parser.Match(TokenType.RightParen))
             {
@@ -29,11 +36,29 @@ namespace Mond.Compiler.Parselets.Statements
                     parser.Take(TokenType.Comma);
                 }
             }
-            
+
             parser.Take(TokenType.RightParen);
 
-            var block = parser.ParseBlock(false);
-            return new FunctionExpression(token, name, arguments, block);
+            // parse body
+            if (parser.MatchAndTake(TokenType.Pointy))
+            {
+                body = new BlockExpression(new List<Expression>
+                {
+                    new ReturnExpression(token, parser.ParseExpession())
+                });
+            }
+            else
+            {
+                body = parser.ParseBlock(false);
+            }
+
+            return new FunctionExpression(token, name, arguments, body);
+        }
+
+        public Expression Parse(Parser parser, Token token)
+        {
+            bool hasTrailingSemicolon;
+            return Parse(parser, token, out hasTrailingSemicolon);
         }
     }
 }

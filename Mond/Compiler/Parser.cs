@@ -76,7 +76,7 @@ namespace Mond.Compiler
             RegisterPrefix(TokenType.LeftParen, new GroupParselet());
             RegisterInfix(TokenType.LeftParen, new CallParselet());
             RegisterInfix(TokenType.QuestionMark, new ConditionalParselet());
-            RegisterPrefix(TokenType.Fun, new FunParselet());
+            RegisterPrefix(TokenType.Fun, new FunctionParselet());
             RegisterInfix(TokenType.Dot, new FieldParselet());
             RegisterInfix(TokenType.LeftSquare, new IndexerParselet());
             RegisterPrefix(TokenType.LeftBrace, new ObjectParselet());
@@ -85,7 +85,7 @@ namespace Mond.Compiler
             // statements
             RegisterStatement(TokenType.Semicolon, new SemicolonParselet());
             RegisterStatement(TokenType.LeftBrace, new ScopeParselet());
-            RegisterStatement(TokenType.Function, new FunctionParselet());
+            RegisterStatement(TokenType.Fun, new FunctionParselet());
             RegisterStatement(TokenType.Return, new ReturnParselet());
             RegisterStatement(TokenType.Break, new BreakParselet());
             RegisterStatement(TokenType.Continue, new ContinueParselet());
@@ -151,9 +151,11 @@ namespace Mond.Compiler
             }
 
             token = Take();
-            result = statementParselet.Parse(this, token);
 
-            if (takeTrailingSemicolon && statementParselet.TrailingSemicolon)
+            bool hasTrailingSemicolon;
+            result = statementParselet.Parse(this, token, out hasTrailingSemicolon);
+
+            if (takeTrailingSemicolon && hasTrailingSemicolon)
                 Take(TokenType.Semicolon);
 
             return result;

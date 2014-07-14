@@ -8,7 +8,7 @@ namespace MondDemo
         static void Main()
         {
             /*const string source1 = @"
-                function fib(n) {
+                fun fib(n) {
                     if (n <= 1)
                         return n;
 
@@ -19,7 +19,7 @@ namespace MondDemo
             ";*/
 
             /*const string source1 = @"
-                function fib(n) {
+                fun fib(n) {
                     if (n == 0)
                         return 0;
 
@@ -39,8 +39,8 @@ namespace MondDemo
             ";*/
 
             /*const string source1 = @"
-                function startAt(x) {
-                    return fun y -> x += y;
+                fun startAt(x) {
+                    return fun (y) -> x += y;
                 }
 
                 var counter = startAt(1);
@@ -49,13 +49,13 @@ namespace MondDemo
             ";*/
 
             /*const string source1 = @"
-                function Base() {
+                fun Base() {
                     return {
                         one: fun () -> 1
                     };
                 }
 
-                function Class() {
+                fun Class() {
                     var base, inst = {
                         one: fun () -> base.one() + 1,
 
@@ -71,9 +71,9 @@ namespace MondDemo
             ";*/
 
             /*const string source1 = @"
-                function hello(x) {
+                hello = fun (x) {
                     return ""hi "" + x;
-                }
+                };
 
                 return call(hello, ""nerd"");
             ";
