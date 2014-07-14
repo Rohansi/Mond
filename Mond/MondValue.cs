@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Mond.VirtualMachine;
+using Mond.VirtualMachine.Prototypes;
 
 namespace Mond
 {
@@ -292,7 +293,7 @@ namespace Mond
                 case MondValueType.Array:
                     return "array";
                 case MondValueType.Number:
-                    return NumberValue.ToString("R");
+                    return string.Format("{0:R}", NumberValue);
                 case MondValueType.String:
                     return StringValue;
                 case MondValueType.Closure:
@@ -309,8 +310,14 @@ namespace Mond
                 case MondValueType.Object:
                     MondValue prototype;
                     if (ObjectValue.TryGetValue("prototype", out prototype))
+                    {
+                        if (!prototype)
+                            return null;
+
                         return prototype;
-                    break;
+                    }
+
+                    return ObjectPrototype.Value;
 
                 case MondValueType.Array:
                     return ArrayPrototype.Value;
@@ -318,8 +325,6 @@ namespace Mond
                 default:
                     return null; // TODO: provide prototypes for other types
             }
-
-            return null;
         }
     }
 }

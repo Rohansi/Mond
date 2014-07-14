@@ -1,19 +1,12 @@
 ﻿using System;
+using Mond;
 
-namespace Mond
+namespace MondDemo
 {
     class Program
     {
         static void Main()
         {
-            // TODO: prototypes for built-in types
-            // TODO: tests!!
-            // TODO: variable length function args (needs arrays)
-
-            // TODO: object initializers - {a} turns into {a:a}
-
-            // TODO: instruction optimizations - indirect juqmps
-
             /*const string source1 = @"
                 function fib(n) {
                     if (n <= 1)

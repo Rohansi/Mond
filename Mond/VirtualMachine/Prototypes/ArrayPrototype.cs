@@ -1,4 +1,4 @@
-﻿namespace Mond.VirtualMachine
+﻿namespace Mond.VirtualMachine.Prototypes
 {
     static class ArrayPrototype
     {
@@ -7,6 +7,7 @@
         static ArrayPrototype()
         {
             Value = new MondValue(MondValueType.Object);
+            Value["prototype"] = ObjectPrototype.Value;
 
             Value["length"] = new MondFunction(Length);
         }
