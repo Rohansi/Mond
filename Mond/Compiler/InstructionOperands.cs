@@ -62,12 +62,14 @@ namespace Mond.Compiler
         public readonly int FrameIndex;
         public readonly int Id;
         public readonly string Name;
+        public readonly bool IsReadOnly;
 
-        public IdentifierOperand(int frameIndex, int id, string name)
+        public IdentifierOperand(int frameIndex, int id, string name, bool isReadOnly)
         {
             FrameIndex = frameIndex;
             Id = id;
             Name = name;
+            IsReadOnly = isReadOnly;
         }
 
         public virtual void Print()
@@ -87,7 +89,7 @@ namespace Mond.Compiler
     class ArgumentIdentifierOperand : IdentifierOperand
     {
         public ArgumentIdentifierOperand(int frameIndex, int id, string name)
-            : base(frameIndex, id, name)
+            : base(frameIndex, id, name, false)
         {
             
         }

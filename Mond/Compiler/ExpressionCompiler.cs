@@ -182,9 +182,9 @@ namespace Mond.Compiler
             return new LabelOperand(_labelIndex++, name);
         }
 
-        public bool DefineIdentifier(string name)
+        public bool DefineIdentifier(string name, bool isReadOnly)
         {
-            return _currentScope.Define(name);
+            return _currentScope.Define(name, isReadOnly);
         }
 
         public bool DefineArgument(int index, string name)

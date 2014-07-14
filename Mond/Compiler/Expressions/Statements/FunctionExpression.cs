@@ -47,7 +47,9 @@ namespace Mond.Compiler.Expressions.Statements
 
             if (Name != null)
             {
-                context.DefineIdentifier(Name);
+                if (!context.DefineIdentifier(Name, true))
+                    throw new MondCompilerException(FileName, Line, "Identifier '{0}' was previously defined in this scope", Name);
+
                 identifier = context.Identifier(Name);
             }
 

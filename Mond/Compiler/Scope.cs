@@ -19,7 +19,7 @@ namespace Mond.Compiler
             Previous = previous;
         }
 
-        public bool Define(string name)
+        public bool Define(string name, bool isReadOnly)
         {
             if (IsDefined(name))
                 return false;
@@ -42,7 +42,7 @@ namespace Mond.Compiler
 
             var id = frameScope != null ? frameScope._nextId++ : _nextId++;
 
-            var identifier = new IdentifierOperand(_frameIndex, id, name);
+            var identifier = new IdentifierOperand(_frameIndex, id, name, isReadOnly);
             _identifiers.Add(name, identifier);
             return true;
         }

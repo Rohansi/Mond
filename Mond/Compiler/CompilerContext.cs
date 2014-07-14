@@ -118,10 +118,10 @@ namespace Mond.Compiler
             return null;
         }
 
-        public bool DefineIdentifier(string name)
+        public bool DefineIdentifier(string name, bool isReadOnly = false)
         {
             DefinitionCount++;
-            return _compiler.DefineIdentifier(name);
+            return _compiler.DefineIdentifier(name, isReadOnly);
         }
 
         public bool DefineArgument(int index, string name)

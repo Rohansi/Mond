@@ -36,7 +36,7 @@ namespace Mond.Compiler.Expressions
             }
             else
             {
-                context.Load(context.Identifier(Name));
+                context.Load(identifier);
             }
 
             return 1;
@@ -56,7 +56,10 @@ namespace Mond.Compiler.Expressions
             }
             else
             {
-                context.Store(context.Identifier(Name));
+                if (identifier.IsReadOnly)
+                    throw new MondCompilerException(FileName, Line, "Can not modify '{0}' because it is readonly", Name);
+
+                context.Store(identifier);
             }
         }
 
