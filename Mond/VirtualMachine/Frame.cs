@@ -6,11 +6,11 @@
         public readonly Frame Previous;
         public readonly MondValue[] Values;
 
-        public Frame(int depth, Frame previous, int localCount)
+        public Frame(int depth, Frame previous, int valueCount)
         {
             Depth = depth;
             Previous = previous;
-            Values = new MondValue[localCount];
+            Values = new MondValue[valueCount];
         }
 
         public MondValue Get(int depth, int index)

@@ -23,9 +23,23 @@ namespace Mond.Compiler.Expressions.Statements
                 Value.Print(indent + 1);
         }
 
-        public override int Compile(CompilerContext context)
+        public override int Compile(FunctionContext context)
         {
             context.Line(FileName, Line);
+
+            if (context.Name != null)
+            {
+                var callExpression = Value as CallExpression;
+                if (callExpression != null)
+                {
+                    var identifierExpression = callExpression.Method as IdentifierExpression;
+                    if (identifierExpression != null && context.Identifier(identifierExpression.Name) == context.Name)
+                    {
+                        callExpression.CompileTailCall(context);
+                        return 0;
+                    }
+                }
+            }
 
             if (Value != null)
                 CompileCheck(context, Value, 1);

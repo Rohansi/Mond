@@ -16,7 +16,7 @@ namespace Mond.Compiler.Expressions
             
         }
 
-        public override int Compile(CompilerContext context)
+        public override int Compile(FunctionContext context)
         {
             context.PushScope();
             var stack = base.Compile(context);

@@ -17,7 +17,7 @@ namespace Mond.Compiler.Expressions
             Console.WriteLine("Blank");
         }
 
-        public override int Compile(CompilerContext context)
+        public override int Compile(FunctionContext context)
         {
             return 0;
         }

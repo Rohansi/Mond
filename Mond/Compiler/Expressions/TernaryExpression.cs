@@ -39,12 +39,12 @@ namespace Mond.Compiler.Expressions
             IfFalse.Print(indent + 2);
         }
 
-        public override int Compile(CompilerContext context)
+        public override int Compile(FunctionContext context)
         {
             context.Line(FileName, Line);
 
-            var falseLabel = context.Label("ternaryFalse");
-            var endLabel = context.Label("ternaryEnd");
+            var falseLabel = context.MakeLabel("ternaryFalse");
+            var endLabel = context.MakeLabel("ternaryEnd");
 
             CompileCheck(context, Condition, 1);
             context.JumpFalse(falseLabel);

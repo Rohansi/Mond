@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Mond.Compiler
 {
-    partial class CompilerContext
+    partial class FunctionContext
     {
         private int _lambdaId;
 
@@ -147,6 +147,11 @@ namespace Mond.Compiler
             Emit(new Instruction(InstructionType.Call, new ImmediateOperand(argumentCount)));
         }
 
+        public void TailCall(int argumentCount, LabelOperand label)
+        {
+            Emit(new Instruction(InstructionType.TailCall, new ImmediateOperand(argumentCount), label));
+        }
+
         public void Return()
         {
             Emit(new Instruction(InstructionType.Ret));
@@ -185,7 +190,7 @@ namespace Mond.Compiler
         private static Dictionary<TokenType, InstructionType> _binaryOperationMap;
         private static Dictionary<TokenType, InstructionType> _unaryOperationMap; 
 
-        static CompilerContext()
+        static FunctionContext()
         {
             _binaryOperationMap = new Dictionary<TokenType, InstructionType>
             {

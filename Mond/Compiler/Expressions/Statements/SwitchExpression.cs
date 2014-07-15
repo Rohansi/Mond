@@ -66,7 +66,7 @@ namespace Mond.Compiler.Expressions.Statements
             }
         }
 
-        public override int Compile(CompilerContext context)
+        public override int Compile(FunctionContext context)
         {
             // TODO: make this more than a fancy if statement
 
@@ -76,11 +76,11 @@ namespace Mond.Compiler.Expressions.Statements
 
             for (var i = 0; i < Branches.Count; i++)
             {
-                caseLabels.Add(context.Label("caseBranch_" + i));
+                caseLabels.Add(context.MakeLabel("caseBranch_" + i));
             }
 
-            var caseDefault = context.Label("caseDefault");
-            var caseEnd = context.Label("caseEnd");
+            var caseDefault = context.MakeLabel("caseDefault");
+            var caseEnd = context.MakeLabel("caseEnd");
 
             CompileCheck(context, Expression, 1);
 

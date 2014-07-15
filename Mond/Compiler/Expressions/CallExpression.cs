@@ -38,7 +38,7 @@ namespace Mond.Compiler.Expressions
             }
         }
 
-        public override int Compile(CompilerContext context)
+        public override int Compile(FunctionContext context)
         {
             context.Line(FileName, Line);
 
@@ -62,6 +62,20 @@ namespace Mond.Compiler.Expressions
             context.Call(Arguments.Count + 1);
 
             return 1;
+        }
+
+        public void CompileTailCall(FunctionContext context)
+        {
+            context.Line(FileName, Line);
+
+            context.Load(context.Identifier("this"));
+
+            foreach (var argument in Arguments)
+            {
+                CompileCheck(context, argument, 1);
+            }
+
+            context.TailCall(Arguments.Count + 1, context.Label);
         }
 
         public override Expression Simplify()

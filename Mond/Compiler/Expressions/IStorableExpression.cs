@@ -2,6 +2,6 @@
 {
     interface IStorableExpression
     {
-        void CompileStore(CompilerContext context);
+        void CompileStore(FunctionContext context);
     }
 }

@@ -14,7 +14,7 @@
         }
 
         public abstract void Print(int indent);
-        public abstract int Compile(CompilerContext context);
+        public abstract int Compile(FunctionContext context);
         public abstract Expression Simplify();
 
         public virtual void SetParent(Expression parent)
@@ -22,7 +22,7 @@
             Parent = parent;
         }
 
-        public static void CompileCheck(CompilerContext context, Expression expression, int requiredStack)
+        public static void CompileCheck(FunctionContext context, Expression expression, int requiredStack)
         {
             var stack = expression.Compile(context);
 

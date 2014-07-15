@@ -3,21 +3,27 @@ using System.Collections.Generic;
 
 namespace Mond.Compiler
 {
-    partial class CompilerContext
+    partial class FunctionContext
     {
         private readonly ExpressionCompiler _compiler;
         private readonly List<Instruction> _instructions;
-        private readonly IndexedStack<Tuple<LabelOperand, LabelOperand>> _loopLabels; 
+        private readonly IndexedStack<Tuple<LabelOperand, LabelOperand>> _loopLabels;
 
-        public int DefinitionCount { get; private set; }
+        public readonly IdentifierOperand Name;
+        public readonly LabelOperand Label;
 
-        public CompilerContext(ExpressionCompiler compiler)
+        public int IdentifierCount { get; private set; }
+
+        public FunctionContext(ExpressionCompiler compiler, string name)
         {
             _compiler = compiler;
             _instructions = new List<Instruction>();
             _loopLabels = new IndexedStack<Tuple<LabelOperand, LabelOperand>>();
 
-            DefinitionCount = 0;
+            Name = name != null ? _compiler.Identifier(name) : null;
+            Label = _compiler.MakeLabel("function");
+
+            IdentifierCount = 0;
         }
 
         public IEnumerable<Instruction> Instructions
@@ -27,7 +33,7 @@ namespace Mond.Compiler
                 foreach (var instruction in _instructions)
                 {
                     if (instruction.Type == InstructionType.Enter)
-                        yield return new Instruction(InstructionType.Enter, new ImmediateOperand(DefinitionCount));
+                        yield return new Instruction(InstructionType.Enter, new ImmediateOperand(IdentifierCount));
                     else
                         yield return instruction;
                 }
@@ -39,9 +45,14 @@ namespace Mond.Compiler
             get { return _compiler.FrameIndex; }
         }
 
-        public CompilerContext MakeContext()
+        public FunctionContext MakeFunction(string name)
         {
-            return _compiler.MakeContext();
+            return _compiler.MakeFunction(name);
+        }
+
+        public LabelOperand MakeLabel(string name = null)
+        {
+            return _compiler.MakeLabel(name);
         }
 
         public void PushScope()
@@ -89,11 +100,6 @@ namespace Mond.Compiler
             return _compiler.Identifier(name);
         }
 
-        public LabelOperand Label(string name = null)
-        {
-            return _compiler.Label(name);
-        }
-
         public LabelOperand ContinueLabel()
         {
             for (var i = _loopLabels.Count - 1; i >= 0; i--)
@@ -120,7 +126,7 @@ namespace Mond.Compiler
 
         public bool DefineIdentifier(string name, bool isReadOnly = false)
         {
-            DefinitionCount++;
+            IdentifierCount++;
             return _compiler.DefineIdentifier(name, isReadOnly);
         }
 

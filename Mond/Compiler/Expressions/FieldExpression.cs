@@ -23,7 +23,7 @@ namespace Mond.Compiler.Expressions
             Left.Print(indent + 1);
         }
 
-        public override int Compile(CompilerContext context)
+        public override int Compile(FunctionContext context)
         {
             context.Line(FileName, Line);
 
@@ -32,7 +32,7 @@ namespace Mond.Compiler.Expressions
             return 1;
         }
 
-        public void CompileStore(CompilerContext context)
+        public void CompileStore(FunctionContext context)
         {
             CompileCheck(context, Left, 1);
             context.StoreField(context.String(Name));

@@ -30,12 +30,12 @@ namespace Mond.Compiler.Expressions.Statements
             Block.Print(indent + 2);
         }
 
-        public override int Compile(CompilerContext context)
+        public override int Compile(FunctionContext context)
         {
             context.Line(FileName, Line);
 
-            var start = context.Label("whileStart");
-            var end = context.Label("whileEnd");
+            var start = context.MakeLabel("whileStart");
+            var end = context.MakeLabel("whileEnd");
 
             context.Bind(start);
             CompileCheck(context, Condition, 1);

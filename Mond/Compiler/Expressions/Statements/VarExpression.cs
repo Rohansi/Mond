@@ -46,7 +46,7 @@ namespace Mond.Compiler.Expressions.Statements
             }
         }
 
-        public override int Compile(CompilerContext context)
+        public override int Compile(FunctionContext context)
         {
             context.Line(FileName, Line);
 

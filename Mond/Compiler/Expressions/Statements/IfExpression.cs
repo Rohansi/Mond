@@ -64,7 +64,7 @@ namespace Mond.Compiler.Expressions.Statements
             }
         }
 
-        public override int Compile(CompilerContext context)
+        public override int Compile(FunctionContext context)
         {
             context.Line(FileName, Line);
 
@@ -72,11 +72,11 @@ namespace Mond.Compiler.Expressions.Statements
 
             for (var i = 0; i < Branches.Count; i++)
             {
-                branchLabels.Add(context.Label("ifBranch_" + i));
+                branchLabels.Add(context.MakeLabel("ifBranch_" + i));
             }
 
-            var branchElse = context.Label("ifElse");
-            var branchEnd = context.Label("ifEnd");
+            var branchElse = context.MakeLabel("ifElse");
+            var branchEnd = context.MakeLabel("ifEnd");
 
             for (var i = 0; i < Branches.Count; i++)
             {

@@ -8,7 +8,7 @@ namespace Mond.Compiler
 {
     class ExpressionCompiler
     {
-        private readonly List<CompilerContext> _contexts;
+        private readonly List<FunctionContext> _contexts;
         private Scope _currentScope;
         private int _labelIndex;
 
@@ -21,7 +21,7 @@ namespace Mond.Compiler
          
         public ExpressionCompiler(bool generateDebugInfo = true)
         {
-            _contexts = new List<CompilerContext>();
+            _contexts = new List<FunctionContext>();
             _currentScope = null;
             _labelIndex = 0;
 
@@ -37,7 +37,7 @@ namespace Mond.Compiler
         {
             PushFrame();
 
-            var context = MakeContext();
+            var context = MakeFunction(null);
             context.Function(expression.FileName, "#main");
 
             context.Enter();
@@ -75,7 +75,7 @@ namespace Mond.Compiler
 
             foreach (var instruction in AllInstructions())
             {
-                //instruction.Print();
+                instruction.Print();
                 instruction.Write(writer);
             }
 
@@ -143,11 +143,16 @@ namespace Mond.Compiler
             return _contexts.SelectMany(c => c.Instructions);
         }
 
-        public CompilerContext MakeContext()
+        public FunctionContext MakeFunction(string name)
         {
-            var context = new CompilerContext(this);
+            var context = new FunctionContext(this, name);
             _contexts.Add(context);
             return context;
+        }
+
+        public LabelOperand MakeLabel(string name = null)
+        {
+            return new LabelOperand(_labelIndex++, name);
         }
 
         public void PushScope()
@@ -175,11 +180,6 @@ namespace Mond.Compiler
         public IdentifierOperand Identifier(string name)
         {
             return _currentScope.Get(name);
-        }
-
-        public LabelOperand Label(string name = null)
-        {
-            return new LabelOperand(_labelIndex++, name);
         }
 
         public bool DefineIdentifier(string name, bool isReadOnly)

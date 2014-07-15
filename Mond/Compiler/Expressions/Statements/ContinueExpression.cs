@@ -18,7 +18,7 @@ namespace Mond.Compiler.Expressions.Statements
             Console.WriteLine("Continue");
         }
 
-        public override int Compile(CompilerContext context)
+        public override int Compile(FunctionContext context)
         {
             context.Line(FileName, Line);
 

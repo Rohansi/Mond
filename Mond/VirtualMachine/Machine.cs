@@ -439,6 +439,29 @@ namespace Mond.VirtualMachine
                                 break;
                             }
 
+                        case (int)InstructionType.TailCall:
+                            {
+                                var argCount = BitConverter.ToInt32(code, ip);
+                                ip += 4;
+                                var address = BitConverter.ToInt32(code, ip);
+
+                                var returnAddress = _callStack.Pop();
+                                var argFrame = returnAddress.Arguments;
+
+                                if (argFrame.Values.Length < argCount)
+                                    argFrame = new Frame(argFrame.Depth + 1, argFrame.Previous, argCount);
+                                
+                                for (var i = argCount - 1; i >= 0; i--)
+                                {
+                                    argFrame.Values[i] = _evalStack.Pop();
+                                }
+
+                                _callStack.Push(new ReturnAddress(returnAddress.ProgramId, returnAddress.Address, argFrame));
+
+                                ip = address;
+                                break;
+                            }
+
                         case (int)InstructionType.Enter:
                             {
                                 var localCount = BitConverter.ToInt32(code, ip);

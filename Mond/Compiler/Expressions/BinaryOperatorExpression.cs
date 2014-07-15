@@ -28,7 +28,7 @@ namespace Mond.Compiler.Expressions
             Right.Print(indent + 1);
         }
 
-        public override int Compile(CompilerContext context)
+        public override int Compile(FunctionContext context)
         {
             context.Line(FileName, Line);
 
@@ -66,7 +66,7 @@ namespace Mond.Compiler.Expressions
 
             if (Operation == TokenType.LogicalOr)
             {
-                var endOr = context.Label("endOr");
+                var endOr = context.MakeLabel("endOr");
                 CompileCheck(context, Left, 1);
                 context.JumpTruePeek(endOr);
                 CompileCheck(context, Right, 1);
@@ -76,7 +76,7 @@ namespace Mond.Compiler.Expressions
 
             if (Operation == TokenType.LogicalAnd)
             {
-                var endAnd = context.Label("endAnd");
+                var endAnd = context.MakeLabel("endAnd");
                 CompileCheck(context, Left, 1);
                 context.JumpFalsePeek(endAnd);
                 CompileCheck(context, Right, 1);

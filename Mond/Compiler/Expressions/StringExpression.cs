@@ -19,7 +19,7 @@ namespace Mond.Compiler.Expressions
             Console.WriteLine("string: \"{0}\"", Value);
         }
 
-        public override int Compile(CompilerContext context)
+        public override int Compile(FunctionContext context)
         {
             context.Line(FileName, Line);
 

@@ -82,9 +82,24 @@ namespace MondDemo
                 return hello(""brian"");
             ";*/
 
-            const string source1 = @"
+            /*const string source1 = @"
                 var a = [1, 2, 3];
                 return a.length();
+            ";*/
+
+            const string source1 = @"
+                fun fibonacci(n) {
+                    fun inner(m, a, b) {
+                        if (m == 0)
+                            return a;
+
+                        return inner(m - 1, b, a + b);
+                    }
+
+                    return inner(n, 0, 1);
+                }
+
+                return fibonacci(50);
             ";
 
             try

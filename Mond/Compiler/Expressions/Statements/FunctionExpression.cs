@@ -34,7 +34,7 @@ namespace Mond.Compiler.Expressions.Statements
             Block.Print(indent + 2);
         }
 
-        public override int Compile(CompilerContext context)
+        public override int Compile(FunctionContext context)
         {
             context.Line(FileName, Line);
 
@@ -53,8 +53,7 @@ namespace Mond.Compiler.Expressions.Statements
                 identifier = context.Identifier(Name);
             }
 
-            var label = context.Label("fun");
-            var functionContext = context.MakeContext();
+            var functionContext = context.MakeFunction(Name);
             functionContext.Function(FileName, Name);
 
             context.PushFrame();
@@ -69,7 +68,7 @@ namespace Mond.Compiler.Expressions.Statements
                     throw new MondCompilerException(FileName, Line, "Identifier '{0}' was previously defined in this scope", name);
             }
 
-            functionContext.Bind(label);
+            functionContext.Bind(functionContext.Label);
             functionContext.Enter();
             Block.Compile(functionContext);
             functionContext.LoadUndefined();
@@ -77,7 +76,7 @@ namespace Mond.Compiler.Expressions.Statements
 
             context.PopFrame();
 
-            context.Closure(label);
+            context.Closure(functionContext.Label);
 
             if (identifier != null)
             {

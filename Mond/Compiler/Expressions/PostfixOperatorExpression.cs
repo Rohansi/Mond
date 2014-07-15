@@ -26,7 +26,7 @@ namespace Mond.Compiler.Expressions
             Left.Print(indent + 1);
         }
 
-        public override int Compile(CompilerContext context)
+        public override int Compile(FunctionContext context)
         {
             context.Line(FileName, Line);
 

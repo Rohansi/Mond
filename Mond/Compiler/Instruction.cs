@@ -29,7 +29,7 @@ namespace Mond.Compiler
         Eq, Neq, Gt, Gte, Lt, Lte,          // comparison operators
         Not,                                // logical not
 
-        Closure, Call,                      // make closure, call closure
+        Closure, Call, TailCall,            // make closure, call closure, tail call
         Enter, Ret,                         // begin function, return from function
 
         Jmp,                                // jump unconditionally

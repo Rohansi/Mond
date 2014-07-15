@@ -42,7 +42,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Compiler\ConstantPool.cs" />
-    <Compile Include="Compiler\CompilerContext.cs" />
+    <Compile Include="Compiler\FunctionContext.cs" />
     <Compile Include="Compiler\Expressions\ArrayExpression.cs" />
     <Compile Include="Compiler\Expressions\Statements\ContinueExpression.cs" />
     <Compile Include="Compiler\Expressions\FieldExpression.cs" />
@@ -135,7 +135,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Compiler\InstructionOperands.cs" />
-    <Compile Include="Compiler\CompilerContext.Helper.cs" />
+    <Compile Include="Compiler\FunctionContext.Helper.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
