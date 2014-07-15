@@ -72,14 +72,14 @@ namespace MondDemo
 
             /*const string source1 = @"
                 hello = fun (x) {
-                    return ""hi "" + x;
+                    return 'hi ' + x;
                 };
 
-                return call(hello, ""nerd"");
+                return call(hello, 'nerd');
             ";
 
             const string source2 = @"
-                return hello(""brian"");
+                return hello('brian');
             ";*/
 
             /*const string source1 = @"

@@ -194,8 +194,9 @@ namespace Mond.Compiler
                 }
 
                 // string
-                if (ch == '"')
+                if (ch == '"' || ch == '\'')
                 {
+                    var stringTerminator = ch;
                     var stringContentsBuilder = new StringBuilder();
 
                     index++; // skip open quote
@@ -207,7 +208,7 @@ namespace Mond.Compiler
 
                         ch = _source[index];
 
-                        if (ch == '"')
+                        if (ch == stringTerminator)
                             break;
 
                         switch (ch)
@@ -231,6 +232,10 @@ namespace Mond.Compiler
 
                                     case '"':
                                         stringContentsBuilder.Append('"');
+                                        break;
+
+                                    case '\'':
+                                        stringContentsBuilder.Append('\'');
                                         break;
 
                                     case 'n':
