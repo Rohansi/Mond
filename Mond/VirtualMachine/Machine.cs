@@ -97,9 +97,9 @@ namespace Mond.VirtualMachine
                         var line = program.DebugInfo.FindLine(errorIp);
                         if (line.HasValue)
                             Console.WriteLine("line {0}", line.Value.LineNumber);
-                    }
+                    }*/
 
-                    Console.WriteLine((InstructionType)code[ip]);*/
+                    //Console.WriteLine((InstructionType)code[ip]);
 
                     errorIp = ip;
 
@@ -450,7 +450,7 @@ namespace Mond.VirtualMachine
 
                                 if (argFrame.Values.Length < argCount)
                                     argFrame = new Frame(argFrame.Depth + 1, argFrame.Previous, argCount);
-                                
+
                                 for (var i = argCount - 1; i >= 0; i--)
                                 {
                                     argFrame.Values[i] = _evalStack.Pop();
@@ -500,6 +500,33 @@ namespace Mond.VirtualMachine
                                 if (_callStack.Count == initialCallDepth)
                                     return _evalStack.Pop();
 
+                                break;
+                            }
+
+                        case (int)InstructionType.JmpTable:
+                            {
+                                var start = BitConverter.ToInt32(code, ip);
+                                ip += 4;
+                                var count = BitConverter.ToInt32(code, ip);
+                                ip += 4;
+
+                                var endIp = ip + count * 4;
+
+                                var value = _evalStack.Pop();
+                                if (value.Type == MondValueType.Number)
+                                {
+                                    var number = value.NumberValue;
+                                    var numberInt = (int)Math.Truncate(number);
+
+                                    if (number >= start && number < start + count &&
+                                        Math.Abs(number - numberInt) <= double.Epsilon)
+                                    {
+                                        ip = BitConverter.ToInt32(code, ip + (numberInt - start) * 4);
+                                        break;
+                                    }
+                                }
+
+                                ip = endIp;
                                 break;
                             }
                         #endregion

@@ -115,6 +115,7 @@
     <Compile Include="Compiler\Parselets\Statements\WhileParselet.cs" />
     <Compile Include="Compiler\Parser.cs" />
     <Compile Include="Compiler\PrecedenceValue.cs" />
+    <Compile Include="GenericComparer.cs" />
     <Compile Include="IndexedStack.cs" />
     <Compile Include="MondCompilerException.cs" />
     <Compile Include="MondException.cs" />

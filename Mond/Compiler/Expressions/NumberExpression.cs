@@ -31,5 +31,10 @@ namespace Mond.Compiler.Expressions
         {
             return this;
         }
+
+        public MondValue GetValue()
+        {
+            return Value;
+        }
     }
 }

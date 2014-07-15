@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -35,6 +36,7 @@ namespace Mond.Compiler
         Jmp,                                // jump unconditionally
         JmpTrueP, JmpFalseP,                // jump if peek() == true/false
         JmpTrue, JmpFalse,                  // jump if pop() == true/false
+        JmpTable,
     }
 
     class Instruction
@@ -48,6 +50,12 @@ namespace Mond.Compiler
         {
             Type = type;
             Operands = new ReadOnlyCollection<IInstructionOperand>(operands);
+        }
+
+        public Instruction(InstructionType type, List<IInstructionOperand> operands)
+        {
+            Type = type;
+            Operands = operands.AsReadOnly();
         }
 
         public int Offset

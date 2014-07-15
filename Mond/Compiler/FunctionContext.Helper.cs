@@ -187,6 +187,16 @@ namespace Mond.Compiler
             Emit(new Instruction(InstructionType.JmpFalseP, label));
         }
 
+        public void JumpTable(int start, List<LabelOperand> labels)
+        {
+            var operands = new List<IInstructionOperand>(2 + labels.Count);
+            operands.Add(new ImmediateOperand(start));
+            operands.Add(new ImmediateOperand(labels.Count));
+            operands.AddRange(labels);
+
+            Emit(new Instruction(InstructionType.JmpTable, operands));
+        }
+
         private static Dictionary<TokenType, InstructionType> _binaryOperationMap;
         private static Dictionary<TokenType, InstructionType> _unaryOperationMap; 
 

@@ -68,8 +68,6 @@ namespace Mond.Compiler.Expressions.Statements
 
         public override int Compile(FunctionContext context)
         {
-            // TODO: make this more than a fancy if statement
-
             context.Line(FileName, Line);
 
             var caseLabels = new List<LabelOperand>(Branches.Count);
@@ -84,20 +82,26 @@ namespace Mond.Compiler.Expressions.Statements
 
             CompileCheck(context, Expression, 1);
 
-            for (var i = 0; i < Branches.Count; i++)
+            List<JumpTable> tables;
+            List<JumpEntry> rest;
+            var flattenedBranches = FlattenBranches(Branches, caseLabels);
+            BuildTables(flattenedBranches, caseDefault, out tables, out rest);
+
+            foreach (var table in tables)
             {
-                var branch = Branches[i];
+                var start = table.Entries[0].Value;
+                var labels = table.Entries.Select(e => e.Label).ToList();
 
-                foreach (var condition in branch.Conditions)
-                {
-                    if (!(condition is IConstantExpression))
-                        throw new MondCompilerException(condition.FileName, condition.Line, "Expected a constant value");
+                context.Dup();
+                context.JumpTable(start, labels);
+            }
 
-                    context.Dup();
-                    CompileCheck(context, condition, 1);
-                    context.BinaryOperation(TokenType.EqualTo);
-                    context.JumpTrue(caseLabels[i]);
-                }
+            foreach (var entry in rest)
+            {
+                context.Dup();
+                CompileCheck(context, entry.Condition, 1);
+                context.BinaryOperation(TokenType.EqualTo);
+                context.JumpTrue(entry.Label);
             }
 
             context.Jump(caseDefault);
@@ -169,5 +173,156 @@ namespace Mond.Compiler.Expressions.Statements
                 DefaultBlock.SetParent(this);
             }
         }
+
+        #region Jump Table Stuff
+        private class JumpEntry
+        {
+            public readonly Expression Condition;
+            public readonly LabelOperand Label;
+
+            public JumpEntry(Expression condition, LabelOperand label)
+            {
+                Condition = condition;
+                Label = label;
+            }
+        }
+
+        private class JumpTableEntry<T>
+        {
+            public readonly Expression Condition;
+            public readonly T Value;
+            public readonly LabelOperand Label;
+
+            public JumpTableEntry(Expression condition, T value, LabelOperand label)
+            {
+                Condition = condition;
+                Value = value;
+                Label = label;
+            }
+        }
+
+        private class JumpTable
+        {
+            public readonly ReadOnlyCollection<JumpTableEntry<int>> Entries;
+            public readonly int Holes;
+
+            public JumpTable(List<JumpTableEntry<int>> entries, int holes)
+            {
+                Entries = entries.AsReadOnly();
+                Holes = holes;
+            }
+        }
+
+        static IEnumerable<JumpEntry> FlattenBranches(IList<Branch> branches, IList<LabelOperand> labels)
+        {
+            var branchConditions = new HashSet<MondValue>();
+
+            for (var i = 0; i < branches.Count; i++)
+            {
+                foreach (var condition in branches[i].Conditions)
+                {
+                    var constantExpression = condition as IConstantExpression;
+                    if (constantExpression == null)
+                        throw new MondCompilerException(condition.FileName, condition.Line, "Expected a constant value");
+
+                    if (!branchConditions.Add(constantExpression.GetValue()))
+                        throw new MondCompilerException(condition.FileName, condition.Line, "Duplicate case value");
+
+                    yield return new JumpEntry(condition, labels[i]);
+                }
+            }
+        }
+
+        static void BuildTables(IEnumerable<JumpEntry> jumps, LabelOperand defaultLabel, out List<JumpTable> tables, out List<JumpEntry> rest)
+        {
+            rest = new List<JumpEntry>();
+
+            var numbers = FilterJumps(jumps, rest);
+
+            var comparer = new GenericComparer<JumpTableEntry<int>>((b1, b2) => b1.Value - b2.Value);
+            numbers.Sort(comparer);
+
+            tables = new List<JumpTable>();
+
+            for (var i = 0; i < numbers.Count; i++)
+            {
+                var table = TryBuildTable(numbers, i, defaultLabel);
+
+                if (table != null)
+                {
+                    tables.Add(table);
+                    i += table.Entries.Count - table.Holes - 1;
+                }
+                else
+                {
+                    rest.Add(new JumpEntry(numbers[i].Condition, numbers[i].Label));
+                }
+            }
+        }
+
+        static List<JumpTableEntry<int>> FilterJumps(IEnumerable<JumpEntry> jumps, ICollection<JumpEntry> rest)
+        {
+            var numbers = new List<JumpTableEntry<int>>();
+
+            foreach (var jump in jumps)
+            {
+                var condition = jump.Condition;
+
+                var numberExpression = condition as NumberExpression;
+                if (numberExpression == null)
+                {
+                    rest.Add(jump);
+                    continue;
+                }
+
+                var number = numberExpression.Value;
+                if (double.IsNaN(number) || double.IsInfinity(number) || Math.Abs(number - (int)Math.Truncate(number)) > double.Epsilon)
+                {
+                    rest.Add(jump);
+                    continue;
+                }
+
+                numbers.Add(new JumpTableEntry<int>(jump.Condition, (int)Math.Truncate(number), jump.Label));
+            }
+
+            return numbers;
+        }
+
+        static JumpTable TryBuildTable(IList<JumpTableEntry<int>> jumps, int offset, LabelOperand defaultLabel)
+        {
+            var tableEntries = new List<JumpTableEntry<int>>();
+            var tableHoles = 0;
+
+            var prev = jumps[offset].Value;
+            for (var i = offset; i < jumps.Count; i++)
+            {
+                var holeSize = jumps[i].Value - prev;
+                if (holeSize < 0) throw new Exception("not sorted");
+
+                holeSize--;
+
+                if (holeSize > 3)
+                    break;
+
+                for (var j = 0; j < holeSize; j++)
+                {
+                    tableEntries.Add(new JumpTableEntry<int>(null, 0, defaultLabel));
+                }
+
+                tableEntries.Add(jumps[i]);
+
+                tableHoles += Math.Max(holeSize, 0);
+                prev = jumps[i].Value;
+            }
+
+            if (tableEntries.Count < 3)
+                return null;
+
+            if ((double)tableHoles / tableEntries.Count >= 0.25) // TODO: allow more holes for large tables?
+                return null;
+
+            return new JumpTable(tableEntries, tableHoles);
+        }
+        #endregion
     }
 }
