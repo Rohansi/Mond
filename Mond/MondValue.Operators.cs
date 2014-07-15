@@ -27,12 +27,20 @@ namespace Mond
 
         public static implicit operator bool(MondValue value)
         {
-            if (value.Type == MondValueType.True)
-                return true;
-            if (value.Type == MondValueType.False)
-                return false;
+            switch (value.Type)
+            {
+                case MondValueType.Undefined:
+                case MondValueType.Null:
+                case MondValueType.False:
+                    return false;
 
-            throw new MondRuntimeException("Value could not be casted to a bool");
+                case MondValueType.Number:
+                    // ReSharper disable once CompareOfFloatsByEqualityOperator
+                    return value.NumberValue != 0;
+
+                default:
+                    return true;
+            }
         }
 
         public static implicit operator double(MondValue value)
@@ -150,11 +158,6 @@ namespace Mond
         public static bool operator <=(MondValue left, MondValue right)
         {
             return !(left > right);
-        }
-
-        public static bool operator !(MondValue value)
-        {
-            return value.Type == MondValueType.Undefined || value.Type == MondValueType.False;
         }
     }
 }

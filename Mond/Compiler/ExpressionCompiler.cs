@@ -75,7 +75,7 @@ namespace Mond.Compiler
 
             foreach (var instruction in AllInstructions())
             {
-                instruction.Print();
+                //instruction.Print();
                 instruction.Write(writer);
             }
 
