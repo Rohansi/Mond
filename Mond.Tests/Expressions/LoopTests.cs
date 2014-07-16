@@ -32,13 +32,56 @@ namespace Mond.Tests.Expressions
         [Test]
         public void DoWhile()
         {
-            // TODO
+            var result = Script.Run(@"
+                var a = 0;
+
+                do {
+                    if (a < 2) {
+                        a++;
+                        continue;
+                    }
+
+                    if (a > 2000)
+                        break;
+
+                    a *= 2;
+                } while (a < 1000);
+
+                return a;
+            ");
+
+            Assert.True(result == 1024);
         }
 
         [Test]
         public void For()
         {
-            // TODO
+            var result1 = Script.Run(@"
+                var a = 1;
+
+                for (var i = 2; i <= 10; i++) {
+                    a *= i;
+                }
+
+                return a;
+            ");
+
+            Assert.True(result1 == 3628800);
+
+            var result2 = Script.Run(@"
+                var i = 0;
+
+                for (;;) {
+                    i++;
+
+                    if (i >= 100)
+                        break;
+                }
+
+                return i;
+            ");
+
+            Assert.True(result2 == 100);
         }
     }
 }

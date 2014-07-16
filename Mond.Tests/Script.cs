@@ -8,5 +8,18 @@
             var program = MondProgram.Compile(source);
             return state.Load(program);
         }
+
+        public static MondState Load(params string[] sources)
+        {
+            var state = new MondState();
+
+            foreach (var source in sources)
+            {
+                var program = MondProgram.Compile(source);
+                state.Load(program);
+            }
+
+            return state;
+        }
     }
 }

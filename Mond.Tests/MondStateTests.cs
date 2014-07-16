@@ -8,22 +8,22 @@ namespace Mond.Tests
         [Test]
         public void MultiplePrograms()
         {
-            var state = new MondState();
-
-            var prog1 = MondProgram.Compile(@"
+            const string source1 = @"
                 hello = fun (x) {
                     return 'hi ' + x;
                 };
 
-                return hello('nerd');
-            ");
+                a = hello('nerd');
+            ";
 
-            var prog2 = MondProgram.Compile(@"
-                return hello('brian');
-            ");
+            const string source2 = @"
+                b = hello('brian');
+            ";
 
-            var result1 = state.Load(prog1);
-            var result2 = state.Load(prog2);
+            var state = Script.Load(source1, source2);
+
+            var result1 = state["a"];
+            var result2 = state["b"];
 
             Assert.True(result1 == "hi nerd");
             Assert.True(result2 == "hi brian");
@@ -51,7 +51,7 @@ namespace Mond.Tests
             var state = new MondState();
 
             state["value"] = 123;
-            state["function"] = new MondInstanceFunction((mondState, instance, arguments) => instance[arguments[0]]);
+            state["function"] = new MondInstanceFunction((_, instance, arguments) => instance[arguments[0]]);
 
             var program = MondProgram.Compile(@"
                 return function('value');

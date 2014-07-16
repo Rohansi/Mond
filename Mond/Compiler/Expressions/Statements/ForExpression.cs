@@ -64,8 +64,10 @@ namespace Mond.Compiler.Expressions.Statements
 
             context.Bind(start);
             if (Condition != null)
+            {
                 CompileCheck(context, Condition, 1);
-            context.JumpFalse(end);
+                context.JumpFalse(end);
+            }
 
             context.PushLoop(increment, end);
             CompileCheck(context, Block, 0);
