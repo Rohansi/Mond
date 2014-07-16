@@ -12,8 +12,18 @@ namespace Mond.Compiler.Parselets
             while (!parser.Match(TokenType.RightBrace))
             {
                 var identifier = parser.Take(TokenType.Identifier);
-                parser.Take(TokenType.Colon);
-                var value = parser.ParseExpession();
+
+                Expression value;
+
+                if (parser.Match(TokenType.Comma) || parser.Match(TokenType.RightBrace))
+                {
+                    value = new IdentifierExpression(identifier);
+                }
+                else
+                {
+                    parser.Take(TokenType.Colon);
+                    value = parser.ParseExpession();
+                }
 
                 values.Add(new KeyValuePair<string, Expression>(identifier.Contents, value));
 
