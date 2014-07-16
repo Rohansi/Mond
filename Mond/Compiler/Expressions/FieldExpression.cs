@@ -42,5 +42,12 @@ namespace Mond.Compiler.Expressions
         {
             return this;
         }
+
+        public override void SetParent(Expression parent)
+        {
+            base.SetParent(parent);
+
+            Left.SetParent(this);
+        }
     }
 }

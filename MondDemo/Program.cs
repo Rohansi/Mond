@@ -56,14 +56,14 @@ namespace MondDemo
                 }
 
                 fun Class() {
-                    var base, inst = {
+                    var base, this = {
                         one: fun () -> base.one() + 1,
 
                         prototype: Base()
                     };
 
-                    base = inst.prototype;
-                    return inst;
+                    base = this.prototype;
+                    return this;
                 }
 
                 var a = Class();

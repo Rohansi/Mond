@@ -42,24 +42,13 @@ namespace Mond.Compiler.Expressions
         {
             context.Line(FileName, Line);
 
-            // load "this" value
-            var field = Method as FieldExpression;
-            if (field != null)
-            {
-                CompileCheck(context, field.Left, 1);
-            }
-            else
-            {
-                context.LoadUndefined();
-            }
-
             foreach (var argument in Arguments)
             {
                 CompileCheck(context, argument, 1);
             }
 
             CompileCheck(context, Method, 1);
-            context.Call(Arguments.Count + 1);
+            context.Call(Arguments.Count);
 
             return 1;
         }
@@ -68,14 +57,12 @@ namespace Mond.Compiler.Expressions
         {
             context.Line(FileName, Line);
 
-            context.Load(context.Identifier("this"));
-
             foreach (var argument in Arguments)
             {
                 CompileCheck(context, argument, 1);
             }
 
-            context.TailCall(Arguments.Count + 1, context.Label);
+            context.TailCall(Arguments.Count, context.Label);
         }
 
         public override Expression Simplify()
