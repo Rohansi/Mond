@@ -1,9 +1,9 @@
-﻿using System.Linq;
-using Mond.VirtualMachine;
+﻿using Mond.VirtualMachine;
 
 namespace Mond
 {
-    public delegate MondValue MondFunction(MondState state, MondValue instance, params MondValue[] arguments);
+    public delegate MondValue MondFunction(MondState state, params MondValue[] arguments);
+    public delegate MondValue MondInstanceFunction(MondState state, MondValue instance, params MondValue[] arguments);
 
     public class MondState
     {
@@ -25,9 +25,8 @@ namespace Mond
             return _machine.Load(program);
         }
 
-        public MondValue Call(MondValue closure, MondValue instance, params MondValue[] arguments)
+        public MondValue Call(MondValue closure, params MondValue[] arguments)
         {
-            arguments = Enumerable.Repeat(instance, 1).Concat(arguments).ToArray();
             return _machine.Call(closure, arguments);
         }
     }

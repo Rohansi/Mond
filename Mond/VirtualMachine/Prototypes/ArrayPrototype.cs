@@ -9,7 +9,7 @@
             Value = new MondValue(MondValueType.Object);
             Value["prototype"] = ObjectPrototype.Value;
 
-            Value["length"] = new MondFunction(Length);
+            Value["length"] = new MondInstanceFunction(Length);
         }
 
         private static MondValue Length(MondState state, MondValue instance, params MondValue[] arguments)

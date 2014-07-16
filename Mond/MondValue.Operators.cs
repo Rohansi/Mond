@@ -25,6 +25,11 @@ namespace Mond
             return new MondValue(new Closure(function));
         }
 
+        public static implicit operator MondValue(MondInstanceFunction function)
+        {
+            return new MondValue(new Closure(function));
+        }
+
         public static implicit operator bool(MondValue value)
         {
             switch (value.Type)

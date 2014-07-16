@@ -89,6 +89,17 @@ namespace Mond
             StringValue = null;
         }
 
+        public MondValue(MondInstanceFunction function)
+        {
+            Type = MondValueType.Closure;
+            ClosureValue = new Closure(function);
+
+            ObjectValue = null;
+            ArrayValue = null;
+            NumberValue = 0;
+            StringValue = null;
+        }
+
         internal MondValue(Closure closure)
         {
             Type = MondValueType.Closure;
@@ -118,7 +129,7 @@ namespace Mond
                 {
                     var prototypeValue = GetPrototype();
                     if (prototypeValue.HasValue)
-                        return prototypeValue.Value;
+                        return CheckWrapInstanceNative(prototypeValue.Value);
                     return Undefined;
                 }
 
@@ -126,7 +137,7 @@ namespace Mond
                 {
                     MondValue indexValue;
                     if (ObjectValue.TryGetValue(index, out indexValue))
-                        return indexValue;
+                        return CheckWrapInstanceNative(indexValue);
                 }
 
                 var i = 0;
@@ -140,7 +151,7 @@ namespace Mond
                     {
                         MondValue indexValue;
                         if (currentValue.ObjectValue.TryGetValue(index, out indexValue))
-                            return indexValue;
+                            return CheckWrapInstanceNative(indexValue);
                     }
 
                     prototype = currentValue.GetPrototype();
@@ -325,6 +336,16 @@ namespace Mond
                 default:
                     return null; // TODO: provide prototypes for other types
             }
+        }
+
+        private MondValue CheckWrapInstanceNative(MondValue value)
+        {
+            if (value.Type != MondValueType.Closure || value.ClosureValue.Type != ClosureType.InstanceNative)
+                return value;
+
+            var func = value.ClosureValue.InstanceNativeFunction;
+            var inst = this;
+            return new MondValue((state, args) => func(state, inst, args));
         }
     }
 }

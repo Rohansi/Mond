@@ -428,12 +428,14 @@ namespace Mond.VirtualMachine
                                     args = argFrame;
                                     locals = closureValue.Locals;
                                 }
+                                else if (closureValue.Type == ClosureType.Native)
+                                {
+                                    var result = closureValue.NativeFunction(_state, argFrame.Values);
+                                    _evalStack.Push(result);
+                                }
                                 else
                                 {
-                                    var instance = argFrame.Values[0];
-                                    var arguments = argFrame.Values.Skip(1).TakeWhile(v => true).ToArray();
-                                    var result = closureValue.NativeFunction(_state, instance, arguments);
-                                    _evalStack.Push(result);
+                                    throw new MondRuntimeException("Unhandled closure type");
                                 }
 
                                 break;

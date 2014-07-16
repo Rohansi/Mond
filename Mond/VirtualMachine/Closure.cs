@@ -2,7 +2,7 @@
 {
     enum ClosureType
     {
-        Native, Mond
+        Native, InstanceNative, Mond
     }
 
     class Closure
@@ -15,6 +15,7 @@
         public readonly Frame Locals;
 
         public readonly MondFunction NativeFunction;
+        public readonly MondInstanceFunction InstanceNativeFunction;
 
         public Closure(int programId, int address, Frame arguments, Frame locals)
         {
@@ -24,8 +25,6 @@
             Address = address;
             Arguments = arguments;
             Locals = locals;
-
-            NativeFunction = null;
         }
 
         public Closure(MondFunction function)
@@ -33,11 +32,13 @@
             Type = ClosureType.Native;
 
             NativeFunction = function;
+        }
 
-            ProgramId = -1;
-            Address = -1;
-            Arguments = null;
-            Locals = null;
+        public Closure(MondInstanceFunction function)
+        {
+            Type = ClosureType.InstanceNative;
+
+            InstanceNativeFunction = function;
         }
     }
 }
