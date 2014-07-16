@@ -1,4 +1,7 @@
-﻿using Mond.VirtualMachine;
+﻿using System.Runtime.CompilerServices;
+using Mond.VirtualMachine;
+
+[assembly:InternalsVisibleTo("Mond.Tests")]
 
 namespace Mond
 {

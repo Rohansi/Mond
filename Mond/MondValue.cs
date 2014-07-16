@@ -231,6 +231,12 @@ namespace Mond
 
             switch (Type)
             {
+                case MondValueType.Object:
+                    return ReferenceEquals(ObjectValue, other.ObjectValue);
+
+                case MondValueType.Array:
+                    return ReferenceEquals(ArrayValue, other.ArrayValue);
+
                 case MondValueType.Number:
                     // ReSharper disable once CompareOfFloatsByEqualityOperator
                     return NumberValue == other.NumberValue;
@@ -238,9 +244,11 @@ namespace Mond
                 case MondValueType.String:
                     return StringValue == other.StringValue;
 
+                case MondValueType.Closure:
+                    return ReferenceEquals(ClosureValue, other.ClosureValue);
+
                 default:
-                    // the rest are covered by Type or reference checks
-                    return false;
+                    return Type == other.Type;
             }
         }
 
