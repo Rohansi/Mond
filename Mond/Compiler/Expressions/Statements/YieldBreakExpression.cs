@@ -2,9 +2,9 @@
 
 namespace Mond.Compiler.Expressions.Statements
 {
-    class ContinueExpression : Expression, IBlockStatementExpression
+    class YieldBreakExpression : Expression, IBlockStatementExpression
     {
-        public ContinueExpression(Token token)
+        public YieldBreakExpression(Token token)
             : base(token.FileName, token.Line)
         {
             
@@ -15,18 +15,18 @@ namespace Mond.Compiler.Expressions.Statements
             var indentStr = new string(' ', indent);
 
             Console.Write(indentStr);
-            Console.WriteLine("Continue");
+            Console.WriteLine("YieldBreak");
         }
 
         public override int Compile(FunctionContext context)
         {
             context.Line(FileName, Line);
 
-            var target = context.ContinueLabel();
-            if (target == null)
-                throw new MondCompilerException(FileName, Line, CompilerError.UnresolvedJump);
+            var sequenceContext = context as SequenceBodyContext;
+            if (sequenceContext == null)
+                throw new MondCompilerException(FileName, Line, CompilerError.YieldInFun);
 
-            return context.Jump(target);
+            return context.Jump(sequenceContext.SequenceBody.EndLabel);
         }
 
         public override Expression Simplify()

@@ -76,17 +76,20 @@ namespace Mond.Compiler
             RegisterPrefix(TokenType.LeftParen, new GroupParselet());
             RegisterInfix(TokenType.LeftParen, new CallParselet());
             RegisterInfix(TokenType.QuestionMark, new ConditionalParselet());
-            RegisterPrefix(TokenType.Fun, new FunctionParselet());
             RegisterInfix(TokenType.Dot, new FieldParselet());
             RegisterInfix(TokenType.LeftSquare, new IndexerParselet());
             RegisterPrefix(TokenType.LeftBrace, new ObjectParselet());
             RegisterPrefix(TokenType.LeftSquare, new ArrayParselet());
+            RegisterPrefix(TokenType.Fun, new FunctionParselet());
+            RegisterPrefix(TokenType.Seq, new SequenceParselet());
 
             // statements
             RegisterStatement(TokenType.Semicolon, new SemicolonParselet());
             RegisterStatement(TokenType.LeftBrace, new ScopeParselet());
             RegisterStatement(TokenType.Fun, new FunctionParselet());
             RegisterStatement(TokenType.Return, new ReturnParselet());
+            RegisterStatement(TokenType.Seq, new SequenceParselet());
+            RegisterStatement(TokenType.Yield, new YieldParselet());
             RegisterStatement(TokenType.Break, new BreakParselet());
             RegisterStatement(TokenType.Continue, new ContinueParselet());
             RegisterStatement(TokenType.Var, new VarParselet());

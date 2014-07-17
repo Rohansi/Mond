@@ -15,6 +15,8 @@
         Var,
         Fun,
         Return,
+        Seq,
+        Yield,
         If,
         Else,
         For,

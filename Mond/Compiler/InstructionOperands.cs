@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 
 namespace Mond.Compiler
 {
@@ -30,6 +33,28 @@ namespace Mond.Compiler
         public void Write(BinaryWriter writer)
         {
             writer.Write(Value);
+        }
+    }
+
+    class DeferredImmediateOperand : IInstructionOperand
+    {
+        public readonly Func<int> Value;
+
+        public DeferredImmediateOperand(Func<int> value)
+        {
+            Value = value;
+        }
+
+        public void Print()
+        {
+            Console.Write("{0,-30} (immediate)", Value());
+        }
+
+        public int Length { get { return 4; } }
+
+        public void Write(BinaryWriter writer)
+        {
+            writer.Write(Value());
         }
     }
 
@@ -127,6 +152,34 @@ namespace Mond.Compiler
                 throw new Exception(string.Format("Label '{0}' not bound", Name));
 
             writer.Write(Position.Value);
+        }
+    }
+
+    class ListOperand<T> : IInstructionOperand where T : IInstructionOperand
+    {
+        public readonly ReadOnlyCollection<T> Operands;
+
+        public ListOperand(List<T> operands)
+        {
+            Operands = operands.AsReadOnly();
+        }
+         
+        public void Print()
+        {
+            foreach (var operand in Operands)
+            {
+                operand.Print();
+            }
+        }
+
+        public int Length { get { return Operands.Sum(o => o.Length); } }
+
+        public void Write(BinaryWriter writer)
+        {
+            foreach (var operand in Operands)
+            {
+                operand.Write(writer);
+            }
         }
     }
 }

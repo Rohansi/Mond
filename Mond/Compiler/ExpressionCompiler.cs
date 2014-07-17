@@ -11,8 +11,7 @@ namespace Mond.Compiler
         private readonly List<FunctionContext> _contexts;
         private Scope _currentScope;
         private int _labelIndex;
-
-        public int FrameIndex { get; private set; }
+        private int _frameIndex;
 
         public readonly bool GeneratingDebugInfo;
 
@@ -24,8 +23,7 @@ namespace Mond.Compiler
             _contexts = new List<FunctionContext>();
             _currentScope = null;
             _labelIndex = 0;
-
-            FrameIndex = -1;
+            _frameIndex = -1;
 
             GeneratingDebugInfo = generateDebugInfo;
 
@@ -143,11 +141,16 @@ namespace Mond.Compiler
             return _contexts.SelectMany(c => c.Instructions);
         }
 
-        public FunctionContext MakeFunction(string name)
+        private FunctionContext MakeFunction(string name)
         {
             var context = new FunctionContext(this, name);
-            _contexts.Add(context);
+            RegisterFunction(context);
             return context;
+        }
+
+        public void RegisterFunction(FunctionContext context)
+        {
+            _contexts.Add(context);
         }
 
         public LabelOperand MakeLabel(string name = null)
@@ -157,7 +160,7 @@ namespace Mond.Compiler
 
         public void PushScope()
         {
-            _currentScope = new Scope(FrameIndex, _currentScope);
+            _currentScope = new Scope(_frameIndex, _currentScope);
         }
 
         public void PopScope()
@@ -167,14 +170,14 @@ namespace Mond.Compiler
 
         public void PushFrame()
         {
-            FrameIndex++;
+            _frameIndex++;
             PushScope();
         }
 
         public void PopFrame()
         {
             PopScope();
-            FrameIndex--;
+            _frameIndex--;
         }
 
         public IdentifierOperand Identifier(string name)
@@ -182,9 +185,9 @@ namespace Mond.Compiler
             return _currentScope.Get(name);
         }
 
-        public bool DefineIdentifier(string name, bool isReadOnly)
+        public bool DefineIdentifier(string name, bool isReadOnly, bool allowOverlap)
         {
-            return _currentScope.Define(name, isReadOnly);
+            return _currentScope.Define(name, isReadOnly, allowOverlap);
         }
 
         public bool DefineArgument(int index, string name)

@@ -12,7 +12,7 @@ namespace MondDemo
                 return a.length();
             ";*/
 
-            const string source1 = @"
+            /*const string source1 = @"
                 fun fibonacci(n) {
                     fun inner(m, a, b) {
                         if (m == 0)
@@ -25,6 +25,70 @@ namespace MondDemo
                 }
 
                 return fibonacci(50);
+            ";*/
+
+            /*const string source1 = @"
+                seq counter(start) {
+                    var num = start;
+
+                    while (true) {
+                        yield start++;
+
+                        if (start >= 10)
+                            yield break;
+
+                        yield 'beep';
+                    }
+                }
+
+                var enumerator = counter(1);
+                var i = 0;
+                var obj = {};
+
+                while (enumerator.moveNext()) {
+                    obj[i++] = enumerator.current;
+
+                    if (i > 25)
+                        break;
+                }
+
+                return obj;
+            ";*/
+
+            const string source1 = @"
+                seq fizzBuzz() {
+                    var n = 0;
+
+                    while (true) {
+                        var str = '';
+
+                        if (n % 3 == 0)
+                            str += 'Fizz';
+                        
+                        if (n % 5 == 0)
+                            str += 'Buzz';
+
+                        if (str == '')
+                            str += n;
+
+                        n++;
+                        yield str;
+                    }
+                }
+
+                var enumerator = fizzBuzz();
+                var i = 0;
+                var obj = {};
+
+                while (enumerator.moveNext()) {
+                    obj[i++] = enumerator.current;
+
+                    if (i > 25)
+                        break;
+                }
+
+                return obj;
+            
             ";
 
             try
@@ -37,6 +101,11 @@ namespace MondDemo
 
                 var result1 = state.Load(program1);
                 //var result2 = state.Load(program2);
+
+                foreach (var i in result1.ObjectValue)
+                {
+                    Console.WriteLine(i);
+                }
 
                 Console.WriteLine(result1.ToString());
                 //Console.WriteLine(result2.ToString());

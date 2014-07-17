@@ -19,9 +19,9 @@ namespace Mond.Compiler
             Previous = previous;
         }
 
-        public bool Define(string name, bool isReadOnly)
+        public bool Define(string name, bool isReadOnly, bool allowOverlap = false)
         {
-            if (IsDefined(name))
+            if (!allowOverlap && IsDefined(name))
                 return false;
 
             Scope frameScope = null;

@@ -80,6 +80,8 @@ namespace Mond.Compiler
                 { "var", TokenType.Var },
                 { "fun", TokenType.Fun },
                 { "return", TokenType.Return },
+                { "seq", TokenType.Seq },
+                { "yield", TokenType.Yield },
                 { "if", TokenType.If },
                 { "else", TokenType.Else },
                 { "for", TokenType.For },
@@ -89,7 +91,7 @@ namespace Mond.Compiler
                 { "continue", TokenType.Continue },
                 { "switch", TokenType.Switch },
                 { "case", TokenType.Case },
-                { "default", TokenType.Default }
+                { "default", TokenType.Default },
             };
 
             // longest operators need to be first

@@ -26,6 +26,9 @@ namespace Mond.Compiler.Expressions.Statements
         public override int Compile(FunctionContext context)
         {
             context.Line(FileName, Line);
+            
+            if (context is SequenceBodyContext)
+                throw new MondCompilerException(FileName, Line, CompilerError.ReturnInSeq);
 
             var stack = 0;
 

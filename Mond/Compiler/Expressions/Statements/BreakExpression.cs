@@ -26,8 +26,7 @@ namespace Mond.Compiler.Expressions.Statements
             if (target == null)
                 throw new MondCompilerException(FileName, Line, CompilerError.UnresolvedJump);
 
-            context.Jump(target);
-            return 0;
+            return context.Jump(target);
         }
 
         public override Expression Simplify()

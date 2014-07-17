@@ -5,23 +5,24 @@ namespace Mond.Compiler
 {
     partial class FunctionContext
     {
-        private readonly ExpressionCompiler _compiler;
         private readonly List<Instruction> _instructions;
         private readonly IndexedStack<Tuple<LabelOperand, LabelOperand>> _loopLabels;
+
+        public readonly ExpressionCompiler Compiler;
 
         public readonly IdentifierOperand Name;
         public readonly LabelOperand Label;
 
-        public int IdentifierCount { get; private set; }
+        public int IdentifierCount { get; protected set; }
 
         public FunctionContext(ExpressionCompiler compiler, string name)
         {
-            _compiler = compiler;
+            Compiler = compiler;
             _instructions = new List<Instruction>();
             _loopLabels = new IndexedStack<Tuple<LabelOperand, LabelOperand>>();
 
-            Name = name != null ? _compiler.Identifier(name) : null;
-            Label = _compiler.MakeLabel("function");
+            Name = name != null ? Compiler.Identifier(name) : null;
+            Label = Compiler.MakeLabel("function");
 
             IdentifierCount = 0;
         }
@@ -40,67 +41,64 @@ namespace Mond.Compiler
             }
         }
 
-        public int FrameIndex
+        public virtual FunctionContext MakeFunction(string name)
         {
-            get { return _compiler.FrameIndex; }
+            var context = new FunctionContext(Compiler, name);
+            Compiler.RegisterFunction(context);
+            return context;
         }
 
-        public FunctionContext MakeFunction(string name)
+        public virtual LabelOperand MakeLabel(string name = null)
         {
-            return _compiler.MakeFunction(name);
+            return Compiler.MakeLabel(name);
         }
 
-        public LabelOperand MakeLabel(string name = null)
+        public virtual void PushScope()
         {
-            return _compiler.MakeLabel(name);
+            Compiler.PushScope();
         }
 
-        public void PushScope()
+        public virtual void PopScope()
         {
-            _compiler.PushScope();
+            Compiler.PopScope();
         }
 
-        public void PopScope()
+        public virtual void PushFrame()
         {
-            _compiler.PopScope();
+            Compiler.PushFrame();
         }
 
-        public void PushFrame()
+        public virtual void PopFrame()
         {
-            _compiler.PushFrame();
+            Compiler.PopFrame();
         }
 
-        public void PopFrame()
-        {
-            _compiler.PopFrame();
-        }
-
-        public void PushLoop(LabelOperand continueTarget, LabelOperand breakTarget)
+        public virtual void PushLoop(LabelOperand continueTarget, LabelOperand breakTarget)
         {
             _loopLabels.Push(Tuple.Create(continueTarget, breakTarget));
         }
 
-        public void PopLoop()
+        public virtual void PopLoop()
         {
             _loopLabels.Pop();
         }
 
-        public ConstantOperand<double> Number(double value)
+        public virtual ConstantOperand<double> Number(double value)
         {
-            return _compiler.NumberPool.GetOperand(value);
+            return Compiler.NumberPool.GetOperand(value);
         }
 
         public ConstantOperand<string> String(string value)
         {
-            return _compiler.StringPool.GetOperand(value);
+            return Compiler.StringPool.GetOperand(value);
         }
 
-        public IdentifierOperand Identifier(string name)
+        public virtual IdentifierOperand Identifier(string name)
         {
-            return _compiler.Identifier(name);
+            return Compiler.Identifier(name);
         }
 
-        public LabelOperand ContinueLabel()
+        public virtual LabelOperand ContinueLabel()
         {
             for (var i = _loopLabels.Count - 1; i >= 0; i--)
             {
@@ -112,7 +110,7 @@ namespace Mond.Compiler
             return null;
         }
 
-        public LabelOperand BreakLabel()
+        public virtual LabelOperand BreakLabel()
         {
             for (var i = _loopLabels.Count - 1; i >= 0; i--)
             {
@@ -124,18 +122,22 @@ namespace Mond.Compiler
             return null;
         }
 
-        public bool DefineIdentifier(string name, bool isReadOnly = false)
+        public virtual bool DefineIdentifier(string name, bool isReadOnly = false, bool allowOverlap = false)
         {
-            IdentifierCount++;
-            return _compiler.DefineIdentifier(name, isReadOnly);
+            var success = Compiler.DefineIdentifier(name, isReadOnly, allowOverlap);
+
+            if (success)
+                IdentifierCount++;
+
+            return success;
         }
 
-        public bool DefineArgument(int index, string name)
+        public virtual bool DefineArgument(int index, string name)
         {
-            return _compiler.DefineArgument(index, name);
+            return Compiler.DefineArgument(index, name);
         }
 
-        public void Emit(Instruction instruction)
+        public virtual void Emit(Instruction instruction)
         {
             _instructions.Add(instruction);
         }

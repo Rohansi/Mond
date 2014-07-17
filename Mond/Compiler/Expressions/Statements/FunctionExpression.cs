@@ -34,10 +34,21 @@ namespace Mond.Compiler.Expressions.Statements
             Block.Print(indent + 2);
         }
 
+        public virtual void CompileBody(FunctionContext context)
+        {
+            var stack = 0;
+
+            stack += context.Bind(context.Label);
+            stack += context.Enter();
+            stack += Block.Compile(context);
+            stack += context.LoadUndefined();
+            stack += context.Return();
+
+            CheckStack(stack, 0);
+        }
+
         public override int Compile(FunctionContext context)
         {
-            context.Line(FileName, Line);
-
             var isStatement = Parent is IBlockStatementExpression;
 
             if (Name == null && isStatement)
@@ -53,10 +64,12 @@ namespace Mond.Compiler.Expressions.Statements
                 identifier = context.Identifier(Name);
             }
 
+            // compile body
             var functionContext = context.MakeFunction(Name);
             functionContext.Function(FileName, Name);
+            functionContext.Line(FileName, Line);
 
-            context.PushFrame();
+            functionContext.PushFrame();
 
             for (var i = 0; i < Arguments.Count; i++)
             {
@@ -66,28 +79,29 @@ namespace Mond.Compiler.Expressions.Statements
                     throw new MondCompilerException(FileName, Line, CompilerError.IdentifierAlreadyDefined, name);
             }
 
-            functionContext.Bind(functionContext.Label);
-            functionContext.Enter();
-            Block.Compile(functionContext);
-            functionContext.LoadUndefined();
-            functionContext.Return();
+            CompileBody(functionContext);
+            functionContext.PopFrame();
 
-            context.PopFrame();
-
-            context.Closure(functionContext.Label);
+            // assign result
+            var stack = 0;
+            stack += context.Closure(functionContext.Label);
 
             if (identifier != null)
             {
                 if (!isStatement) // statements should leave nothing on the stack
-                    context.Dup();
+                    stack += context.Dup();
 
-                context.Store(identifier);
+                stack += context.Store(identifier);
 
                 if (isStatement)
-                    return 0;
+                {
+                    CheckStack(stack, 0);
+                    return stack;
+                }
             }
 
-            return 1;
+            CheckStack(stack, 1);
+            return stack;
         }
 
         public override Expression Simplify()

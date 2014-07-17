@@ -9,7 +9,7 @@ namespace Mond.Compiler
 
         public void Function(string fileName, string name = null)
         {
-            if (!_compiler.GeneratingDebugInfo)
+            if (!Compiler.GeneratingDebugInfo)
                 return;
 
             name = name ?? string.Format("lambda_{0}", _lambdaId++);
@@ -18,7 +18,7 @@ namespace Mond.Compiler
 
         public void Line(string fileName, int line)
         {
-            if (!_compiler.GeneratingDebugInfo)
+            if (!Compiler.GeneratingDebugInfo)
                 return;
 
             Emit(new Instruction(InstructionType.Line, String(fileName ?? "null"), new ImmediateOperand(line)));
@@ -71,7 +71,7 @@ namespace Mond.Compiler
             if (operand is IdentifierOperand)
             {
                 Emit(new Instruction(InstructionType.LdLoc, operand));
-                return -1 + 1;
+                return 1;
             }
             
             throw new NotSupportedException();
@@ -225,13 +225,12 @@ namespace Mond.Compiler
 
         public int JumpTable(int start, List<LabelOperand> labels)
         {
-            var operands = new List<IInstructionOperand>(2 + labels.Count);
-            operands.Add(new ImmediateOperand(start));
-            operands.Add(new ImmediateOperand(labels.Count));
-            operands.AddRange(labels);
+            var startOp = new ImmediateOperand(start);
+            var count = new DeferredImmediateOperand(() => labels.Count);
+            var list = new ListOperand<LabelOperand>(labels);
 
-            Emit(new Instruction(InstructionType.JmpTable, operands));
-            return 1;
+            Emit(new Instruction(InstructionType.JmpTable, startOp, count, list));
+            return -1;
         }
 
         private static Dictionary<TokenType, InstructionType> _binaryOperationMap;
