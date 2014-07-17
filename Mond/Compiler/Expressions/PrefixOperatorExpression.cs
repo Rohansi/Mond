@@ -62,7 +62,7 @@ namespace Mond.Compiler.Expressions
             {
                 var storable = Right as IStorableExpression;
                 if (storable == null)
-                    throw new MondCompilerException(FileName, Line, "The left-hand side of an assignment must be storable"); // TODO: better message
+                    throw new MondCompilerException(FileName, Line, CompilerError.LeftSideMustBeStorable);
 
                 if (needResult)
                     stack += context.Dup();

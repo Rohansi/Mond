@@ -55,7 +55,7 @@ namespace Mond.Compiler.Expressions
             else
             {
                 if (identifier.IsReadOnly)
-                    throw new MondCompilerException(FileName, Line, "Can not modify '{0}' because it is readonly", Name);
+                    throw new MondCompilerException(FileName, Line, CompilerError.CantModifyReadonlyVar, Name);
 
                 stack += context.Store(identifier);
             }

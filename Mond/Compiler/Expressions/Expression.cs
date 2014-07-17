@@ -25,7 +25,7 @@
         public void CheckStack(int stack, int requiredStack)
         {
             if (stack != requiredStack)
-                throw new MondCompilerException(FileName, Line, "Bad stack state (compiler bug)");
+                throw new MondCompilerException(FileName, Line, CompilerError.BadStackState);
         }
     }
 }

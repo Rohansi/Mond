@@ -41,14 +41,14 @@ namespace Mond.Compiler.Expressions.Statements
             var isStatement = Parent is IBlockStatementExpression;
 
             if (Name == null && isStatement)
-                throw new MondCompilerException(FileName, Line, "Function is never used");
+                throw new MondCompilerException(FileName, Line, CompilerError.FunctionNeverUsed);
 
             IdentifierOperand identifier = null;
 
             if (Name != null)
             {
                 if (!context.DefineIdentifier(Name, true))
-                    throw new MondCompilerException(FileName, Line, "Identifier '{0}' was previously defined in this scope", Name);
+                    throw new MondCompilerException(FileName, Line, CompilerError.IdentifierAlreadyDefined, Name);
 
                 identifier = context.Identifier(Name);
             }
@@ -63,7 +63,7 @@ namespace Mond.Compiler.Expressions.Statements
                 var name = Arguments[i];
 
                 if (!functionContext.DefineArgument(i, name))
-                    throw new MondCompilerException(FileName, Line, "Identifier '{0}' was previously defined in this scope", name);
+                    throw new MondCompilerException(FileName, Line, CompilerError.IdentifierAlreadyDefined, name);
             }
 
             functionContext.Bind(functionContext.Label);

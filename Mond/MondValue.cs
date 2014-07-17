@@ -120,7 +120,7 @@ namespace Mond
                     var n = (int)index.NumberValue;
 
                     if (n < 0 || n >= ArrayValue.Count)
-                        throw new MondRuntimeException("Index out of bounds");
+                        throw new MondRuntimeException(RuntimeError.IndexOutOfBounds);
 
                     return ArrayValue[n];
                 }
@@ -158,7 +158,7 @@ namespace Mond
                     i++;
 
                     if (i > 100)
-                        throw new MondRuntimeException("Circular prototype definition");
+                        throw new MondRuntimeException(RuntimeError.CircularPrototype);
                 }
 
                 return Undefined;
@@ -170,7 +170,7 @@ namespace Mond
                     var n = (int)index.NumberValue;
 
                     if (n < 0 || n >= ArrayValue.Count)
-                        throw new MondRuntimeException("Index out of bounds");
+                        throw new MondRuntimeException(RuntimeError.IndexOutOfBounds);
 
                     ArrayValue[n] = value;
                     return;
@@ -179,7 +179,7 @@ namespace Mond
                 if (index == "prototype")
                 {
                     if (Type != MondValueType.Object)
-                        throw new MondRuntimeException("Can not set prototype of type {0}", Type);
+                        throw new MondRuntimeException(RuntimeError.CantCreateField, Type);
 
                     ObjectValue["prototype"] = value;
                     return;
@@ -214,11 +214,11 @@ namespace Mond
                     i++;
 
                     if (i > 100)
-                        throw new MondRuntimeException("Circular prototype definition");
+                        throw new MondRuntimeException(RuntimeError.CircularPrototype);
                 }
 
                 if (Type != MondValueType.Object)
-                    throw new MondRuntimeException("Can not create new field on type {0}", Type);
+                    throw new MondRuntimeException(RuntimeError.CantCreateField, Type);
 
                 ObjectValue[index] = value;
             }

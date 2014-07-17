@@ -24,7 +24,7 @@ namespace Mond.Compiler.Expressions.Statements
 
             var target = context.BreakLabel();
             if (target == null)
-                throw new MondCompilerException(FileName, Line, "Unresolved jump");
+                throw new MondCompilerException(FileName, Line, CompilerError.UnresolvedJump);
 
             context.Jump(target);
             return 0;

@@ -42,7 +42,7 @@ namespace Mond.VirtualMachine
         public MondValue Call(MondValue closure, params MondValue[] arguments)
         {
             if (closure.Type != MondValueType.Closure)
-                throw new MondRuntimeException("Attempt to call non-closure");
+                throw new MondRuntimeException(RuntimeError.ValueNotCallable, closure.Type);
 
             var closureValue = closure.ClosureValue;
 
@@ -399,7 +399,7 @@ namespace Mond.VirtualMachine
                                 var closure = _evalStack.Pop();
 
                                 if (closure.Type != MondValueType.Closure)
-                                    throw new MondRuntimeException("Value of type {0} is not callable", closure.Type);
+                                    throw new MondRuntimeException(RuntimeError.ValueNotCallable, closure.Type);
 
                                 var closureValue = closure.ClosureValue;
 
@@ -434,7 +434,7 @@ namespace Mond.VirtualMachine
                                 }
                                 else
                                 {
-                                    throw new MondRuntimeException("Unhandled closure type");
+                                    throw new MondRuntimeException(RuntimeError.UnhandledClosureType);
                                 }
 
                                 break;
@@ -586,7 +586,7 @@ namespace Mond.VirtualMachine
                         #endregion
 
                         default:
-                            throw new MondRuntimeException("Unhandled opcode");
+                            throw new MondRuntimeException(RuntimeError.UnhandledOpcode);
                     }
                 }
             }

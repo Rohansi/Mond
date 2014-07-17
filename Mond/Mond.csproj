@@ -41,6 +41,7 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Compiler\CompilerError.cs" />
     <Compile Include="Compiler\ConstantPool.cs" />
     <Compile Include="Compiler\FunctionContext.cs" />
     <Compile Include="Compiler\Expressions\ArrayExpression.cs" />
@@ -120,6 +121,7 @@
     <Compile Include="MondCompilerException.cs" />
     <Compile Include="MondException.cs" />
     <Compile Include="MondValue.Operators.cs" />
+    <Compile Include="RuntimeError.cs" />
     <Compile Include="VirtualMachine\Prototypes\ArrayPrototype.cs" />
     <Compile Include="VirtualMachine\Closure.cs" />
     <Compile Include="VirtualMachine\DebugInfo.cs" />

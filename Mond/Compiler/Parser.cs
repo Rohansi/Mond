@@ -108,7 +108,7 @@ namespace Mond.Compiler
             _prefixParselets.TryGetValue(token.Type, out prefixParselet);
 
             if (prefixParselet == null)
-                throw new MondCompilerException(token.FileName, token.Line, "Expected Expression but found {0}", token.Type);
+                throw new MondCompilerException(token.FileName, token.Line, CompilerError.ExpectedButFound, "Expression", token.Type);
 
             var left = prefixParselet.Parse(this, token);
 
@@ -229,7 +229,7 @@ namespace Mond.Compiler
             var token = Take();
 
             if (token.Type != type)
-                throw new MondCompilerException(token.FileName, token.Line, "Expected {0} but found {1}", type, token.Type);
+                throw new MondCompilerException(token.FileName, token.Line, CompilerError.ExpectedButFound, type, token.Type);
 
             return token;
         }

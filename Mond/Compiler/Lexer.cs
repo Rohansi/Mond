@@ -204,7 +204,7 @@ namespace Mond.Compiler
                     while (true)
                     {
                         if (index >= _source.Length)
-                            throw new MondCompilerException(_fileName, startLine, "Unterminated string");
+                            throw new MondCompilerException(_fileName, startLine, CompilerError.UnterminatedString);
 
                         ch = _source[index];
 
@@ -220,7 +220,7 @@ namespace Mond.Compiler
                             case '\\':
                                 index++;
                                 if (index >= _source.Length)
-                                    throw new MondCompilerException(_fileName, currentLine, "Unexpected end of file (bad escape sequence)");
+                                    throw new MondCompilerException(_fileName, currentLine, CompilerError.UnexpectedEofString);
 
                                 ch = _source[index];
 
@@ -249,7 +249,7 @@ namespace Mond.Compiler
                                     // TODO: more escape sequences
 
                                     default:
-                                        throw new MondCompilerException(_fileName, currentLine, "Invalid escape sequence '{0}'", ch);
+                                        throw new MondCompilerException(_fileName, currentLine, CompilerError.InvalidEscapeSequence, ch);
                                 }
 
                                 break;
@@ -287,13 +287,13 @@ namespace Mond.Compiler
 
                     double number;
                     if (!double.TryParse(numberContents, NumberStyles.AllowDecimalPoint, null, out number))
-                        throw new MondCompilerException(_fileName, currentLine, "Invalid number");
+                        throw new MondCompilerException(_fileName, currentLine, CompilerError.InvalidNumber);
 
                     yield return new Token(_fileName, currentLine, TokenType.Number, numberContents);
                     continue;
                 }
 
-                throw new MondCompilerException(_fileName, currentLine, "Unexpected character '{0}'", ch);
+                throw new MondCompilerException(_fileName, currentLine, CompilerError.UnexpectedCharacter, ch);
             }
 
             while (true)

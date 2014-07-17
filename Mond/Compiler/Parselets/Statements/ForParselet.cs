@@ -17,7 +17,7 @@ namespace Mond.Compiler.Parselets.Statements
                 initializer = parser.ParseStatement(false);
 
             if (initializer is IBlockStatementExpression)
-                throw new MondCompilerException(token.FileName, token.Line, "For loop initializer can not be block statement");
+                throw new MondCompilerException(token.FileName, token.Line, CompilerError.BadForLoopInitializer);
 
             parser.Take(TokenType.Semicolon);
 

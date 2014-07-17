@@ -51,7 +51,7 @@ namespace Mond
         public static implicit operator double(MondValue value)
         {
             if (value.Type != MondValueType.Number)
-                throw new MondRuntimeException("Value could not be casted to a number");
+                throw new MondRuntimeException(RuntimeError.CantCastTo, value.Type, MondValueType.Number);
 
             return value.NumberValue;
         }
@@ -59,7 +59,7 @@ namespace Mond
         public static implicit operator string(MondValue value)
         {
             if (value.Type != MondValueType.String)
-                throw new MondRuntimeException("Value could not be casted to a string");
+                throw new MondRuntimeException(RuntimeError.CantCastTo, value.Type, MondValueType.String);
 
             return value.StringValue;
         }
@@ -72,7 +72,7 @@ namespace Mond
                 return new MondValue(left.ToString() + right.ToString());
 
             if (left.Type != MondValueType.Number || right.Type != MondValueType.Number)
-                throw new MondRuntimeException("Can not apply addition operator to types {0} and {1}", left.Type, right.Type);
+                throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "addition", left.Type, right.Type);
 
             return new MondValue(left.NumberValue + right.NumberValue);
         }
@@ -80,7 +80,7 @@ namespace Mond
         public static MondValue operator -(MondValue left, MondValue right)
         {
             if (left.Type != MondValueType.Number || right.Type != MondValueType.Number)
-                throw new MondRuntimeException("Can not apply subtraction operator to types {0} and {1}", left.Type, right.Type);
+                throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "subtraction", left.Type, right.Type);
 
             return new MondValue(left.NumberValue - right.NumberValue);
         }
@@ -88,7 +88,7 @@ namespace Mond
         public static MondValue operator *(MondValue left, MondValue right)
         {
             if (left.Type != MondValueType.Number || right.Type != MondValueType.Number)
-                throw new MondRuntimeException("Can not apply multiplication operator to types {0} and {1}", left.Type, right.Type);
+                throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "multiplication", left.Type, right.Type);
 
             return new MondValue(left.NumberValue * right.NumberValue);
         }
@@ -96,7 +96,7 @@ namespace Mond
         public static MondValue operator /(MondValue left, MondValue right)
         {
             if (left.Type != MondValueType.Number || right.Type != MondValueType.Number)
-                throw new MondRuntimeException("Can not apply division operator to types {0} and {1}", left.Type, right.Type);
+                throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "division", left.Type, right.Type);
 
             return new MondValue(left.NumberValue / right.NumberValue);
         }
@@ -104,7 +104,7 @@ namespace Mond
         public static MondValue operator %(MondValue left, MondValue right)
         {
             if (left.Type != MondValueType.Number || right.Type != MondValueType.Number)
-                throw new MondRuntimeException("Can not apply modulo operator to types {0} and {1}", left.Type, right.Type);
+                throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "modulo", left.Type, right.Type);
 
             return new MondValue(left.NumberValue % right.NumberValue);
         }
@@ -112,7 +112,7 @@ namespace Mond
         public static MondValue operator -(MondValue value)
         {
             if (value.Type != MondValueType.Number)
-                throw new MondRuntimeException("Can not apply negation operator to type {0}", value.Type);
+                throw new MondRuntimeException(RuntimeError.CantUseOperatorOnType, "negation", value.Type);
 
             return new MondValue(-value.NumberValue);
         }
@@ -129,24 +129,22 @@ namespace Mond
 
         public static bool operator >(MondValue left, MondValue right)
         {
-            const string typeMismatchError = "Can not use relational operator on {0} and {1}";
-
             switch (left.Type)
             {
                 case MondValueType.Number:
                     if (right.Type != MondValueType.Number)
-                        throw new MondRuntimeException(typeMismatchError, left.Type, right.Type);
+                        throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "relational", left.Type, right.Type);
 
                     return left.NumberValue > right.NumberValue;
 
                 case MondValueType.String:
                     if (right.Type != MondValueType.String)
-                        throw new MondRuntimeException(typeMismatchError, left.Type, right.Type);
+                        throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "relational", left.Type, right.Type);
 
                     return string.Compare(left.StringValue, right.StringValue, CultureInfo.InvariantCulture, CompareOptions.None) > 0;
 
                 default:
-                    throw new MondRuntimeException(typeMismatchError, left.Type, right.Type);
+                    throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "relational", left.Type, right.Type);
             }
         }
 

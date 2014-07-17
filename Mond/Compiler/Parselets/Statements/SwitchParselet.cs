@@ -50,7 +50,7 @@ namespace Mond.Compiler.Parselets.Statements
                 }
 
                 var errorToken = parser.Peek();
-                throw new MondCompilerException(errorToken.FileName, errorToken.Line, "Expected Case or Default but got {0}", errorToken.Type);
+                throw new MondCompilerException(errorToken.FileName, errorToken.Line, CompilerError.ExpectedCaseOrDefault, errorToken.Type);
             }
 
             parser.Take(TokenType.RightBrace);

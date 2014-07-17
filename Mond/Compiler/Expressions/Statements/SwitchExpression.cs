@@ -229,10 +229,10 @@ namespace Mond.Compiler.Expressions.Statements
                 {
                     var constantExpression = condition as IConstantExpression;
                     if (constantExpression == null)
-                        throw new MondCompilerException(condition.FileName, condition.Line, "Expected a constant value");
+                        throw new MondCompilerException(condition.FileName, condition.Line, CompilerError.ExpectedConstant);
 
                     if (!branchConditions.Add(constantExpression.GetValue()))
-                        throw new MondCompilerException(condition.FileName, condition.Line, "Duplicate case value");
+                        throw new MondCompilerException(condition.FileName, condition.Line, CompilerError.DuplicateCase);
 
                     yield return new JumpEntry(condition, labels[i]);
                 }
