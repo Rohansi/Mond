@@ -26,6 +26,8 @@
         public const string YieldInFun = "'yield' can not be used in functions";
         public const string ReturnInSeq = "'yield break' should be used to return from sequences";
 
+        public const string PipelineNeedsCall = "The right side of the pipeline operator must be a function call";
+
         public const string FailedToDefineInternal = "Failed to define internal variable (compiler bug)";
         public const string BadStackState = "Bad stack state (compiler bug)";
     }

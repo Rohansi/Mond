@@ -29,19 +29,19 @@ namespace Mond.Compiler.Expressions.Statements
 
         public override void CompileBody(FunctionContext context)
         {
-            if (!context.DefineIdentifier("#state", false, true) || !context.DefineIdentifier("#enumerator", false, true))
+            if (!context.DefineIdentifier("#state", false, true) || !context.DefineIdentifier("#enumerable", false, true))
                 throw new MondCompilerException(FileName, Line, CompilerError.FailedToDefineInternal);
 
             var stack = 0;
             var state = context.Identifier("#state");
-            var enumerator = context.Identifier("#enumerator");
+            var enumerable = context.Identifier("#enumerable");
             var body = new SequenceBodyExpression(new Token(FileName, Line, TokenType.Fun, null), null, new List<string>(), Block);
             var seqContext = new SequenceContext(context.Compiler, "sequence", body, context);
 
             var getEnumerator = context.MakeFunction("seq_getEnumerator");
             getEnumerator.Bind(getEnumerator.Label);
             getEnumerator.Enter();
-            getEnumerator.Load(enumerator);
+            getEnumerator.Load(enumerable);
             getEnumerator.Return();
 
             stack += context.Bind(context.Label);
@@ -67,9 +67,9 @@ namespace Mond.Compiler.Expressions.Statements
             stack += context.Swap();
             stack += context.StoreField(context.String("getEnumerator"));
 
-            stack += context.Store(enumerator);
+            stack += context.Store(enumerable);
 
-            stack += context.Load(enumerator);
+            stack += context.Load(enumerable);
             stack += context.Return();
 
             CheckStack(stack, 0);
@@ -100,7 +100,7 @@ namespace Mond.Compiler.Expressions.Statements
         {
             var stack = 0;
             var state = context.Identifier("#state");
-            var enumerator = context.Identifier("#enumerator");
+            var enumerable = context.Identifier("#enumerable");
             EndLabel = context.MakeLabel("state_end");
 
             stack += context.Bind(context.Label);
@@ -125,7 +125,7 @@ namespace Mond.Compiler.Expressions.Statements
 
             // set enumerator.current to null
             stack += context.LoadNull();
-            stack += context.Load(enumerator);
+            stack += context.Load(enumerable);
             stack += context.StoreField(context.String("current"));
 
             stack += context.LoadFalse();

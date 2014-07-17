@@ -31,7 +31,7 @@ namespace Mond.Compiler.Expressions.Statements
                 throw new MondCompilerException(FileName, Line, CompilerError.YieldInFun);
 
             var state = context.Identifier("#state");
-            var enumerator = context.Identifier("#enumerator");
+            var enumerable = context.Identifier("#enumerable");
 
             var stack = 0;
             var nextState = sequenceContext.SequenceBody.NextState;
@@ -41,7 +41,7 @@ namespace Mond.Compiler.Expressions.Statements
             stack += context.Store(state);
 
             stack += Value.Compile(context);
-            stack += context.Load(enumerator);
+            stack += context.Load(enumerable);
             stack += context.StoreField(context.String("current"));
 
             stack += context.LoadTrue();

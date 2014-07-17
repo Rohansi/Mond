@@ -69,6 +69,7 @@
         QuestionMark,
         Colon,
         Pointy,
+        Pipeline,
 
         Eof
     }

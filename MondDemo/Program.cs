@@ -27,7 +27,7 @@ namespace MondDemo
                 return fibonacci(50);
             ";*/
 
-            const string source1 = @"
+            /*const string source1 = @"
                 seq fizzBuzz() {
                     var n = 1;
 
@@ -58,6 +58,32 @@ namespace MondDemo
                 }
 
                 return values;
+            ";*/
+
+            const string source1 = @"
+                seq range(start, end) {
+                    for (var i = start; i <= end; i++)
+                        yield i;
+                }
+
+                seq where(values, filter) {
+                    foreach (var value : values) {
+                        if (filter(value))
+                            yield value;
+                    }
+                }
+
+                fun toArray(values) {
+                    var array = [];
+
+                    foreach (var value : values) {
+                        array.add(value);
+                    }
+
+                    return array;
+                }
+
+                return range(0, 100) |> where(fun (x) -> x % 2 == 0) |> toArray();
             ";
 
             try

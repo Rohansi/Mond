@@ -68,6 +68,7 @@ namespace Mond.Compiler.Expressions
                 var endOr = context.MakeLabel("endOr");
                 stack += Left.Compile(context);
                 stack += context.JumpTruePeek(endOr);
+                stack += context.Drop();
                 stack += Right.Compile(context);
                 stack += context.Bind(endOr);
 
@@ -80,6 +81,7 @@ namespace Mond.Compiler.Expressions
                 var endAnd = context.MakeLabel("endAnd");
                 stack += Left.Compile(context);
                 stack += context.JumpFalsePeek(endAnd);
+                stack += context.Drop();
                 stack += Right.Compile(context);
                 stack += context.Bind(endAnd);
 

@@ -32,7 +32,7 @@ namespace Mond
             var expression = parser.ParseAll();
             expression.SetParent(null);
             expression.Simplify();
-            //expression.Print(0);
+            expression.Print(0);
 
             var compiler = new ExpressionCompiler(generateDebugInfo);
             return compiler.Compile(expression);

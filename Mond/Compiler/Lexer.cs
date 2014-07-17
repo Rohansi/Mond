@@ -66,7 +66,8 @@ namespace Mond.Compiler
 
                 Tuple.Create("?", TokenType.QuestionMark),
                 Tuple.Create(":", TokenType.Colon),
-                Tuple.Create("->", TokenType.Pointy)
+                Tuple.Create("->", TokenType.Pointy),
+                Tuple.Create("|>", TokenType.Pipeline)
             };
 
             _keywords = new Dictionary<string, TokenType>
