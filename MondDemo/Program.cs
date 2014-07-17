@@ -29,7 +29,7 @@ namespace MondDemo
 
             const string source1 = @"
                 seq fizzBuzz() {
-                    var n = 0;
+                    var n = 1;
 
                     while (true) {
                         var str = '';
@@ -43,22 +43,21 @@ namespace MondDemo
                         if (str == '')
                             str += n;
 
-                        n++;
                         yield str;
+                        n++;
                     }
                 };
                 
-                var i = 0;
-                var obj = {};
+                var values = [];
 
                 foreach (var str : fizzBuzz()) {
-                    obj[i++] = str;
+                    values.add(str);
 
-                    if (i > 500)
+                    if (values.length() >= 500)
                         break;
                 }
 
-                return obj;
+                return values;
             ";
 
             try
@@ -72,9 +71,9 @@ namespace MondDemo
                 var result1 = state.Load(program1);
                 //var result2 = state.Load(program2);
 
-                foreach (var i in result1.ObjectValue)
+                foreach (var i in result1.ArrayValue)
                 {
-                    Console.WriteLine(i);
+                    Console.WriteLine(i.ToString());
                 }
 
                 Console.WriteLine(result1.ToString());
