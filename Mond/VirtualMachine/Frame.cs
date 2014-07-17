@@ -1,10 +1,12 @@
-﻿namespace Mond.VirtualMachine
+﻿using System;
+
+namespace Mond.VirtualMachine
 {
     class Frame
     {
         public readonly int Depth;
         public readonly Frame Previous;
-        public readonly MondValue[] Values;
+        public MondValue[] Values { get; private set; }
 
         public Frame(int depth, Frame previous, int valueCount)
         {
@@ -37,10 +39,15 @@
                 current = current.Previous;
             }
 
-            if (index < 0 || index >= current.Values.Length)
+            if (index < 0)
                 return;
 
-            current.Values[index] = value;
+            var values = current.Values;
+
+            if (index >= values.Length)
+                Array.Resize(ref values, index + 1);
+
+            values[index] = value;
         }
     }
 }
