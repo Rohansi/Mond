@@ -21,8 +21,7 @@ namespace Mond.Compiler.Expressions
         {
             context.Line(FileName, Line);
 
-            context.LoadNull();
-            return 1;
+            return context.LoadNull();
         }
 
         public override Expression Simplify()

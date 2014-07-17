@@ -34,18 +34,22 @@ namespace Mond.Compiler.Expressions.Statements
         {
             context.Line(FileName, Line);
 
+            var stack = 0;
             var start = context.MakeLabel("doWhileStart");
             var end = context.MakeLabel("doWhileEnd");
 
-            context.Bind(start);
-            context.PushLoop(start, end);
-            CompileCheck(context, Block, 0);
-            context.PopLoop();
-            CompileCheck(context, Condition, 1);
-            context.JumpTrue(start);
-            context.Bind(end);
+            stack += context.Bind(start);
 
-            return 0;
+            context.PushLoop(start, end);
+            stack += Block.Compile(context);
+            context.PopLoop();
+
+            stack += Condition.Compile(context);
+            stack += context.JumpTrue(start);
+            stack += context.Bind(end);
+
+            CheckStack(stack, 0);
+            return stack;
         }
 
         public override Expression Simplify()

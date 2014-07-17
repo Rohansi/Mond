@@ -42,27 +42,24 @@ namespace Mond.Compiler.Expressions
         {
             context.Line(FileName, Line);
 
-            foreach (var argument in Arguments)
-            {
-                CompileCheck(context, argument, 1);
-            }
+            var stack = Arguments.Sum(argument => argument.Compile(context));
 
-            CompileCheck(context, Method, 1);
-            context.Call(Arguments.Count);
+            stack += Method.Compile(context);
+            stack += context.Call(Arguments.Count);
 
-            return 1;
+            CheckStack(stack, 1);
+            return stack;
         }
 
-        public void CompileTailCall(FunctionContext context)
+        public int CompileTailCall(FunctionContext context)
         {
             context.Line(FileName, Line);
 
-            foreach (var argument in Arguments)
-            {
-                CompileCheck(context, argument, 1);
-            }
+            var stack = Arguments.Sum(argument => argument.Compile(context));
+            stack += context.TailCall(Arguments.Count, context.Label);
 
-            context.TailCall(Arguments.Count, context.Label);
+            CheckStack(stack, 0);
+            return stack;
         }
 
         public override Expression Simplify()

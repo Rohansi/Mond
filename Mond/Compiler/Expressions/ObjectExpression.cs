@@ -34,17 +34,20 @@ namespace Mond.Compiler.Expressions
         {
             context.Line(FileName, Line);
 
-            context.NewObject();
+            var stack = 0;
+
+            stack += context.NewObject();
 
             foreach (var value in Values)
             {
-                context.Dup();
-                CompileCheck(context, value.Value, 1);
-                context.Swap();
-                context.StoreField(context.String(value.Key));
+                stack += context.Dup();
+                stack += value.Value.Compile(context);
+                stack += context.Swap();
+                stack += context.StoreField(context.String(value.Key));
             }
 
-            return 1;
+            CheckStack(stack, 1);
+            return stack;
         }
 
         public override Expression Simplify()

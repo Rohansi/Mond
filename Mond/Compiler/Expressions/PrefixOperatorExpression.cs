@@ -28,30 +28,30 @@ namespace Mond.Compiler.Expressions
         {
             context.Line(FileName, Line);
 
-            var isAssignment = false;
             var stack = 0;
+            var isAssignment = false;
+            var needResult = !(Parent is BlockExpression);
             
             switch (Operation)
             {
                 case TokenType.Increment:
-                    context.Load(context.Number(1));
-                    CompileCheck(context, Right, 1);
-                    context.BinaryOperation(TokenType.Add);
+                    stack += context.Load(context.Number(1));
+                    stack += Right.Compile(context);
+                    stack += context.BinaryOperation(TokenType.Add);
                     isAssignment = true;
                     break;
 
                 case TokenType.Decrement:
-                    context.Load(context.Number(1));
-                    CompileCheck(context, Right, 1);
-                    context.BinaryOperation(TokenType.Subtract);
+                    stack += context.Load(context.Number(1));
+                    stack += Right.Compile(context);
+                    stack += context.BinaryOperation(TokenType.Subtract);
                     isAssignment = true;
                     break;
 
                 case TokenType.Subtract:
                 case TokenType.LogicalNot:
-                    CompileCheck(context, Right, 1);
-                    context.UnaryOperation(Operation);
-                    stack++;
+                    stack += Right.Compile(context);
+                    stack += context.UnaryOperation(Operation);
                     break;
 
                 default:
@@ -64,17 +64,13 @@ namespace Mond.Compiler.Expressions
                 if (storable == null)
                     throw new MondCompilerException(FileName, Line, "The left-hand side of an assignment must be storable"); // TODO: better message
 
-                var needResult = !(Parent is BlockExpression);
-
                 if (needResult)
-                {
-                    context.Dup();
-                    stack++;
-                }
+                    stack += context.Dup();
 
-                storable.CompileStore(context);
+                stack += storable.CompileStore(context);
             }
-            
+
+            CheckStack(stack, needResult ? 1 : 0);
             return stack;
         }
 

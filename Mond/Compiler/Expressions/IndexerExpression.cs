@@ -36,17 +36,25 @@ namespace Mond.Compiler.Expressions
         {
             context.Line(FileName, Line);
 
-            CompileCheck(context, Left, 1);
-            CompileCheck(context, Index, 1);
-            context.LoadArray();
-            return 1;
+            var stack = 0;
+
+            stack += Left.Compile(context);
+            stack += Index.Compile(context);
+            stack += context.LoadArray();
+
+            CheckStack(stack, 1);
+            return stack;
         }
 
-        public void CompileStore(FunctionContext context)
+        public int CompileStore(FunctionContext context)
         {
-            CompileCheck(context, Left, 1);
-            CompileCheck(context, Index, 1);
-            context.StoreArray();
+            var stack = 0;
+
+            stack += Left.Compile(context);
+            stack += Index.Compile(context);
+            stack += context.StoreArray();
+
+            return stack;
         }
 
         public override Expression Simplify()

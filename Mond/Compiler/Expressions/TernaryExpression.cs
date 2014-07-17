@@ -43,18 +43,20 @@ namespace Mond.Compiler.Expressions
         {
             context.Line(FileName, Line);
 
+            var stack = 0;
             var falseLabel = context.MakeLabel("ternaryFalse");
             var endLabel = context.MakeLabel("ternaryEnd");
 
-            CompileCheck(context, Condition, 1);
-            context.JumpFalse(falseLabel);
-            CompileCheck(context, IfTrue, 1);
-            context.Jump(endLabel);
-            context.Bind(falseLabel);
-            CompileCheck(context, IfFalse, 1);
-            context.Bind(endLabel);
+            stack += Condition.Compile(context);
+            stack += context.JumpFalse(falseLabel);
+            stack += IfTrue.Compile(context);
+            stack += context.Jump(endLabel);
+            stack += context.Bind(falseLabel);
+            stack += IfFalse.Compile(context);
+            stack += context.Bind(endLabel);
 
-            return 1;
+            CheckStack(stack, 1);
+            return stack;
         }
 
         public override Expression Simplify()

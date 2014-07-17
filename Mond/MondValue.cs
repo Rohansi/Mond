@@ -147,13 +147,13 @@ namespace Mond
                 {
                     var currentValue = prototype.Value;
 
-                    if (currentValue.Type == MondValueType.Object)
-                    {
-                        MondValue indexValue;
-                        if (currentValue.ObjectValue.TryGetValue(index, out indexValue))
-                            return CheckWrapInstanceNative(indexValue);
-                    }
-
+                    if (currentValue.Type != MondValueType.Object)
+                        break;
+                    
+                    MondValue indexValue;
+                    if (currentValue.ObjectValue.TryGetValue(index, out indexValue))
+                        return CheckWrapInstanceNative(indexValue);
+                    
                     prototype = currentValue.GetPrototype();
                     i++;
 
@@ -201,13 +201,13 @@ namespace Mond
                 {
                     var currentValue = prototype.Value;
 
-                    if (currentValue.Type == MondValueType.Object)
+                    if (currentValue.Type != MondValueType.Object)
+                        break;
+
+                    if (currentValue.ObjectValue.ContainsKey(index))
                     {
-                        if (currentValue.ObjectValue.ContainsKey(index))
-                        {
-                            currentValue.ObjectValue[index] = value;
-                            return;
-                        }
+                        currentValue.ObjectValue[index] = value;
+                        return;
                     }
 
                     prototype = currentValue.GetPrototype();

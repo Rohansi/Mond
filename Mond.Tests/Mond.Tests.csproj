@@ -39,7 +39,9 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Expressions\ArrayTests.cs" />
     <Compile Include="Expressions\FunctionTests.cs" />
+    <Compile Include="Expressions\ObjectTests.cs" />
     <Compile Include="MondStateTests.cs" />
     <Compile Include="MondValueTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

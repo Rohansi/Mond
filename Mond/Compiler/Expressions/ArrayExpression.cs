@@ -32,13 +32,11 @@ namespace Mond.Compiler.Expressions
         {
             context.Line(FileName, Line);
 
-            foreach (var value in Values)
-            {
-                CompileCheck(context, value, 1);
-            }
+            var stack = Values.Sum(value => value.Compile(context));
+            stack += context.NewArray(Values.Count);
 
-            context.NewArray(Values.Count);
-            return 1;
+            CheckStack(stack, 1);
+            return stack;
         }
 
         public override Expression Simplify()

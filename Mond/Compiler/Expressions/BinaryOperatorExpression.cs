@@ -32,8 +32,9 @@ namespace Mond.Compiler.Expressions
         {
             context.Line(FileName, Line);
 
-            TokenType assignOperation;
+            var stack = 0;
 
+            TokenType assignOperation;
             var hasAssignOperation = _assignMap.TryGetValue(Operation, out assignOperation);
             var isAssign = Operation == TokenType.Assign || hasAssignOperation;
 
@@ -44,50 +45,54 @@ namespace Mond.Compiler.Expressions
                     throw new MondCompilerException(FileName, Line, "The left-hand side of an assignment must be storable");
 
                 var needResult = !(Parent is BlockExpression);
-                var stack = 0;
 
-                CompileCheck(context, Right, 1);
+                stack += Right.Compile(context);
 
                 if (hasAssignOperation)
                 {
-                    CompileCheck(context, Left, 1);
-                    context.BinaryOperation(assignOperation);
+                    stack += Left.Compile(context);
+                    stack += context.BinaryOperation(assignOperation);
                 }
 
                 if (needResult)
-                {
-                    context.Dup();
-                    stack++;
-                }
+                    stack += context.Dup();
 
-                storable.CompileStore(context);
+                stack += storable.CompileStore(context);
+
+                CheckStack(stack, needResult ? 1 : 0);
                 return stack;
             }
 
             if (Operation == TokenType.LogicalOr)
             {
                 var endOr = context.MakeLabel("endOr");
-                CompileCheck(context, Left, 1);
-                context.JumpTruePeek(endOr);
-                CompileCheck(context, Right, 1);
-                context.Bind(endOr);
-                return 1;
+                stack += Left.Compile(context);
+                stack += context.JumpTruePeek(endOr);
+                stack += Right.Compile(context);
+                stack += context.Bind(endOr);
+
+                CheckStack(stack, 1);
+                return stack;
             }
 
             if (Operation == TokenType.LogicalAnd)
             {
                 var endAnd = context.MakeLabel("endAnd");
-                CompileCheck(context, Left, 1);
-                context.JumpFalsePeek(endAnd);
-                CompileCheck(context, Right, 1);
-                context.Bind(endAnd);
-                return 1;
+                stack += Left.Compile(context);
+                stack += context.JumpFalsePeek(endAnd);
+                stack += Right.Compile(context);
+                stack += context.Bind(endAnd);
+
+                CheckStack(stack, 1);
+                return stack;
             }
 
-            CompileCheck(context, Right, 1);
-            CompileCheck(context, Left, 1);
-            context.BinaryOperation(Operation);
-            return 1;
+            stack += Right.Compile(context);
+            stack += Left.Compile(context);
+            stack += context.BinaryOperation(Operation);
+
+            CheckStack(stack, 1);
+            return stack;
         }
 
         public override Expression Simplify()

@@ -23,8 +23,7 @@ namespace Mond.Compiler.Expressions
         {
             context.Line(FileName, Line);
 
-            context.Load(context.Number(Value));
-            return 1;
+            return context.Load(context.Number(Value));
         }
 
         public override Expression Simplify()

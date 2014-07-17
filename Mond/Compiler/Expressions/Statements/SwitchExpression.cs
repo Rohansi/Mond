@@ -70,6 +70,7 @@ namespace Mond.Compiler.Expressions.Statements
         {
             context.Line(FileName, Line);
 
+            var stack = 0;
             var caseLabels = new List<LabelOperand>(Branches.Count);
 
             for (var i = 0; i < Branches.Count; i++)
@@ -80,7 +81,7 @@ namespace Mond.Compiler.Expressions.Statements
             var caseDefault = context.MakeLabel("caseDefault");
             var caseEnd = context.MakeLabel("caseEnd");
 
-            CompileCheck(context, Expression, 1);
+            stack += Expression.Compile(context);
 
             List<JumpTable> tables;
             List<JumpEntry> rest;
@@ -92,42 +93,47 @@ namespace Mond.Compiler.Expressions.Statements
                 var start = table.Entries[0].Value;
                 var labels = table.Entries.Select(e => e.Label).ToList();
 
-                context.Dup();
-                context.JumpTable(start, labels);
+                stack += context.Dup();
+                stack += context.JumpTable(start, labels);
             }
 
             foreach (var entry in rest)
             {
-                context.Dup();
-                CompileCheck(context, entry.Condition, 1);
-                context.BinaryOperation(TokenType.EqualTo);
-                context.JumpTrue(entry.Label);
+                stack += context.Dup();
+                stack += entry.Condition.Compile(context);
+                stack += context.BinaryOperation(TokenType.EqualTo);
+                stack += context.JumpTrue(entry.Label);
             }
 
-            context.Jump(caseDefault);
+            stack += context.Jump(caseDefault);
 
             context.PushLoop(null, caseEnd);
 
             for (var i = 0; i < Branches.Count; i++)
             {
+                var branchStack = stack;
                 var branch = Branches[i];
-                context.Bind(caseLabels[i]);
-                context.Drop();
-                CompileCheck(context, branch.Block, 0);
-                context.Jump(caseEnd);
+
+                branchStack += context.Bind(caseLabels[i]);
+                branchStack += context.Drop();
+                branchStack += branch.Block.Compile(context);
+                branchStack += context.Jump(caseEnd);
+
+                CheckStack(branchStack, 0);
             }
 
-            context.Bind(caseDefault);
-            context.Drop();
+            stack += context.Bind(caseDefault);
+            stack += context.Drop();
 
             if (DefaultBlock != null)
-                CompileCheck(context, DefaultBlock, 0);
+                stack += DefaultBlock.Compile(context);
 
             context.PopLoop();
 
-            context.Bind(caseEnd);
+            stack += context.Bind(caseEnd);
 
-            return 0;
+            CheckStack(stack, 0);
+            return stack;
         }
 
         public override Expression Simplify()

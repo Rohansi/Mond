@@ -42,25 +42,25 @@ namespace Mond.Compiler.Expressions
             return 1;
         }
 
-        public void CompileStore(FunctionContext context)
+        public int CompileStore(FunctionContext context)
         {
+            var stack = 0;
             var identifier = context.Identifier(Name);
-
-            /*if (identifier == null)
-                throw new MondCompilerException(FileName, Line, "Undefined identifier '{0}'", Name);*/
 
             if (identifier == null)
             {
-                context.LoadGlobal();
-                context.StoreField(context.String(Name));
+                stack += context.LoadGlobal();
+                stack += context.StoreField(context.String(Name));
             }
             else
             {
                 if (identifier.IsReadOnly)
                     throw new MondCompilerException(FileName, Line, "Can not modify '{0}' because it is readonly", Name);
 
-                context.Store(identifier);
+                stack += context.Store(identifier);
             }
+
+            return stack;
         }
 
         public override Expression Simplify()

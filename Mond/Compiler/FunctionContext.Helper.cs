@@ -24,170 +24,206 @@ namespace Mond.Compiler
             Emit(new Instruction(InstructionType.Line, String(fileName ?? "null"), new ImmediateOperand(line)));
         }
 
-        public void Bind(LabelOperand label)
+        public int Bind(LabelOperand label)
         {
             Emit(new Instruction(InstructionType.Label, label));
+            return 0;
         }
 
-        public void LoadUndefined()
+        public int LoadUndefined()
         {
             Emit(new Instruction(InstructionType.LdUndef));
+            return 1;
         }
 
-        public void LoadNull()
+        public int LoadNull()
         {
             Emit(new Instruction(InstructionType.LdNull));
+            return 1;
         }
 
-        public void LoadTrue()
+        public int LoadTrue()
         {
             Emit(new Instruction(InstructionType.LdTrue));
+            return 1;
         }
 
-        public void LoadFalse()
+        public int LoadFalse()
         {
             Emit(new Instruction(InstructionType.LdFalse));
+            return 1;
         }
 
-        public void Load(IInstructionOperand operand)
+        public int Load(IInstructionOperand operand)
         {
-            InstructionType type;
             if (operand is ConstantOperand<double>)
-                type = InstructionType.LdNum;
-            else if (operand is ConstantOperand<string>)
-                type = InstructionType.LdStr;
-            else if (operand is IdentifierOperand)
-                type = InstructionType.LdLoc;
-            else
-                throw new NotSupportedException();
+            {
+                Emit(new Instruction(InstructionType.LdNum, operand));
+                return 1;
+            }
 
-            Emit(new Instruction(type, operand));
+            if (operand is ConstantOperand<string>)
+            {
+                Emit(new Instruction(InstructionType.LdStr, operand));
+                return 1;
+            }
+
+            if (operand is IdentifierOperand)
+            {
+                Emit(new Instruction(InstructionType.LdLoc, operand));
+                return -1 + 1;
+            }
+            
+            throw new NotSupportedException();
         }
 
-        public void LoadGlobal()
+        public int LoadGlobal()
         {
             Emit(new Instruction(InstructionType.LdGlobal));
+            return 1;
         }
 
-        public void LoadField(ConstantOperand<string> operand)
+        public int LoadField(ConstantOperand<string> operand)
         {
             Emit(new Instruction(InstructionType.LdFld, operand));
+            return -1 + 1;
         }
 
-        public void LoadArray()
+        public int LoadArray()
         {
             Emit(new Instruction(InstructionType.LdArr));
+            return -2 + 1;
         }
 
-        public void Store(IdentifierOperand operand)
+        public int Store(IdentifierOperand operand)
         {
             Emit(new Instruction(InstructionType.StLoc, operand));
+            return -1;
         }
 
-        public void StoreField(ConstantOperand<string> operand)
+        public int StoreField(ConstantOperand<string> operand)
         {
             Emit(new Instruction(InstructionType.StFld, operand));
+            return -2;
         }
 
-        public void StoreArray()
+        public int StoreArray()
         {
             Emit(new Instruction(InstructionType.StArr));
+            return -3;
         }
 
-        public void NewObject()
+        public int NewObject()
         {
             Emit(new Instruction(InstructionType.NewObject));
+            return 1;
         }
 
-        public void NewArray(int length)
+        public int NewArray(int length)
         {
             Emit(new Instruction(InstructionType.NewArray, new ImmediateOperand(length)));
+            return -length + 1;
         }
 
-        public void Dup()
+        public int Dup()
         {
             Emit(new Instruction(InstructionType.Dup));
+            return 1;
         }
 
-        public void Drop()
+        public int Drop()
         {
             Emit(new Instruction(InstructionType.Drop));
+            return -1;
         }
 
-        public void Swap()
+        public int Swap()
         {
             Emit(new Instruction(InstructionType.Swap));
+            return 0;
         }
 
-        public void BinaryOperation(TokenType operation)
+        public int BinaryOperation(TokenType operation)
         {
             InstructionType type;
             if (!_binaryOperationMap.TryGetValue(operation, out type))
                 throw new NotSupportedException();
 
             Emit(new Instruction(type));
+            return -2 + 1;
         }
 
-        public void UnaryOperation(TokenType operation)
+        public int UnaryOperation(TokenType operation)
         {
             InstructionType type;
             if (!_unaryOperationMap.TryGetValue(operation, out type))
                 throw new NotSupportedException();
 
             Emit(new Instruction(type));
+            return -1 + 1;
         }
 
-        public void Closure(LabelOperand label)
+        public int Closure(LabelOperand label)
         {
             Emit(new Instruction(InstructionType.Closure, label));
+            return 1;
         }
 
-        public void Call(int argumentCount)
+        public int Call(int argumentCount)
         {
             Emit(new Instruction(InstructionType.Call, new ImmediateOperand(argumentCount)));
+            return -argumentCount - 1 + 1;
         }
 
-        public void TailCall(int argumentCount, LabelOperand label)
+        public int TailCall(int argumentCount, LabelOperand label)
         {
             Emit(new Instruction(InstructionType.TailCall, new ImmediateOperand(argumentCount), label));
+            return -argumentCount;
         }
 
-        public void Return()
+        public int Return()
         {
             Emit(new Instruction(InstructionType.Ret));
+            return -1;
         }
 
-        public void Enter()
+        public int Enter()
         {
             Emit(new Instruction(InstructionType.Enter));
+            return 0;
         }
 
-        public void Jump(LabelOperand label)
+        public int Jump(LabelOperand label)
         {
             Emit(new Instruction(InstructionType.Jmp, label));
+            return 0;
         }
 
-        public void JumpTrue(LabelOperand label)
+        public int JumpTrue(LabelOperand label)
         {
             Emit(new Instruction(InstructionType.JmpTrue, label));
+            return -1;
         }
 
-        public void JumpFalse(LabelOperand label)
+        public int JumpFalse(LabelOperand label)
         {
             Emit(new Instruction(InstructionType.JmpFalse, label));
+            return -1;
         }
 
-        public void JumpTruePeek(LabelOperand label)
+        public int JumpTruePeek(LabelOperand label)
         {
             Emit(new Instruction(InstructionType.JmpTrueP, label));
+            return 0;
         }
 
-        public void JumpFalsePeek(LabelOperand label)
+        public int JumpFalsePeek(LabelOperand label)
         {
             Emit(new Instruction(InstructionType.JmpFalseP, label));
+            return 0;
         }
 
-        public void JumpTable(int start, List<LabelOperand> labels)
+        public int JumpTable(int start, List<LabelOperand> labels)
         {
             var operands = new List<IInstructionOperand>(2 + labels.Count);
             operands.Add(new ImmediateOperand(start));
@@ -195,6 +231,7 @@ namespace Mond.Compiler
             operands.AddRange(labels);
 
             Emit(new Instruction(InstructionType.JmpTable, operands));
+            return 1;
         }
 
         private static Dictionary<TokenType, InstructionType> _binaryOperationMap;

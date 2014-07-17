@@ -22,12 +22,10 @@
             Parent = parent;
         }
 
-        public static void CompileCheck(FunctionContext context, Expression expression, int requiredStack)
+        public void CheckStack(int stack, int requiredStack)
         {
-            var stack = expression.Compile(context);
-
             if (stack != requiredStack)
-                throw new MondCompilerException(expression.FileName, expression.Line, "Bad stack state");
+                throw new MondCompilerException(FileName, Line, "Bad stack state (compiler bug)");
         }
     }
 }

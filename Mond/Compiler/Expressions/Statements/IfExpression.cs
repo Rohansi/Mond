@@ -68,6 +68,7 @@ namespace Mond.Compiler.Expressions.Statements
         {
             context.Line(FileName, Line);
 
+            var stack = 0;
             var branchLabels = new List<LabelOperand>(Branches.Count);
 
             for (var i = 0; i < Branches.Count; i++)
@@ -81,27 +82,30 @@ namespace Mond.Compiler.Expressions.Statements
             for (var i = 0; i < Branches.Count; i++)
             {
                 var branch = Branches[i];
-                CompileCheck(context, branch.Condition, 1);
-                context.JumpTrue(branchLabels[i]);
+
+                stack += branch.Condition.Compile(context);
+                stack += context.JumpTrue(branchLabels[i]);
             }
 
-            context.Jump(branchElse);
+            stack += context.Jump(branchElse);
 
             for (var i = 0; i < Branches.Count; i++)
             {
                 var branch = Branches[i];
-                context.Bind(branchLabels[i]);
-                CompileCheck(context, branch.Block, 0);
-                context.Jump(branchEnd);
+
+                stack += context.Bind(branchLabels[i]);
+                stack += branch.Block.Compile(context);
+                stack += context.Jump(branchEnd);
             }
 
-            context.Bind(branchElse);
+            stack += context.Bind(branchElse);
 
             if (Else != null)
-                CompileCheck(context, Else.Block, 0);
+                stack += Else.Block.Compile(context);
 
-            context.Bind(branchEnd);
+            stack += context.Bind(branchEnd);
 
+            CheckStack(stack, 0);
             return 0;
         }
 

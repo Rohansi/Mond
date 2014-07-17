@@ -50,6 +50,8 @@ namespace Mond.Compiler.Expressions.Statements
         {
             context.Line(FileName, Line);
 
+            var stack = 0;
+
             foreach (var declaration in Declarations)
             {
                 var name = declaration.Name;
@@ -61,13 +63,13 @@ namespace Mond.Compiler.Expressions.Statements
                 {
                     var identifier = context.Identifier(name);
 
-                    CompileCheck(context, declaration.Initializer, 1);
-
-                    context.Store(identifier);
+                    stack += declaration.Initializer.Compile(context);
+                    stack += context.Store(identifier);
                 }
             }
 
-            return 0;
+            CheckStack(stack, 0);
+            return stack;
         }
 
         public override Expression Simplify()

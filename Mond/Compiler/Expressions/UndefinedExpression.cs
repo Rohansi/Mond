@@ -22,8 +22,7 @@ namespace Mond.Compiler.Expressions
         {
             context.Line(FileName, Line);
 
-            context.LoadUndefined();
-            return 1;
+            return context.LoadUndefined();
         }
 
         public override Expression Simplify()

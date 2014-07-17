@@ -27,6 +27,8 @@ namespace Mond.Compiler.Expressions.Statements
         {
             context.Line(FileName, Line);
 
+            var stack = 0;
+
             if (context.Name != null)
             {
                 var callExpression = Value as CallExpression;
@@ -35,19 +37,22 @@ namespace Mond.Compiler.Expressions.Statements
                     var identifierExpression = callExpression.Method as IdentifierExpression;
                     if (identifierExpression != null && context.Identifier(identifierExpression.Name) == context.Name)
                     {
-                        callExpression.CompileTailCall(context);
-                        return 0;
+                        stack += callExpression.CompileTailCall(context);
+                        CheckStack(stack, 0);
+                        return stack;
                     }
                 }
             }
 
             if (Value != null)
-                CompileCheck(context, Value, 1);
+                stack += Value.Compile(context);
             else
-                context.LoadUndefined();
+                stack += context.LoadUndefined();
 
-            context.Return();
-            return 0;
+            stack += context.Return();
+
+            CheckStack(stack, 0);
+            return stack;
         }
 
         public override Expression Simplify()

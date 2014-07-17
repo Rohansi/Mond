@@ -55,32 +55,36 @@ namespace Mond.Compiler.Expressions.Statements
         {
             context.Line(FileName, Line);
 
+            var stack = 0;
             var start = context.MakeLabel("forStart");
             var increment = context.MakeLabel("forContinue");
             var end = context.MakeLabel("forEnd");
 
             if (Initializer != null)
-                CompileCheck(context, Initializer, 0);
+                stack += Initializer.Compile(context);
 
             context.Bind(start);
             if (Condition != null)
             {
-                CompileCheck(context, Condition, 1);
-                context.JumpFalse(end);
+                stack += Condition.Compile(context);
+                stack += context.JumpFalse(end);
             }
 
             context.PushLoop(increment, end);
-            CompileCheck(context, Block, 0);
+            stack += Block.Compile(context);
             context.PopLoop();
 
-            context.Bind(increment);
+            stack += context.Bind(increment);
+
             if (Increment != null)
-                CompileCheck(context, Increment, 0);
-            context.Jump(start);
+                stack += Increment.Compile(context);
 
-            context.Bind(end);
+            stack += context.Jump(start);
 
-            return 0;
+            stack += context.Bind(end);
+
+            CheckStack(stack, 0);
+            return stack;
         }
 
         public override Expression Simplify()

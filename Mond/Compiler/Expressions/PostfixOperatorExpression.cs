@@ -34,34 +34,33 @@ namespace Mond.Compiler.Expressions
             if (storable == null)
                 throw new MondCompilerException(FileName, Line, "The left-hand side of an assignment must be storable"); // TODO: better message
 
-            var needResult = !(Parent is BlockExpression);
             var stack = 0;
+            var needResult = !(Parent is BlockExpression);
 
             if (needResult)
-            {
-                CompileCheck(context, Left, 1);
-                stack++;
-            }
+                stack += Left.Compile(context);
 
             switch (Operation)
             {
                 case TokenType.Increment:
-                    context.Load(context.Number(1));
-                    CompileCheck(context, Left, 1);
-                    context.BinaryOperation(TokenType.Add);
+                    stack += context.Load(context.Number(1));
+                    stack += Left.Compile(context);
+                    stack += context.BinaryOperation(TokenType.Add);
                     break;
 
                 case TokenType.Decrement:
-                    context.Load(context.Number(1));
-                    CompileCheck(context, Left, 1);
-                    context.BinaryOperation(TokenType.Subtract);
+                    stack += context.Load(context.Number(1));
+                    stack += Left.Compile(context);
+                    stack += context.BinaryOperation(TokenType.Subtract);
                     break;
 
                 default:
                     throw new NotSupportedException();
             }
 
-            storable.CompileStore(context);
+            stack += storable.CompileStore(context);
+
+            CheckStack(stack, needResult ? 1 : 0);
             return stack;
         }
 
