@@ -38,6 +38,12 @@ namespace Mond.Compiler.Expressions.Statements
             var body = new SequenceBodyExpression(new Token(FileName, Line, TokenType.Fun, null), null, new List<string>(), Block);
             var seqContext = new SequenceContext(context.Compiler, "sequence", body, context);
 
+            var getEnumerator = context.MakeFunction("seq_getEnumerator");
+            getEnumerator.Bind(getEnumerator.Label);
+            getEnumerator.Enter();
+            getEnumerator.Load(enumerator);
+            getEnumerator.Return();
+
             stack += context.Bind(context.Label);
             stack += context.Enter();
 
@@ -55,6 +61,11 @@ namespace Mond.Compiler.Expressions.Statements
             stack += body.Compile(seqContext);
             stack += context.Swap();
             stack += context.StoreField(context.String("moveNext"));
+
+            stack += context.Dup();
+            stack += context.Closure(getEnumerator.Label);
+            stack += context.Swap();
+            stack += context.StoreField(context.String("getEnumerator"));
 
             stack += context.Store(enumerator);
 

@@ -97,6 +97,7 @@ namespace Mond.Compiler
             RegisterStatement(TokenType.While, new WhileParselet());
             RegisterStatement(TokenType.Do, new DoWhileParselet());
             RegisterStatement(TokenType.For, new ForParselet());
+            RegisterStatement(TokenType.Foreach, new ForeachParselet());
             RegisterStatement(TokenType.Switch, new SwitchParselet());
         }
 

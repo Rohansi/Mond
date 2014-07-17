@@ -27,34 +27,6 @@ namespace MondDemo
                 return fibonacci(50);
             ";*/
 
-            /*const string source1 = @"
-                seq counter(start) {
-                    var num = start;
-
-                    while (true) {
-                        yield start++;
-
-                        if (start >= 10)
-                            yield break;
-
-                        yield 'beep';
-                    }
-                }
-
-                var enumerator = counter(1);
-                var i = 0;
-                var obj = {};
-
-                while (enumerator.moveNext()) {
-                    obj[i++] = enumerator.current;
-
-                    if (i > 25)
-                        break;
-                }
-
-                return obj;
-            ";*/
-
             const string source1 = @"
                 seq fizzBuzz() {
                     var n = 0;
@@ -74,21 +46,19 @@ namespace MondDemo
                         n++;
                         yield str;
                     }
-                }
-
-                var enumerator = fizzBuzz();
+                };
+                
                 var i = 0;
                 var obj = {};
 
-                while (enumerator.moveNext()) {
-                    obj[i++] = enumerator.current;
+                foreach (var str : fizzBuzz()) {
+                    obj[i++] = str;
 
-                    if (i > 25)
+                    if (i > 500)
                         break;
                 }
 
                 return obj;
-            
             ";
 
             try

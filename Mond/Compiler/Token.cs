@@ -20,6 +20,7 @@
         If,
         Else,
         For,
+        Foreach,
         While,
         Do,
         Break,

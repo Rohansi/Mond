@@ -43,6 +43,7 @@
   <ItemGroup>
     <Compile Include="Compiler\CompilerError.cs" />
     <Compile Include="Compiler\ConstantPool.cs" />
+    <Compile Include="Compiler\Expressions\Statements\ForeachExpression.cs" />
     <Compile Include="Compiler\Expressions\Statements\SequenceExpression.cs" />
     <Compile Include="Compiler\Expressions\Statements\YieldBreakExpression.cs" />
     <Compile Include="Compiler\Expressions\Statements\YieldExpression.cs" />
@@ -63,6 +64,7 @@
     <Compile Include="Compiler\Parselets\InfinityParselet.cs" />
     <Compile Include="Compiler\Parselets\NaNParselet.cs" />
     <Compile Include="Compiler\Parselets\ObjectParselet.cs" />
+    <Compile Include="Compiler\Parselets\Statements\ForeachParselet.cs" />
     <Compile Include="Compiler\Parselets\Statements\SequenceParselet.cs" />
     <Compile Include="Compiler\Parselets\Statements\YieldParselet.cs" />
     <Compile Include="Compiler\Parselets\UndefinedParselet.cs" />
