@@ -44,7 +44,16 @@ namespace Mond.Tests.Expressions
                         case null:      return 3;
                         case 4:         return 4;
                         case 'beep':    return 5;
-                        default:        return 6;
+
+                        case 6:
+                        case 7:
+                            if (x == 7)
+                                break;
+                            
+                            return 6;
+
+                        default:
+                            return 8;
                     }
 
                     return 7;
@@ -63,7 +72,11 @@ namespace Mond.Tests.Expressions
 
             Assert.True(state.Call(test, "beep") == 5);
 
-            Assert.True(state.Call(test, MondValue.Undefined) == 6);
+            Assert.True(state.Call(test, 6) == 6);
+
+            Assert.True(state.Call(test, 7) == 7);
+
+            Assert.True(state.Call(test, MondValue.Undefined) == 8);
         }
     }
 }
