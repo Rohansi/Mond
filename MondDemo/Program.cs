@@ -30,7 +30,7 @@ namespace MondDemo
                 
                 var values = [];
 
-                foreach (var str : fizzBuzz()) {
+                foreach (var str in fizzBuzz()) {
                     values.add(str);
 
                     if (values.length() >= 500)
@@ -46,17 +46,12 @@ namespace MondDemo
                         yield i;
                 }
 
-                seq where(values, filter) {
-                    foreach (var value : values) {
-                        if (filter(value))
-                            yield value;
-                    }
-                }
+                fun where(list, filter) -> [x : x in list, filter(x)];
 
                 fun toArray(values) {
                     var array = [];
 
-                    foreach (var value : values) {
+                    foreach (var value in values) {
                         array.add(value);
                     }
 

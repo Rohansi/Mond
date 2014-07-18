@@ -21,6 +21,7 @@
         Else,
         For,
         Foreach,
+        In,
         While,
         Do,
         Break,

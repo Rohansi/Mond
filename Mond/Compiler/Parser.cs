@@ -221,9 +221,9 @@ namespace Mond.Compiler
         /// <summary>
         /// Check if the next token matches the given type.
         /// </summary>
-        public bool Match(TokenType type)
+        public bool Match(TokenType type, int distance = 0)
         {
-            return Peek().Type == type;
+            return Peek(distance).Type == type;
         }
 
         /// <summary>

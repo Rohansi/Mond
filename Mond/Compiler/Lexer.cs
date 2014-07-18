@@ -87,6 +87,7 @@ namespace Mond.Compiler
                 { "else", TokenType.Else },
                 { "for", TokenType.For },
                 { "foreach", TokenType.Foreach },
+                { "in", TokenType.In },
                 { "while", TokenType.While },
                 { "do", TokenType.Do },
                 { "break", TokenType.Break },
