@@ -2,7 +2,7 @@
 
 namespace Mond.Compiler.Expressions.Statements
 {
-    class YieldExpression : Expression, IBlockStatementExpression
+    class YieldExpression : Expression, IStatementExpression
     {
         public Expression Value { get; private set; }
 

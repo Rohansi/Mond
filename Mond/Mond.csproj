@@ -43,6 +43,7 @@
   <ItemGroup>
     <Compile Include="Compiler\CompilerError.cs" />
     <Compile Include="Compiler\ConstantPool.cs" />
+    <Compile Include="Compiler\Expressions\IBlockExpression.cs" />
     <Compile Include="Compiler\Expressions\PipelineExpression.cs" />
     <Compile Include="Compiler\Expressions\Statements\ForeachExpression.cs" />
     <Compile Include="Compiler\Expressions\Statements\SequenceExpression.cs" />
@@ -79,7 +80,7 @@
     <Compile Include="Compiler\Expressions\EmptyExpression.cs" />
     <Compile Include="Compiler\Expressions\Statements\ForExpression.cs" />
     <Compile Include="Compiler\Expressions\Statements\FunctionExpression.cs" />
-    <Compile Include="Compiler\Expressions\IBlockStatementExpression.cs" />
+    <Compile Include="Compiler\Expressions\IStatementExpression.cs" />
     <Compile Include="Compiler\Expressions\Statements\IfExpression.cs" />
     <Compile Include="Compiler\Expressions\NullExpression.cs" />
     <Compile Include="Compiler\Expressions\NumberExpression.cs" />

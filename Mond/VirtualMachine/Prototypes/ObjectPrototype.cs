@@ -1,4 +1,6 @@
-﻿namespace Mond.VirtualMachine.Prototypes
+﻿using System;
+
+namespace Mond.VirtualMachine.Prototypes
 {
     static class ObjectPrototype
     {
@@ -8,6 +10,42 @@
         {
             Value = new MondValue(MondValueType.Object);
             Value["prototype"] = MondValue.Undefined; // required to break the chain
+
+            Value["getType"] = new MondInstanceFunction(GetType);
+        }
+
+        private static MondValue GetType(MondState state, MondValue instance, params MondValue[] args)
+        {
+            switch (instance.Type)
+            {
+                case MondValueType.Undefined:
+                    return "undefined";
+
+                case MondValueType.Null:
+                    return "null";
+
+                case MondValueType.True:
+                case MondValueType.False:
+                    return "bool";
+
+                case MondValueType.Object:
+                    return "object";
+
+                case MondValueType.Array:
+                    return "array";
+
+                case MondValueType.Number:
+                    return "number";
+
+                case MondValueType.String:
+                    return "string";
+
+                case MondValueType.Closure:
+                    return "closure";
+
+                default:
+                    throw new NotSupportedException();
+            }
         }
     }
 }

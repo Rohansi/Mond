@@ -2,7 +2,7 @@
 
 namespace Mond.Compiler.Expressions.Statements
 {
-    class ContinueExpression : Expression, IBlockStatementExpression
+    class ContinueExpression : Expression, IStatementExpression
     {
         public ContinueExpression(Token token)
             : base(token.FileName, token.Line)

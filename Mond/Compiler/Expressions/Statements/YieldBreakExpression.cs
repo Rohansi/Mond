@@ -2,7 +2,7 @@
 
 namespace Mond.Compiler.Expressions.Statements
 {
-    class YieldBreakExpression : Expression, IBlockStatementExpression
+    class YieldBreakExpression : Expression, IStatementExpression
     {
         public YieldBreakExpression(Token token)
             : base(token.FileName, token.Line)

@@ -2,7 +2,7 @@
 
 namespace Mond.Compiler.Expressions.Statements
 {
-    class ForExpression : Expression, IBlockStatementExpression
+    class ForExpression : Expression, IStatementExpression
     {
         public Expression Initializer { get; private set; }
         public Expression Condition { get; private set; }

@@ -17,7 +17,7 @@
         public const string ExpectedConstant = "Expected a constant value";
         public const string DuplicateCase = "Duplicate case value";
 
-        public const string BadForLoopInitializer = "For loop initializer can not be block statement";
+        public const string BadForLoopInitializer = "For loop initializer can not be statement";
 
         public const string FunctionNeverUsed = "Function is never used";
 

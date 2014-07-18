@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Mond.Compiler.Expressions
 {
-    class BlockExpression : Expression, IBlockStatementExpression
+    class BlockExpression : Expression, IBlockExpression, IStatementExpression
     {
         public ReadOnlyCollection<Expression> Statements { get; private set; }
 

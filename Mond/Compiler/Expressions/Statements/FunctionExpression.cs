@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 
 namespace Mond.Compiler.Expressions.Statements
 {
-    class FunctionExpression : Expression, IBlockStatementExpression
+    class FunctionExpression : Expression, IStatementExpression
     {
         public string Name { get; private set; }
         public ReadOnlyCollection<string> Arguments { get; private set; }
@@ -49,7 +49,7 @@ namespace Mond.Compiler.Expressions.Statements
 
         public override int Compile(FunctionContext context)
         {
-            var isStatement = Parent is IBlockStatementExpression;
+            var isStatement = Parent is IBlockExpression;
 
             if (Name == null && isStatement)
                 throw new MondCompilerException(FileName, Line, CompilerError.FunctionNeverUsed);

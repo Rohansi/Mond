@@ -16,7 +16,7 @@ namespace Mond.Compiler.Parselets.Statements
             if (!parser.Match(TokenType.Semicolon))
                 initializer = parser.ParseStatement(false);
 
-            if (initializer is IBlockStatementExpression)
+            if (initializer is IStatementExpression && !(initializer is VarExpression))
                 throw new MondCompilerException(token.FileName, token.Line, CompilerError.BadForLoopInitializer);
 
             parser.Take(TokenType.Semicolon);

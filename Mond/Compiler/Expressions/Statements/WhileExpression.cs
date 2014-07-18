@@ -2,7 +2,7 @@
 
 namespace Mond.Compiler.Expressions.Statements
 {
-    class WhileExpression : Expression, IBlockStatementExpression
+    class WhileExpression : Expression, IStatementExpression
     {
         public Expression Condition { get; private set; }
         public BlockExpression Block { get; private set; }

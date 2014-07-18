@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Mond.Compiler.Expressions.Statements
 {
-    class IfExpression : Expression, IBlockStatementExpression
+    class IfExpression : Expression, IStatementExpression
     {
         public class Branch
         {

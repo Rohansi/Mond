@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Mond.Compiler.Expressions.Statements
 {
-    class VarExpression : Expression
+    class VarExpression : Expression, IStatementExpression
     {
         public class Declaration
         {
