@@ -49,14 +49,14 @@ namespace Mond.Compiler.Expressions
 
             stack += Condition.Compile(context);
             stack += context.JumpFalse(falseLabel);
-            stack += IfTrue.Compile(context);
+            CheckStack(IfTrue.Compile(context), 1);
             stack += context.Jump(endLabel);
             stack += context.Bind(falseLabel);
-            stack += IfFalse.Compile(context);
+            CheckStack(IfFalse.Compile(context), 1);
             stack += context.Bind(endLabel);
 
-            CheckStack(stack, 1);
-            return stack;
+            CheckStack(stack, 0);
+            return 1;
         }
 
         public override Expression Simplify()
