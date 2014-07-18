@@ -56,7 +56,7 @@ namespace Mond.Tests.Expressions
         [Test]
         public void For()
         {
-            var result1 = Script.Run(@"
+            var result = Script.Run(@"
                 var a = 1;
 
                 for (var i = 2; i <= 10; i++) {
@@ -66,9 +66,13 @@ namespace Mond.Tests.Expressions
                 return a;
             ");
 
-            Assert.True(result1 == 3628800);
+            Assert.True(result == 3628800);
+        }
 
-            var result2 = Script.Run(@"
+        [Test]
+        public void ForInfinite()
+        {
+            var result = Script.Run(@"
                 var i = 0;
 
                 for (;;) {
@@ -81,7 +85,28 @@ namespace Mond.Tests.Expressions
                 return i;
             ");
 
-            Assert.True(result2 == 100);
+            Assert.True(result == 100);
+        }
+
+        [Test]
+        public void ForNested()
+        {
+            var result = Script.Run(@"
+                var result = 0;
+
+                for (var i = 0; i < 10; i++) {
+                    if (i % 2 == 0)
+                        continue;
+
+                    for (var j = 0; j < 100; j++) {
+                        result++;
+                    }
+                }
+
+                return result;
+            ");
+
+            Assert.True(result == 500);
         }
     }
 }
