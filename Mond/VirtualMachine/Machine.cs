@@ -64,6 +64,10 @@ namespace Mond.VirtualMachine
                 if (closureValue.Locals != null)
                     _localStack.Push(closureValue.Locals);
             }
+            else if (closureValue.Type == ClosureType.Native)
+            {
+                return closureValue.NativeFunction(_state, arguments);
+            }
             else
             {
                 throw new NotSupportedException();
