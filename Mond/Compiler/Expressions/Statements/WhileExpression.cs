@@ -38,9 +38,16 @@ namespace Mond.Compiler.Expressions.Statements
             var start = context.MakeLabel("whileStart");
             var end = context.MakeLabel("whileEnd");
 
+            var boolExpression = Condition as BoolExpression;
+            var isInfinite = boolExpression != null && boolExpression.Value;
+
             stack += context.Bind(start);
-            stack += Condition.Compile(context);
-            stack += context.JumpFalse(end);
+
+            if (!isInfinite)
+            {
+                stack += Condition.Compile(context);
+                stack += context.JumpFalse(end);
+            }
 
             context.PushLoop(start, end);
             stack += Block.Compile(context);
