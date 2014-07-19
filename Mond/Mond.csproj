@@ -128,10 +128,12 @@
     <Compile Include="Compiler\Parser.cs" />
     <Compile Include="Compiler\PrecedenceValue.cs" />
     <Compile Include="GenericComparer.cs" />
+    <Compile Include="IndentTextWriter.cs" />
     <Compile Include="IndexedStack.cs" />
     <Compile Include="MondCompilerException.cs" />
     <Compile Include="MondException.cs" />
     <Compile Include="MondValue.Operators.cs" />
+    <Compile Include="MondValue.Serialize.cs" />
     <Compile Include="RuntimeError.cs" />
     <Compile Include="VirtualMachine\Prototypes\ArrayPrototype.cs" />
     <Compile Include="VirtualMachine\Closure.cs" />

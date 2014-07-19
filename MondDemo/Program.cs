@@ -72,13 +72,8 @@ namespace MondDemo
                 var result1 = state.Load(program1);
                 //var result2 = state.Load(program2);
 
-                foreach (var i in result1.ArrayValue)
-                {
-                    Console.WriteLine(i.ToString());
-                }
-
-                Console.WriteLine(result1.ToString());
-                //Console.WriteLine(result2.ToString());
+                result1.Serialize(Console.Out);
+                //result2.Serialize(Console.Out);
             }
             catch (MondException e)
             {
