@@ -91,7 +91,7 @@ namespace Mond.Compiler.Parselets
                 root.Compile()
             });
 
-            var sequence = new SequenceExpression(token, null, new List<string>(), block);
+            var sequence = new SequenceExpression(token, null, new List<string>(), null, block);
 
             return new CallExpression(token, sequence, new List<Expression>());
         }

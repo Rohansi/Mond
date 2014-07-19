@@ -45,7 +45,10 @@ namespace Mond.VirtualMachine
             var values = current.Values;
 
             if (index >= values.Length)
+            {
                 Array.Resize(ref values, index + 1);
+                current.Values = values;
+            }
 
             values[index] = value;
         }

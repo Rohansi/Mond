@@ -501,6 +501,22 @@ namespace Mond.VirtualMachine
                                 break;
                             }
 
+                        case (int)InstructionType.VarArgs:
+                            {
+                                var fixedCount = BitConverter.ToInt32(code, ip);
+                                ip += 4;
+
+                                var varArgs = new MondValue(MondValueType.Array);
+
+                                for (var i = fixedCount; i < args.Values.Length; i++)
+                                {
+                                    varArgs.ArrayValue.Add(args.Values[i]);
+                                }
+
+                                args.Set(args.Depth, fixedCount, varArgs);
+                                break;
+                            }
+
                         case (int)InstructionType.JmpTable:
                             {
                                 var start = BitConverter.ToInt32(code, ip);

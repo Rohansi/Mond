@@ -32,6 +32,7 @@ namespace Mond.Compiler
 
         Closure, Call, TailCall,            // make closure, call closure, tail call
         Enter, Ret,                         // begin function, return from function
+        VarArgs,                            // setup variable length args
 
         Jmp,                                // jump unconditionally
         JmpTrueP, JmpFalseP,                // jump if peek() == true/false

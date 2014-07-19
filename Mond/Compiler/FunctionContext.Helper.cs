@@ -190,6 +190,12 @@ namespace Mond.Compiler
             return 0;
         }
 
+        public int VarArgs(int fixedCount)
+        {
+            Emit(new Instruction(InstructionType.VarArgs, new ImmediateOperand(fixedCount)));
+            return 0;
+        }
+
         public int Jump(LabelOperand label)
         {
             Emit(new Instruction(InstructionType.Jmp, label));

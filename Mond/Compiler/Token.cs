@@ -71,6 +71,7 @@
         Colon,
         Pointy,
         Pipeline,
+        Ellipsis,
 
         Eof
     }

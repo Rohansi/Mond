@@ -66,6 +66,13 @@ namespace MondDemo
                 var state = new MondState();
                 state["call"] = new MondFunction((_, args) => state.Call(args[0], args[1]));
 
+                state["print"] = new MondFunction((_, args) =>
+                {
+                    args[0].Serialize(Console.Out);
+                    Console.WriteLine();
+                    return MondValue.Undefined;
+                });
+
                 var program1 = MondProgram.Compile(source1, "test1.mnd");
                 //var program2 = MondProgram.Compile(source2, "test2.mnd");
 

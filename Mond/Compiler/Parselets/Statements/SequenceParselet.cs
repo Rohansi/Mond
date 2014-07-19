@@ -12,6 +12,7 @@ namespace Mond.Compiler.Parselets.Statements
 
             string name = null;
             var arguments = new List<string>();
+            string otherArgs = null;
 
             // optional name
             if (parser.Match(TokenType.Identifier))
@@ -26,6 +27,12 @@ namespace Mond.Compiler.Parselets.Statements
             {
                 while (true)
                 {
+                    if (parser.MatchAndTake(TokenType.Ellipsis))
+                    {
+                        otherArgs = parser.Take(TokenType.Identifier).Contents;
+                        break;
+                    }
+
                     var identifier = parser.Take(TokenType.Identifier);
                     arguments.Add(identifier.Contents);
 
@@ -41,7 +48,7 @@ namespace Mond.Compiler.Parselets.Statements
             // parse body
             var body = parser.ParseBlock(false);
 
-            return new SequenceExpression(token, name, arguments, body);
+            return new SequenceExpression(token, name, arguments, otherArgs, body);
         }
 
         public Expression Parse(Parser parser, Token token)

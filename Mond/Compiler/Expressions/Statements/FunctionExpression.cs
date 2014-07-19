@@ -8,15 +8,17 @@ namespace Mond.Compiler.Expressions.Statements
     {
         public string Name { get; private set; }
         public ReadOnlyCollection<string> Arguments { get; private set; }
+        public string OtherArguments { get; private set; }
         public BlockExpression Block { get; private set; }
 
         public string DebugName { get; private set; }
 
-        public FunctionExpression(Token token, string name, List<string> arguments, BlockExpression block, string debugName = null)
+        public FunctionExpression(Token token, string name, List<string> arguments, string otherArgs, BlockExpression block, string debugName = null)
             : base(token.FileName, token.Line)
         {
             Name = name;
             Arguments = arguments.AsReadOnly();
+            OtherArguments = otherArgs;
             Block = block;
 
             DebugName = debugName;
@@ -44,6 +46,10 @@ namespace Mond.Compiler.Expressions.Statements
 
             stack += context.Bind(context.Label);
             stack += context.Enter();
+
+            if (OtherArguments != null)
+                stack += context.VarArgs(Arguments.Count);
+
             stack += Block.Compile(context);
             stack += context.LoadUndefined();
             stack += context.Return();
@@ -81,6 +87,9 @@ namespace Mond.Compiler.Expressions.Statements
                 if (!functionContext.DefineArgument(i, name))
                     throw new MondCompilerException(FileName, Line, CompilerError.IdentifierAlreadyDefined, name);
             }
+
+            if (OtherArguments != null && !functionContext.DefineArgument(Arguments.Count, OtherArguments))
+                throw new MondCompilerException(FileName, Line, CompilerError.IdentifierAlreadyDefined, OtherArguments);
 
             CompileBody(functionContext);
             functionContext.PopScope();

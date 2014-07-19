@@ -5,8 +5,8 @@ namespace Mond.Compiler.Expressions.Statements
 {
     class SequenceExpression : FunctionExpression
     {
-        public SequenceExpression(Token token, string name, List<string> arguments, BlockExpression block)
-            : base(token, name, arguments, block)
+        public SequenceExpression(Token token, string name, List<string> arguments, string otherArgs, BlockExpression block)
+            : base(token, name, arguments, otherArgs, block)
         {
 
         }
@@ -34,7 +34,7 @@ namespace Mond.Compiler.Expressions.Statements
 
             var stack = 0;
             var bodyToken = new Token(FileName, Line, TokenType.Fun, null);
-            var body = new SequenceBodyExpression(bodyToken, null, new List<string>(), Block, "moveNext", state, enumerable);
+            var body = new SequenceBodyExpression(bodyToken, null, Block, "moveNext", state, enumerable);
             var seqContext = new SequenceContext(context.Compiler, "moveNext", body, context);
 
             var getEnumerator = context.MakeFunction("getEnumerator");
@@ -46,6 +46,9 @@ namespace Mond.Compiler.Expressions.Statements
 
             stack += context.Bind(context.Label);
             stack += context.Enter();
+
+            if (OtherArguments != null)
+                stack += context.VarArgs(Arguments.Count);
 
             stack += context.Load(context.Number(0));
             stack += context.Store(state);
@@ -86,8 +89,9 @@ namespace Mond.Compiler.Expressions.Statements
         public int NextState { get { return _stateLabels.Count; } }
         public LabelOperand EndLabel { get; private set; }
 
-        public SequenceBodyExpression(Token token, string name, List<string> arguments, BlockExpression block, string debugName, IdentifierOperand state, IdentifierOperand enumerable)
-            : base(token, name, arguments, block, debugName)
+        public SequenceBodyExpression(Token token, string name, BlockExpression block, string debugName,
+                                      IdentifierOperand state, IdentifierOperand enumerable)
+            : base(token, name, new List<string>(), null, block, debugName)
         {
             _stateLabels = new List<LabelOperand>();
 
