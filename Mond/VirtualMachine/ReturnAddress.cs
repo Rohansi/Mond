@@ -2,13 +2,13 @@
 {
     struct ReturnAddress
     {
-        public readonly int ProgramId;
+        public readonly MondProgram Program;
         public readonly int Address;
         public readonly Frame Arguments;
 
-        public ReturnAddress(int programId, int address, Frame arguments)
+        public ReturnAddress(MondProgram program, int address, Frame arguments)
         {
-            ProgramId = programId;
+            Program = program;
             Address = address;
             Arguments = arguments;
         }

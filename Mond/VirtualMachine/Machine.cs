@@ -7,7 +7,6 @@ namespace Mond.VirtualMachine
     class Machine
     {
         private readonly MondState _state;
-        private readonly List<MondProgram> _programs;
 
         private readonly Stack<ReturnAddress> _callStack;
         private readonly Stack<Frame> _localStack;
@@ -18,7 +17,6 @@ namespace Mond.VirtualMachine
         public Machine(MondState state)
         {
             _state = state;
-            _programs = new List<MondProgram>();
 
             _callStack = new Stack<ReturnAddress>();
             _localStack = new Stack<Frame>();
@@ -32,10 +30,7 @@ namespace Mond.VirtualMachine
             if (program == null)
                 throw new ArgumentNullException("program");
 
-            var programId = _programs.Count;
-            _programs.Add(program);
-
-            var closure = new MondValue(new Closure(programId, 0, null, null));
+            var closure = new MondValue(new Closure(program, 0, null, null));
             return Call(closure);
         }
 
@@ -59,7 +54,7 @@ namespace Mond.VirtualMachine
                     argFrame.Values[i] = arguments[i];
                 }
 
-                _callStack.Push(new ReturnAddress(closureValue.ProgramId, closureValue.Address, argFrame));
+                _callStack.Push(new ReturnAddress(closureValue.Program, closureValue.Address, argFrame));
 
                 if (closureValue.Locals != null)
                     _localStack.Push(closureValue.Locals);
@@ -79,8 +74,7 @@ namespace Mond.VirtualMachine
         public MondValue Run()
         {
             var functionAddress = _callStack.Peek();
-            var programId = functionAddress.ProgramId;
-            var program = _programs[programId];
+            var program = functionAddress.Program;
             var code = program.Bytecode;
 
             var initialCallDepth = _callStack.Count - 1;
@@ -390,7 +384,7 @@ namespace Mond.VirtualMachine
                                 var address = BitConverter.ToInt32(code, ip);
                                 ip += 4;
 
-                                _evalStack.Push(new MondValue(new Closure(programId, address, args, locals)));
+                                _evalStack.Push(new MondValue(new Closure(program, address, args, locals)));
                                 break;
                             }
 
@@ -420,11 +414,10 @@ namespace Mond.VirtualMachine
 
                                 if (closureValue.Type == ClosureType.Mond)
                                 {
-                                    _callStack.Push(new ReturnAddress(programId, returnAddress, argFrame));
+                                    _callStack.Push(new ReturnAddress(program, returnAddress, argFrame));
                                     _localStack.Push(closureValue.Locals);
 
-                                    programId = closureValue.ProgramId;
-                                    program = _programs[programId];
+                                    program = closureValue.Program;
                                     code = program.Bytecode;
                                     ip = closureValue.Address;
 
@@ -461,7 +454,7 @@ namespace Mond.VirtualMachine
                                     argFrame.Values[i] = _evalStack.Pop();
                                 }
 
-                                _callStack.Push(new ReturnAddress(returnAddress.ProgramId, returnAddress.Address, argFrame));
+                                _callStack.Push(new ReturnAddress(returnAddress.Program, returnAddress.Address, argFrame));
 
                                 ip = address;
                                 break;
@@ -494,8 +487,7 @@ namespace Mond.VirtualMachine
                                 var returnAddress = _callStack.Pop();
                                 _localStack.Pop();
 
-                                programId = returnAddress.ProgramId;
-                                program = _programs[programId];
+                                program = returnAddress.Program;
                                 code = program.Bytecode;
                                 ip = returnAddress.Address;
 

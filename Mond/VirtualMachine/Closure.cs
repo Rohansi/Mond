@@ -9,7 +9,7 @@
     {
         public readonly ClosureType Type;
 
-        public readonly int ProgramId;
+        public readonly MondProgram Program;
         public readonly int Address;
         public readonly Frame Arguments;
         public readonly Frame Locals;
@@ -17,11 +17,11 @@
         public readonly MondFunction NativeFunction;
         public readonly MondInstanceFunction InstanceNativeFunction;
 
-        public Closure(int programId, int address, Frame arguments, Frame locals)
+        public Closure(MondProgram program, int address, Frame arguments, Frame locals)
         {
             Type = ClosureType.Mond;
             
-            ProgramId = programId;
+            Program = program;
             Address = address;
             Arguments = arguments;
             Locals = locals;
