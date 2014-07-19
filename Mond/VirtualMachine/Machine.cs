@@ -591,8 +591,13 @@ namespace Mond.VirtualMachine
             {
                 var errorBuilder = new StringBuilder();
 
-                errorBuilder.AppendLine(e.Message);
-                errorBuilder.AppendLine();
+                errorBuilder.AppendLine(e.Message.Trim());
+
+                var runtimeException = e as MondRuntimeException;
+                if (runtimeException != null && runtimeException.HasStackTrace)
+                    errorBuilder.AppendLine("[... native ...]");
+                else
+                    errorBuilder.AppendLine();
 
                 errorBuilder.AppendLine(GetAddressDebugInfo(program, errorIp));
 
@@ -603,7 +608,9 @@ namespace Mond.VirtualMachine
                     errorBuilder.AppendLine(GetAddressDebugInfo(returnAddress.Program, returnAddress.Address));
                 }
 
-                throw new MondRuntimeException(errorBuilder.ToString(), e);
+                _callStack.Pop();
+
+                throw new MondRuntimeException(errorBuilder.ToString(), e, true);
             }
         }
 
