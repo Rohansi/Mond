@@ -36,8 +36,7 @@ namespace Mond.Compiler.Expressions.Statements
         {
             context.Line(FileName, Line);
 
-            context.DefineIdentifier("#enumerator", false, true);
-            var enumerator = context.Identifier("#enumerator");
+            var enumerator = context.DefineInternal("enumerator", true);
 
             var stack = 0;
             var start = context.MakeLabel("foreachStart");
@@ -60,7 +59,9 @@ namespace Mond.Compiler.Expressions.Statements
             context.PushScope();
             context.PushLoop(start, end);
 
-            context.DefineIdentifier(Identifier, false, true);
+            if (!context.DefineIdentifier(Identifier))
+                throw new MondCompilerException(FileName, Line, CompilerError.IdentifierAlreadyDefined, Identifier);
+
             var identifier = context.Identifier(Identifier);
 
             stack += context.Load(enumerator);

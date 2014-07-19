@@ -96,7 +96,7 @@ namespace Mond.Compiler
             if (Type == InstructionType.Label)
                 Console.ForegroundColor = ConsoleColor.DarkGreen;
 
-            Console.Write("{0,-15} ", Type.ToString().ToLower());
+            Console.Write("{0:X4} {1,-15} ", Offset, Type.ToString().ToLower());
 
             foreach (var operand in Operands)
             {

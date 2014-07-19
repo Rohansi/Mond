@@ -9,9 +9,9 @@ namespace Mond.Compiler
     class ExpressionCompiler
     {
         private readonly List<FunctionContext> _contexts;
-        private Scope _currentScope;
+        private Scope _scope;
         private int _labelIndex;
-        private int _frameIndex;
+        private List<Instruction> _instructions; 
 
         public readonly bool GeneratingDebugInfo;
 
@@ -21,9 +21,8 @@ namespace Mond.Compiler
         public ExpressionCompiler(bool generateDebugInfo = true)
         {
             _contexts = new List<FunctionContext>();
-            _currentScope = null;
+            _scope = new Scope(0, null);
             _labelIndex = 0;
-            _frameIndex = -1;
 
             GeneratingDebugInfo = generateDebugInfo;
 
@@ -33,8 +32,6 @@ namespace Mond.Compiler
 
         public MondProgram Compile(Expression expression)
         {
-            PushFrame();
-
             var context = MakeFunction(null);
             context.Function(expression.FileName, "#main");
 
@@ -42,8 +39,6 @@ namespace Mond.Compiler
             expression.Compile(context);
             context.LoadUndefined();
             context.Return();
-
-            PopFrame();
 
             var length = PatchLabels();
             var bytecode = GenerateBytecode(length);
@@ -138,12 +133,15 @@ namespace Mond.Compiler
 
         private IEnumerable<Instruction> AllInstructions()
         {
-            return _contexts.SelectMany(c => c.Instructions);
+            if (_instructions == null)
+                _instructions = _contexts.SelectMany(c => c.Instructions).ToList();
+
+            return _instructions;
         }
 
         private FunctionContext MakeFunction(string name)
         {
-            var context = new FunctionContext(this, name);
+            var context = new FunctionContext(this, 0, _scope, name);
             RegisterFunction(context);
             return context;
         }
@@ -158,41 +156,9 @@ namespace Mond.Compiler
             return new LabelOperand(_labelIndex++, name);
         }
 
-        public void PushScope()
-        {
-            _currentScope = new Scope(_frameIndex, _currentScope);
-        }
-
-        public void PopScope()
-        {
-            _currentScope = _currentScope.Previous;
-        }
-
-        public void PushFrame()
-        {
-            _frameIndex++;
-            PushScope();
-        }
-
-        public void PopFrame()
-        {
-            PopScope();
-            _frameIndex--;
-        }
-
         public IdentifierOperand Identifier(string name)
         {
-            return _currentScope.Get(name);
-        }
-
-        public bool DefineIdentifier(string name, bool isReadOnly, bool allowOverlap)
-        {
-            return _currentScope.Define(name, isReadOnly, allowOverlap);
-        }
-
-        public bool DefineArgument(int index, string name)
-        {
-            return _currentScope.DefineArgument(index, name);
+            return _scope.Get(name);
         }
     }
 }

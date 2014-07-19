@@ -8,6 +8,9 @@ namespace Mond.Compiler
         private readonly List<Instruction> _instructions;
         private readonly IndexedStack<Tuple<LabelOperand, LabelOperand>> _loopLabels;
 
+        public readonly int FrameIndex;
+        public Scope Scope { get; private set; }
+
         public readonly ExpressionCompiler Compiler;
 
         public readonly IdentifierOperand Name;
@@ -15,11 +18,15 @@ namespace Mond.Compiler
 
         public int IdentifierCount { get; protected set; }
 
-        public FunctionContext(ExpressionCompiler compiler, string name)
+        public FunctionContext(ExpressionCompiler compiler, int frameIndex, Scope prevScope, string name)
         {
-            Compiler = compiler;
             _instructions = new List<Instruction>();
             _loopLabels = new IndexedStack<Tuple<LabelOperand, LabelOperand>>();
+
+            Compiler = compiler;
+            FrameIndex = frameIndex;
+
+            Scope = new Scope(frameIndex, prevScope);
 
             Name = name != null ? Compiler.Identifier(name) : null;
             Label = Compiler.MakeLabel("function");
@@ -43,7 +50,7 @@ namespace Mond.Compiler
 
         public virtual FunctionContext MakeFunction(string name)
         {
-            var context = new FunctionContext(Compiler, name);
+            var context = new FunctionContext(Compiler, FrameIndex + 1, Scope, name);
             Compiler.RegisterFunction(context);
             return context;
         }
@@ -55,22 +62,12 @@ namespace Mond.Compiler
 
         public virtual void PushScope()
         {
-            Compiler.PushScope();
+            Scope = new Scope(FrameIndex, Scope);
         }
 
         public virtual void PopScope()
         {
-            Compiler.PopScope();
-        }
-
-        public virtual void PushFrame()
-        {
-            Compiler.PushFrame();
-        }
-
-        public virtual void PopFrame()
-        {
-            Compiler.PopFrame();
+            Scope = Scope.Previous;
         }
 
         public virtual void PushLoop(LabelOperand continueTarget, LabelOperand breakTarget)
@@ -95,7 +92,7 @@ namespace Mond.Compiler
 
         public virtual IdentifierOperand Identifier(string name)
         {
-            return Compiler.Identifier(name);
+            return Scope.Get(name);
         }
 
         public virtual LabelOperand ContinueLabel()
@@ -122,9 +119,9 @@ namespace Mond.Compiler
             return null;
         }
 
-        public virtual bool DefineIdentifier(string name, bool isReadOnly = false, bool allowOverlap = false)
+        public virtual bool DefineIdentifier(string name, bool isReadOnly = false)
         {
-            var success = Compiler.DefineIdentifier(name, isReadOnly, allowOverlap);
+            var success = Scope.Define(name, isReadOnly);
 
             if (success)
                 IdentifierCount++;
@@ -134,7 +131,13 @@ namespace Mond.Compiler
 
         public virtual bool DefineArgument(int index, string name)
         {
-            return Compiler.DefineArgument(index, name);
+            return Scope.DefineArgument(index, name);
+        }
+
+        public virtual IdentifierOperand DefineInternal(string name, bool canHaveMultiple = false)
+        {
+            IdentifierCount++;
+            return Scope.DefineInternal(name, canHaveMultiple);
         }
 
         public virtual void Emit(Instruction instruction)

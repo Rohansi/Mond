@@ -89,16 +89,16 @@ namespace Mond.VirtualMachine
             {
                 while (true)
                 {
+                    errorIp = ip;
+
                     /*if (program.DebugInfo != null)
                     {
                         var line = program.DebugInfo.FindLine(errorIp);
                         if (line.HasValue)
-                            Console.WriteLine("line {0}", line.Value.LineNumber);
+                            Console.WriteLine("{0:X4} line {1,3}: {2}", errorIp, line.Value.LineNumber, (InstructionType)code[ip]);
                     }*/
 
                     //Console.WriteLine((InstructionType)code[ip]);
-
-                    errorIp = ip;
 
                     switch (code[ip++])
                     {

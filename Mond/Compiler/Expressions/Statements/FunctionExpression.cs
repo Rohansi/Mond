@@ -68,8 +68,7 @@ namespace Mond.Compiler.Expressions.Statements
             var functionContext = context.MakeFunction(Name);
             functionContext.Function(FileName, Name);
             functionContext.Line(FileName, Line);
-
-            functionContext.PushFrame();
+            functionContext.PushScope();
 
             for (var i = 0; i < Arguments.Count; i++)
             {
@@ -80,7 +79,7 @@ namespace Mond.Compiler.Expressions.Statements
             }
 
             CompileBody(functionContext);
-            functionContext.PopFrame();
+            functionContext.PopScope();
 
             // assign result
             var stack = 0;

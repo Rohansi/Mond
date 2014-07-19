@@ -19,29 +19,13 @@ namespace Mond.Compiler
             Previous = previous;
         }
 
-        public bool Define(string name, bool isReadOnly, bool allowOverlap = false)
+        public bool Define(string name, bool isReadOnly)
         {
-            if (!allowOverlap && IsDefined(name))
+            if (IsDefined(name))
                 return false;
 
-            Scope frameScope = null;
-
-            if (Previous != null)
-            {
-                var curr = Previous;
-                while (curr._frameIndex == _frameIndex)
-                {
-                    frameScope = curr;
-                    
-                    if (curr.Previous == null)
-                        break;
-
-                    curr = curr.Previous;
-                }
-            }
-
-            var id = frameScope != null ? frameScope._nextId++ : _nextId++;
-
+            var frameScope = GetFrameScope();
+            var id = frameScope._nextId++;
             var identifier = new IdentifierOperand(_frameIndex, id, name, isReadOnly);
             _identifiers.Add(name, identifier);
             return true;
@@ -57,6 +41,38 @@ namespace Mond.Compiler
             return true;
         }
 
+        public IdentifierOperand DefineInternal(string name, bool canHaveMultiple = false)
+        {
+            name = "#" + name;
+
+            var frameScope = GetFrameScope();
+            var id = frameScope._nextId++;
+
+            IdentifierOperand identifier;
+
+            if (canHaveMultiple)
+            {
+                var n = 0;
+                string numberedName;
+
+                while (true)
+                {
+                    numberedName = string.Format("{0}_{1}", name, n++);
+
+                    if (!IsDefined(numberedName))
+                        break;
+                }
+
+                identifier = new IdentifierOperand(_frameIndex, id, numberedName, false);
+                _identifiers.Add(numberedName, identifier);
+                return identifier;
+            }
+
+            identifier = new IdentifierOperand(_frameIndex, id, name, false);
+            _identifiers.Add(name, identifier);
+            return identifier;
+        }
+
         public IdentifierOperand Get(string name, bool inherit = true)
         {
             IdentifierOperand identifier;
@@ -67,6 +83,27 @@ namespace Mond.Compiler
                 return Previous.Get(name);
 
             return null;
+        }
+
+        private Scope GetFrameScope()
+        {
+            Scope frameScope = null;
+
+            if (Previous != null)
+            {
+                var curr = Previous;
+                while (curr._frameIndex == _frameIndex)
+                {
+                    frameScope = curr;
+
+                    if (curr.Previous == null)
+                        break;
+
+                    curr = curr.Previous;
+                }
+            }
+
+            return frameScope ?? this;
         }
 
         private bool IsDefined(string name, bool inherit = true)

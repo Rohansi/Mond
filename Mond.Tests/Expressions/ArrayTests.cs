@@ -67,5 +67,11 @@ namespace Mond.Tests.Expressions
             Assert.AreEqual(array.Type, MondValueType.Array);
             Assert.True(array.ArrayValue.SequenceEqual(expected));
         }
+
+        [Test]
+        public void Enumerator()
+        {
+            
+        }
     }
 }

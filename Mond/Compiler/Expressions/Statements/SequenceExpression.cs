@@ -29,13 +29,12 @@ namespace Mond.Compiler.Expressions.Statements
 
         public override void CompileBody(FunctionContext context)
         {
-            if (!context.DefineIdentifier("#state", false, true) || !context.DefineIdentifier("#enumerable", false, true))
-                throw new MondCompilerException(FileName, Line, CompilerError.FailedToDefineInternal);
+            var state = context.DefineInternal("state");
+            var enumerable = context.DefineInternal("enumerable");
 
             var stack = 0;
-            var state = context.Identifier("#state");
-            var enumerable = context.Identifier("#enumerable");
-            var body = new SequenceBodyExpression(new Token(FileName, Line, TokenType.Fun, null), null, new List<string>(), Block);
+            var bodyToken = new Token(FileName, Line, TokenType.Fun, null);
+            var body = new SequenceBodyExpression(bodyToken, null, new List<string>(), Block, state, enumerable);
             var seqContext = new SequenceContext(context.Compiler, "sequence", body, context);
 
             var getEnumerator = context.MakeFunction("seq_getEnumerator");
@@ -80,13 +79,19 @@ namespace Mond.Compiler.Expressions.Statements
     {
         private List<LabelOperand> _stateLabels;
 
+        public readonly IdentifierOperand State;
+        public readonly IdentifierOperand Enumerable;
+
         public int NextState { get { return _stateLabels.Count; } }
         public LabelOperand EndLabel { get; private set; }
 
-        public SequenceBodyExpression(Token token, string name, List<string> arguments, BlockExpression block)
+        public SequenceBodyExpression(Token token, string name, List<string> arguments, BlockExpression block, IdentifierOperand state, IdentifierOperand enumerable)
             : base(token, name, arguments, block)
         {
             _stateLabels = new List<LabelOperand>();
+
+            State = state;
+            Enumerable = enumerable;
         }
 
         public LabelOperand MakeStateLabel(FunctionContext context)
@@ -99,15 +104,14 @@ namespace Mond.Compiler.Expressions.Statements
         public override void CompileBody(FunctionContext context)
         {
             var stack = 0;
-            var state = context.Identifier("#state");
-            var enumerable = context.Identifier("#enumerable");
+
             EndLabel = context.MakeLabel("state_end");
 
             stack += context.Bind(context.Label);
             stack += context.Enter();
 
             // jump to state label
-            stack += context.Load(state);
+            stack += context.Load(State);
             stack += context.JumpTable(0, _stateLabels);
             stack += context.Jump(EndLabel);
 
@@ -121,11 +125,11 @@ namespace Mond.Compiler.Expressions.Statements
 
             // set state to end
             stack += context.Load(context.Number(-1));
-            stack += context.Store(state);
+            stack += context.Store(State);
 
             // set enumerator.current to null
             stack += context.LoadNull();
-            stack += context.Load(enumerable);
+            stack += context.Load(Enumerable);
             stack += context.StoreField(context.String("current"));
 
             stack += context.LoadFalse();
@@ -141,7 +145,7 @@ namespace Mond.Compiler.Expressions.Statements
         private readonly FunctionContext _forward;
 
         public SequenceContext(ExpressionCompiler compiler, string name, SequenceBodyExpression sequenceBody, FunctionContext forward)
-            : base(compiler, name)
+            : base(compiler, forward.FrameIndex, forward.Scope, name)
         {
             _sequenceBody = sequenceBody;
             _forward = forward;
@@ -167,26 +171,21 @@ namespace Mond.Compiler.Expressions.Statements
         public readonly SequenceBodyExpression SequenceBody;
 
         public SequenceBodyContext(ExpressionCompiler compiler, string name, SequenceBodyExpression sequenceBody, FunctionContext forward)
-            : base(compiler, name)
+            : base(compiler, forward.FrameIndex + 1, forward.Scope, name)
         {
             _forward = forward;
 
             SequenceBody = sequenceBody;
         }
 
-        public override void PushFrame()
+        public override bool DefineIdentifier(string name, bool isReadOnly = false)
         {
-            base.PushScope();
+            return _forward.DefineIdentifier(name, isReadOnly);
         }
 
-        public override void PopFrame()
+        public override IdentifierOperand DefineInternal(string name, bool canHaveMultiple = false)
         {
-            base.PopScope();
-        }
-
-        public override bool DefineIdentifier(string name, bool isReadOnly = false, bool allowOverlap = false)
-        {
-            return _forward.DefineIdentifier(name, isReadOnly, allowOverlap);
+            return _forward.DefineInternal(name, canHaveMultiple);
         }
     }
 }

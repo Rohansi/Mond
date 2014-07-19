@@ -30,8 +30,8 @@ namespace Mond.Compiler.Expressions.Statements
             if (sequenceContext == null)
                 throw new MondCompilerException(FileName, Line, CompilerError.YieldInFun);
 
-            var state = context.Identifier("#state");
-            var enumerable = context.Identifier("#enumerable");
+            var state = sequenceContext.SequenceBody.State;
+            var enumerable = sequenceContext.SequenceBody.Enumerable;
 
             var stack = 0;
             var nextState = sequenceContext.SequenceBody.NextState;
