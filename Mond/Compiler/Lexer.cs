@@ -171,13 +171,35 @@ namespace Mond.Compiler
                 // multi line comment (discarded)
                 if (index < _source.Length - 1 && _source.Substring(index, 2) == "/*")
                 {
-                    while (_source.Substring(index, 2) != "*/")
+                    index += 2;
+
+                    var depth = 1;
+
+                    while (index < _source.Length && depth > 0)
                     {
-                        if (_source[index++] == '\n')
+                        if (index < _source.Length - 1)
+                        {
+                            if (_source.Substring(index, 2) == "/*")
+                            {
+                                index += 2;
+                                depth++;
+                                continue;
+                            }
+
+                            if (_source.Substring(index, 2) == "*/")
+                            {
+                                index += 2;
+                                depth--;
+                                continue;
+                            }
+                        }
+                        
+                        if (_source[index] == '\n')
                             currentLine++;
+
+                        index++;
                     }
 
-                    index += 2;
                     continue;
                 }
 
