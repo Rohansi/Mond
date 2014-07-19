@@ -71,6 +71,7 @@
     <Compile Include="Compiler\Parselets\Statements\SequenceParselet.cs" />
     <Compile Include="Compiler\Parselets\Statements\YieldParselet.cs" />
     <Compile Include="Compiler\Parselets\UndefinedParselet.cs" />
+    <Compile Include="Compiler\Parser.Static.cs" />
     <Compile Include="Compiler\Scope.cs" />
     <Compile Include="CoreAnnotations.cs" />
     <Compile Include="Compiler\ExpressionCompiler.cs" />
@@ -149,6 +150,9 @@
   <ItemGroup>
     <Compile Include="Compiler\InstructionOperands.cs" />
     <Compile Include="Compiler\FunctionContext.Helper.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Compiler\Lexer.Static.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
