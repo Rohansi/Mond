@@ -34,10 +34,11 @@ namespace Mond.Compiler.Expressions.Statements
 
             var stack = 0;
             var bodyToken = new Token(FileName, Line, TokenType.Fun, null);
-            var body = new SequenceBodyExpression(bodyToken, null, new List<string>(), Block, state, enumerable);
-            var seqContext = new SequenceContext(context.Compiler, "sequence", body, context);
+            var body = new SequenceBodyExpression(bodyToken, null, new List<string>(), Block, "moveNext", state, enumerable);
+            var seqContext = new SequenceContext(context.Compiler, "moveNext", body, context);
 
-            var getEnumerator = context.MakeFunction("seq_getEnumerator");
+            var getEnumerator = context.MakeFunction("getEnumerator");
+            getEnumerator.Function(getEnumerator.FullName);
             getEnumerator.Bind(getEnumerator.Label);
             getEnumerator.Enter();
             getEnumerator.Load(enumerable);
@@ -85,8 +86,8 @@ namespace Mond.Compiler.Expressions.Statements
         public int NextState { get { return _stateLabels.Count; } }
         public LabelOperand EndLabel { get; private set; }
 
-        public SequenceBodyExpression(Token token, string name, List<string> arguments, BlockExpression block, IdentifierOperand state, IdentifierOperand enumerable)
-            : base(token, name, arguments, block)
+        public SequenceBodyExpression(Token token, string name, List<string> arguments, BlockExpression block, string debugName, IdentifierOperand state, IdentifierOperand enumerable)
+            : base(token, name, arguments, block, debugName)
         {
             _stateLabels = new List<LabelOperand>();
 
@@ -145,7 +146,7 @@ namespace Mond.Compiler.Expressions.Statements
         private readonly FunctionContext _forward;
 
         public SequenceContext(ExpressionCompiler compiler, string name, SequenceBodyExpression sequenceBody, FunctionContext forward)
-            : base(compiler, forward.FrameIndex, forward.Scope, name)
+            : base(compiler, forward.FrameIndex, forward.Scope, forward.FullName, name)
         {
             _sequenceBody = sequenceBody;
             _forward = forward;
@@ -171,7 +172,7 @@ namespace Mond.Compiler.Expressions.Statements
         public readonly SequenceBodyExpression SequenceBody;
 
         public SequenceBodyContext(ExpressionCompiler compiler, string name, SequenceBodyExpression sequenceBody, FunctionContext forward)
-            : base(compiler, forward.FrameIndex + 1, forward.Scope, name)
+            : base(compiler, forward.FrameIndex + 1, forward.Scope, forward.FullName, name)
         {
             _forward = forward;
 

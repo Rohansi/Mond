@@ -10,12 +10,16 @@ namespace Mond.Compiler.Expressions.Statements
         public ReadOnlyCollection<string> Arguments { get; private set; }
         public BlockExpression Block { get; private set; }
 
-        public FunctionExpression(Token token, string name, List<string> arguments, BlockExpression block)
+        public string DebugName { get; private set; }
+
+        public FunctionExpression(Token token, string name, List<string> arguments, BlockExpression block, string debugName = null)
             : base(token.FileName, token.Line)
         {
             Name = name;
             Arguments = arguments.AsReadOnly();
             Block = block;
+
+            DebugName = debugName;
         }
 
         public override void Print(int indent)
@@ -65,8 +69,8 @@ namespace Mond.Compiler.Expressions.Statements
             }
 
             // compile body
-            var functionContext = context.MakeFunction(Name);
-            functionContext.Function(FileName, Name);
+            var functionContext = context.MakeFunction(Name ?? DebugName);
+            functionContext.Function(functionContext.FullName);
             functionContext.Line(FileName, Line);
             functionContext.PushScope();
 

@@ -32,13 +32,13 @@ namespace Mond.Compiler.Expressions.Statements
 
             var stack = 0;
 
-            if (context.Name != null)
+            if (context.AssignedName != null)
             {
                 var callExpression = Value as CallExpression;
                 if (callExpression != null)
                 {
                     var identifierExpression = callExpression.Method as IdentifierExpression;
-                    if (identifierExpression != null && context.Identifier(identifierExpression.Name) == context.Name)
+                    if (identifierExpression != null && context.Identifier(identifierExpression.Name) == context.AssignedName)
                     {
                         stack += callExpression.CompileTailCall(context);
                         CheckStack(stack, 0);

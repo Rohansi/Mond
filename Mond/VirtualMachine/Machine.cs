@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using Mond.Compiler;
 
 namespace Mond.VirtualMachine
@@ -588,20 +589,36 @@ namespace Mond.VirtualMachine
             }
             catch (Exception e)
             {
-                string locationPrefix = null;
+                var errorBuilder = new StringBuilder();
 
-                if (program.DebugInfo != null)
+                errorBuilder.AppendLine(e.Message);
+                errorBuilder.AppendLine();
+
+                errorBuilder.AppendLine(GetAddressDebugInfo(program, errorIp));
+
+                while (_callStack.Count > initialCallDepth + 1)
                 {
-                    var line = program.DebugInfo.FindLine(errorIp);
-                    if (line.HasValue)
-                        locationPrefix = string.Format("{0}(line {1}): ", program.Strings[line.Value.FileName], line.Value.LineNumber);
+                    var returnAddress = _callStack.Pop();
+
+                    errorBuilder.AppendLine(GetAddressDebugInfo(returnAddress.Program, returnAddress.Address));
                 }
 
-                if (locationPrefix == null)
-                    locationPrefix = string.Format("{0:X8}: ", errorIp);
-
-                throw new MondRuntimeException(locationPrefix + e.Message, e);
+                throw new MondRuntimeException(errorBuilder.ToString(), e);
             }
+        }
+
+        private string GetAddressDebugInfo(MondProgram program, int address)
+        {
+            if (program.DebugInfo != null)
+            {
+                var func = program.DebugInfo.FindFunction(address);
+                var line = program.DebugInfo.FindLine(address);
+
+                if (func.HasValue && line.HasValue)
+                    return string.Format("at {0} in {1}: line {2}", program.Strings[func.Value.Name], program.Strings[line.Value.FileName], line.Value.LineNumber);
+            }
+
+            return address.ToString("X8");
         }
     }
 }

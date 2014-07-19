@@ -17,6 +17,8 @@ namespace Mond.Compiler
 
         public readonly ConstantPool<double> NumberPool;
         public readonly ConstantPool<string> StringPool;
+
+        public int LambdaId;
          
         public ExpressionCompiler(bool generateDebugInfo = true)
         {
@@ -28,12 +30,16 @@ namespace Mond.Compiler
 
             NumberPool = new ConstantPool<double>();
             StringPool = new ConstantPool<string>();
+
+            LambdaId = 0;
         }
 
         public MondProgram Compile(Expression expression)
         {
-            var context = MakeFunction(null);
-            context.Function(expression.FileName, "#main");
+            var context = new FunctionContext(this, 0, _scope, null, "Main");
+            RegisterFunction(context);
+
+            context.Function(context.FullName);
 
             context.Enter();
             expression.Compile(context);
@@ -81,30 +87,27 @@ namespace Mond.Compiler
                 return null;
 
             var prevName = -1;
-            var prevFileName = -1;
 
             var functions = AllInstructions()
                 .Where(i => i.Type == InstructionType.Function)
                 .Select(i =>
                 {
                     var name = ((ConstantOperand<string>)i.Operands[0]).Id;
-                    var fileName = ((ConstantOperand<string>)i.Operands[1]).Id;
-                    return new DebugInfo.Function(i.Offset, name, fileName);
+                    return new DebugInfo.Function(i.Offset, name);
                 })
                 .Where(f =>
                 {
-                    if (f.Name == prevName && f.FileName == prevFileName)
+                    if (f.Name == prevName)
                         return false;
 
                     prevName = f.Name;
-                    prevFileName = f.FileName;
 
                     return true;
                 })
                 .OrderBy(f => f.Address)
                 .ToList();
 
-            prevFileName = -1;
+            var prevFileName = -1;
             var prevLineNumber = -1;
 
             var lines = AllInstructions()
@@ -137,13 +140,6 @@ namespace Mond.Compiler
                 _instructions = _contexts.SelectMany(c => c.Instructions).ToList();
 
             return _instructions;
-        }
-
-        private FunctionContext MakeFunction(string name)
-        {
-            var context = new FunctionContext(this, 0, _scope, name);
-            RegisterFunction(context);
-            return context;
         }
 
         public void RegisterFunction(FunctionContext context)

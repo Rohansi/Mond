@@ -7,13 +7,11 @@ namespace Mond.VirtualMachine
         public struct Function
         {
             public readonly int Address;
-            public readonly int FileName;
             public readonly int Name;
 
-            public Function(int address, int fileName, int name)
+            public Function(int address, int name)
             {
                 Address = address;
-                FileName = fileName;
                 Name = name;
             }
         }
@@ -43,7 +41,7 @@ namespace Mond.VirtualMachine
 
         public Function? FindFunction(int address)
         {
-            var idx = Search(_functions, new Function(address, 0, 0), FunctionAddressComparer);
+            var idx = Search(_functions, new Function(address, 0), FunctionAddressComparer);
             Function? result = null;
 
             if (idx >= 0 && idx < _functions.Count)

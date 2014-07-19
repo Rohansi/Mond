@@ -5,15 +5,12 @@ namespace Mond.Compiler
 {
     partial class FunctionContext
     {
-        private int _lambdaId;
-
-        public void Function(string fileName, string name = null)
+        public void Function(string name = null)
         {
             if (!Compiler.GeneratingDebugInfo)
                 return;
 
-            name = name ?? string.Format("lambda_{0}", _lambdaId++);
-            Emit(new Instruction(InstructionType.Function, String(name), String(fileName ?? "null")));
+            Emit(new Instruction(InstructionType.Function, String(name)));
         }
 
         public void Line(string fileName, int line)
@@ -21,7 +18,7 @@ namespace Mond.Compiler
             if (!Compiler.GeneratingDebugInfo)
                 return;
 
-            Emit(new Instruction(InstructionType.Line, String(fileName ?? "null"), new ImmediateOperand(line)));
+            Emit(new Instruction(InstructionType.Line, String(fileName ?? "<unknown>"), new ImmediateOperand(line)));
         }
 
         public int Bind(LabelOperand label)

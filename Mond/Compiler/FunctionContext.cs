@@ -13,12 +13,15 @@ namespace Mond.Compiler
 
         public readonly ExpressionCompiler Compiler;
 
-        public readonly IdentifierOperand Name;
+        public readonly string Name;
+        public readonly string FullName;
+
+        public readonly IdentifierOperand AssignedName;
         public readonly LabelOperand Label;
 
         public int IdentifierCount { get; protected set; }
 
-        public FunctionContext(ExpressionCompiler compiler, int frameIndex, Scope prevScope, string name)
+        public FunctionContext(ExpressionCompiler compiler, int frameIndex, Scope prevScope, string parentName, string name)
         {
             _instructions = new List<Instruction>();
             _loopLabels = new IndexedStack<Tuple<LabelOperand, LabelOperand>>();
@@ -28,7 +31,10 @@ namespace Mond.Compiler
 
             Scope = new Scope(frameIndex, prevScope);
 
-            Name = name != null ? Compiler.Identifier(name) : null;
+            Name = name ?? string.Format("lambda_{0}", Compiler.LambdaId++);
+            FullName = string.Format("{0}{1}{2}", parentName, parentName != null ? "." : "", Name);
+
+            AssignedName = name != null ? Compiler.Identifier(name) : null;
             Label = Compiler.MakeLabel("function");
 
             IdentifierCount = 0;
@@ -50,7 +56,7 @@ namespace Mond.Compiler
 
         public virtual FunctionContext MakeFunction(string name)
         {
-            var context = new FunctionContext(Compiler, FrameIndex + 1, Scope, name);
+            var context = new FunctionContext(Compiler, FrameIndex + 1, Scope, FullName, name);
             Compiler.RegisterFunction(context);
             return context;
         }
