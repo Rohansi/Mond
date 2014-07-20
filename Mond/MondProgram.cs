@@ -24,9 +24,11 @@ namespace Mond
         /// </summary>
         /// <param name="source">Source code to compile</param>
         /// <param name="fileName">Optional file name to use in errors</param>
-        /// <param name="generateDebugInfo">Enable generating debug info</param>
-        public static MondProgram Compile(string source, string fileName = null, bool generateDebugInfo = true)
+        /// <param name="options"></param>
+        public static MondProgram Compile(string source, string fileName = null, MondCompilerOptions options = null)
         {
+            options = options ?? new MondCompilerOptions();
+
             var lexer = new Lexer(source, fileName);
             var parser = new Parser(lexer);
             var expression = parser.ParseAll();
@@ -34,7 +36,7 @@ namespace Mond
             expression.Simplify();
             //expression.Print(0);
 
-            var compiler = new ExpressionCompiler(generateDebugInfo);
+            var compiler = new ExpressionCompiler(options);
             return compiler.Compile(expression);
         }
     }

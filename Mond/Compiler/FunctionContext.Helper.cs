@@ -7,7 +7,7 @@ namespace Mond.Compiler
     {
         public void Function(string name = null)
         {
-            if (!Compiler.GeneratingDebugInfo)
+            if (!Compiler.Options.GenerateDebugInfo)
                 return;
 
             Emit(new Instruction(InstructionType.Function, String(name)));
@@ -15,7 +15,7 @@ namespace Mond.Compiler
 
         public void Line(string fileName, int line)
         {
-            if (!Compiler.GeneratingDebugInfo)
+            if (!Compiler.Options.GenerateDebugInfo)
                 return;
 
             Emit(new Instruction(InstructionType.Line, String(fileName ?? "<unknown>"), new ImmediateOperand(line)));

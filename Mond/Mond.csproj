@@ -131,6 +131,7 @@
     <Compile Include="IndentTextWriter.cs" />
     <Compile Include="IndexedStack.cs" />
     <Compile Include="MondCompilerException.cs" />
+    <Compile Include="MondCompilerOptions.cs" />
     <Compile Include="MondException.cs" />
     <Compile Include="MondValue.Enumerable.cs" />
     <Compile Include="MondValue.Operators.cs" />

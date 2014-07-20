@@ -60,13 +60,14 @@ namespace Mond.Compiler.Expressions.Statements
         public override int Compile(FunctionContext context)
         {
             var isStatement = Parent is IBlockExpression;
+            var shouldBeGlobal = context.FrameIndex == 0 && context.Compiler.Options.MakeRootDeclarationsGlobal;
 
             if (Name == null && isStatement)
                 throw new MondCompilerException(FileName, Line, CompilerError.FunctionNeverUsed);
 
             IdentifierOperand identifier = null;
 
-            if (Name != null)
+            if (Name != null && !shouldBeGlobal)
             {
                 if (!context.DefineIdentifier(Name, true))
                     throw new MondCompilerException(FileName, Line, CompilerError.IdentifierAlreadyDefined, Name);
@@ -98,12 +99,20 @@ namespace Mond.Compiler.Expressions.Statements
             var stack = 0;
             stack += context.Closure(functionContext.Label);
 
-            if (identifier != null)
+            if (Name != null)
             {
                 if (!isStatement) // statements should leave nothing on the stack
                     stack += context.Dup();
 
-                stack += context.Store(identifier);
+                if (!shouldBeGlobal)
+                {
+                    stack += context.Store(identifier);
+                }
+                else
+                {
+                    stack += context.LoadGlobal();
+                    stack += context.StoreField(context.String(Name));
+                }
 
                 if (isStatement)
                 {

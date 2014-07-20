@@ -24,6 +24,7 @@ namespace Mond.Compiler.Expressions
         {
             context.Line(FileName, Line);
 
+            var stack = 0;
             var identifier = context.Identifier(Name);
 
             /*if (identifier == null)
@@ -31,15 +32,16 @@ namespace Mond.Compiler.Expressions
 
             if (identifier == null)
             {
-                context.LoadGlobal();
-                context.LoadField(context.String(Name));
+                stack += context.LoadGlobal();
+                stack += context.LoadField(context.String(Name));
             }
             else
             {
-                context.Load(identifier);
+                stack += context.Load(identifier);
             }
 
-            return 1;
+            CheckStack(stack, 1);
+            return stack;
         }
 
         public int CompileStore(FunctionContext context)

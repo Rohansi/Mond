@@ -13,20 +13,20 @@ namespace Mond.Compiler
         private int _labelIndex;
         private List<Instruction> _instructions; 
 
-        public readonly bool GeneratingDebugInfo;
+        public readonly MondCompilerOptions Options;
 
         public readonly ConstantPool<double> NumberPool;
         public readonly ConstantPool<string> StringPool;
 
         public int LambdaId;
          
-        public ExpressionCompiler(bool generateDebugInfo = true)
+        public ExpressionCompiler(MondCompilerOptions options)
         {
             _contexts = new List<FunctionContext>();
             _scope = new Scope(0, null);
             _labelIndex = 0;
 
-            GeneratingDebugInfo = generateDebugInfo;
+            Options = options;
 
             NumberPool = new ConstantPool<double>();
             StringPool = new ConstantPool<string>();
@@ -83,7 +83,7 @@ namespace Mond.Compiler
 
         private DebugInfo GenerateDebugInfo()
         {
-            if (!GeneratingDebugInfo)
+            if (!Options.GenerateDebugInfo)
                 return null;
 
             var prevName = -1;

@@ -51,20 +51,30 @@ namespace Mond.Compiler.Expressions.Statements
             context.Line(FileName, Line);
 
             var stack = 0;
+            var shouldBeGlobal = context.FrameIndex == 0 && context.Compiler.Options.MakeRootDeclarationsGlobal;
 
             foreach (var declaration in Declarations)
             {
                 var name = declaration.Name;
 
-                if (!context.DefineIdentifier(name))
-                    throw new MondCompilerException(FileName, Line, CompilerError.IdentifierAlreadyDefined, name);
-
-                if (declaration.Initializer != null)
+                if (!shouldBeGlobal)
                 {
-                    var identifier = context.Identifier(name);
+                    if (!context.DefineIdentifier(name))
+                        throw new MondCompilerException(FileName, Line, CompilerError.IdentifierAlreadyDefined, name);
 
+                    if (declaration.Initializer != null)
+                    {
+                        var identifier = context.Identifier(name);
+
+                        stack += declaration.Initializer.Compile(context);
+                        stack += context.Store(identifier);
+                    }
+                }
+                else
+                {
                     stack += declaration.Initializer.Compile(context);
-                    stack += context.Store(identifier);
+                    stack += context.LoadGlobal();
+                    stack += context.StoreField(context.String(name));
                 }
             }
 
