@@ -9,158 +9,119 @@ namespace Mond.Compiler
 {
     partial class Lexer : IEnumerable<Token>
     {
+        private readonly IEnumerator<char> _source;
+        private readonly int _length;
+        private List<char> _read;
+
         private readonly string _fileName;
-        private readonly string _source;
+
+        private int _index;
+        private int _currentLine;
 
         public Lexer(string source, string fileName = null)
+            : this(source, source == null ? -1 : source.Length, fileName)
         {
-            if (string.IsNullOrEmpty(source))
+
+        }
+
+        public Lexer(IEnumerable<char> source, int length, string fileName = null)
+        {
+            if (source == null || length <= 0)
                 throw new ArgumentNullException("source");
 
+            _source = source.GetEnumerator();
+            _length = length;
+            _read = new List<char>(16);
+
             _fileName = fileName;
-            _source = source;
+
+            _index = 0;
+            _currentLine = 1;
         }
 
         public IEnumerator<Token> GetEnumerator()
         {
-            var index = 0;
-            var currentLine = 1;
-
-            // Resharper disable AccessToModifiedClosure
-            Action skipWhiteSpace = () =>
+            while (_index < _length)
             {
-                while (index < _source.Length && char.IsWhiteSpace(_source[index]))
-                {
-                    if (_source[index] == '\n')
-                        currentLine++;
+                SkipWhiteSpace();
 
-                    index++;
-                }
-            };
-
-            Func<string, bool> isNext = str =>
-            {
-                if (index + str.Length > _source.Length)
-                    return false;
-
-                return _source.Substring(index, str.Length) == str;
-            };
-
-            Func<Func<char, bool>, string> takeWhile = cond =>
-            {
-                var start = index;
-                while (index < _source.Length)
-                {
-                    if (!cond(_source[index]))
-                        break;
-
-                    index++;
-                }
-
-                return _source.Substring(start, index - start);
-            };
-            // Resharper enable AccessToModifiedClosure
-
-            while (_source.Length > index) // swapped because resharper
-            {
-                skipWhiteSpace();
-
-                if (index >= _source.Length)
+                if (_index >= _length)
                     break;
 
                 // single line comment (discarded)
-                if (index < _source.Length - 1 && _source.Substring(index, 2) == "//")
+                if (TakeIfNext("//"))
                 {
-                    while (index < _source.Length && _source[index] != '\n')
+                    while (!IsNext("\n"))
                     {
-                        index++;
+                        TakeChar();
                     }
 
                     continue;
                 }
 
                 // multi line comment (discarded)
-                if (index < _source.Length - 1 && _source.Substring(index, 2) == "/*")
+                if (TakeIfNext("/*"))
                 {
-                    index += 2;
-
                     var depth = 1;
 
-                    while (index < _source.Length && depth > 0)
+                    while (_index < _length && depth > 0)
                     {
-                        if (index < _source.Length - 1)
+                        if (TakeIfNext("/*"))
                         {
-                            if (_source.Substring(index, 2) == "/*")
-                            {
-                                index += 2;
-                                depth++;
-                                continue;
-                            }
-
-                            if (_source.Substring(index, 2) == "*/")
-                            {
-                                index += 2;
-                                depth--;
-                                continue;
-                            }
+                            depth++;
+                            continue;
                         }
 
-                        if (_source[index] == '\n')
-                            currentLine++;
+                        if (TakeIfNext("*/"))
+                        {
+                            depth--;
+                            continue;
+                        }
 
-                        index++;
+                        TakeChar();
                     }
 
                     continue;
                 }
 
-                var startLine = currentLine;
-                var ch = _source[index];
+                var startLine = _currentLine;
+                var ch = PeekChar();
 
                 // operators
                 if (_punctuation.Contains(ch))
                 {
-                    var op = _operators.FirstOrDefault(o => isNext(o.Item1));
+                    var op = _operators.FirstOrDefault(o => TakeIfNext(o.Item1));
 
                     if (op != null)
                     {
-                        var opText = _source.Substring(index, op.Item1.Length);
-                        yield return new Token(_fileName, currentLine, op.Item2, opText);
-                        index += op.Item1.Length;
+                        yield return new Token(_fileName, _currentLine, op.Item2, op.Item1);
                         continue;
                     }
                 }
 
                 // string
-                if (ch == '"' || ch == '\'')
+                if (TakeIfNext('"') || TakeIfNext('\''))
                 {
                     var stringTerminator = ch;
                     var stringContentsBuilder = new StringBuilder();
 
-                    index++; // skip open quote
-
                     while (true)
                     {
-                        if (index >= _source.Length)
+                        if (_index >= _length)
                             throw new MondCompilerException(_fileName, startLine, CompilerError.UnterminatedString);
 
-                        ch = _source[index];
+                        ch = TakeChar();
 
                         if (ch == stringTerminator)
                             break;
 
                         switch (ch)
                         {
-                            case '\n':
-                                currentLine++;
-                                goto default;
-
                             case '\\':
-                                index++;
-                                if (index >= _source.Length)
-                                    throw new MondCompilerException(_fileName, currentLine, CompilerError.UnexpectedEofString);
+                                if (_index >= _length)
+                                    throw new MondCompilerException(_fileName, _currentLine, CompilerError.UnexpectedEofString);
 
-                                ch = _source[index];
+                                ch = TakeChar();
 
                                 switch (ch)
                                 {
@@ -187,7 +148,7 @@ namespace Mond.Compiler
                                     // TODO: more escape sequences
 
                                     default:
-                                        throw new MondCompilerException(_fileName, currentLine, CompilerError.InvalidEscapeSequence, ch);
+                                        throw new MondCompilerException(_fileName, _currentLine, CompilerError.InvalidEscapeSequence, ch);
                                 }
 
                                 break;
@@ -196,46 +157,143 @@ namespace Mond.Compiler
                                 stringContentsBuilder.Append(ch);
                                 break;
                         }
-
-                        index++;
                     }
 
-                    index++; // skip end quote
-
                     var stringContents = stringContentsBuilder.ToString();
-                    yield return new Token(_fileName, currentLine, TokenType.String, stringContents);
+                    yield return new Token(_fileName, _currentLine, TokenType.String, stringContents);
                     continue;
                 }
 
                 // keyword/word
                 if (char.IsLetter(ch) || ch == '_')
                 {
-                    var wordContents = takeWhile(c => char.IsLetterOrDigit(c) || c == '_');
+                    var wordContents = TakeWhile(c => char.IsLetterOrDigit(c) || c == '_');
                     TokenType keywordType;
                     var isKeyword = _keywords.TryGetValue(wordContents, out keywordType);
 
-                    yield return new Token(_fileName, currentLine, isKeyword ? keywordType : TokenType.Identifier, wordContents);
+                    yield return new Token(_fileName, _currentLine, isKeyword ? keywordType : TokenType.Identifier, wordContents);
                     continue;
                 }
 
                 // number
                 if (char.IsDigit(ch))
                 {
-                    var numberContents = takeWhile(c => char.IsDigit(c) || c == '.');
+                    var numberContents = TakeWhile(c => char.IsDigit(c) || c == '.');
 
                     double number;
                     if (!double.TryParse(numberContents, NumberStyles.AllowDecimalPoint, null, out number))
-                        throw new MondCompilerException(_fileName, currentLine, CompilerError.InvalidNumber);
+                        throw new MondCompilerException(_fileName, _currentLine, CompilerError.InvalidNumber);
 
-                    yield return new Token(_fileName, currentLine, TokenType.Number, numberContents);
+                    yield return new Token(_fileName, _currentLine, TokenType.Number, numberContents);
                     continue;
                 }
 
-                throw new MondCompilerException(_fileName, currentLine, CompilerError.UnexpectedCharacter, ch);
+                throw new MondCompilerException(_fileName, _currentLine, CompilerError.UnexpectedCharacter, ch);
             }
 
             while (true)
-                yield return new Token(_fileName, currentLine, TokenType.Eof, null);
+                yield return new Token(_fileName, _currentLine, TokenType.Eof, null);
+        }
+
+        private void SkipWhiteSpace()
+        {
+            while (_index < _length)
+            {
+                var ch = PeekChar();
+
+                if (!char.IsWhiteSpace(ch))
+                    break;
+
+                TakeChar();
+            }
+        }
+
+        private bool TakeIfNext(string value)
+        {
+            if (!IsNext(value))
+                return false;
+
+            for (var i = 0; i < value.Length; i++)
+                TakeChar();
+
+            return true;
+        }
+
+        private bool TakeIfNext(char value)
+        {
+            if (PeekChar() != value)
+                return false;
+
+            TakeChar();
+            return true;
+        }
+
+        private bool IsNext(string value)
+        {
+            if (_index + value.Length > _length)
+                return false;
+
+            return !value.Where((t, i) => PeekChar(i) != t).Any();
+        }
+
+        private string TakeWhile(Func<char, bool> condition)
+        {
+            var sb = new StringBuilder();
+
+            while (_index < _length)
+            {
+                var ch = PeekChar();
+
+                if (!condition(ch))
+                    break;
+
+                sb.Append(TakeChar());
+            }
+
+            return sb.ToString();
+        }
+
+        public char TakeChar()
+        {
+            PeekChar();
+
+            var result = _read[0];
+            _read.RemoveAt(0);
+            _index++;
+
+            if (result == '\n')
+                _currentLine++;
+
+            return result;
+        }
+
+        public string PeekString(int length)
+        {
+            if (length <= 0)
+                throw new ArgumentOutOfRangeException("length", "distance must be at least 1");
+
+            var sb = new StringBuilder(length);
+
+            for (var i = 0; i < length; i++)
+            {
+                sb.Append(PeekChar(i));
+            }
+
+            return sb.ToString();
+        }
+
+        public char PeekChar(int distance = 0)
+        {
+            if (distance < 0)
+                throw new ArgumentOutOfRangeException("distance", "distance can't be negative");
+
+            while (_read.Count <= distance)
+            {
+                var success = _source.MoveNext();
+                _read.Add(success ? _source.Current : '\0');
+            }
+
+            return _read[distance];
         }
 
         IEnumerator IEnumerable.GetEnumerator()
