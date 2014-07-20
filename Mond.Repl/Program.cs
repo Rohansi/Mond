@@ -5,7 +5,7 @@ namespace Mond.Repl
 {
     class Program
     {
-        private static Queue<char> _input; 
+        private static Queue<char> _input;
 
         static void Main()
         {
@@ -56,6 +56,8 @@ namespace Mond.Repl
                 catch (Exception e)
                 {
                     Console.WriteLine(e.Message);
+                    Console.WriteLine();
+
                     _input.Clear();
                 }
             }
@@ -72,12 +74,12 @@ namespace Mond.Repl
                     Console.Write(first ? "> " : ">> ");
 
                     var line = Console.ReadLine();
-
-                    first = false;
-
                     if (line != null)
                     {
-                        foreach (var c in line.Trim())
+                        if (first && line.StartsWith("="))
+                            line = "return " + line.Substring(1);
+
+                        foreach (var c in line)
                         {
                             _input.Enqueue(c);
                         }
@@ -85,6 +87,7 @@ namespace Mond.Repl
                         _input.Enqueue('\n');
                     }
 
+                    first = false;
                     continue;
                 }
 
