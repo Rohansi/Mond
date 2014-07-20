@@ -58,7 +58,7 @@ namespace MondDemo
                     return array;
                 }
 
-                return range(0, 100) |> where(fun (x) -> x % 2 == 0) |> toArray();
+                return range(0, 1000) |> where(fun (x) -> x % 2 == 0);
             ";
 
             try
@@ -73,14 +73,21 @@ namespace MondDemo
                     return MondValue.Undefined;
                 });
 
-                var program1 = MondProgram.Compile(source1, "test1.mnd");
-                //var program2 = MondProgram.Compile(source2, "test2.mnd");
+                var program = MondProgram.Compile(source1, "test1.mnd");
+                var result = state.Load(program);
 
-                var result1 = state.Load(program1);
-                //var result2 = state.Load(program2);
-
-                result1.Serialize(Console.Out);
-                //result2.Serialize(Console.Out);
+                if (result.IsEnumerable)
+                {
+                    foreach (var i in result.Enumerate(state))
+                    {
+                        i.Serialize(Console.Out);
+                        Console.WriteLine();
+                    }
+                }
+                else
+                {
+                    result.Serialize(Console.Out);
+                }
             }
             catch (MondException e)
             {

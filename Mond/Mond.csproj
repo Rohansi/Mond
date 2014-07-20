@@ -132,6 +132,7 @@
     <Compile Include="IndexedStack.cs" />
     <Compile Include="MondCompilerException.cs" />
     <Compile Include="MondException.cs" />
+    <Compile Include="MondValue.Enumerable.cs" />
     <Compile Include="MondValue.Operators.cs" />
     <Compile Include="MondValue.Serialize.cs" />
     <Compile Include="RuntimeError.cs" />
