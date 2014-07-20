@@ -342,7 +342,7 @@ namespace Mond
                     return ArrayPrototype.Value;
 
                 default:
-                    return null; // TODO: provide prototypes for other types
+                    return ObjectPrototype.Value; // TODO: provide proper prototypes for other types
             }
         }
 

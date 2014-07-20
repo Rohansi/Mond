@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using NUnit.Framework;
 
 namespace Mond.Tests.Expressions
@@ -9,7 +10,8 @@ namespace Mond.Tests.Expressions
         [Test]
         public void FizzBuzz()
         {
-            var result = Script.Run(@"
+            MondState state;
+            var result = Script.Run(out state, @"
                 seq fizzBuzz() {
                     var n = 1;
 
@@ -29,17 +31,8 @@ namespace Mond.Tests.Expressions
                         n++;
                     }
                 };
-                
-                var values = [];
 
-                foreach (var str in fizzBuzz()) {
-                    values.add(str);
-
-                    if (values.length() >= 15)
-                        break;
-                }
-
-                return values;
+                return fizzBuzz();
             ");
 
             var expected = new MondValue[]
@@ -47,14 +40,15 @@ namespace Mond.Tests.Expressions
                 "1", "2", "Fizz", "4", "Buzz", "Fizz", "7", "8", "Fizz", "Buzz", "11", "Fizz", "13", "14", "FizzBuzz"
             };
 
-            Assert.AreEqual(result.Type, MondValueType.Array);
-            Assert.True(result.ArrayValue.SequenceEqual(expected));
+            Assert.True(result.IsEnumerable);
+            Assert.True(result.Enumerate(state).Take(expected.Length).SequenceEqual(expected));
         }
 
         [Test]
         public void NestedSequence()
         {
-            var result = Script.Run(@"
+            MondState state;
+            var result = Script.Run(out state, @"
                 seq expand(pairs) {
                     seq repeat(value, count) {
                         for (var i = 0; i < count; i++)
@@ -67,14 +61,7 @@ namespace Mond.Tests.Expressions
                 }
 
                 var input = [{v: 1, n: 2}, {v: 'hi', n: 5}];
-                var output = expand(input);
-
-                var array = [];
-
-                foreach (var v in output)
-                    array.add(v);
-
-                return array;
+                return expand(input);
             ");
 
             var expected = new MondValue[]
@@ -82,20 +69,33 @@ namespace Mond.Tests.Expressions
                 1, 1, "hi", "hi", "hi", "hi", "hi"
             };
 
-            Assert.AreEqual(result.Type, MondValueType.Array);
-            Assert.True(result.ArrayValue.SequenceEqual(expected));
-        }
-
-        [Test]
-        public void NestedForeach()
-        {
-            
+            Assert.True(result.IsEnumerable);
+            Assert.True(result.Enumerate(state).SequenceEqual(expected));
         }
 
         [Test]
         public void Comprehension()
         {
+            MondState state;
+            var result = Script.Run(out state, @"
+                fun double(x) -> x * 2;
+                fun half(x) -> x / 2;
 
+                fun isNumber(x) -> x.getType() == 'number';
+                fun above10(x) -> x > 10;
+
+                var input = [ [5, null, 15, 20], [1, 100, 1000, 'test'] ];
+            
+                return [double(x) + half(x) : list in input, x in list, isNumber(x), above10(x)];
+            ");
+
+            var expected = new MondValue[]
+            {
+                37.5, 50, 250, 2500
+            };
+
+            Assert.True(result.IsEnumerable);
+            Assert.True(result.Enumerate(state).SequenceEqual(expected));
         }
     }
 }
