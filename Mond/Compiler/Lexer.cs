@@ -10,7 +10,7 @@ namespace Mond.Compiler
     partial class Lexer : IEnumerable<Token>
     {
         private readonly IEnumerator<char> _source;
-        private readonly int _length;
+        private int _length;
         private List<char> _read;
 
         private readonly string _fileName;
@@ -118,10 +118,10 @@ namespace Mond.Compiler
                         switch (ch)
                         {
                             case '\\':
+                                ch = TakeChar();
+
                                 if (_index >= _length)
                                     throw new MondCompilerException(_fileName, _currentLine, CompilerError.UnexpectedEofString);
-
-                                ch = TakeChar();
 
                                 switch (ch)
                                 {
@@ -291,6 +291,9 @@ namespace Mond.Compiler
             {
                 var success = _source.MoveNext();
                 _read.Add(success ? _source.Current : '\0');
+
+                if (!success)
+                    _length = _index + _read.Count - 1;
             }
 
             return _read[distance];
