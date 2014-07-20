@@ -79,6 +79,8 @@ namespace Mond.VirtualMachine
             var code = program.Bytecode;
 
             var initialCallDepth = _callStack.Count - 1;
+            var initialLocalDepth = _localStack.Count;
+            var initialEvalDepth = _evalStack.Count;
 
             var ip = functionAddress.Address;
             var errorIp = 0;
@@ -625,6 +627,16 @@ namespace Mond.VirtualMachine
                 }
 
                 _callStack.Pop();
+
+                while (_localStack.Count > initialLocalDepth)
+                {
+                    _localStack.Pop();
+                }
+
+                while (_evalStack.Count > initialEvalDepth)
+                {
+                    _evalStack.Pop();
+                }
 
                 throw new MondRuntimeException(errorBuilder.ToString(), e, true);
             }
