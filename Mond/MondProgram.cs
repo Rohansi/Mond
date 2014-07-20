@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Mond.Compiler;
+using Mond.Compiler.Expressions;
 using Mond.VirtualMachine;
 
 namespace Mond
@@ -32,6 +33,27 @@ namespace Mond
             var lexer = new Lexer(source, fileName);
             var parser = new Parser(lexer);
             var expression = parser.ParseAll();
+
+            return CompileImpl(expression, options);
+        }
+
+        /// <summary>
+        /// Compiles a single statement from a stream of characters. This should
+        /// only really be useful when implementing REPLs.
+        /// </summary>
+        public static MondProgram CompileStatement(IEnumerable<char> source, string fileName = null, MondCompilerOptions options = null)
+        {
+            options = options ?? new MondCompilerOptions();
+
+            var lexer = new Lexer(source, int.MaxValue, fileName);
+            var parser = new Parser(lexer);
+            var expression = parser.ParseStatement();
+
+            return CompileImpl(expression, options);
+        }
+
+        private static MondProgram CompileImpl(Expression expression, MondCompilerOptions options)
+        {
             expression.SetParent(null);
             expression.Simplify();
             //expression.Print(0);
