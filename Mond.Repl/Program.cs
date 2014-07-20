@@ -28,20 +28,42 @@ namespace Mond.Repl
                     {
                         var program = MondProgram.CompileStatement(ConsoleInput(), "stdin", options);
                         result = state.Load(program);
-                    } while (_input.Count > 0);
 
-                    Console.WriteLine(result.ToString());
+                        // get rid of leading whitespace
+                        while (_input.Count > 0 && char.IsWhiteSpace(_input.Peek()))
+                        {
+                            _input.Dequeue();
+                        }
+
+                    } while (_input.Count > 0); // we only want the result of the last statement
+
+                    if (result.Type == MondValueType.Object && result.IsEnumerable)
+                    {
+                        foreach (var value in result.Enumerate(state))
+                        {
+                            value.Serialize(Console.Out);
+                            Console.WriteLine();
+                        }
+                    }
+                    else
+                    {
+                        result.Serialize(Console.Out);
+                        Console.WriteLine();
+                    }
+
+                    Console.WriteLine();
                 }
                 catch (Exception e)
                 {
                     Console.WriteLine(e.Message);
+                    _input.Clear();
                 }
             }
         }
 
         static IEnumerable<char> ConsoleInput()
         {
-            var first = true;
+            var first = _input.Count == 0;
 
             while (true)
             {
@@ -59,6 +81,8 @@ namespace Mond.Repl
                         {
                             _input.Enqueue(c);
                         }
+
+                        _input.Enqueue('\n');
                     }
 
                     continue;
