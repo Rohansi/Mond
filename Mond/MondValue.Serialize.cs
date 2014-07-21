@@ -89,11 +89,11 @@ namespace Mond
                     break;
 
                 case MondValueType.Number:
-                    writer.Write("{0:R}", NumberValue);
+                    writer.Write("{0:R}", _numberValue);
                     break;
 
                 case MondValueType.String:
-                    writer.Write("\"{0}\"", StringValue);
+                    writer.Write("\"{0}\"", _stringValue);
                     break;
 
                 case MondValueType.Closure:

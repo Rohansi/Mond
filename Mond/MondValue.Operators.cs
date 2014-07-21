@@ -41,7 +41,7 @@ namespace Mond
 
                 case MondValueType.Number:
                     // ReSharper disable once CompareOfFloatsByEqualityOperator
-                    return value.NumberValue != 0;
+                    return value._numberValue != 0;
 
                 default:
                     return true;
@@ -53,7 +53,7 @@ namespace Mond
             if (value.Type != MondValueType.Number)
                 throw new MondRuntimeException(RuntimeError.CantCastTo, value.Type, MondValueType.Number);
 
-            return value.NumberValue;
+            return value._numberValue;
         }
 
         public static implicit operator string(MondValue value)
@@ -61,7 +61,7 @@ namespace Mond
             if (value.Type != MondValueType.String)
                 throw new MondRuntimeException(RuntimeError.CantCastTo, value.Type, MondValueType.String);
 
-            return value.StringValue;
+            return value._stringValue;
         }
 
         public static MondValue operator +(MondValue left, MondValue right)
@@ -74,7 +74,7 @@ namespace Mond
             if (left.Type != MondValueType.Number || right.Type != MondValueType.Number)
                 throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "addition", left.Type, right.Type);
 
-            return new MondValue(left.NumberValue + right.NumberValue);
+            return new MondValue(left._numberValue + right._numberValue);
         }
 
         public static MondValue operator -(MondValue left, MondValue right)
@@ -82,7 +82,7 @@ namespace Mond
             if (left.Type != MondValueType.Number || right.Type != MondValueType.Number)
                 throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "subtraction", left.Type, right.Type);
 
-            return new MondValue(left.NumberValue - right.NumberValue);
+            return new MondValue(left._numberValue - right._numberValue);
         }
 
         public static MondValue operator *(MondValue left, MondValue right)
@@ -90,7 +90,7 @@ namespace Mond
             if (left.Type != MondValueType.Number || right.Type != MondValueType.Number)
                 throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "multiplication", left.Type, right.Type);
 
-            return new MondValue(left.NumberValue * right.NumberValue);
+            return new MondValue(left._numberValue * right._numberValue);
         }
 
         public static MondValue operator /(MondValue left, MondValue right)
@@ -98,7 +98,7 @@ namespace Mond
             if (left.Type != MondValueType.Number || right.Type != MondValueType.Number)
                 throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "division", left.Type, right.Type);
 
-            return new MondValue(left.NumberValue / right.NumberValue);
+            return new MondValue(left._numberValue / right._numberValue);
         }
 
         public static MondValue operator %(MondValue left, MondValue right)
@@ -106,7 +106,7 @@ namespace Mond
             if (left.Type != MondValueType.Number || right.Type != MondValueType.Number)
                 throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "modulo", left.Type, right.Type);
 
-            return new MondValue(left.NumberValue % right.NumberValue);
+            return new MondValue(left._numberValue % right._numberValue);
         }
 
         public static MondValue operator -(MondValue value)
@@ -114,7 +114,7 @@ namespace Mond
             if (value.Type != MondValueType.Number)
                 throw new MondRuntimeException(RuntimeError.CantUseOperatorOnType, "negation", value.Type);
 
-            return new MondValue(-value.NumberValue);
+            return new MondValue(-value._numberValue);
         }
 
         public static bool operator ==(MondValue left, MondValue right)
@@ -141,13 +141,13 @@ namespace Mond
                     if (right.Type != MondValueType.Number)
                         throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "relational", left.Type, right.Type);
 
-                    return left.NumberValue > right.NumberValue;
+                    return left._numberValue > right._numberValue;
 
                 case MondValueType.String:
                     if (right.Type != MondValueType.String)
                         throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "relational", left.Type, right.Type);
 
-                    return string.Compare(left.StringValue, right.StringValue, CultureInfo.InvariantCulture, CompareOptions.None) > 0;
+                    return string.Compare(left._stringValue, right._stringValue, CultureInfo.InvariantCulture, CompareOptions.None) > 0;
 
                 default:
                     throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "relational", left.Type, right.Type);

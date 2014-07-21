@@ -531,7 +531,7 @@ namespace Mond.VirtualMachine
                                 var value = _evalStack.Pop();
                                 if (value.Type == MondValueType.Number)
                                 {
-                                    var number = value.NumberValue;
+                                    var number = (double)value;
                                     var numberInt = (int)Math.Truncate(number);
 
                                     if (number >= start && number < start + count &&

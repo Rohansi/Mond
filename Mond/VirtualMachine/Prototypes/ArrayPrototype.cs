@@ -13,6 +13,8 @@
             Value["add"] = new MondInstanceFunction(Add);
 
             Value["getEnumerator"] = new MondInstanceFunction(GetEnumerator);
+
+            Value.Lock();
         }
 
         private static MondValue Length(MondState state, MondValue instance, params MondValue[] arguments)

@@ -12,6 +12,8 @@ namespace Mond.VirtualMachine.Prototypes
             Value["prototype"] = MondValue.Undefined; // required to break the chain
 
             Value["getType"] = new MondInstanceFunction(GetType);
+
+            Value.Lock();
         }
 
         private static MondValue GetType(MondState state, MondValue instance, params MondValue[] args)

@@ -19,21 +19,37 @@ namespace Mond
 
         public readonly MondValueType Type;
 
-        public readonly Dictionary<MondValue, MondValue> ObjectValue;
-        public readonly List<MondValue> ArrayValue;
-        public readonly double NumberValue;
-        public readonly string StringValue;
+        internal readonly Dictionary<MondValue, MondValue> ObjectValue;
+        private bool _objectLocked;
+
+        internal readonly List<MondValue> ArrayValue;
+
+        private readonly double _numberValue;
+        private readonly string _stringValue;
 
         internal readonly Closure ClosureValue;
 
+        private MondValue()
+        {
+            Type = MondValueType.Undefined;
+
+            ObjectValue = null;
+            _objectLocked = false;
+
+            ArrayValue = null;
+            _numberValue = 0;
+            _stringValue = null;
+
+            ClosureValue = null;
+        }
+
+        /// <summary>
+        /// Construct a new MondValue. Should only be used for Object or Array.
+        /// </summary>
         public MondValue(MondValueType type)
+            : this()
         {
             Type = type;
-            ObjectValue = null;
-            ArrayValue = null;
-            NumberValue = 0;
-            StringValue = null;
-            ClosureValue = null;
 
             switch (type)
             {
@@ -56,68 +72,64 @@ namespace Mond
             }
         }
 
+        /// <summary>
+        /// Construct a new Number MondValue with the specified value.
+        /// </summary>
         public MondValue(double value)
+            : this()
         {
             Type = MondValueType.Number;
-            NumberValue = value;
-
-            ObjectValue = null;
-            ArrayValue = null;
-            StringValue = null;
-            ClosureValue = null;
+            _numberValue = value;
         }
 
+        /// <summary>
+        /// Construct a new String MondValue with the specified value.
+        /// </summary>
         public MondValue(string value)
+            : this()
         {
             Type = MondValueType.String;
-            StringValue = value;
-
-            ObjectValue = null;
-            ArrayValue = null;
-            NumberValue = 0;
-            ClosureValue = null;
+            _stringValue = value;
         }
 
+        /// <summary>
+        /// Construct a new Closure MondValue with the specified value.
+        /// </summary>
         public MondValue(MondFunction function)
+            : this()
         {
             Type = MondValueType.Closure;
             ClosureValue = new Closure(function);
-
-            ObjectValue = null;
-            ArrayValue = null;
-            NumberValue = 0;
-            StringValue = null;
         }
 
+        /// <summary>
+        /// Construct a new Closure MondValue with the specified value. Instance closures will bind
+        /// themselves to their parent object when being retrieved.
+        /// </summary>
         public MondValue(MondInstanceFunction function)
+            : this()
         {
             Type = MondValueType.Closure;
             ClosureValue = new Closure(function);
-
-            ObjectValue = null;
-            ArrayValue = null;
-            NumberValue = 0;
-            StringValue = null;
         }
 
         internal MondValue(Closure closure)
+            : this()
         {
             Type = MondValueType.Closure;
             ClosureValue = closure;
-
-            ObjectValue = null;
-            ArrayValue = null;
-            NumberValue = 0;
-            StringValue = null;
         }
 
+        /// <summary>
+        /// Get or set values in the Object or Array or its' prototype.
+        /// </summary>
         public MondValue this[MondValue index]
         {
             get
             {
                 if (Type == MondValueType.Array && index.Type == MondValueType.Number)
                 {
-                    var n = (int)index.NumberValue;
+                    var n = (int)index._numberValue;
 
                     if (n < 0 || n >= ArrayValue.Count)
                         throw new MondRuntimeException(RuntimeError.IndexOutOfBounds);
@@ -171,9 +183,12 @@ namespace Mond
                 if (value == null)
                     throw new ArgumentNullException("value");
 
+                if (Type == MondValueType.Object && _objectLocked)
+                    return;
+
                 if (Type == MondValueType.Array && index.Type == MondValueType.Number)
                 {
-                    var n = (int)index.NumberValue;
+                    var n = (int)index._numberValue;
 
                     if (n < 0 || n >= ArrayValue.Count)
                         throw new MondRuntimeException(RuntimeError.IndexOutOfBounds);
@@ -230,6 +245,14 @@ namespace Mond
             }
         }
 
+        /// <summary>
+        /// Locks an Object to prevent modification from scripts. All prototypes should be locked.
+        /// </summary>
+        public void Lock()
+        {
+            _objectLocked = true;
+        }
+
         public bool Equals(MondValue other)
         {
             if (ReferenceEquals(other, null))
@@ -248,10 +271,10 @@ namespace Mond
 
                 case MondValueType.Number:
                     // ReSharper disable once CompareOfFloatsByEqualityOperator
-                    return NumberValue == other.NumberValue;
+                    return _numberValue == other._numberValue;
 
                 case MondValueType.String:
-                    return StringValue == other.StringValue;
+                    return _stringValue == other._stringValue;
 
                 case MondValueType.Closure:
                     return ReferenceEquals(ClosureValue, other.ClosureValue);
@@ -295,10 +318,10 @@ namespace Mond
                     return ArrayValue.GetHashCode();
 
                 case MondValueType.Number:
-                    return NumberValue.GetHashCode();
+                    return _numberValue.GetHashCode();
 
                 case MondValueType.String:
-                    return StringValue.GetHashCode();
+                    return _stringValue.GetHashCode();
 
                 case MondValueType.Closure:
                     return ClosureValue.GetHashCode();
@@ -324,9 +347,9 @@ namespace Mond
                 case MondValueType.Array:
                     return "array";
                 case MondValueType.Number:
-                    return string.Format("{0:R}", NumberValue);
+                    return string.Format("{0:R}", _numberValue);
                 case MondValueType.String:
-                    return StringValue;
+                    return _stringValue;
                 case MondValueType.Closure:
                     return "closure";
                 default:
