@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Mond.Compiler.Expressions.Statements
+﻿namespace Mond.Compiler.Expressions.Statements
 {
     class DoWhileExpression : Expression, IStatementExpression
     {
@@ -14,20 +12,24 @@ namespace Mond.Compiler.Expressions.Statements
             Condition = condition;
         }
 
-        public override void Print(int indent)
+        public override void Print(IndentTextWriter writer)
         {
-            var indentStr = new string(' ', indent);
+            writer.WriteIndent();
+            writer.WriteLine("DoWhile");
 
-            Console.Write(indentStr);
-            Console.WriteLine("DoWhile");
+            writer.WriteIndent();
+            writer.WriteLine("-Block");
 
-            Console.Write(indentStr);
-            Console.WriteLine("-Block");
-            Block.Print(indent + 2);
+            writer.Indent += 2;
+            Block.Print(writer);
+            writer.Indent -= 2;
 
-            Console.Write(indentStr);
-            Console.WriteLine("-Condition");
-            Condition.Print(indent + 2);
+            writer.WriteIndent();
+            writer.WriteLine("-Condition");
+
+            writer.Indent += 2;
+            Condition.Print(writer);
+            writer.Indent -= 2;
         }
 
         public override int Compile(FunctionContext context)

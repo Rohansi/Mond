@@ -17,15 +17,15 @@ namespace Mond.Compiler.Expressions
             Right = right;
         }
 
-        public override void Print(int indent)
+        public override void Print(IndentTextWriter writer)
         {
-            var indentStr = new string(' ', indent);
+            writer.WriteIndent();
+            writer.WriteLine("Operator {0}", Operation);
 
-            Console.Write(indentStr);
-            Console.WriteLine("Operator {0}", Operation);
-
-            Left.Print(indent + 1);
-            Right.Print(indent + 1);
+            writer.Indent++;
+            Left.Print(writer);
+            Right.Print(writer);
+            writer.Indent--;
         }
 
         public override int Compile(FunctionContext context)

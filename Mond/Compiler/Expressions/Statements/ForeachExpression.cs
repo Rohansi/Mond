@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Mond.Compiler.Expressions.Statements
+﻿namespace Mond.Compiler.Expressions.Statements
 {
     class ForeachExpression : Expression, IStatementExpression
     {
@@ -16,20 +14,24 @@ namespace Mond.Compiler.Expressions.Statements
             Block = block;
         }
 
-        public override void Print(int indent)
+        public override void Print(IndentTextWriter writer)
         {
-            var indentStr = new string(' ', indent);
+            writer.WriteIndent();
+            writer.WriteLine("Foreach - {0}", Identifier);
 
-            Console.Write(indentStr);
-            Console.WriteLine("Foreach - {0}", Identifier);
+            writer.WriteIndent();
+            writer.WriteLine("-Expression");
 
-            Console.Write(indentStr);
-            Console.WriteLine("-Expression");
-            Expression.Print(indent + 2);
+            writer.Indent += 2;
+            Expression.Print(writer);
+            writer.Indent -= 2;
 
-            Console.Write(indentStr);
-            Console.WriteLine("-Block");
-            Block.Print(indent + 2);
+            writer.WriteIndent();
+            writer.WriteLine("-Block");
+
+            writer.Indent += 2;
+            Block.Print(writer);
+            writer.Indent -= 2;
         }
 
         public override int Compile(FunctionContext context)

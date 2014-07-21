@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Mond.Compiler.Expressions.Statements
+﻿namespace Mond.Compiler.Expressions.Statements
 {
     class WhileExpression : Expression, IStatementExpression
     {
@@ -14,20 +12,24 @@ namespace Mond.Compiler.Expressions.Statements
             Block = block;
         }
 
-        public override void Print(int indent)
+        public override void Print(IndentTextWriter writer)
         {
-            var indentStr = new string(' ', indent);
+            writer.WriteIndent();
+            writer.WriteLine("While");
 
-            Console.Write(indentStr);
-            Console.WriteLine("While");
+            writer.WriteIndent();
+            writer.WriteLine("-Condition");
 
-            Console.Write(indentStr);
-            Console.WriteLine("-Condition");
-            Condition.Print(indent + 2);
+            writer.Indent += 2;
+            Condition.Print(writer);
+            writer.Indent -= 2;
 
-            Console.Write(indentStr);
-            Console.WriteLine("-Do");
-            Block.Print(indent + 2);
+            writer.WriteIndent();
+            writer.WriteLine("-Do");
+
+            writer.Indent += 2;
+            Block.Print(writer);
+            writer.Indent -= 2;
         }
 
         public override int Compile(FunctionContext context)

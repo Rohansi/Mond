@@ -17,25 +17,27 @@ namespace Mond.Compiler.Expressions
             Arguments = arguments.AsReadOnly();
         }
 
-        public override void Print(int indent)
+        public override void Print(IndentTextWriter writer)
         {
-            var indentStr = new string(' ', indent);
+            writer.WriteIndent();
+            writer.WriteLine("Call");
 
-            Console.Write(indentStr);
-            Console.WriteLine("Call");
+            writer.WriteIndent();
+            writer.WriteLine("-Expression");
 
-            Console.Write(indentStr);
-            Console.WriteLine("-Expression");
+            writer.Indent += 2;
+            Method.Print(writer);
+            writer.Indent -= 2;
 
-            Method.Print(indent + 2);
+            writer.WriteIndent();
+            writer.WriteLine("-Arguments");
 
-            Console.Write(indentStr);
-            Console.WriteLine("-Arguments");
-
+            writer.Indent += 2;
             foreach (var arg in Arguments)
             {
-                arg.Print(indent + 2);
+                arg.Print(writer);
             }
+            writer.Indent -= 2;
         }
 
         public override int Compile(FunctionContext context)

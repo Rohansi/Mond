@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Mond.Compiler.Expressions
+﻿namespace Mond.Compiler.Expressions
 {
     class NullExpression : Expression, IConstantExpression
     {
@@ -10,11 +8,10 @@ namespace Mond.Compiler.Expressions
             
         }
 
-        public override void Print(int indent)
+        public override void Print(IndentTextWriter writer)
         {
-            var indentStr = new string(' ', indent);
-            Console.Write(indentStr);
-            Console.WriteLine("null");
+            writer.WriteIndent();
+            writer.WriteLine("null");
         }
 
         public override int Compile(FunctionContext context)

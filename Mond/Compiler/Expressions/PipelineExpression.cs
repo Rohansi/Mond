@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 
 namespace Mond.Compiler.Expressions
 {
@@ -15,15 +14,15 @@ namespace Mond.Compiler.Expressions
             Right = right;
         }
 
-        public override void Print(int indent)
+        public override void Print(IndentTextWriter writer)
         {
-            var indentStr = new string(' ', indent);
+            writer.WriteIndent();
+            writer.WriteLine("Pipeline");
 
-            Console.Write(indentStr);
-            Console.WriteLine("Pipeline");
-
-            Left.Print(indent + 1);
-            Right.Print(indent + 1);
+            writer.Indent++;
+            Left.Print(writer);
+            Right.Print(writer);
+            writer.Indent--;
         }
 
         public override int Compile(FunctionContext context)

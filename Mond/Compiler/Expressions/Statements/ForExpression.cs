@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Mond.Compiler.Expressions.Statements
+﻿namespace Mond.Compiler.Expressions.Statements
 {
     class ForExpression : Expression, IStatementExpression
     {
@@ -18,37 +16,47 @@ namespace Mond.Compiler.Expressions.Statements
             Block = block;
         }
 
-        public override void Print(int indent)
+        public override void Print(IndentTextWriter writer)
         {
-            var indentStr = new string(' ', indent);
-
-            Console.Write(indentStr);
-            Console.WriteLine("For");
+            writer.WriteIndent();
+            writer.WriteLine("For");
 
             if (Initializer != null)
             {
-                Console.Write(indentStr);
-                Console.WriteLine("-Initializer");
-                Initializer.Print(indent + 2);
+                writer.WriteIndent();
+                writer.WriteLine("-Initializer");
+
+                writer.Indent += 2;
+                Initializer.Print(writer);
+                writer.Indent -= 2;
             }
 
             if (Condition != null)
             {
-                Console.Write(indentStr);
-                Console.WriteLine("-Condition");
-                Condition.Print(indent + 2);
+                writer.WriteIndent();
+                writer.WriteLine("-Condition");
+
+                writer.Indent += 2;
+                Condition.Print(writer);
+                writer.Indent -= 2;
             }
 
             if (Increment != null)
             {
-                Console.Write(indentStr);
-                Console.WriteLine("-Increment");
-                Increment.Print(indent + 2);
+                writer.WriteIndent();
+                writer.WriteLine("-Increment");
+
+                writer.Indent += 2;
+                Increment.Print(writer);
+                writer.Indent -= 2;
             }
 
-            Console.Write(indentStr);
-            Console.WriteLine("-Block");
-            Block.Print(indent + 2);
+            writer.WriteIndent();
+            writer.WriteLine("-Block");
+
+            writer.Indent += 2;
+            Block.Print(writer);
+            writer.Indent -= 2;
         }
 
         public override int Compile(FunctionContext context)

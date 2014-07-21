@@ -27,21 +27,21 @@ namespace Mond.Compiler.Expressions.Statements
             Declarations = declarations.AsReadOnly();
         }
 
-        public override void Print(int indent)
+        public override void Print(IndentTextWriter writer)
         {
-            var indentStr = new string(' ', indent);
-
-            Console.Write(indentStr);
-            Console.WriteLine("Var");
+            writer.WriteIndent();
+            writer.WriteLine("Var");
 
             foreach (var declaration in Declarations)
             {
-                Console.Write(indentStr);
-                Console.WriteLine("-" + declaration.Name + (declaration.Initializer != null ? " =" : ""));
+                writer.WriteIndent();
+                writer.WriteLine("-" + declaration.Name + (declaration.Initializer != null ? " =" : ""));
 
                 if (declaration.Initializer != null)
                 {
-                    declaration.Initializer.Print(indent + 2);
+                    writer.Indent += 2;
+                    declaration.Initializer.Print(writer);
+                    writer.Indent -= 2;
                 }
             }
         }

@@ -30,7 +30,7 @@ namespace Mond.Tests.Expressions
                         yield str;
                         n++;
                     }
-                };
+                }
 
                 return fizzBuzz();
             ");

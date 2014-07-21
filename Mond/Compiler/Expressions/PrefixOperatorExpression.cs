@@ -14,14 +14,14 @@ namespace Mond.Compiler.Expressions
             Right = right;
         }
 
-        public override void Print(int indent)
+        public override void Print(IndentTextWriter writer)
         {
-            var indentStr = new string(' ', indent);
+            writer.WriteIndent();
+            writer.WriteLine("Prefix {0}", Operation);
 
-            Console.Write(indentStr);
-            Console.WriteLine("Prefix {0}", Operation);
-
-            Right.Print(indent + 1);
+            writer.Indent++;
+            Right.Print(writer);
+            writer.Indent--;
         }
 
         public override int Compile(FunctionContext context)

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Mond.Compiler;
 using Mond.Compiler.Expressions;
 using Mond.VirtualMachine;
@@ -56,7 +57,9 @@ namespace Mond
         {
             expression.SetParent(null);
             expression.Simplify();
-            //expression.Print(0);
+
+            //using (var writer = new IndentTextWriter(Console.Out, " "))
+            //    expression.Print(writer);
 
             var compiler = new ExpressionCompiler(options);
             return compiler.Compile(expression);

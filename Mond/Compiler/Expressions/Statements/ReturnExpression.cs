@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Mond.Compiler.Expressions.Statements
+﻿namespace Mond.Compiler.Expressions.Statements
 {
     class ReturnExpression : Expression, IStatementExpression
     {
@@ -12,15 +10,17 @@ namespace Mond.Compiler.Expressions.Statements
             Value = value;
         }
 
-        public override void Print(int indent)
+        public override void Print(IndentTextWriter writer)
         {
-            var indentStr = new string(' ', indent);
-
-            Console.Write(indentStr);
-            Console.WriteLine("Return");
+            writer.WriteIndent();
+            writer.WriteLine("Return");
 
             if (Value != null)
-                Value.Print(indent + 1);
+            {
+                writer.Indent++;
+                Value.Print(writer);
+                writer.Indent--;
+            }
         }
 
         public override int Compile(FunctionContext context)

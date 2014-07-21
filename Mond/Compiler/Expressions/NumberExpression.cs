@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Mond.Compiler.Expressions
+﻿namespace Mond.Compiler.Expressions
 {
     class NumberExpression : Expression, IConstantExpression
     {
@@ -12,11 +10,10 @@ namespace Mond.Compiler.Expressions
             Value = value;
         }
 
-        public override void Print(int indent)
+        public override void Print(IndentTextWriter writer)
         {
-            var indentStr = new string(' ', indent);
-            Console.Write(indentStr);
-            Console.WriteLine("number: {0}", Value);
+            writer.WriteIndent();
+            writer.WriteLine("number: {0}", Value);
         }
 
         public override int Compile(FunctionContext context)

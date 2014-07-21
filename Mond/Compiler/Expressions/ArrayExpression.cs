@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
@@ -15,17 +14,17 @@ namespace Mond.Compiler.Expressions
             Values = values.AsReadOnly();
         }
 
-        public override void Print(int indent)
+        public override void Print(IndentTextWriter writer)
         {
-            var indentStr = new string(' ', indent);
+            writer.WriteIndent();
+            writer.WriteLine("Array");
 
-            Console.Write(indentStr);
-            Console.WriteLine("Array");
-
+            writer.Indent++;
             foreach (var value in Values)
             {
-                value.Print(indent + 1);
+                value.Print(writer);
             }
+            writer.Indent--;
         }
 
         public override int Compile(FunctionContext context)

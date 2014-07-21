@@ -20,11 +20,11 @@ namespace Mond.Compiler.Expressions
             
         }
 
-        public override void Print(int indent)
+        public override void Print(IndentTextWriter writer)
         {
             foreach (var statement in Statements)
             {
-                statement.Print(indent);
+                statement.Print(writer);
             }
         }
 

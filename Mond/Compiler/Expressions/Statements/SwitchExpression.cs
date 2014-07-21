@@ -31,38 +31,46 @@ namespace Mond.Compiler.Expressions.Statements
             DefaultBlock = defaultBlock;
         }
 
-        public override void Print(int indent)
+        public override void Print(IndentTextWriter writer)
         {
-            var indentStr = new string(' ', indent);
+            writer.WriteIndent();
+            writer.WriteLine("Switch");
 
-            Console.Write(indentStr);
-            Console.WriteLine("Switch");
+            writer.WriteIndent();
+            writer.WriteLine("-Expression");
 
-            Console.Write(indentStr);
-            Console.WriteLine("-Expression");
-            Expression.Print(indent + 2);
+            writer.Indent += 2;
+            Expression.Print(writer);
+            writer.Indent -= 2;
 
             foreach (var branch in Branches)
             {
-                Console.Write(indentStr);
-                Console.WriteLine("-Cases");
+                writer.WriteIndent();
+                writer.WriteLine("-Cases");
 
+                writer.Indent += 2;
                 foreach (var condition in branch.Conditions)
                 {
-                    condition.Print(indent + 2);
+                    condition.Print(writer);
                 }
+                writer.Indent -= 2;
 
-                Console.Write(indentStr);
-                Console.WriteLine(" Do");
+                writer.WriteIndent();
+                writer.WriteLine(" Do");
 
-                branch.Block.Print(indent + 2);
+                writer.Indent += 2;
+                branch.Block.Print(writer);
+                writer.Indent -= 2;
             }
 
             if (DefaultBlock != null)
             {
-                Console.Write(indentStr);
-                Console.WriteLine("-Default");
-                DefaultBlock.Print(indent + 2);
+                writer.WriteIndent();
+                writer.WriteLine("-Default");
+
+                writer.Indent += 2;
+                DefaultBlock.Print(writer);
+                writer.Indent -= 2;
             }
         }
 

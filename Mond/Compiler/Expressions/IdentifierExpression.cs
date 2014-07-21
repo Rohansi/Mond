@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Mond.Compiler.Expressions
+﻿namespace Mond.Compiler.Expressions
 {
     class IdentifierExpression : Expression, IStorableExpression
     {
@@ -12,12 +10,10 @@ namespace Mond.Compiler.Expressions
             Name = token.Contents;
         }
 
-        public override void Print(int indent)
+        public override void Print(IndentTextWriter writer)
         {
-            var indentStr = new string(' ', indent);
-
-            Console.Write(indentStr);
-            Console.WriteLine("identifier: {0}", Name);
+            writer.WriteIndent();
+            writer.WriteLine("identifier: {0}", Name);
         }
 
         public override int Compile(FunctionContext context)

@@ -14,16 +14,16 @@ namespace Mond.Compiler.Expressions
             Left = left;
         }
 
-        public override void Print(int indent)
+        public override void Print(IndentTextWriter writer)
         {
-            var indentStr = new string(' ', indent);
-
             var discardResult = Parent == null || Parent is BlockExpression;
             
-            Console.Write(indentStr);
-            Console.WriteLine("Postfix {0}" + (discardResult ? " - Result not used" : ""), Operation);
+            writer.WriteIndent();
+            writer.WriteLine("Postfix {0}" + (discardResult ? " - Result not used" : ""), Operation);
 
-            Left.Print(indent + 1);
+            writer.Indent++;
+            Left.Print(writer);
+            writer.Indent--;
         }
 
         public override int Compile(FunctionContext context)

@@ -6,12 +6,14 @@ namespace Mond
     class IndentTextWriter : TextWriter
     {
         private readonly TextWriter _writer;
+        private readonly string _indentStr;
 
         public int Indent { get; set; }
 
-        public IndentTextWriter(TextWriter writer)
+        public IndentTextWriter(TextWriter writer, string indentStr = "  ")
         {
             _writer = writer;
+            _indentStr = indentStr;
         }
 
         public override Encoding Encoding
@@ -27,7 +29,7 @@ namespace Mond
         public void WriteIndent()
         {
             for (var i = 0; i < Indent; i++)
-                Write("  ");
+                Write(_indentStr);
         }
     }
 }

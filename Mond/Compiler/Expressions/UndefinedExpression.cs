@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Mond.Compiler.Expressions
+﻿namespace Mond.Compiler.Expressions
 {
     class UndefinedExpression : Expression, IConstantExpression
     {
@@ -10,12 +8,10 @@ namespace Mond.Compiler.Expressions
             
         }
 
-        public override void Print(int indent)
+        public override void Print(IndentTextWriter writer)
         {
-            var indentStr = new string(' ', indent);
-
-            Console.Write(indentStr);
-            Console.WriteLine("Undefined");
+            writer.WriteIndent();
+            writer.WriteLine("undefined");
         }
 
         public override int Compile(FunctionContext context)

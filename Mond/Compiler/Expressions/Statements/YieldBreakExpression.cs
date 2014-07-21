@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Mond.Compiler.Expressions.Statements
+﻿namespace Mond.Compiler.Expressions.Statements
 {
     class YieldBreakExpression : Expression, IStatementExpression
     {
@@ -10,12 +8,10 @@ namespace Mond.Compiler.Expressions.Statements
             
         }
 
-        public override void Print(int indent)
+        public override void Print(IndentTextWriter writer)
         {
-            var indentStr = new string(' ', indent);
-
-            Console.Write(indentStr);
-            Console.WriteLine("YieldBreak");
+            writer.WriteIndent();
+            writer.WriteLine("YieldBreak");
         }
 
         public override int Compile(FunctionContext context)

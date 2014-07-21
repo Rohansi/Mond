@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Mond.Compiler.Expressions.Statements
 {
@@ -11,20 +10,26 @@ namespace Mond.Compiler.Expressions.Statements
 
         }
 
-        public override void Print(int indent)
+        public override void Print(IndentTextWriter writer)
         {
-            var indentStr = new string(' ', indent);
+            writer.WriteIndent();
+            writer.WriteLine("Sequence " + Name);
 
-            Console.Write(indentStr);
-            Console.WriteLine("Sequence " + Name);
+            writer.WriteIndent();
+            writer.WriteLine("-Arguments: {0}", string.Join(", ", Arguments));
 
-            Console.Write(indentStr);
-            Console.Write("-Arguments: ");
-            Console.WriteLine(string.Join(", ", Arguments));
+            if (OtherArguments != null)
+            {
+                writer.WriteIndent();
+                writer.WriteLine("-Other Arguments: {0}", OtherArguments);
+            }
 
-            Console.Write(indentStr);
-            Console.WriteLine("-Block");
-            Block.Print(indent + 2);
+            writer.WriteIndent();
+            writer.WriteLine("-Block");
+
+            writer.Indent += 2;
+            Block.Print(writer);
+            writer.Indent -= 2;
         }
 
         public override void CompileBody(FunctionContext context)

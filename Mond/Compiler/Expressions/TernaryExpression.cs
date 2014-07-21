@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Mond.Compiler.Expressions
+﻿namespace Mond.Compiler.Expressions
 {
     class TernaryExpression : Expression
     {
@@ -16,27 +14,31 @@ namespace Mond.Compiler.Expressions
             IfFalse = ifFalse;
         }
 
-        public override void Print(int indent)
+        public override void Print(IndentTextWriter writer)
         {
-            var indentStr = new string(' ', indent);
+            writer.WriteIndent();
+            writer.WriteLine("Conditional");
 
-            Console.Write(indentStr);
-            Console.WriteLine("Conditional");
+            writer.WriteIndent();
+            writer.WriteLine("-Expression");
 
-            Console.Write(indentStr);
-            Console.WriteLine("-Expression");
+            writer.Indent += 2;
+            Condition.Print(writer);
+            writer.Indent -= 2;
 
-            Condition.Print(indent + 2);
+            writer.WriteIndent();
+            writer.WriteLine("-True");
 
-            Console.Write(indentStr);
-            Console.WriteLine("-True");
+            writer.Indent += 2;
+            IfTrue.Print(writer);
+            writer.Indent -= 2;
 
-            IfTrue.Print(indent + 2);
+            writer.WriteIndent();
+            writer.WriteLine("-False");
 
-            Console.Write(indentStr);
-            Console.WriteLine("-False");
-
-            IfFalse.Print(indent + 2);
+            writer.Indent += 2;
+            IfFalse.Print(writer);
+            writer.Indent -= 2;
         }
 
         public override int Compile(FunctionContext context)

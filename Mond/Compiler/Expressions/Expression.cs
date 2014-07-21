@@ -13,7 +13,7 @@
             Line = line;
         }
 
-        public abstract void Print(int indent);
+        public abstract void Print(IndentTextWriter writer);
         public abstract int Compile(FunctionContext context);
         public abstract Expression Simplify();
 

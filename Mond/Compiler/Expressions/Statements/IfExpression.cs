@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
@@ -29,38 +28,42 @@ namespace Mond.Compiler.Expressions.Statements
             Else = elseBranch;
         }
 
-        public override void Print(int indent)
+        public override void Print(IndentTextWriter writer)
         {
-            var indentStr = new string(' ', indent);
-
-            Console.Write(indentStr);
-            Console.WriteLine("If Statement");
+            writer.WriteIndent();
+            writer.WriteLine("If Statement");
 
             var first = true;
 
             foreach (var branch in Branches)
             {
-                Console.Write(indentStr);
-                Console.WriteLine(first ? "-If" : "-ElseIf");
+                writer.WriteIndent();
+                writer.WriteLine(first ? "-If" : "-ElseIf");
                 first = false;
 
-                branch.Condition.Print(indent + 2);
+                writer.Indent += 2;
+                branch.Condition.Print(writer);
+                writer.Indent -= 2;
 
-                Console.Write(indentStr);
-                Console.WriteLine("-Do");
+                writer.WriteIndent();
+                writer.WriteLine(" Do");
 
-                branch.Block.Print(indent + 2);
+                writer.Indent += 2;
+                branch.Block.Print(writer);
+                writer.Indent -= 2;
             }
 
             if (Else != null)
             {
-                Console.Write(indentStr);
-                Console.WriteLine("-Else");
+                writer.WriteIndent();
+                writer.WriteLine("-Else");
 
-                Console.Write(indentStr);
-                Console.WriteLine(" Do");
+                writer.WriteIndent();
+                writer.WriteLine(" Do");
 
-                Else.Block.Print(indent + 2);
+                writer.Indent += 2;
+                Else.Block.Print(writer);
+                writer.Indent -= 2;
             }
         }
 

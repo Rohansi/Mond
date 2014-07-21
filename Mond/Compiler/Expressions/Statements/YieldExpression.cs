@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Mond.Compiler.Expressions.Statements
+﻿namespace Mond.Compiler.Expressions.Statements
 {
     class YieldExpression : Expression, IStatementExpression
     {
@@ -12,14 +10,14 @@ namespace Mond.Compiler.Expressions.Statements
             Value = value;
         }
 
-        public override void Print(int indent)
+        public override void Print(IndentTextWriter writer)
         {
-            var indentStr = new string(' ', indent);
+            writer.WriteIndent();
+            writer.WriteLine("Yield");
 
-            Console.Write(indentStr);
-            Console.WriteLine("Yield");
-
-            Value.Print(indent + 1);
+            writer.Indent++;
+            Value.Print(writer);
+            writer.Indent--;
         }
 
         public override int Compile(FunctionContext context)

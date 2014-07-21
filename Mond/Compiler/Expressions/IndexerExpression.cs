@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Mond.Compiler.Expressions
+﻿namespace Mond.Compiler.Expressions
 {
     class IndexerExpression : Expression, IStorableExpression
     {
@@ -14,22 +12,24 @@ namespace Mond.Compiler.Expressions
             Index = index;
         }
 
-        public override void Print(int indent)
+        public override void Print(IndentTextWriter writer)
         {
-            var indentStr = new string(' ', indent);
+            writer.WriteIndent();
+            writer.WriteLine("Indexer");
 
-            Console.Write(indentStr);
-            Console.WriteLine("Indexer");
+            writer.WriteIndent();
+            writer.WriteLine("-Left");
 
-            Console.Write(indentStr);
-            Console.WriteLine("-Left");
+            writer.Indent += 2;
+            Left.Print(writer);
+            writer.Indent += 2;
 
-            Left.Print(indent + 2);
+            writer.WriteIndent();
+            writer.WriteLine("-Index");
 
-            Console.Write(indentStr);
-            Console.WriteLine("-Index");
-
-            Index.Print(indent + 2);
+            writer.Indent += 2;
+            Index.Print(writer);
+            writer.Indent -= 2;
         }
 
         public override int Compile(FunctionContext context)
