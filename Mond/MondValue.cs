@@ -10,7 +10,7 @@ namespace Mond
         Undefined, Null, True, False, Object, Array, Number, String, Closure
     }
 
-    public partial struct MondValue : IEquatable<MondValue>
+    public partial class MondValue : IEquatable<MondValue>
     {
         public static readonly MondValue Undefined = new MondValue(MondValueType.Undefined);
         public static readonly MondValue Null = new MondValue(MondValueType.Null);
@@ -128,8 +128,8 @@ namespace Mond
                 if (index == "prototype")
                 {
                     var prototypeValue = GetPrototype();
-                    if (prototypeValue.HasValue)
-                        return CheckWrapInstanceNative(prototypeValue.Value);
+                    if (prototypeValue != null)
+                        return CheckWrapInstanceNative(prototypeValue);
                     return Undefined;
                 }
 
@@ -142,10 +142,10 @@ namespace Mond
 
                 var i = 0;
                 var prototype = GetPrototype();
-                
-                while (prototype.HasValue)
+
+                while (prototype != null)
                 {
-                    var currentValue = prototype.Value;
+                    var currentValue = prototype;
 
                     if (currentValue.Type != MondValueType.Object)
                         break;
@@ -165,6 +165,12 @@ namespace Mond
             }
             set
             {
+                if (index == null)
+                    throw new ArgumentNullException("index");
+
+                if (value == null)
+                    throw new ArgumentNullException("value");
+
                 if (Type == MondValueType.Array && index.Type == MondValueType.Number)
                 {
                     var n = (int)index.NumberValue;
@@ -197,9 +203,9 @@ namespace Mond
                 var i = 0;
                 var prototype = GetPrototype();
 
-                while (prototype.HasValue)
+                while (prototype != null)
                 {
-                    var currentValue = prototype.Value;
+                    var currentValue = prototype;
 
                     if (currentValue.Type != MondValueType.Object)
                         break;
@@ -226,6 +232,9 @@ namespace Mond
 
         public bool Equals(MondValue other)
         {
+            if (ReferenceEquals(other, null))
+                return false;
+
             if (Type != other.Type)
                 return false;
 
@@ -254,6 +263,9 @@ namespace Mond
 
         public override bool Equals(object other)
         {
+            if (ReferenceEquals(other, null))
+                return false;
+
             if (!(other is MondValue))
                 return false;
 
@@ -322,7 +334,7 @@ namespace Mond
             }
         }
 
-        private MondValue? GetPrototype()
+        private MondValue GetPrototype()
         {
             switch (Type)
             {

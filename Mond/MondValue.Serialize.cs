@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Mond
 {
-    partial struct MondValue
+    public partial class MondValue
     {
         /// <summary>
         /// Serialize the value to a string.
