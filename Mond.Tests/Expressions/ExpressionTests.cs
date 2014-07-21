@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 
 namespace Mond.Tests.Expressions
 {
@@ -79,6 +75,18 @@ namespace Mond.Tests.Expressions
             ");
 
             Assert.True(result == "ab!A");
+        }
+
+        [Test]
+        public void Pipeline()
+        {
+            var result = Script.Run(@"
+                fun test(a, b) -> a + b;
+
+                return 123 |> test(1);
+            ");
+
+            Assert.True(result == 124);
         }
     }
 }

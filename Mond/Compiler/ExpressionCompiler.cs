@@ -136,10 +136,7 @@ namespace Mond.Compiler
 
         private IEnumerable<Instruction> AllInstructions()
         {
-            if (_instructions == null)
-                _instructions = _contexts.SelectMany(c => c.Instructions).ToList();
-
-            return _instructions;
+            return _instructions ?? (_instructions = _contexts.SelectMany(c => c.Instructions).ToList());
         }
 
         public void RegisterFunction(FunctionContext context)

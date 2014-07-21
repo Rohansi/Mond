@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Mond.Compiler.Expressions;
 using Mond.Compiler.Expressions.Statements;
 
@@ -98,7 +97,7 @@ namespace Mond.Compiler.Parselets
 
         abstract class ComprehensionPart
         {
-            public ComprehensionPart Next { get; set; }
+            public ComprehensionPart Next { protected get; set; }
 
             public abstract Expression Compile();
         }

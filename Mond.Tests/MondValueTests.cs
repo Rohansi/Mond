@@ -199,10 +199,11 @@ namespace Mond.Tests
         [Test]
         public void ObjectPrototype()
         {
+            var prototype = new MondValue(MondValueType.Object);
             var obj = new MondValue(MondValueType.Object);
-            var prototype = obj["prototype"];
 
-            Assert.True(prototype.Type == MondValueType.Object);
+            obj["prototype"] = prototype;
+            Assert.True(obj["prototype"].Type == MondValueType.Object);
 
             prototype["testValue"] = "hello";
 
