@@ -158,7 +158,7 @@ namespace Mond.VirtualMachine
                                 var numId = BitConverter.ToInt32(code, ip);
                                 ip += 4;
 
-                                _evalStack.Push(new MondValue(program.Numbers[numId]));
+                                _evalStack.Push(program.Numbers[numId]);
                                 break;
                             }
 
@@ -167,7 +167,7 @@ namespace Mond.VirtualMachine
                                 var strId = BitConverter.ToInt32(code, ip);
                                 ip += 4;
 
-                                _evalStack.Push(new MondValue(program.Strings[strId]));
+                                _evalStack.Push(program.Strings[strId]);
                                 break;
                             }
 

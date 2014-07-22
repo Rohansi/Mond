@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Mond.Compiler;
 using Mond.Compiler.Expressions;
 using Mond.VirtualMachine;
@@ -9,15 +10,15 @@ namespace Mond
     public sealed class MondProgram
     {
         internal readonly byte[] Bytecode;
-        internal readonly List<double> Numbers;
-        internal readonly List<string> Strings;
+        internal readonly List<MondValue> Numbers;
+        internal readonly List<MondValue> Strings;
         internal readonly DebugInfo DebugInfo;
 
-        internal MondProgram(byte[] bytecode, List<double> numbers, List<string> strings, DebugInfo debugInfo = null)
+        internal MondProgram(byte[] bytecode, IEnumerable<double> numbers, IEnumerable<string> strings, DebugInfo debugInfo = null)
         {
             Bytecode = bytecode;
-            Numbers = numbers;
-            Strings = strings;
+            Numbers = numbers.Select(n => new MondValue(n)).ToList();
+            Strings = strings.Select(s => new MondValue(s)).ToList();
             DebugInfo = debugInfo;
         }
 
