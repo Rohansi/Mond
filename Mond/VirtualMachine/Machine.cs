@@ -155,18 +155,14 @@ namespace Mond.VirtualMachine
 
                         case (int)InstructionType.LdNum:
                             {
-                                var numId = BitConverter.ToInt32(code, ip);
-                                ip += 4;
-
+                                var numId = ReadInt32(code, ref ip);
                                 _evalStack.Push(program.Numbers[numId]);
                                 break;
                             }
 
                         case (int)InstructionType.LdStr:
                             {
-                                var strId = BitConverter.ToInt32(code, ip);
-                                ip += 4;
-
+                                var strId = ReadInt32(code, ref ip);
                                 _evalStack.Push(program.Strings[strId]);
                                 break;
                             }
@@ -181,10 +177,8 @@ namespace Mond.VirtualMachine
                         #region Storables
                         case (int)InstructionType.LdLoc:
                             {
-                                var depth = BitConverter.ToInt32(code, ip);
-                                ip += 4;
-                                var index = BitConverter.ToInt32(code, ip);
-                                ip += 4;
+                                var depth = ReadInt32(code, ref ip);
+                                var index = ReadInt32(code, ref ip);
 
                                 if (depth < 0)
                                     _evalStack.Push(args.Get(Math.Abs(depth), index));
@@ -196,10 +190,8 @@ namespace Mond.VirtualMachine
 
                         case (int)InstructionType.StLoc:
                             {
-                                var depth = BitConverter.ToInt32(code, ip);
-                                ip += 4;
-                                var index = BitConverter.ToInt32(code, ip);
-                                ip += 4;
+                                var depth = ReadInt32(code, ref ip);
+                                var index = ReadInt32(code, ref ip);
 
                                 if (depth < 0)
                                     args.Set(Math.Abs(depth), index, _evalStack.Pop());
@@ -212,9 +204,7 @@ namespace Mond.VirtualMachine
                         case (int)InstructionType.LdFld:
                             {
                                 var obj = _evalStack.Pop();
-
-                                _evalStack.Push(obj[program.Strings[BitConverter.ToInt32(code, ip)]]);
-                                ip += 4;
+                                _evalStack.Push(obj[program.Strings[ReadInt32(code, ref ip)]]);
                                 break;
                             }
 
@@ -223,8 +213,7 @@ namespace Mond.VirtualMachine
                                 var obj = _evalStack.Pop();
                                 var value = _evalStack.Pop();
 
-                                obj[program.Strings[BitConverter.ToInt32(code, ip)]] = value;
-                                ip += 4;
+                                obj[program.Strings[ReadInt32(code, ref ip)]] = value;
                                 break;
                             }
 
@@ -257,9 +246,7 @@ namespace Mond.VirtualMachine
 
                         case (int)InstructionType.NewArray:
                             {
-                                var count = BitConverter.ToInt32(code, ip);
-                                ip += 4;
-
+                                var count = ReadInt32(code, ref ip);
                                 var array = new MondValue(MondValueType.Array);
 
                                 for (var i = 0; i < count; i++)
@@ -384,18 +371,14 @@ namespace Mond.VirtualMachine
                         #region Functions
                         case (int)InstructionType.Closure:
                             {
-                                var address = BitConverter.ToInt32(code, ip);
-                                ip += 4;
-
+                                var address = ReadInt32(code, ref ip);
                                 _evalStack.Push(new MondValue(new Closure(program, address, args, locals)));
                                 break;
                             }
 
                         case (int)InstructionType.Call:
                             {
-                                var argCount = BitConverter.ToInt32(code, ip);
-                                ip += 4;
-
+                                var argCount = ReadInt32(code, ref ip);
                                 var returnAddress = ip;
                                 var closure = _evalStack.Pop();
 
@@ -442,9 +425,8 @@ namespace Mond.VirtualMachine
 
                         case (int)InstructionType.TailCall:
                             {
-                                var argCount = BitConverter.ToInt32(code, ip);
-                                ip += 4;
-                                var address = BitConverter.ToInt32(code, ip);
+                                var argCount = ReadInt32(code, ref ip);
+                                var address = ReadInt32(code, ref ip);
 
                                 var returnAddress = _callStack.Pop();
                                 var argFrame = returnAddress.Arguments;
@@ -465,9 +447,7 @@ namespace Mond.VirtualMachine
 
                         case (int)InstructionType.Enter:
                             {
-                                var localCount = BitConverter.ToInt32(code, ip);
-                                ip += 4;
-
+                                var localCount = ReadInt32(code, ref ip);
                                 Frame frame;
 
                                 if (_localStack.Count > 0)
@@ -505,9 +485,7 @@ namespace Mond.VirtualMachine
 
                         case (int)InstructionType.VarArgs:
                             {
-                                var fixedCount = BitConverter.ToInt32(code, ip);
-                                ip += 4;
-
+                                var fixedCount = ReadInt32(code, ref ip);
                                 var varArgs = new MondValue(MondValueType.Array);
 
                                 for (var i = fixedCount; i < args.Values.Length; i++)
@@ -521,10 +499,8 @@ namespace Mond.VirtualMachine
 
                         case (int)InstructionType.JmpTable:
                             {
-                                var start = BitConverter.ToInt32(code, ip);
-                                ip += 4;
-                                var count = BitConverter.ToInt32(code, ip);
-                                ip += 4;
+                                var start = ReadInt32(code, ref ip);
+                                var count = ReadInt32(code, ref ip);
 
                                 var endIp = ip + count * 4;
 
@@ -537,7 +513,8 @@ namespace Mond.VirtualMachine
                                     if (number >= start && number < start + count &&
                                         Math.Abs(number - numberInt) <= double.Epsilon)
                                     {
-                                        ip = BitConverter.ToInt32(code, ip + (numberInt - start) * 4);
+                                        ip += (numberInt - start) * 4;
+                                        ip = ReadInt32(code, ref ip);
                                         break;
                                     }
                                 }
@@ -550,15 +527,14 @@ namespace Mond.VirtualMachine
                         #region Branching
                         case (int)InstructionType.Jmp:
                             {
-                                var address = BitConverter.ToInt32(code, ip);
+                                var address = ReadInt32(code, ref ip);
                                 ip = address;
                                 break;
                             }
 
                         case (int)InstructionType.JmpTrueP:
                             {
-                                var address = BitConverter.ToInt32(code, ip);
-                                ip += 4;
+                                var address = ReadInt32(code, ref ip);
 
                                 if (_evalStack.Peek())
                                     ip = address;
@@ -568,8 +544,7 @@ namespace Mond.VirtualMachine
 
                         case (int)InstructionType.JmpFalseP:
                             {
-                                var address = BitConverter.ToInt32(code, ip);
-                                ip += 4;
+                                var address = ReadInt32(code, ref ip);
 
                                 if (!_evalStack.Peek())
                                     ip = address;
@@ -579,8 +554,7 @@ namespace Mond.VirtualMachine
 
                         case (int)InstructionType.JmpTrue:
                             {
-                                var address = BitConverter.ToInt32(code, ip);
-                                ip += 4;
+                                var address = ReadInt32(code, ref ip);
 
                                 if (_evalStack.Pop())
                                     ip = address;
@@ -590,8 +564,7 @@ namespace Mond.VirtualMachine
 
                         case (int)InstructionType.JmpFalse:
                             {
-                                var address = BitConverter.ToInt32(code, ip);
-                                ip += 4;
+                                var address = ReadInt32(code, ref ip);
 
                                 if (!_evalStack.Pop())
                                     ip = address;
@@ -642,7 +615,15 @@ namespace Mond.VirtualMachine
             }
         }
 
-        private string GetAddressDebugInfo(MondProgram program, int address)
+        private static int ReadInt32(byte[] buffer, ref int offset)
+        {
+            return buffer[offset++] <<  0 |
+                   buffer[offset++] <<  8 |
+                   buffer[offset++] << 16 |
+                   buffer[offset++] << 24;
+        }
+
+        private static string GetAddressDebugInfo(MondProgram program, int address)
         {
             if (program.DebugInfo != null)
             {
