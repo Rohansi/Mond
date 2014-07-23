@@ -15,18 +15,15 @@ namespace Mond.Tests.Expressions
                     var n = 1;
 
                     while (true) {
-                        var str = '';
+                        if (n % 15 == 0)
+                            yield 'FizzBuzz';
+                        else if (n % 3 == 0)
+                            yield 'Fizz';
+                        else if (n % 5 == 0)
+                            yield 'Buzz';
+                        else
+                            yield '' + n;
 
-                        if (n % 3 == 0)
-                            str += 'Fizz';
-                        
-                        if (n % 5 == 0)
-                            str += 'Buzz';
-
-                        if (str == '')
-                            str += n;
-
-                        yield str;
                         n++;
                     }
                 }

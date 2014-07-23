@@ -7,39 +7,6 @@ namespace MondDemo
     {
         static void Main()
         {
-            /*const string source1 = @"
-                seq fizzBuzz() {
-                    var n = 1;
-
-                    while (true) {
-                        var str = '';
-
-                        if (n % 3 == 0)
-                            str += 'Fizz';
-                        
-                        if (n % 5 == 0)
-                            str += 'Buzz';
-
-                        if (str == '')
-                            str += n;
-
-                        yield str;
-                        n++;
-                    }
-                };
-                
-                var values = [];
-
-                foreach (var str in fizzBuzz()) {
-                    values.add(str);
-
-                    if (values.length() >= 500)
-                        break;
-                }
-
-                return values;
-            ";*/
-
             const string source1 = @"
                 seq range(start, end) {
                     for (var i = start; i <= end; i++)
