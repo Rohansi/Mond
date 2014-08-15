@@ -9,7 +9,7 @@ namespace Mond.Tests.Expressions
         public void OrderOfOperations()
         {
             var result = Script.Run(@"
-                return 3 + 4 * 2 / (1 - 5);
+                return 3 + 4 * 2 / (1 - 5) % 3;
             ");
 
             Assert.True(result == 1);
@@ -78,6 +78,19 @@ namespace Mond.Tests.Expressions
         }
 
         [Test]
+        public void LogicalNot()
+        {
+            var result = Script.Run(@"
+                var a = true;
+                return !a;
+            ");
+
+            Assert.True(result == false);
+
+            // TODO: more cases
+        }
+
+        [Test]
         public void Pipeline()
         {
             var result = Script.Run(@"
@@ -87,6 +100,10 @@ namespace Mond.Tests.Expressions
             ");
 
             Assert.True(result == 124);
+
+            Assert.Throws<MondCompilerException>(() => Script.Run(@"
+                return 1 |> 1;
+            "), "right side of pipeline must be function");
         }
     }
 }

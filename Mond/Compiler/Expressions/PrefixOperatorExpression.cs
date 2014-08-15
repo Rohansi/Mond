@@ -84,7 +84,7 @@ namespace Mond.Compiler.Expressions
                 if (number != null)
                 {
                     var token = new Token(Right.FileName, Right.Line, TokenType.Number, null);
-                    Right = new NumberExpression(token, -number.Value);
+                    return new NumberExpression(token, -number.Value);
                 }
             }
 

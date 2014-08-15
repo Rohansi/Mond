@@ -67,6 +67,31 @@ namespace Mond.Tests.Expressions
             ");
 
             Assert.True(result == 3628800);
+
+            Assert.Throws<MondCompilerException>(() => Script.Run(@"
+                var i;
+                for (var i = 0; i < 10; i++) { }
+            "), "for loop identifier must be unique");
+
+            Assert.Throws<MondCompilerException>(() => Script.Run(@"
+                for (break;;) {} 
+            "), "for loop initializer must be var");
+        }
+
+        [Test]
+        public void ForMultipleIncrement()
+        {
+            var result = Script.Run(@"
+                var res = 0;
+
+                for (var i = 1; i <= 10; i++, i++) {
+                    res++;
+                }
+
+                return res;
+            ");
+
+            Assert.True(result == 5);
         }
 
         [Test]
@@ -107,6 +132,70 @@ namespace Mond.Tests.Expressions
             ");
 
             Assert.True(result == 500);
+        }
+
+        [Test]
+        public void Foreach()
+        {
+            var result = Script.Run(@"
+                var values = [1, 2, 3, 4, 5];
+                var res = 0;
+
+                foreach (var n in values) {
+                    res += n;
+                }
+
+                return res;
+            ");
+
+            Assert.True(result == 15);
+
+            Assert.Throws<MondCompilerException>(() => Script.Run(@"
+                var i;
+                foreach (var i in []) { }
+            "));
+        }
+
+        [Test]
+        public void Break()
+        {
+            var result = Script.Run(@"
+                var res = 0;
+
+                for (var i = 1; i <= 10; i++) {
+                    if (i > 5)
+                        break;
+
+                    res += i;
+                }
+
+                return res;
+            ");
+
+            Assert.True(result == 15);
+
+            Assert.Throws<MondCompilerException>(() => Script.Run("break;"));
+        }
+
+        [Test]
+        public void Continue()
+        {
+            var result = Script.Run(@"
+                var res = 0;
+
+                for (var i = 1; i <= 10; i++) {
+                    if (i % 2 != 0)
+                        continue;
+
+                    res += i;
+                }
+
+                return res;
+            ");
+
+            Assert.True(result == 30);
+
+            Assert.Throws<MondCompilerException>(() => Script.Run("continue;"));
         }
     }
 }

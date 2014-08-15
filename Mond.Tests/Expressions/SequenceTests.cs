@@ -7,6 +7,50 @@ namespace Mond.Tests.Expressions
     public class SequenceTests
     {
         [Test]
+        public void Sequence()
+        {
+            MondState state;
+            var result = Script.Run(out state, @"
+                seq test() {
+                    for (var i = 1; i <= 10; i++) {
+                        if (i > 5)
+                            yield break;
+                        
+                        yield i;
+                    }
+                }
+
+                return test();
+            ");
+            
+            var expected = new MondValue[]
+            {
+                1, 2, 3, 4, 5
+            };
+
+            Assert.True(result.IsEnumerable);
+            Assert.True(result.Enumerate(state).Take(expected.Length).SequenceEqual(expected));
+
+            Assert.Throws<MondCompilerException>(() => Script.Run(@"
+                seq test() {
+                    return;
+                }
+            "), "can't use return in seq");
+
+            Assert.Throws<MondCompilerException>(() => Script.Run(@"
+                fun test() {
+                    yield 1;
+                }
+            "), "can't use yield in fun");
+
+            Assert.Throws<MondCompilerException>(() => Script.Run(@"
+                fun test() {
+                    yield break;
+                }
+            "), "can't use yield in fun");
+        }
+
+        [Test]
         public void FizzBuzz()
         {
             MondState state;
@@ -88,6 +132,28 @@ namespace Mond.Tests.Expressions
             var expected = new MondValue[]
             {
                 37.5, 50, 250, 2500
+            };
+
+            Assert.True(result.IsEnumerable);
+            Assert.True(result.Enumerate(state).SequenceEqual(expected));
+        }
+
+        [Test]
+        public void VariableLengthArguments()
+        {
+            MondState state;
+            var result = Script.Run(out state, @"
+                seq values(...args) {
+                    foreach (var x in args)
+                        yield x;
+                }
+
+                return values(1, 2, 3);
+            ");
+
+            var expected = new MondValue[]
+            {
+                1, 2, 3
             };
 
             Assert.True(result.IsEnumerable);

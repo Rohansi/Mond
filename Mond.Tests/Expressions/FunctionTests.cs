@@ -32,6 +32,30 @@ namespace Mond.Tests.Expressions
         }
 
         [Test]
+        public void DefaultReturnValue()
+        {
+            var result = Script.Run(@"
+                fun test() {
+                    return;
+                }
+
+                return test();
+            ");
+
+            Assert.True(result == MondValue.Undefined);
+
+            result = Script.Run(@"
+                fun test() {
+                    
+                }
+
+                return test();
+            ");
+
+            Assert.True(result == MondValue.Undefined);
+        }
+
+        [Test]
         public void Closure()
         {
             var result = Script.Run(@"
@@ -73,6 +97,80 @@ namespace Mond.Tests.Expressions
             ");
 
             Assert.True(result == 15);
+        }
+
+        [Test]
+        public void TailCall()
+        {
+            var result = Script.Run(@"
+                fun loop(i) {
+                    if (i == 0)
+                        return 'done';
+
+                    return loop(i - 1);
+                }
+
+                return loop(10);
+            ");
+
+            Assert.True(result == "done");
+        }
+
+        [Test]
+        public void VariableLengthArguments()
+        {
+            var result = Script.Run(@"
+                fun sum(...args) {
+                    var res = 0;
+
+                    foreach (var n in args) {
+                        res += n;
+                    }
+
+                    return res;
+                }
+
+                return sum(1, 2, 3);
+            ");
+
+            Assert.True(result == 6);
+        }
+
+        [Test]
+        public void FunctionErrors()
+        {
+            Assert.Throws<MondCompilerException>(() => Script.Run(@"
+                var a;
+                fun a() { }
+            "), "function name must be unique");
+
+            Assert.Throws<MondCompilerException>(() => Script.Run(@"
+                fun test() { }
+                test = 1;
+            "), "function variable should be readonly");
+
+            Assert.Throws<MondCompilerException>(() => Script.Run(@"
+                fun () -> 1;
+            "), "don't allow unused closures");
+
+            Assert.Throws<MondCompilerException>(() => Script.Run(@"
+                fun test(a, a) { }
+            "), "function arg names must be unique");
+
+            Assert.Throws<MondCompilerException>(() => Script.Run(@"
+                fun test(a, ...a) { }
+            "), "function arg names must be unique");
+        }
+
+        [Test]
+        public void DoubleAssign()
+        {
+            var result = Script.Run(@"
+                var a = fun b() -> 1;
+                return a() + b();
+            ");
+
+            Assert.True(result == 2);
         }
     }
 }

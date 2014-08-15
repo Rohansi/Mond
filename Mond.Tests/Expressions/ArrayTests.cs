@@ -9,6 +9,13 @@ namespace Mond.Tests.Expressions
         [Test]
         public void Creation()
         {
+            var empty = Script.Run(@"
+                return [];
+            ");
+
+            Assert.AreEqual(empty.Type, MondValueType.Array);
+            Assert.True(empty.ArrayValue.SequenceEqual(Enumerable.Empty<MondValue>()));
+
             var array = Script.Run(@"
                 var a = 'test';
                 return [ 1, a, 3, 4 ];

@@ -6,6 +6,23 @@ namespace Mond.Tests.Expressions
     public class StatementTests
     {
         [Test]
+        public void Scope()
+        {
+            var result = Script.Run(@"
+                {
+                    var a = 100;
+                }
+
+                {
+                    var a;
+                    return a;
+                }
+            ");
+
+            Assert.True(result == MondValue.Undefined);
+        }
+
+        [Test]
         public void If()
         {
             var state = Script.Load(@"
@@ -41,22 +58,26 @@ namespace Mond.Tests.Expressions
                     switch (x) {
                         case 1:         return 1;
                         case 2:         return 2;
-                        case null:      return 3;
-                        case 4:         return 4;
-                        case 'beep':    return 5;
+                        case 3:         return 3;
 
-                        case 6:
-                        case 7:
-                            if (x == 7)
+                        case 4:
+                        case 5:
+                            if (x == 5)
                                 break;
                             
-                            return 6;
+                            return 4;
+                            
+                        case 'beep':    return 6;
 
-                        default:
-                            return 8;
+                        case true:      return 7;
+                        case false:     return 8;
+                        case null:      return 9;
+                        case undefined: return 10;
+
+                        default:        return 11;
                     }
 
-                    return 7;
+                    return 5;
                 };
             ");
 
@@ -66,17 +87,25 @@ namespace Mond.Tests.Expressions
 
             Assert.True(state.Call(test, 2) == 2);
 
-            Assert.True(state.Call(test, MondValue.Null) == 3);
+            Assert.True(state.Call(test, 3) == 3);
 
             Assert.True(state.Call(test, 4) == 4);
 
-            Assert.True(state.Call(test, "beep") == 5);
+            Assert.True(state.Call(test, 5) == 5);
 
-            Assert.True(state.Call(test, 6) == 6);
+            Assert.True(state.Call(test, "beep") == 6);
 
-            Assert.True(state.Call(test, 7) == 7);
+            Assert.True(state.Call(test, MondValue.True) == 7);
 
-            Assert.True(state.Call(test, MondValue.Undefined) == 8);
+            Assert.True(state.Call(test, MondValue.False) == 8);
+
+            Assert.True(state.Call(test, MondValue.Null) == 9);
+
+            Assert.True(state.Call(test, MondValue.Undefined) == 10);
+
+            Assert.Throws<MondCompilerException>(() => Script.Run(@"
+                switch (1) { var }
+            "));
         }
     }
 }

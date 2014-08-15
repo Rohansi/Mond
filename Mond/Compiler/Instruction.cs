@@ -112,8 +112,8 @@ namespace Mond.Compiler
         public void Write(BinaryWriter writer)
         {
             if (Type == InstructionType.Label ||
-                    Type == InstructionType.Function ||
-                    Type == InstructionType.Line)
+                Type == InstructionType.Function ||
+                Type == InstructionType.Line)
             {
                 return;
             }

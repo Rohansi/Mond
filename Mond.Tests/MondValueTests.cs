@@ -225,6 +225,8 @@ namespace Mond.Tests
             obj["test"] = func;
             var closure = obj["test"];
             Assert.True(closure.ClosureValue.Type == ClosureType.Native);
+
+            Assert.True(new MondState().Call(obj["test"]) == MondValue.Undefined);
         }
     }
 }

@@ -13,6 +13,11 @@ namespace Mond.VirtualMachine
             Depth = depth;
             Previous = previous;
             Values = new MondValue[valueCount];
+
+            for (var i = 0; i < valueCount; i++)
+            {
+                Values[i] = MondValue.Undefined;
+            }
         }
 
         public MondValue Get(int depth, int index)
@@ -46,8 +51,16 @@ namespace Mond.VirtualMachine
 
             if (index >= values.Length)
             {
-                Array.Resize(ref values, index + 1);
+                var oldLength = current.Values.Length;
+                var newLength = index + 1;
+
+                Array.Resize(ref values, newLength);
                 current.Values = values;
+
+                for (var i = oldLength; i < newLength; i++)
+                {
+                    current.Values[i] = MondValue.Undefined;
+                }
             }
 
             values[index] = value;

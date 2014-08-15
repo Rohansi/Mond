@@ -11,11 +11,6 @@ namespace Mond
             _items = new List<T>(capacity);
         }
 
-        public IndexedStack(IndexedStack<T> other)
-        {
-            _items = new List<T>(other._items);
-        }
-
         public int Count
         {
             get { return _items.Count; }

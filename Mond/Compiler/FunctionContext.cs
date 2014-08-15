@@ -34,7 +34,7 @@ namespace Mond.Compiler
             Name = name ?? string.Format("lambda_{0}", Compiler.LambdaId++);
             FullName = string.Format("{0}{1}{2}", parentName, parentName != null ? "." : "", Name);
 
-            AssignedName = name != null ? Compiler.Identifier(name) : null;
+            AssignedName = name != null ? prevScope.Get(name) : null;
             Label = Compiler.MakeLabel("function");
 
             IdentifierCount = 0;

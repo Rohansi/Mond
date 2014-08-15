@@ -267,21 +267,6 @@ namespace Mond.Compiler
             return result;
         }
 
-        public string PeekString(int length)
-        {
-            if (length <= 0)
-                throw new ArgumentOutOfRangeException("length", "distance must be at least 1");
-
-            var sb = new StringBuilder(length);
-
-            for (var i = 0; i < length; i++)
-            {
-                sb.Append(PeekChar(i));
-            }
-
-            return sb.ToString();
-        }
-
         public char PeekChar(int distance = 0)
         {
             if (distance < 0)

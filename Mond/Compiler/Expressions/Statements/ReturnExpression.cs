@@ -60,7 +60,8 @@
 
         public override Expression Simplify()
         {
-            Value = Value.Simplify();
+            if (Value != null)
+                Value = Value.Simplify();
 
             return this;
         }
