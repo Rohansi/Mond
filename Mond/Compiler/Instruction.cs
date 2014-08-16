@@ -53,12 +53,6 @@ namespace Mond.Compiler
             Operands = new ReadOnlyCollection<IInstructionOperand>(operands);
         }
 
-        public Instruction(InstructionType type, List<IInstructionOperand> operands)
-        {
-            Type = type;
-            Operands = operands.AsReadOnly();
-        }
-
         public int Offset
         {
             get { return _offset; }

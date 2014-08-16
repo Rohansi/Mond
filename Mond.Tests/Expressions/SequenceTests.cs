@@ -11,14 +11,14 @@ namespace Mond.Tests.Expressions
         {
             MondState state;
             var result = Script.Run(out state, @"
-                seq test() {
+                var test = seq () {
                     for (var i = 1; i <= 10; i++) {
                         if (i > 5)
                             yield break;
                         
                         yield i;
                     }
-                }
+                };
 
                 return test();
             ");
@@ -30,7 +30,11 @@ namespace Mond.Tests.Expressions
 
             Assert.True(result.IsEnumerable);
             Assert.True(result.Enumerate(state).Take(expected.Length).SequenceEqual(expected));
+        }
 
+        [Test]
+        public void SequenceErrors()
+        {
             Assert.Throws<MondCompilerException>(() => Script.Run(@"
                 seq test() {
                     return;

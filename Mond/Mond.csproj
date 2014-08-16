@@ -149,6 +149,7 @@
     <Compile Include="Compiler\Token.cs" />
     <Compile Include="VirtualMachine\Frame.cs" />
     <Compile Include="VirtualMachine\Prototypes\ObjectPrototype.cs" />
+    <Compile Include="VirtualMachine\Prototypes\StringPrototype.cs" />
     <Compile Include="VirtualMachine\ReturnAddress.cs" />
   </ItemGroup>
   <ItemGroup>
