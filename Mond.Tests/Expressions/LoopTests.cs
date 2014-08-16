@@ -51,6 +51,18 @@ namespace Mond.Tests.Expressions
             ");
 
             Assert.True(result == 1024);
+
+            result = Script.Run(@"
+                var i = 0;
+                
+                do {
+                    continue;
+                } while (++i < 10);
+                
+                return i;
+            ");
+
+            Assert.True(result == 10);
         }
 
         [Test]

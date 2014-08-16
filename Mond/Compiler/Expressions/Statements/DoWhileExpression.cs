@@ -38,14 +38,16 @@
 
             var stack = 0;
             var start = context.MakeLabel("doWhileStart");
+            var cont = context.MakeLabel("doWhileContinue");
             var end = context.MakeLabel("doWhileEnd");
 
             stack += context.Bind(start);
 
-            context.PushLoop(start, end);
+            context.PushLoop(cont, end);
             stack += Block.Compile(context);
             context.PopLoop();
 
+            stack += context.Bind(cont);
             stack += Condition.Compile(context);
             stack += context.JumpTrue(start);
             stack += context.Bind(end);
