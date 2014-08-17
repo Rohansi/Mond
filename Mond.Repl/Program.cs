@@ -37,7 +37,7 @@ namespace Mond.Repl
 
                     } while (_input.Count > 0); // we only want the result of the last statement
 
-                    if (result.Type == MondValueType.Object && result.IsEnumerable)
+                    if (result["moveNext"] && result.IsEnumerable)
                     {
                         foreach (var value in result.Enumerate(state))
                         {
