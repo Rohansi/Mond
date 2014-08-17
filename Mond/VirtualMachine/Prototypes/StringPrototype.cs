@@ -202,7 +202,7 @@ namespace Mond.VirtualMachine.Prototypes
         private static void Check(string method, MondValueType type, IList<MondValue> arguments, params MondValueType[] requiredTypes)
         {
             if (type != MondValueType.String)
-                throw new MondRuntimeException("String.{0} must be called on a String", type);
+                throw new MondRuntimeException("String.{0} must be called on a String", method);
 
             if (arguments.Count < requiredTypes.Length)
                 throw new MondRuntimeException("String.{0} must be called with {1} argument{2}", method, requiredTypes.Length, requiredTypes.Length == 1 ? "" : "s");

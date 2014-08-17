@@ -96,7 +96,7 @@ namespace Mond.VirtualMachine.Prototypes
         private static void Check(string method, MondValueType type, IList<MondValue> arguments, params MondValueType[] requiredTypes)
         {
             if (type != MondValueType.Object)
-                throw new MondRuntimeException("Object.{0} must be called on an Object", type);
+                throw new MondRuntimeException("Object.{0} must be called on an Object", method);
 
             if (arguments.Count < requiredTypes.Length)
                 throw new MondRuntimeException("Object.{0} must be called with {1} argument{2}", method, requiredTypes.Length, requiredTypes.Length == 1 ? "" : "s");
