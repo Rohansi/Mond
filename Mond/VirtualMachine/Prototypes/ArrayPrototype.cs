@@ -49,7 +49,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// Boolean contains(Any item)
+        /// Bool contains(Any item)
         /// </summary>
         private static MondValue Contains(MondState state, MondValue instance, params MondValue[] arguments)
         {
@@ -92,7 +92,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// Boolean remove(Any item)
+        /// Bool remove(Any item)
         /// </summary>
         private static MondValue Remove(MondState state, MondValue instance, params MondValue[] arguments)
         {

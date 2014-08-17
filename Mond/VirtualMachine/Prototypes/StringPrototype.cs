@@ -33,7 +33,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// Boolean contains(String value)
+        /// Bool contains(String value)
         /// </summary>
         private static MondValue Contains(MondState state, MondValue instance, params MondValue[] arguments)
         {
@@ -42,7 +42,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// Boolean endsWith(String value)
+        /// Bool endsWith(String value)
         /// </summary>
         private static MondValue EndsWith(MondState state, MondValue instance, params MondValue[] arguments)
         {
@@ -114,7 +114,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// Boolean startsWith(String value)
+        /// Bool startsWith(String value)
         /// </summary>
         private static MondValue StartsWith(MondState state, MondValue instance, params MondValue[] arguments)
         {
