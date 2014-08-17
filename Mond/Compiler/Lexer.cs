@@ -178,7 +178,7 @@ namespace Mond.Compiler
                 // number
                 if (char.IsDigit(ch))
                 {
-                    var numberContents = TakeWhile(c => char.IsDigit(c) || c == '.');
+                    var numberContents = TakeWhile(c => char.IsDigit(c) || (c == '.' && char.IsDigit(PeekChar(1))));
 
                     double number;
                     if (!double.TryParse(numberContents, NumberStyles.AllowDecimalPoint, null, out number))
