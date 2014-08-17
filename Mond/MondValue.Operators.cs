@@ -7,7 +7,7 @@ namespace Mond
     {
         public static implicit operator MondValue(bool value)
         {
-            return new MondValue(value ? MondValueType.True : MondValueType.False);
+            return value ? True : False;
         }
 
         public static implicit operator MondValue(double value)
