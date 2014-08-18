@@ -376,8 +376,11 @@ namespace Mond
                 case MondValueType.Array:
                     return ArrayPrototype.Value;
 
+                case MondValueType.String:
+                    return StringPrototype.Value;
+
                 default:
-                    return ObjectPrototype.Value; // TODO: provide proper prototypes for other types
+                    return ObjectPrototype.Value;
             }
         }
 
