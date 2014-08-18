@@ -31,8 +31,8 @@ namespace Mond.Compiler
 
             Scope = new Scope(frameIndex, prevScope);
 
-            Name = name ?? string.Format("lambda_{0}", Compiler.LambdaId++);
-            FullName = string.Format("{0}{1}{2}", parentName, parentName != null ? "." : "", Name);
+            Name = name;
+            FullName = string.Format("{0}{1}{2}", parentName, string.IsNullOrEmpty(parentName) ? "" : ".", Name ?? "");
 
             AssignedName = name != null ? prevScope.Get(name) : null;
             Label = Compiler.MakeLabel("function");
@@ -56,6 +56,8 @@ namespace Mond.Compiler
 
         public virtual FunctionContext MakeFunction(string name)
         {
+            name = name ?? string.Format("lambda_{0}", Compiler.LambdaId++);
+
             var context = new FunctionContext(Compiler, FrameIndex + 1, Scope, FullName, name);
             Compiler.RegisterFunction(context);
             return context;

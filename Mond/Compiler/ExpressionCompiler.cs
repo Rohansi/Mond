@@ -36,7 +36,7 @@ namespace Mond.Compiler
 
         public MondProgram Compile(Expression expression)
         {
-            var context = new FunctionContext(this, 0, _scope, null, "Main");
+            var context = new FunctionContext(this, 0, _scope, null, null);
             RegisterFunction(context);
 
             context.Function(context.FullName);

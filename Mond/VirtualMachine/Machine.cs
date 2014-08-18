@@ -631,7 +631,16 @@ namespace Mond.VirtualMachine
                 var line = program.DebugInfo.FindLine(address);
 
                 if (func.HasValue && line.HasValue)
-                    return string.Format("at {0} in {1}: line {2}", program.Strings[func.Value.Name], program.Strings[line.Value.FileName], line.Value.LineNumber);
+                {
+                    var prefix = "";
+                    var funcName = program.Strings[func.Value.Name];
+                    var fileName = program.Strings[line.Value.FileName];
+
+                    if (!string.IsNullOrEmpty(funcName))
+                        prefix = string.Format("at {0} ", funcName);
+
+                    return string.Format("{0}in {1}: line {2}", prefix, fileName, line.Value.LineNumber);
+                }
             }
 
             return address.ToString("X8");
