@@ -13,6 +13,7 @@ namespace Mond.VirtualMachine.Prototypes
             Value = new MondValue(MondValueType.Object);
             Value["prototype"] = ObjectPrototype.Value;
 
+            Value["charAt"] = new MondInstanceFunction(CharAt);
             Value["contains"] = new MondInstanceFunction(Contains);
             Value["endsWith"] = new MondInstanceFunction(EndsWith);
             Value["indexOf"] = new MondInstanceFunction(IndexOf);
@@ -30,6 +31,22 @@ namespace Mond.VirtualMachine.Prototypes
             Value["getEnumerator"] = new MondInstanceFunction(GetEnumerator);
 
             Value.Lock();
+        }
+
+        /// <summary>
+        /// String charAt(Number index)
+        /// </summary>
+        private static MondValue CharAt(MondState state, MondValue instance, params MondValue[] arguments)
+        {
+            Check("charAt", instance.Type, arguments, MondValueType.Number);
+
+            var instStr = (string)instance;
+            var index = (int)arguments[0];
+
+            if (index < 0 || index > instStr.Length)
+                throw new MondRuntimeException("String.charAt: index out of bounds");
+
+            return new string(instStr[index], 1);
         }
 
         /// <summary>
