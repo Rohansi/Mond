@@ -11,7 +11,7 @@ namespace Mond.VirtualMachine.Prototypes
         static StringPrototype()
         {
             Value = new MondValue(MondValueType.Object);
-            Value["prototype"] = ObjectPrototype.Value;
+            Value["prototype"] = ValuePrototype.Value;
 
             Value["charAt"] = new MondInstanceFunction(CharAt);
             Value["contains"] = new MondInstanceFunction(Contains);

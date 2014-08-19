@@ -250,6 +250,9 @@ namespace Mond
         /// </summary>
         public void Lock()
         {
+            if (Type != MondValueType.Object)
+                throw new MondRuntimeException("Attempt to lock non-object");
+
             _objectLocked = true;
         }
 
@@ -380,7 +383,7 @@ namespace Mond
                     return StringPrototype.Value;
 
                 default:
-                    return ObjectPrototype.Value;
+                    return ValuePrototype.Value;
             }
         }
 

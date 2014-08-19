@@ -9,7 +9,7 @@ namespace Mond.VirtualMachine.Prototypes
         static ArrayPrototype()
         {
             Value = new MondValue(MondValueType.Object);
-            Value["prototype"] = ObjectPrototype.Value;
+            Value["prototype"] = ValuePrototype.Value;
 
             Value["add"] = new MondInstanceFunction(Add);
             Value["clear"] = new MondInstanceFunction(Clear);
