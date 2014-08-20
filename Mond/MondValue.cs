@@ -225,6 +225,10 @@ namespace Mond
                     if (currentValue.Type != MondValueType.Object)
                         break;
 
+                    // we assume locked objects are prototypes that shouldn't be changed, so we give up at this point
+                    if (currentValue._objectLocked)
+                        break;
+
                     if (currentValue.ObjectValue.ContainsKey(index))
                     {
                         currentValue.ObjectValue[index] = value;

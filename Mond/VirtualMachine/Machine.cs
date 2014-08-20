@@ -99,9 +99,9 @@ namespace Mond.VirtualMachine
                         var line = program.DebugInfo.FindLine(errorIp);
                         if (line.HasValue)
                             Console.WriteLine("{0:X4} line {1,3}: {2}", errorIp, line.Value.LineNumber, (InstructionType)code[ip]);
+                        else
+                            Console.WriteLine("{0:X4}: {1}", errorIp, (InstructionType)code[ip]);
                     }*/
-
-                    //Console.WriteLine((InstructionType)code[ip]);
 
                     switch (code[ip++])
                     {
