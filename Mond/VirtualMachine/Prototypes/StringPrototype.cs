@@ -116,7 +116,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// Array split(String seperator)
+        /// Array split(String separator)
         /// </summary>
         private static MondValue Split(MondState state, MondValue instance, params MondValue[] arguments)
         {
@@ -147,13 +147,23 @@ namespace Mond.VirtualMachine.Prototypes
         {
             Check("substring", instance.Type, arguments, MondValueType.Number);
 
+            var instStr = (string)instance;
+            var startIndex = (int)arguments[0];
+
+            if (startIndex < 0 || startIndex >= instStr.Length)
+                return "";
+
             if (arguments.Length <= 1)
-                return ((string)instance).Substring((int)arguments[0]);
+                return instStr.Substring((int)arguments[0]);
 
             if (arguments[1].Type != MondValueType.Number)
                 throw new MondRuntimeException("Argument 2 in String.substring must be of type Number");
 
-            return ((string)instance).Substring((int)arguments[0], (int)arguments[1]);
+            var length = (int)arguments[1];
+            if (startIndex + length >= instStr.Length)
+                length = Math.Max(instStr.Length - startIndex, 0);
+
+            return instStr.Substring(startIndex, length);
         }
 
         /// <summary>
