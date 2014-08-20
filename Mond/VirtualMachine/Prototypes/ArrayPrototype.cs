@@ -109,7 +109,7 @@ namespace Mond.VirtualMachine.Prototypes
 
             var index = (int)arguments[0];
 
-            if (index < 0 || index > instance.ArrayValue.Count)
+            if (index < 0 || index >= instance.ArrayValue.Count)
                 throw new MondRuntimeException("Array.removeAt: index out of bounds");
 
             instance.ArrayValue.RemoveAt((int)arguments[0]);

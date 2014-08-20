@@ -43,7 +43,7 @@ namespace Mond.VirtualMachine.Prototypes
             var instStr = (string)instance;
             var index = (int)arguments[0];
 
-            if (index < 0 || index > instStr.Length)
+            if (index < 0 || index >= instStr.Length)
                 throw new MondRuntimeException("String.charAt: index out of bounds");
 
             return new string(instStr[index], 1);
