@@ -20,6 +20,8 @@ namespace Mond.Compiler
             RegisterPrefix(TokenType.Number, new NumberParselet());
             RegisterPrefix(TokenType.String, new StringParselet());
             RegisterPrefix(TokenType.Identifier, new IdentifierParselet());
+
+            RegisterPrefix(TokenType.Global, new GlobalParselet());
             RegisterPrefix(TokenType.Undefined, new UndefinedParselet());
             RegisterPrefix(TokenType.Null, new NullParselet());
             RegisterPrefix(TokenType.True, new BoolParselet(true));

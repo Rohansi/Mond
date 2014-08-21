@@ -23,8 +23,8 @@
             var stack = 0;
             var identifier = context.Identifier(Name);
 
-            /*if (identifier == null)
-                throw new MondCompilerException(FileName, Line, "Undefined identifier '{0}'", Name);*/
+            if (!context.Compiler.Options.UseImplicitGlobals && identifier == null)
+                throw new MondCompilerException(FileName, Line, "Undefined identifier '{0}'", Name);
 
             if (identifier == null)
             {

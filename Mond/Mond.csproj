@@ -44,6 +44,7 @@
     <Compile Include="Compiler\CompilerError.cs" />
     <Compile Include="Compiler\ConstantPool.cs" />
     <Compile Include="Compiler\Expressions\IBlockExpression.cs" />
+    <Compile Include="Compiler\Expressions\GlobalExpression.cs" />
     <Compile Include="Compiler\Expressions\PipelineExpression.cs" />
     <Compile Include="Compiler\Expressions\Statements\ForeachExpression.cs" />
     <Compile Include="Compiler\Expressions\Statements\SequenceExpression.cs" />
@@ -60,6 +61,7 @@
     <Compile Include="Compiler\Expressions\UndefinedExpression.cs" />
     <Compile Include="Compiler\Instruction.cs" />
     <Compile Include="Compiler\Parselets\ArrayParselet.cs" />
+    <Compile Include="Compiler\Parselets\GlobalParselet.cs" />
     <Compile Include="Compiler\Parselets\PipelineParselet.cs" />
     <Compile Include="Compiler\Parselets\Statements\ContinueParselet.cs" />
     <Compile Include="Compiler\Parselets\FieldParselet.cs" />

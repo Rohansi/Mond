@@ -61,12 +61,14 @@ namespace Mond.Compiler
 
             _keywords = new Dictionary<string, TokenType>
             {
+                { "global", TokenType.Global },
+                { "undefined", TokenType.Undefined },
+                { "null", TokenType.Null },
                 { "true", TokenType.True },
                 { "false", TokenType.False },
-                { "null", TokenType.Null },
-                { "undefined", TokenType.Undefined },
                 { "NaN", TokenType.NaN },
                 { "Infinity", TokenType.Infinity },
+
                 { "var", TokenType.Var },
                 { "fun", TokenType.Fun },
                 { "return", TokenType.Return },

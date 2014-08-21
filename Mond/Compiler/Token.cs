@@ -5,6 +5,8 @@
         Identifier,
         Number,
         String,
+
+        Global,
         Undefined,
         Null,
         True,

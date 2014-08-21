@@ -15,7 +15,8 @@ namespace Mond.Repl
             var options = new MondCompilerOptions
             {
                 GenerateDebugInfo = true,
-                MakeRootDeclarationsGlobal = true
+                MakeRootDeclarationsGlobal = true,
+                UseImplicitGlobals = true
             };
 
             while (true)

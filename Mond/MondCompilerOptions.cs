@@ -12,10 +12,16 @@
         /// </summary>
         public bool MakeRootDeclarationsGlobal { get; set; }
 
+        /// <summary>
+        /// Make undefined variables resolve to globals.
+        /// </summary>
+        public bool UseImplicitGlobals { get; set; }
+
         public MondCompilerOptions()
         {
             GenerateDebugInfo = true;
             MakeRootDeclarationsGlobal = false;
+            UseImplicitGlobals = false;
         }
     }
 }
