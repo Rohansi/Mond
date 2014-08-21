@@ -20,7 +20,7 @@ namespace Mond
         public readonly MondValueType Type;
 
         internal readonly Dictionary<MondValue, MondValue> ObjectValue;
-        private bool _objectLocked;
+        internal bool ObjectLocked;
 
         internal readonly List<MondValue> ArrayValue;
 
@@ -34,7 +34,7 @@ namespace Mond
             Type = MondValueType.Undefined;
 
             ObjectValue = null;
-            _objectLocked = false;
+            ObjectLocked = false;
 
             ArrayValue = null;
             _numberValue = 0;
@@ -183,7 +183,7 @@ namespace Mond
                 if (value == null)
                     throw new ArgumentNullException("value");
 
-                if (Type == MondValueType.Object && _objectLocked)
+                if (Type == MondValueType.Object && ObjectLocked)
                     return;
 
                 if (Type == MondValueType.Array && index.Type == MondValueType.Number)
@@ -226,7 +226,7 @@ namespace Mond
                         break;
 
                     // skip locked objects because they cant be written to
-                    if (!currentValue._objectLocked)
+                    if (!currentValue.ObjectLocked)
                     {
                         if (currentValue.ObjectValue.ContainsKey(index))
                         {
@@ -257,7 +257,7 @@ namespace Mond
             if (Type != MondValueType.Object)
                 throw new MondRuntimeException("Attempt to lock non-object");
 
-            _objectLocked = true;
+            ObjectLocked = true;
         }
 
         public bool Equals(MondValue other)

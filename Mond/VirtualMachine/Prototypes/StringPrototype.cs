@@ -33,6 +33,8 @@ namespace Mond.VirtualMachine.Prototypes
             Value.Lock();
         }
 
+        private const string IndexOutOfBounds = "String.{0}: index out of bounds";
+
         /// <summary>
         /// String charAt(Number index)
         /// </summary>
@@ -44,7 +46,7 @@ namespace Mond.VirtualMachine.Prototypes
             var index = (int)arguments[0];
 
             if (index < 0 || index >= instStr.Length)
-                throw new MondRuntimeException("String.charAt: index out of bounds");
+                throw new MondRuntimeException(IndexOutOfBounds, "charAt");
 
             return new string(instStr[index], 1);
         }
@@ -87,7 +89,7 @@ namespace Mond.VirtualMachine.Prototypes
             var index = (int)arguments[0];
 
             if (index < 0 || index > instStr.Length)
-                throw new MondRuntimeException("String.insert: index out of bounds");
+                throw new MondRuntimeException(IndexOutOfBounds, "insert");
 
             return instStr.Insert(index, arguments[1]);
         }
@@ -229,10 +231,10 @@ namespace Mond.VirtualMachine.Prototypes
         private static void Check(string method, MondValueType type, IList<MondValue> arguments, params MondValueType[] requiredTypes)
         {
             if (type != MondValueType.String)
-                throw new MondRuntimeException("String.{0} must be called on a String", method);
+                throw new MondRuntimeException("String.{0}: must be called on a String", method);
 
             if (arguments.Count < requiredTypes.Length)
-                throw new MondRuntimeException("String.{0} must be called with {1} argument{2}", method, requiredTypes.Length, requiredTypes.Length == 1 ? "" : "s");
+                throw new MondRuntimeException("String.{0}: must be called with {1} argument{2}", method, requiredTypes.Length, requiredTypes.Length == 1 ? "" : "s");
 
             for (var i = 0; i < requiredTypes.Length; i++)
             {
@@ -240,7 +242,7 @@ namespace Mond.VirtualMachine.Prototypes
                     continue;
 
                 if (arguments[i].Type != requiredTypes[i])
-                    throw new MondRuntimeException("Argument {1} in String.{0} must be of type {2}", method, i + 1, requiredTypes[i]);
+                    throw new MondRuntimeException("String.{0}: argument {1} must be of type {2}", method, i + 1, requiredTypes[i]);
             }
         }
     }

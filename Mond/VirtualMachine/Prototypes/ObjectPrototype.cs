@@ -12,10 +12,78 @@ namespace Mond.VirtualMachine.Prototypes
             Value = new MondValue(MondValueType.Object);
             Value["prototype"] = ValuePrototype.Value;
 
+            Value["add"] = new MondInstanceFunction(Add);
+            Value["clear"] = new MondInstanceFunction(Clear);
+            Value["containsKey"] = new MondInstanceFunction(ContainsKey);
+            Value["containsValue"] = new MondInstanceFunction(ContainsValue);
+            Value["remove"] = new MondInstanceFunction(Remove);
+
             Value["length"] = new MondInstanceFunction(Length);
             Value["getEnumerator"] = new MondInstanceFunction(GetEnumerator);
 
             Value.Lock();
+        }
+
+        private const string LockedError = "Object.{0}: object is locked";
+
+        /// <summary>
+        /// Object add(Any key, Any value)
+        /// </summary>
+        private static MondValue Add(MondState state, MondValue instance, params MondValue[] arguments)
+        {
+            Check("add", instance.Type, arguments, MondValueType.Undefined, MondValueType.Undefined);
+
+            if (instance.ObjectLocked)
+                throw new MondRuntimeException(LockedError, "add");
+
+            instance.ObjectValue[arguments[0]] = arguments[1];
+            return instance;
+        }
+
+        /// <summary>
+        /// Object clear()
+        /// </summary>
+        private static MondValue Clear(MondState state, MondValue instance, params MondValue[] arguments)
+        {
+            Check("clear", instance.Type, arguments);
+
+            if (instance.ObjectLocked)
+                throw new MondRuntimeException(LockedError, "clear");
+
+            instance.ObjectValue.Clear();
+            return instance;
+        }
+
+        /// <summary>
+        /// Bool containsKey(Any key)
+        /// </summary>
+        private static MondValue ContainsKey(MondState state, MondValue instance, params MondValue[] arguments)
+        {
+            Check("containsKey", instance.Type, arguments, MondValueType.Undefined);
+            return instance.ObjectValue.ContainsKey(arguments[0]);
+        }
+
+        /// <summary>
+        /// Bool containsValue(Any value)
+        /// </summary>
+        private static MondValue ContainsValue(MondState state, MondValue instance, params MondValue[] arguments)
+        {
+            Check("containsValue", instance.Type, arguments, MondValueType.Undefined);
+            return instance.ObjectValue.ContainsValue(arguments[0]);
+        }
+
+        /// <summary>
+        /// Object remove(Any key)
+        /// </summary>
+        private static MondValue Remove(MondState state, MondValue instance, params MondValue[] arguments)
+        {
+            Check("remove", instance.Type, arguments, MondValueType.Undefined);
+
+            if (instance.ObjectLocked)
+                throw new MondRuntimeException(LockedError, "clear");
+
+            instance.ObjectValue.Remove(arguments[0]);
+            return instance;
         }
 
         /// <summary>
@@ -59,10 +127,10 @@ namespace Mond.VirtualMachine.Prototypes
         private static void Check(string method, MondValueType type, IList<MondValue> arguments, params MondValueType[] requiredTypes)
         {
             if (type != MondValueType.Object)
-                throw new MondRuntimeException("Object.{0} must be called on an Object", method);
+                throw new MondRuntimeException("Object.{0}: must be called on an Object", method);
 
             if (arguments.Count < requiredTypes.Length)
-                throw new MondRuntimeException("Object.{0} must be called with {1} argument{2}", method, requiredTypes.Length, requiredTypes.Length == 1 ? "" : "s");
+                throw new MondRuntimeException("Object.{0}: must be called with {1} argument{2}", method, requiredTypes.Length, requiredTypes.Length == 1 ? "" : "s");
 
             for (var i = 0; i < requiredTypes.Length; i++)
             {
@@ -70,7 +138,7 @@ namespace Mond.VirtualMachine.Prototypes
                     continue;
 
                 if (arguments[i].Type != requiredTypes[i])
-                    throw new MondRuntimeException("Argument {1} in Object.{0} must be of type {2}", method, i + 1, requiredTypes[i]);
+                    throw new MondRuntimeException("Object.{0}: argument {1} must be of type {2}", method, i + 1, requiredTypes[i]);
             }
         }
     }

@@ -26,6 +26,8 @@ namespace Mond.VirtualMachine.Prototypes
             Value.Lock();
         }
 
+        private const string IndexOutOfBounds = "Array.{0}: index out of bounds";
+
         /// <summary>
         /// Array add(Any item)
         /// </summary>
@@ -76,7 +78,7 @@ namespace Mond.VirtualMachine.Prototypes
             var index = (int)arguments[0];
 
             if (index < 0 || index > instance.ArrayValue.Count)
-                throw new MondRuntimeException("Array.insert: index out of bounds");
+                throw new MondRuntimeException(IndexOutOfBounds, "insert");
 
             instance.ArrayValue.Insert(index, arguments[1]);
             return instance;
@@ -110,7 +112,7 @@ namespace Mond.VirtualMachine.Prototypes
             var index = (int)arguments[0];
 
             if (index < 0 || index >= instance.ArrayValue.Count)
-                throw new MondRuntimeException("Array.removeAt: index out of bounds");
+                throw new MondRuntimeException(IndexOutOfBounds, "removeAt");
 
             instance.ArrayValue.RemoveAt((int)arguments[0]);
             return instance;
@@ -151,10 +153,10 @@ namespace Mond.VirtualMachine.Prototypes
         private static void Check(string method, MondValueType type, IList<MondValue> arguments, params MondValueType[] requiredTypes)
         {
             if (type != MondValueType.Array)
-                throw new MondRuntimeException("Array.{0} must be called on an Array", method);
+                throw new MondRuntimeException("Array.{0}: must be called on an Array", method);
 
             if (arguments.Count < requiredTypes.Length)
-                throw new MondRuntimeException("Array.{0} must be called with {1} argument{2}", method, requiredTypes.Length, requiredTypes.Length == 1 ? "" : "s");
+                throw new MondRuntimeException("Array.{0}: must be called with {1} argument{2}", method, requiredTypes.Length, requiredTypes.Length == 1 ? "" : "s");
 
             for (var i = 0; i < requiredTypes.Length; i++)
             {
@@ -162,7 +164,7 @@ namespace Mond.VirtualMachine.Prototypes
                     continue;
 
                 if (arguments[i].Type != requiredTypes[i])
-                    throw new MondRuntimeException("Argument {1} in Array.{0} must be of type {2}", method, i + 1, requiredTypes[i]);
+                    throw new MondRuntimeException("Array.{0}: argument {1} must be of type {2}", method, i + 1, requiredTypes[i]);
             }
         }
     }
