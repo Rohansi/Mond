@@ -9,15 +9,15 @@ namespace Mond.Tests
         public void MultiplePrograms()
         {
             const string source1 = @"
-                hello = fun (x) {
+                global.hello = fun (x) {
                     return 'hi ' + x;
                 };
 
-                a = hello('nerd');
+                global.a = global.hello('nerd');
             ";
 
             const string source2 = @"
-                b = hello('brian');
+                global.b = global.hello('brian');
             ";
 
             var state = Script.Load(source1, source2);
@@ -37,7 +37,7 @@ namespace Mond.Tests
             state["function"] = new MondFunction((_, args) => args[0]);
 
             var program = MondProgram.Compile(@"
-                return function('arg');
+                return global.function('arg');
             ");
 
             var result = state.Load(program);
@@ -54,7 +54,7 @@ namespace Mond.Tests
             state["function"] = new MondInstanceFunction((_, instance, arguments) => instance[arguments[0]]);
 
             var program = MondProgram.Compile(@"
-                return function('value');
+                return global.function('value');
             ");
 
             var result = state.Load(program);
