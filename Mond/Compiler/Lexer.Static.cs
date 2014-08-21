@@ -48,9 +48,9 @@ namespace Mond.Compiler
                 Tuple.Create(">=", TokenType.GreaterThanOrEqual),
                 Tuple.Create("<", TokenType.LessThan),
                 Tuple.Create("<=", TokenType.LessThanOrEqual),
-                Tuple.Create("!", TokenType.LogicalNot),
-                Tuple.Create("&&", TokenType.LogicalAnd),
-                Tuple.Create("||", TokenType.LogicalOr),
+                Tuple.Create("!", TokenType.Not),
+                Tuple.Create("&&", TokenType.ConditionalAnd),
+                Tuple.Create("||", TokenType.ConditionalOr),
 
                 Tuple.Create("?", TokenType.QuestionMark),
                 Tuple.Create(":", TokenType.Colon),

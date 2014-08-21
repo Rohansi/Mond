@@ -49,7 +49,7 @@ namespace Mond.Compiler.Expressions
                     break;
 
                 case TokenType.Subtract:
-                case TokenType.LogicalNot:
+                case TokenType.Not:
                     stack += Right.Compile(context);
                     stack += context.UnaryOperation(Operation);
                     break;

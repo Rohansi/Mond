@@ -35,14 +35,14 @@ namespace Mond.Compiler
             RegisterInfix(TokenType.Modulo, new BinaryOperatorParselet((int)PrecedenceValue.Multiplication, false));
             RegisterPrefix(TokenType.Subtract, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));
 
-            // logical operations
-            RegisterPrefix(TokenType.LogicalNot, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));
-            RegisterInfix(TokenType.LogicalAnd, new BinaryOperatorParselet((int)PrecedenceValue.LogicalAndOr, false));
-            RegisterInfix(TokenType.LogicalOr, new BinaryOperatorParselet((int)PrecedenceValue.LogicalAndOr, false));
+            // conditional operations
+            RegisterPrefix(TokenType.Not, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));
+            RegisterInfix(TokenType.ConditionalAnd, new BinaryOperatorParselet((int)PrecedenceValue.ConditionalAnd, false));
+            RegisterInfix(TokenType.ConditionalOr, new BinaryOperatorParselet((int)PrecedenceValue.ConditionalOr, false));
 
             // relational operations
-            RegisterInfix(TokenType.EqualTo, new BinaryOperatorParselet((int)PrecedenceValue.Relational, false));
-            RegisterInfix(TokenType.NotEqualTo, new BinaryOperatorParselet((int)PrecedenceValue.Relational, false));
+            RegisterInfix(TokenType.EqualTo, new BinaryOperatorParselet((int)PrecedenceValue.Equality, false));
+            RegisterInfix(TokenType.NotEqualTo, new BinaryOperatorParselet((int)PrecedenceValue.Equality, false));
             RegisterInfix(TokenType.GreaterThan, new BinaryOperatorParselet((int)PrecedenceValue.Relational, false));
             RegisterInfix(TokenType.GreaterThanOrEqual, new BinaryOperatorParselet((int)PrecedenceValue.Relational, false));
             RegisterInfix(TokenType.LessThan, new BinaryOperatorParselet((int)PrecedenceValue.Relational, false));

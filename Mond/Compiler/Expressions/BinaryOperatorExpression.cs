@@ -63,7 +63,7 @@ namespace Mond.Compiler.Expressions
                 return stack;
             }
 
-            if (Operation == TokenType.LogicalOr)
+            if (Operation == TokenType.ConditionalOr)
             {
                 var endOr = context.MakeLabel("endOr");
                 stack += Left.Compile(context);
@@ -76,7 +76,7 @@ namespace Mond.Compiler.Expressions
                 return stack;
             }
 
-            if (Operation == TokenType.LogicalAnd)
+            if (Operation == TokenType.ConditionalAnd)
             {
                 var endAnd = context.MakeLabel("endAnd");
                 stack += Left.Compile(context);

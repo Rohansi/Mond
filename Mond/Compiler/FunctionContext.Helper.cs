@@ -261,7 +261,7 @@ namespace Mond.Compiler
             {
                 { TokenType.Subtract, InstructionType.Neg },
 
-                { TokenType.LogicalNot, InstructionType.Not }
+                { TokenType.Not, InstructionType.Not }
             };
         }
     }

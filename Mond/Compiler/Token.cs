@@ -57,15 +57,15 @@
         Increment,
         Decrement,
 
+        Not,
         EqualTo,
         NotEqualTo,
         GreaterThan,
         GreaterThanOrEqual,
         LessThan,
         LessThanOrEqual,
-        LogicalAnd,
-        LogicalOr,
-        LogicalNot,
+        ConditionalAnd,
+        ConditionalOr,
 
         QuestionMark,
         Colon,
