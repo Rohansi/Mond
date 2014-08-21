@@ -29,7 +29,7 @@ namespace Mond.VirtualMachine.Prototypes
         private const string IndexOutOfBounds = "Array.{0}: index out of bounds";
 
         /// <summary>
-        /// Array add(Any item)
+        /// add(item): array
         /// </summary>
         private static MondValue Add(MondState state, MondValue instance, params MondValue[] arguments)
         {
@@ -40,7 +40,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// Array clear()
+        /// clear(): array
         /// </summary>
         private static MondValue Clear(MondState state, MondValue instance, params MondValue[] arguments)
         {
@@ -51,7 +51,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// Bool contains(Any item)
+        /// contains(item): bool
         /// </summary>
         private static MondValue Contains(MondState state, MondValue instance, params MondValue[] arguments)
         {
@@ -60,7 +60,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// Number indexOf(Any item)
+        /// indexOf(item): number
         /// </summary>
         private static MondValue IndexOf(MondState state, MondValue instance, params MondValue[] arguments)
         {
@@ -69,7 +69,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// Array insert(Number index, Any item)
+        /// insert(index: number, item): array
         /// </summary>
         private static MondValue Insert(MondState state, MondValue instance, params MondValue[] arguments)
         {
@@ -85,7 +85,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// Number lastIndexOf(Any item)
+        /// lastIndexOf(item): number
         /// </summary>
         private static MondValue LastIndexOf(MondState state, MondValue instance, params MondValue[] arguments)
         {
@@ -94,7 +94,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// Bool remove(Any item)
+        /// remove(item): bool
         /// </summary>
         private static MondValue Remove(MondState state, MondValue instance, params MondValue[] arguments)
         {
@@ -103,7 +103,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// Array removeAt(Number index)
+        /// removeAt(index: number): array
         /// </summary>
         private static MondValue RemoveAt(MondState state, MondValue instance, params MondValue[] arguments)
         {
@@ -119,7 +119,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// Number length()
+        /// length(): number
         /// </summary>
         private static MondValue Length(MondState state, MondValue instance, params MondValue[] arguments)
         {
@@ -128,7 +128,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// Object getEnumerator()
+        /// getEnumerator(): object
         /// </summary>
         private static MondValue GetEnumerator(MondState state, MondValue instance, params MondValue[] arguments)
         {

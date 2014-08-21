@@ -137,6 +137,10 @@ namespace Mond.Compiler
                                         stringContentsBuilder.Append('\'');
                                         break;
 
+                                    case 'r':
+                                        stringContentsBuilder.Append('\r');
+                                        break;
+
                                     case 'n':
                                         stringContentsBuilder.Append('\n');
                                         break;

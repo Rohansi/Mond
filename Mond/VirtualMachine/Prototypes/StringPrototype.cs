@@ -36,7 +36,7 @@ namespace Mond.VirtualMachine.Prototypes
         private const string IndexOutOfBounds = "String.{0}: index out of bounds";
 
         /// <summary>
-        /// String charAt(Number index)
+        /// charAt(index: number): string
         /// </summary>
         private static MondValue CharAt(MondState state, MondValue instance, params MondValue[] arguments)
         {
@@ -52,7 +52,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// Bool contains(String value)
+        /// contains(value: string): bool
         /// </summary>
         private static MondValue Contains(MondState state, MondValue instance, params MondValue[] arguments)
         {
@@ -61,7 +61,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// Bool endsWith(String value)
+        /// endsWith(value: string): bool
         /// </summary>
         private static MondValue EndsWith(MondState state, MondValue instance, params MondValue[] arguments)
         {
@@ -70,7 +70,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// Number indexOf(String value)
+        /// indexOf(value: string): number
         /// </summary>
         private static MondValue IndexOf(MondState state, MondValue instance, params MondValue[] arguments)
         {
@@ -79,7 +79,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// String insert(Number index, String value)
+        /// insert(index: number, value: string): string
         /// </summary>
         private static MondValue Insert(MondState state, MondValue instance, params MondValue[] arguments)
         {
@@ -95,7 +95,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// Number lastIndexOf(String value)
+        /// lastIndexOf(value: string): number
         /// </summary>
         private static MondValue LastIndexOf(MondState state, MondValue instance, params MondValue[] arguments)
         {
@@ -104,7 +104,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// String replace(String oldValue, String newValue)
+        /// replace(oldValue: string, newValue: string): string
         /// </summary>
         private static MondValue Replace(MondState state, MondValue instance, params MondValue[] arguments)
         {
@@ -118,7 +118,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// Array split(String separator)
+        /// split(separator: string): array
         /// </summary>
         private static MondValue Split(MondState state, MondValue instance, params MondValue[] arguments)
         {
@@ -133,7 +133,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// Bool startsWith(String value)
+        /// startsWith(value: string): bool
         /// </summary>
         private static MondValue StartsWith(MondState state, MondValue instance, params MondValue[] arguments)
         {
@@ -142,8 +142,8 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// String substring(Number startIndex)
-        /// String substring(Number startIndex, Number length)
+        /// substring(startIndex: number): string
+        /// substring(startIndex: number, length: number): string
         /// </summary>
         private static MondValue Substring(MondState state, MondValue instance, params MondValue[] arguments)
         {
@@ -169,7 +169,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// String toUpper()
+        /// toUpper(): string
         /// </summary>
         private static MondValue ToUpper(MondState state, MondValue instance, params MondValue[] arguments)
         {
@@ -178,7 +178,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// String toLower()
+        /// toLower(): string
         /// </summary>
         private static MondValue ToLower(MondState state, MondValue instance, params MondValue[] arguments)
         {
@@ -187,7 +187,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// String trim()
+        /// trim(): string
         /// </summary>
         private static MondValue Trim(MondState state, MondValue instance, params MondValue[] arguments)
         {
@@ -196,7 +196,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// Number length()
+        /// length(): number
         /// </summary>
         private static MondValue Length(MondState state, MondValue instance, params MondValue[] arguments)
         {
@@ -205,7 +205,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// Object getEnumerator()
+        /// getEnumerator(): object
         /// </summary>
         private static MondValue GetEnumerator(MondState state, MondValue instance, MondValue[] arguments)
         {

@@ -19,6 +19,9 @@ namespace Mond.VirtualMachine.Prototypes
             Value.Lock();
         }
 
+        /// <summary>
+        /// getType(): string
+        /// </summary>
         private static MondValue GetType(MondState state, MondValue instance, params MondValue[] args)
         {
             switch (instance.Type)

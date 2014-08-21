@@ -27,7 +27,7 @@ namespace Mond.VirtualMachine.Prototypes
         private const string LockedError = "Object.{0}: object is locked";
 
         /// <summary>
-        /// Object add(Any key, Any value)
+        /// add(key, value): object
         /// </summary>
         private static MondValue Add(MondState state, MondValue instance, params MondValue[] arguments)
         {
@@ -41,7 +41,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// Object clear()
+        /// clear(): object
         /// </summary>
         private static MondValue Clear(MondState state, MondValue instance, params MondValue[] arguments)
         {
@@ -55,7 +55,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// Bool containsKey(Any key)
+        /// containsKey(key): bool
         /// </summary>
         private static MondValue ContainsKey(MondState state, MondValue instance, params MondValue[] arguments)
         {
@@ -64,7 +64,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// Bool containsValue(Any value)
+        /// containsValue(value): bool
         /// </summary>
         private static MondValue ContainsValue(MondState state, MondValue instance, params MondValue[] arguments)
         {
@@ -73,7 +73,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// Object remove(Any key)
+        /// remove(key): object
         /// </summary>
         private static MondValue Remove(MondState state, MondValue instance, params MondValue[] arguments)
         {
@@ -87,7 +87,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// Number length()
+        /// length(): number
         /// </summary>
         private static MondValue Length(MondState state, MondValue instance, params MondValue[] arguments)
         {
@@ -96,7 +96,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// Object getEnumerator()
+        /// getEnumerator(): object
         /// </summary>
         private static MondValue GetEnumerator(MondState state, MondValue instance, MondValue[] arguments)
         {
