@@ -94,12 +94,13 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// remove(item): bool
+        /// remove(item): array
         /// </summary>
         private static MondValue Remove(MondState state, MondValue instance, params MondValue[] arguments)
         {
             Check("remove", instance.Type, arguments, MondValueType.Undefined);
-            return instance.ArrayValue.Remove(arguments[0]);
+            instance.ArrayValue.Remove(arguments[0]);
+            return instance;
         }
 
         /// <summary>

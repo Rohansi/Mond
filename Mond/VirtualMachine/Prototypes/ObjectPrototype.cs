@@ -16,6 +16,7 @@ namespace Mond.VirtualMachine.Prototypes
             Value["clear"] = new MondInstanceFunction(Clear);
             Value["containsKey"] = new MondInstanceFunction(ContainsKey);
             Value["containsValue"] = new MondInstanceFunction(ContainsValue);
+            Value["get"] = new MondInstanceFunction(Get);
             Value["remove"] = new MondInstanceFunction(Remove);
 
             Value["length"] = new MondInstanceFunction(Length);
@@ -70,6 +71,20 @@ namespace Mond.VirtualMachine.Prototypes
         {
             Check("containsValue", instance.Type, arguments, MondValueType.Undefined);
             return instance.ObjectValue.ContainsValue(arguments[0]);
+        }
+
+        /// <summary>
+        /// get(key): any
+        /// </summary>
+        private static MondValue Get(MondState state, MondValue instance, params MondValue[] arguments)
+        {
+            Check("get", instance.Type, arguments, MondValueType.Undefined);
+
+            MondValue value;
+            if (!instance.ObjectValue.TryGetValue(arguments[0], out value))
+                return MondValue.Undefined;
+
+            return value;
         }
 
         /// <summary>
