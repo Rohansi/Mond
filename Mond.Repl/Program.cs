@@ -19,6 +19,25 @@ namespace Mond.Repl
                 UseImplicitGlobals = true
             };
 
+            state["print"] = new MondFunction((_, args) =>
+            {
+                if (args.Length == 0)
+                {
+                    Console.WriteLine();
+                }
+                else if (args[0].Type == MondValueType.String)
+                {
+                    Console.WriteLine((string)args[0]);
+                }
+                else
+                {
+                    args[0].Serialize(Console.Out);
+                    Console.WriteLine();
+                }
+
+                return MondValue.Undefined;
+            });
+
             while (true)
             {
                 try
@@ -37,6 +56,10 @@ namespace Mond.Repl
                         }
 
                     } while (_input.Count > 0); // we only want the result of the last statement
+
+                    // ignore undefined return value, it's almost always useless
+                    if (result == MondValue.Undefined)
+                        continue;
 
                     if (result["moveNext"] && result.IsEnumerable)
                     {
