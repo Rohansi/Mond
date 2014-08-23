@@ -6,7 +6,6 @@ Mond is a simple scripting language written entirely in C#. It supports advanced
 * list comprehension
 * simple embedding
 * sane variable scopes
-* functions
 
 This is what it looks like:
 ```
