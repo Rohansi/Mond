@@ -434,9 +434,16 @@ namespace Mond.VirtualMachine
                                 if (argFrame.Values.Length < argCount)
                                     argFrame = new Frame(argFrame.Depth + 1, argFrame.Previous, argCount);
 
+                                // copy arguments into frame
                                 for (var i = argCount - 1; i >= 0; i--)
                                 {
                                     argFrame.Values[i] = _evalStack.Pop();
+                                }
+
+                                // clear other arguments
+                                for (var i = argCount; i < argFrame.Values.Length; i++)
+                                {
+                                    argFrame.Values[i] = MondValue.Undefined;
                                 }
 
                                 _callStack.Push(new ReturnAddress(returnAddress.Program, returnAddress.Address, argFrame));

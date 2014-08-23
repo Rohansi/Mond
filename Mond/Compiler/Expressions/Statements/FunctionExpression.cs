@@ -72,7 +72,7 @@ namespace Mond.Compiler.Expressions.Statements
 
             IdentifierOperand identifier = null;
 
-            if (Name != null && !shouldBeGlobal)
+            if (Name != null)
             {
                 if (!context.DefineIdentifier(Name, true))
                     throw new MondCompilerException(FileName, Line, CompilerError.IdentifierAlreadyDefined, Name);
