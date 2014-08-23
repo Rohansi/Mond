@@ -135,11 +135,12 @@
     <Compile Include="MondCompilerException.cs" />
     <Compile Include="MondCompilerOptions.cs" />
     <Compile Include="MondException.cs" />
+    <Compile Include="MondObject.cs" />
     <Compile Include="MondValue.Enumerable.cs" />
     <Compile Include="MondValue.Operators.cs" />
     <Compile Include="MondValue.Serialize.cs" />
     <Compile Include="RuntimeError.cs" />
-    <Compile Include="VirtualMachine\Prototypes\ArrayPrototype.cs" />
+    <Compile Include="Prototypes\ArrayPrototype.cs" />
     <Compile Include="VirtualMachine\Closure.cs" />
     <Compile Include="VirtualMachine\DebugInfo.cs" />
     <Compile Include="VirtualMachine\Machine.cs" />
@@ -150,9 +151,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Compiler\Token.cs" />
     <Compile Include="VirtualMachine\Frame.cs" />
-    <Compile Include="VirtualMachine\Prototypes\ValuePrototype.cs" />
-    <Compile Include="VirtualMachine\Prototypes\ObjectPrototype.cs" />
-    <Compile Include="VirtualMachine\Prototypes\StringPrototype.cs" />
+    <Compile Include="Prototypes\ValuePrototype.cs" />
+    <Compile Include="Prototypes\ObjectPrototype.cs" />
+    <Compile Include="Prototypes\StringPrototype.cs" />
     <Compile Include="VirtualMachine\ReturnAddress.cs" />
   </ItemGroup>
   <ItemGroup>

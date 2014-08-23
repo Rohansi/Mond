@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using Mond.Prototypes;
 using Mond.VirtualMachine;
-using Mond.VirtualMachine.Prototypes;
 
 namespace Mond
 {
@@ -19,9 +19,7 @@ namespace Mond
 
         public readonly MondValueType Type;
 
-        internal readonly Dictionary<MondValue, MondValue> ObjectValue;
-        internal bool ObjectLocked;
-
+        internal readonly MondObject ObjectValue;
         internal readonly List<MondValue> ArrayValue;
 
         private readonly double _numberValue;
@@ -34,8 +32,6 @@ namespace Mond
             Type = MondValueType.Undefined;
 
             ObjectValue = null;
-            ObjectLocked = false;
-
             ArrayValue = null;
             _numberValue = 0;
             _stringValue = null;
@@ -60,7 +56,7 @@ namespace Mond
                     break;
 
                 case MondValueType.Object:
-                    ObjectValue = new Dictionary<MondValue, MondValue>();
+                    ObjectValue = new MondObject();
                     break;
 
                 case MondValueType.Array:
@@ -137,23 +133,15 @@ namespace Mond
                     return ArrayValue[n];
                 }
 
-                if (index == "prototype")
-                {
-                    var prototypeValue = GetPrototype();
-                    if (prototypeValue != null)
-                        return CheckWrapInstanceNative(prototypeValue);
-                    return Undefined;
-                }
-
                 if (Type == MondValueType.Object)
                 {
                     MondValue indexValue;
-                    if (ObjectValue.TryGetValue(index, out indexValue))
+                    if (ObjectValue.Values.TryGetValue(index, out indexValue))
                         return CheckWrapInstanceNative(indexValue);
                 }
 
                 var i = 0;
-                var prototype = GetPrototype();
+                var prototype = Prototype;
 
                 while (prototype != null)
                 {
@@ -163,10 +151,10 @@ namespace Mond
                         break;
                     
                     MondValue indexValue;
-                    if (currentValue.ObjectValue.TryGetValue(index, out indexValue))
+                    if (currentValue.ObjectValue.Values.TryGetValue(index, out indexValue))
                         return CheckWrapInstanceNative(indexValue);
                     
-                    prototype = currentValue.GetPrototype();
+                    prototype = currentValue.Prototype;
                     i++;
 
                     if (i > 100)
@@ -183,9 +171,6 @@ namespace Mond
                 if (value == null)
                     throw new ArgumentNullException("value");
 
-                if (Type == MondValueType.Object && ObjectLocked)
-                    return;
-
                 if (Type == MondValueType.Array && index.Type == MondValueType.Number)
                 {
                     var n = (int)index._numberValue;
@@ -197,26 +182,17 @@ namespace Mond
                     return;
                 }
 
-                if (index == "prototype")
+                if (Type == MondValueType.Object && !ObjectValue.Locked)
                 {
-                    if (Type != MondValueType.Object)
-                        throw new MondRuntimeException(RuntimeError.CantCreateField, Type);
-
-                    ObjectValue["prototype"] = value;
-                    return;
-                }
-
-                if (Type == MondValueType.Object)
-                {
-                    if (ObjectValue.ContainsKey(index))
+                    if (ObjectValue.Values.ContainsKey(index))
                     {
-                        ObjectValue[index] = value;
+                        ObjectValue.Values[index] = value;
                         return;
                     }
                 }
 
                 var i = 0;
-                var prototype = GetPrototype();
+                var prototype = Prototype;
 
                 while (prototype != null)
                 {
@@ -226,16 +202,17 @@ namespace Mond
                         break;
 
                     // skip locked objects because they cant be written to
-                    if (!currentValue.ObjectLocked)
+                    if (!currentValue.ObjectValue.Locked)
                     {
-                        if (currentValue.ObjectValue.ContainsKey(index))
+                        var values = currentValue.ObjectValue.Values;
+                        if (values.ContainsKey(index))
                         {
-                            currentValue.ObjectValue[index] = value;
+                            values[index] = value;
                             return;
                         }
                     }
 
-                    prototype = currentValue.GetPrototype();
+                    prototype = currentValue.Prototype;
                     i++;
 
                     if (i > 100)
@@ -245,7 +222,7 @@ namespace Mond
                 if (Type != MondValueType.Object)
                     throw new MondRuntimeException(RuntimeError.CantCreateField, Type);
 
-                ObjectValue[index] = value;
+                ObjectValue.Values[index] = value;
             }
         }
 
@@ -257,7 +234,47 @@ namespace Mond
             if (Type != MondValueType.Object)
                 throw new MondRuntimeException("Attempt to lock non-object");
 
-            ObjectLocked = true;
+            ObjectValue.Locked = true;
+        }
+
+        /// <summary>
+        /// Gets the prototype object for this value.
+        /// 
+        /// Sets the prototype object for this object. Can either be MondValueType.Object, MondValue.Null, MondValue.Undefined or null.
+        /// If set to MondValue.Undefined or null, the default prototype will be used.
+        /// </summary>
+        public MondValue Prototype
+        {
+            get
+            {
+                switch (Type)
+                {
+                    case MondValueType.Object:
+                        return ObjectValue.Prototype ?? ObjectPrototype.Value;
+
+                    case MondValueType.Array:
+                        return ArrayPrototype.Value;
+
+                    case MondValueType.String:
+                        return StringPrototype.Value;
+
+                    default:
+                        return ValuePrototype.Value;
+                }
+            }
+            set
+            {
+                if (Type != MondValueType.Object)
+                    throw new Exception("Prototypes can only be set on objects");
+
+                if (value == Undefined)
+                    value = null;
+
+                if (value != null && value.Type != MondValueType.Object && value.Type != MondValueType.Null)
+                    throw new Exception("Prototypes must be an object or null");
+
+                ObjectValue.Prototype = value;
+            }
         }
 
         public bool Equals(MondValue other)
@@ -361,33 +378,6 @@ namespace Mond
                     return "closure";
                 default:
                     throw new NotSupportedException();
-            }
-        }
-
-        private MondValue GetPrototype()
-        {
-            switch (Type)
-            {
-                case MondValueType.Object:
-                    MondValue prototype;
-                    if (ObjectValue.TryGetValue("prototype", out prototype))
-                    {
-                        if (!prototype)
-                            return null;
-
-                        return prototype;
-                    }
-
-                    return ObjectPrototype.Value;
-
-                case MondValueType.Array:
-                    return ArrayPrototype.Value;
-
-                case MondValueType.String:
-                    return StringPrototype.Value;
-
-                default:
-                    return ValuePrototype.Value;
             }
         }
 

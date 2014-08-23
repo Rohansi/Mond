@@ -202,14 +202,14 @@ namespace Mond.Tests
             var prototype = new MondValue(MondValueType.Object);
             var obj = new MondValue(MondValueType.Object);
 
-            obj["prototype"] = prototype;
-            Assert.True(obj["prototype"].Type == MondValueType.Object);
+            obj.Prototype = prototype;
+            Assert.True(obj.Prototype.Type == MondValueType.Object);
 
             prototype["testValue"] = "hello";
 
             Assert.True(obj["testValue"] == "hello");
 
-            obj["prototype"] = MondValue.Undefined; // override default
+            obj.Prototype = MondValue.Null; // override default
 
             Assert.False(obj["testValue"] == "hello");
         }

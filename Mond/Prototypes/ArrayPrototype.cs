@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Mond.VirtualMachine.Prototypes
+namespace Mond.Prototypes
 {
     static class ArrayPrototype
     {
@@ -9,7 +9,7 @@ namespace Mond.VirtualMachine.Prototypes
         static ArrayPrototype()
         {
             Value = new MondValue(MondValueType.Object);
-            Value["prototype"] = ValuePrototype.Value;
+            Value.Prototype = ValuePrototype.Value;
 
             Value["add"] = new MondInstanceFunction(Add);
             Value["clear"] = new MondInstanceFunction(Clear);

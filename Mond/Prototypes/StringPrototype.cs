@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Mond.VirtualMachine.Prototypes
+namespace Mond.Prototypes
 {
     static class StringPrototype
     {
@@ -11,7 +11,7 @@ namespace Mond.VirtualMachine.Prototypes
         static StringPrototype()
         {
             Value = new MondValue(MondValueType.Object);
-            Value["prototype"] = ValuePrototype.Value;
+            Value.Prototype = ValuePrototype.Value;
 
             Value["charAt"] = new MondInstanceFunction(CharAt);
             Value["contains"] = new MondInstanceFunction(Contains);

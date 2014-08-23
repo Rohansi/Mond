@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
-namespace Mond.VirtualMachine.Prototypes
+namespace Mond.Prototypes
 {
     static class ObjectPrototype
     {
@@ -10,7 +11,7 @@ namespace Mond.VirtualMachine.Prototypes
         static ObjectPrototype()
         {
             Value = new MondValue(MondValueType.Object);
-            Value["prototype"] = ValuePrototype.Value;
+            Value.Prototype = ValuePrototype.Value;
 
             Value["add"] = new MondInstanceFunction(Add);
             Value["clear"] = new MondInstanceFunction(Clear);
@@ -21,6 +22,8 @@ namespace Mond.VirtualMachine.Prototypes
 
             Value["length"] = new MondInstanceFunction(Length);
             Value["getEnumerator"] = new MondInstanceFunction(GetEnumerator);
+
+            Value["prototype"] = new MondInstanceFunction(Prototype);
 
             Value.Lock();
         }
@@ -34,10 +37,10 @@ namespace Mond.VirtualMachine.Prototypes
         {
             Check("add", instance.Type, arguments, MondValueType.Undefined, MondValueType.Undefined);
 
-            if (instance.ObjectLocked)
+            if (instance.ObjectValue.Locked)
                 throw new MondRuntimeException(LockedError, "add");
 
-            instance.ObjectValue[arguments[0]] = arguments[1];
+            instance.ObjectValue.Values[arguments[0]] = arguments[1];
             return instance;
         }
 
@@ -48,10 +51,10 @@ namespace Mond.VirtualMachine.Prototypes
         {
             Check("clear", instance.Type, arguments);
 
-            if (instance.ObjectLocked)
+            if (instance.ObjectValue.Locked)
                 throw new MondRuntimeException(LockedError, "clear");
 
-            instance.ObjectValue.Clear();
+            instance.ObjectValue.Values.Clear();
             return instance;
         }
 
@@ -61,7 +64,7 @@ namespace Mond.VirtualMachine.Prototypes
         private static MondValue ContainsKey(MondState state, MondValue instance, params MondValue[] arguments)
         {
             Check("containsKey", instance.Type, arguments, MondValueType.Undefined);
-            return instance.ObjectValue.ContainsKey(arguments[0]);
+            return instance.ObjectValue.Values.ContainsKey(arguments[0]);
         }
 
         /// <summary>
@@ -70,7 +73,7 @@ namespace Mond.VirtualMachine.Prototypes
         private static MondValue ContainsValue(MondState state, MondValue instance, params MondValue[] arguments)
         {
             Check("containsValue", instance.Type, arguments, MondValueType.Undefined);
-            return instance.ObjectValue.ContainsValue(arguments[0]);
+            return instance.ObjectValue.Values.ContainsValue(arguments[0]);
         }
 
         /// <summary>
@@ -81,7 +84,7 @@ namespace Mond.VirtualMachine.Prototypes
             Check("get", instance.Type, arguments, MondValueType.Undefined);
 
             MondValue value;
-            if (!instance.ObjectValue.TryGetValue(arguments[0], out value))
+            if (!instance.ObjectValue.Values.TryGetValue(arguments[0], out value))
                 return MondValue.Undefined;
 
             return value;
@@ -94,10 +97,10 @@ namespace Mond.VirtualMachine.Prototypes
         {
             Check("remove", instance.Type, arguments, MondValueType.Undefined);
 
-            if (instance.ObjectLocked)
+            if (instance.ObjectValue.Locked)
                 throw new MondRuntimeException(LockedError, "clear");
 
-            instance.ObjectValue.Remove(arguments[0]);
+            instance.ObjectValue.Values.Remove(arguments[0]);
             return instance;
         }
 
@@ -107,7 +110,7 @@ namespace Mond.VirtualMachine.Prototypes
         private static MondValue Length(MondState state, MondValue instance, params MondValue[] arguments)
         {
             Check("length", instance.Type, arguments);
-            return instance.ObjectValue.Count;
+            return instance.ObjectValue.Values.Count;
         }
 
         /// <summary>
@@ -118,7 +121,7 @@ namespace Mond.VirtualMachine.Prototypes
             Check("getEnumerator", instance.Type, arguments);
 
             var enumerator = new MondValue(MondValueType.Object);
-            var keys = instance.ObjectValue.Keys.ToList();
+            var keys = instance.ObjectValue.Values.Keys.ToList();
             var i = 0;
 
             enumerator["current"] = MondValue.Null;
@@ -129,7 +132,7 @@ namespace Mond.VirtualMachine.Prototypes
 
                 var pair = new MondValue(MondValueType.Object);
                 pair["key"] = keys[i];
-                pair["value"] = instance.ObjectValue[keys[i]];
+                pair["value"] = instance.ObjectValue.Values[keys[i]];
                 
                 enumerator["current"] = pair;
                 i++;
@@ -137,6 +140,26 @@ namespace Mond.VirtualMachine.Prototypes
             });
 
             return enumerator;
+        }
+
+        /// <summary>
+        /// prototype(): object
+        /// prototype(value: any)
+        /// </summary>
+        private static MondValue Prototype(MondState state, MondValue instance, params MondValue[] arguments)
+        {
+            Check("prototype", instance.Type, arguments);
+
+            if (arguments.Length == 0)
+                return instance.Prototype;
+
+            var obj = arguments[0];
+            if (obj.Type != MondValueType.Object && obj.Type != MondValueType.Null && obj.Type != MondValueType.Undefined)
+                throw new MondRuntimeException("Object.prototype: prototype value must be an object, null, or undefined");
+
+            instance.Prototype = obj;
+
+            return MondValue.Undefined;
         }
 
         private static void Check(string method, MondValueType type, IList<MondValue> arguments, params MondValueType[] requiredTypes)

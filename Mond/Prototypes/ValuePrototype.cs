@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Mond.VirtualMachine.Prototypes
+namespace Mond.Prototypes
 {
     /// <summary>
     /// Contains members common to ALL values.
@@ -12,7 +12,7 @@ namespace Mond.VirtualMachine.Prototypes
         static ValuePrototype()
         {
             Value = new MondValue(MondValueType.Object);
-            Value["prototype"] = MondValue.Undefined; // required to break the chain
+            Value.Prototype = MondValue.Null; // required to break the chain
 
             Value["getType"] = new MondInstanceFunction(GetType);
 

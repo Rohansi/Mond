@@ -57,7 +57,7 @@ namespace Mond
                     writer.WriteLine("{");
                     writer.Indent++;
 
-                    foreach (var objValue in ObjectValue)
+                    foreach (var objValue in ObjectValue.Values)
                     {
                         writer.WriteIndent();
                         objValue.Key.SerializeImpl(writer);
