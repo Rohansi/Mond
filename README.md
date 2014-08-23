@@ -1,2 +1,37 @@
-Mond
-====
+ Mond
+==========
+
+Mond is a simple scripting language written entirely in C#. It supports advanced features like:
+* sequences (generators)
+* list comprehension
+* simple embedding
+* sane variable scopes
+* functions
+
+This is what it looks like:
+```
+seq range(start, end) {
+    for (var i = start; i <= end; i++)
+        yield i;
+}
+
+fun where(list, filter) -> [x : x in list, filter(x)];
+fun select(list, transform) -> [transform(x) : x in list];
+
+fun toArray(list) {
+    var array = [];
+
+    foreach (var value in list) {
+        array.add(value);
+    }
+
+    return array;
+}
+
+return range(0, 1000)
+       |> where(fun (x) -> x % 2 == 0)
+       |> select(fun (x) -> x / 2)
+       |> toArray();
+```
+
+Please check [the wiki](https://github.com/Rohansi/Mond/wiki) for documentation.
