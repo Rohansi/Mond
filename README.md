@@ -4,6 +4,8 @@
 Mond is a simple scripting language written entirely in C#. It supports advanced features like:
 * sequences (generators)
 * list comprehension
+* lambda expressions
+* prototype-based inheritance
 * simple embedding
 * sane variable scopes
 
