@@ -7,6 +7,9 @@ namespace Mond.VirtualMachine
 {
     class Machine
     {
+        private const int MaxCallDepth = 250;
+        private const int InitialEvalStackCapacity = 500;
+
         private readonly MondState _state;
 
         private readonly Stack<ReturnAddress> _callStack;
@@ -19,9 +22,9 @@ namespace Mond.VirtualMachine
         {
             _state = state;
 
-            _callStack = new Stack<ReturnAddress>();
-            _localStack = new Stack<Frame>();
-            _evalStack = new Stack<MondValue>();
+            _callStack = new Stack<ReturnAddress>(MaxCallDepth);
+            _localStack = new Stack<Frame>(MaxCallDepth);
+            _evalStack = new Stack<MondValue>(InitialEvalStackCapacity);
 
             Global = new MondValue(MondValueType.Object);
         }
@@ -398,26 +401,28 @@ namespace Mond.VirtualMachine
                                     argFrame.Values[i] = _evalStack.Pop();
                                 }
 
-                                if (closureValue.Type == ClosureType.Mond)
+                                switch (closureValue.Type)
                                 {
-                                    _callStack.Push(new ReturnAddress(program, returnAddress, argFrame));
-                                    _localStack.Push(closureValue.Locals);
+                                    case ClosureType.Mond:
+                                        if (_callStack.Count >= MaxCallDepth)
+                                            throw new MondRuntimeException(RuntimeError.StackOverflow);
 
-                                    program = closureValue.Program;
-                                    code = program.Bytecode;
-                                    ip = closureValue.Address;
+                                        _callStack.Push(new ReturnAddress(program, returnAddress, argFrame));
+                                        _localStack.Push(closureValue.Locals);
+                                        program = closureValue.Program;
+                                        code = program.Bytecode;
+                                        ip = closureValue.Address;
+                                        args = argFrame;
+                                        locals = closureValue.Locals;
+                                        break;
 
-                                    args = argFrame;
-                                    locals = closureValue.Locals;
-                                }
-                                else if (closureValue.Type == ClosureType.Native)
-                                {
-                                    var result = closureValue.NativeFunction(_state, argFrame.Values);
-                                    _evalStack.Push(result);
-                                }
-                                else
-                                {
-                                    throw new MondRuntimeException(RuntimeError.UnhandledClosureType);
+                                    case ClosureType.Native:
+                                        var result = closureValue.NativeFunction(_state, argFrame.Values);
+                                        _evalStack.Push(result);
+                                        break;
+
+                                    default:
+                                        throw new MondRuntimeException(RuntimeError.UnhandledClosureType);
                                 }
 
                                 break;
@@ -431,9 +436,6 @@ namespace Mond.VirtualMachine
                                 var returnAddress = _callStack.Pop();
                                 var argFrame = returnAddress.Arguments;
 
-                                if (argFrame.Values.Length < argCount)
-                                    argFrame = new Frame(argFrame.Depth + 1, argFrame.Previous, argCount);
-
                                 // copy arguments into frame
                                 for (var i = argCount - 1; i >= 0; i--)
                                 {
@@ -445,6 +447,9 @@ namespace Mond.VirtualMachine
                                 {
                                     argFrame.Values[i] = MondValue.Undefined;
                                 }
+
+                                // get rid of old locals
+                                _localStack.Push(_localStack.Pop().Previous);
 
                                 _callStack.Push(new ReturnAddress(returnAddress.Program, returnAddress.Address, argFrame));
 
