@@ -30,7 +30,7 @@ namespace Mond.Compiler.Expressions
 
             var stack = 0;
             var isAssignment = false;
-            var needResult = !(Parent is BlockExpression);
+            var needResult = !(Parent is IBlockExpression);
             
             switch (Operation)
             {

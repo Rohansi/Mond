@@ -35,7 +35,7 @@ namespace Mond.Compiler.Expressions
                 throw new MondCompilerException(FileName, Line, CompilerError.LeftSideMustBeStorable);
 
             var stack = 0;
-            var needResult = !(Parent is BlockExpression);
+            var needResult = !(Parent is IBlockExpression);
 
             if (needResult)
                 stack += Left.Compile(context);

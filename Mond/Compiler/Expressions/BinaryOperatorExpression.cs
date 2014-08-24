@@ -44,7 +44,7 @@ namespace Mond.Compiler.Expressions
                 if (storable == null)
                     throw new MondCompilerException(FileName, Line, CompilerError.LeftSideMustBeStorable);
 
-                var needResult = !(Parent is BlockExpression);
+                var needResult = !(Parent is IBlockExpression);
 
                 stack += Right.Compile(context);
 
