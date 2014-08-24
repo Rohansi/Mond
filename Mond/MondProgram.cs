@@ -49,7 +49,10 @@ namespace Mond
 
             var lexer = new Lexer(source, int.MaxValue, fileName);
             var parser = new Parser(lexer);
-            var expression = parser.ParseStatement();
+            var expression = new BlockExpression(new List<Expression>
+            {
+                parser.ParseStatement()
+            });
 
             return CompileImpl(expression, options);
         }
