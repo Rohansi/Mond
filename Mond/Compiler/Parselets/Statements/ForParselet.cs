@@ -12,12 +12,19 @@ namespace Mond.Compiler.Parselets.Statements
 
             parser.Take(TokenType.LeftParen);
 
-            Expression initializer = null;
+            BlockExpression initializer = null;
             if (!parser.Match(TokenType.Semicolon))
-                initializer = parser.ParseStatement(false);
+            {
+                var initializerExpr = parser.ParseStatement(false);
 
-            if (initializer is IStatementExpression && !(initializer is VarExpression))
-                throw new MondCompilerException(token.FileName, token.Line, CompilerError.BadForLoopInitializer);
+                if (initializerExpr is IStatementExpression && !(initializerExpr is VarExpression))
+                    throw new MondCompilerException(token.FileName, token.Line, CompilerError.BadForLoopInitializer);
+
+                initializer = new BlockExpression(new List<Expression>()
+                {
+                    initializerExpr
+                });
+            }
 
             parser.Take(TokenType.Semicolon);
 

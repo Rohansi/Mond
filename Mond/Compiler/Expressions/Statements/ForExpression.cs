@@ -1,13 +1,13 @@
 ﻿namespace Mond.Compiler.Expressions.Statements
 {
-    class ForExpression : Expression, IStatementExpression, IBlockExpression
+    class ForExpression : Expression, IStatementExpression
     {
-        public Expression Initializer { get; private set; }
+        public BlockExpression Initializer { get; private set; }
         public Expression Condition { get; private set; }
         public BlockExpression Increment { get; private set; }
         public BlockExpression Block { get; private set; }
 
-        public ForExpression(Token token, Expression initializer, Expression condition, BlockExpression increment, BlockExpression block)
+        public ForExpression(Token token, BlockExpression initializer, Expression condition, BlockExpression increment, BlockExpression block)
             : base(token.FileName, token.Line)
         {
             Initializer = initializer;
@@ -98,7 +98,7 @@
         public override Expression Simplify()
         {
             if (Initializer != null)
-                Initializer = Initializer.Simplify();
+                Initializer = (BlockExpression)Initializer.Simplify();
 
             if (Condition != null)
                 Condition = Condition.Simplify();
