@@ -38,6 +38,8 @@ namespace Mond.Repl
                 return MondValue.Undefined;
             });
 
+            var line = 1;
+
             while (true)
             {
                 try
@@ -46,7 +48,7 @@ namespace Mond.Repl
 
                     do
                     {
-                        var program = MondProgram.CompileStatement(ConsoleInput(), "stdin", options);
+                        var program = MondProgram.CompileStatement(ConsoleInput(), string.Format("stdin_{0:D}", line), options);
                         result = state.Load(program);
 
                         // get rid of leading whitespace
@@ -56,6 +58,8 @@ namespace Mond.Repl
                         }
 
                     } while (_input.Count > 0); // we only want the result of the last statement
+
+                    line++;
 
                     // ignore undefined return value, it's almost always useless
                     if (result == MondValue.Undefined)
