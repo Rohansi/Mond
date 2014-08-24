@@ -375,7 +375,7 @@ namespace Mond
                 case MondValueType.String:
                     return _stringValue;
                 case MondValueType.Closure:
-                    return "closure";
+                    return "function";
                 default:
                     throw new NotSupportedException();
             }

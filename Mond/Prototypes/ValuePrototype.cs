@@ -49,7 +49,7 @@ namespace Mond.Prototypes
                     return "string";
 
                 case MondValueType.Closure:
-                    return "closure";
+                    return "function";
 
                 default:
                     throw new NotSupportedException();

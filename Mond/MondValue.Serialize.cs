@@ -97,7 +97,7 @@ namespace Mond
                     break;
 
                 case MondValueType.Closure:
-                    writer.Write("closure");
+                    writer.Write("function");
                     break;
 
                 default:
