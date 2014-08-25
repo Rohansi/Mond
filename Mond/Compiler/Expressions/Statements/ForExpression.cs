@@ -68,6 +68,8 @@
             var increment = context.MakeLabel("forContinue");
             var end = context.MakeLabel("forEnd");
 
+            context.PushScope();
+
             if (Initializer != null)
                 stack += Initializer.Compile(context);
 
@@ -90,6 +92,8 @@
             stack += context.Jump(start);
 
             stack += context.Bind(end);
+
+            context.PopScope();
 
             CheckStack(stack, 0);
             return stack;

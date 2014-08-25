@@ -11,21 +11,36 @@ namespace Mond.Compiler.Parselets
 
             while (!parser.Match(TokenType.RightBrace))
             {
-                var identifier = parser.Take(TokenType.Identifier);
+                string key;
+                Expression value = null;
 
-                Expression value;
-
-                if (parser.Match(TokenType.Comma) || parser.Match(TokenType.RightBrace))
+                if (parser.Match(TokenType.Identifier))
                 {
-                    value = new IdentifierExpression(identifier);
+                    var identifier = parser.Take(TokenType.Identifier);
+                    key = identifier.Contents;
+
+                    if (parser.Match(TokenType.Comma) || parser.Match(TokenType.RightBrace))
+                    {
+                        value = new IdentifierExpression(identifier);
+                    }
+                }
+                else if (parser.Match(TokenType.String))
+                {
+                    key = parser.Take(TokenType.String).Contents;
                 }
                 else
+                {
+                    var err = parser.Take();
+                    throw new MondCompilerException(err.FileName, err.Line, CompilerError.ExpectedButFound2, TokenType.Identifier, TokenType.String, err.Type);
+                }
+
+                if (value == null)
                 {
                     parser.Take(TokenType.Colon);
                     value = parser.ParseExpession();
                 }
 
-                values.Add(new KeyValuePair<string, Expression>(identifier.Contents, value));
+                values.Add(new KeyValuePair<string, Expression>(key, value));
 
                 if (!parser.Match(TokenType.Comma))
                     break;
