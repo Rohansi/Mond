@@ -48,7 +48,7 @@ namespace Mond.Prototypes
                 case MondValueType.String:
                     return "string";
 
-                case MondValueType.Closure:
+                case MondValueType.Function:
                     return "function";
 
                 default:

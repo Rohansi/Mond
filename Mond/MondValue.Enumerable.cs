@@ -8,8 +8,8 @@ namespace Mond
         {
             get
             {
-                var hasGetEnumerator = this["getEnumerator"].Type == MondValueType.Closure;
-                var hasEnumeratorFunc = this["moveNext"].Type == MondValueType.Closure;
+                var hasGetEnumerator = this["getEnumerator"].Type == MondValueType.Function;
+                var hasEnumeratorFunc = this["moveNext"].Type == MondValueType.Function;
 
                 return hasGetEnumerator || hasEnumeratorFunc;
             }
@@ -20,16 +20,16 @@ namespace Mond
             var enumerator = this;
             var moveNext = enumerator["moveNext"];
 
-            if (moveNext.Type != MondValueType.Closure)
+            if (moveNext.Type != MondValueType.Function)
             {
                 var getEnumerator = this["getEnumerator"];
-                if (getEnumerator.Type != MondValueType.Closure)
+                if (getEnumerator.Type != MondValueType.Function)
                     throw new MondRuntimeException("Value is not enumerable");
 
                 enumerator = state.Call(getEnumerator);
 
                 moveNext = enumerator["moveNext"];
-                if (moveNext.Type != MondValueType.Closure)
+                if (moveNext.Type != MondValueType.Function)
                     throw new MondRuntimeException("Value is not enumerable");
             }
 

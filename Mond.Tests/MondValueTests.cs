@@ -220,11 +220,11 @@ namespace Mond.Tests
             var obj = new MondValue(MondValueType.Object);
 
             var func = new MondValue((state, instance, args) => MondValue.Undefined);
-            Assert.True(func.ClosureValue.Type == ClosureType.InstanceNative);
+            Assert.True(func.FunctionValue.Type == ClosureType.InstanceNative);
 
             obj["test"] = func;
             var closure = obj["test"];
-            Assert.True(closure.ClosureValue.Type == ClosureType.Native);
+            Assert.True(closure.FunctionValue.Type == ClosureType.Native);
 
             Assert.True(new MondState().Call(obj["test"]) == MondValue.Undefined);
         }

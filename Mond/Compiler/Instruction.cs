@@ -30,7 +30,7 @@ namespace Mond.Compiler
         Eq, Neq, Gt, Gte, Lt, Lte,          // comparison operators
         Not,                                // logical not
 
-        Closure, Call, TailCall,            // make closure, call closure, tail call
+        Closure, Call, TailCall,            // make closure, call function, tail call
         Enter, Ret,                         // begin function, return from function
         VarArgs,                            // setup variable length args
 

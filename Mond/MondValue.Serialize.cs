@@ -96,7 +96,7 @@ namespace Mond
                     writer.Write("\"{0}\"", _stringValue);
                     break;
 
-                case MondValueType.Closure:
+                case MondValueType.Function:
                     writer.Write("function");
                     break;
 

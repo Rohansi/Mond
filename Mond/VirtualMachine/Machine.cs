@@ -34,20 +34,20 @@ namespace Mond.VirtualMachine
             if (program == null)
                 throw new ArgumentNullException("program");
 
-            var closure = new MondValue(new Closure(program, 0, null, null));
-            return Call(closure);
+            var function = new MondValue(new Closure(program, 0, null, null));
+            return Call(function);
         }
 
-        public MondValue Call(MondValue closure, params MondValue[] arguments)
+        public MondValue Call(MondValue function, params MondValue[] arguments)
         {
-            if (closure.Type != MondValueType.Closure)
-                throw new MondRuntimeException(RuntimeError.ValueNotCallable, closure.Type);
+            if (function.Type != MondValueType.Function)
+                throw new MondRuntimeException(RuntimeError.ValueNotCallable, function.Type);
 
-            var closureValue = closure.ClosureValue;
+            var closure = function.FunctionValue;
 
-            if (closureValue.Type == ClosureType.Mond)
+            if (closure.Type == ClosureType.Mond)
             {
-                var argFrame = closureValue.Arguments;
+                var argFrame = closure.Arguments;
                 if (argFrame == null)
                     argFrame = new Frame(0, null, arguments.Length);
                 else
@@ -58,14 +58,14 @@ namespace Mond.VirtualMachine
                     argFrame.Values[i] = arguments[i];
                 }
 
-                _callStack.Push(new ReturnAddress(closureValue.Program, closureValue.Address, argFrame));
+                _callStack.Push(new ReturnAddress(closure.Program, closure.Address, argFrame));
 
-                if (closureValue.Locals != null)
-                    _localStack.Push(closureValue.Locals);
+                if (closure.Locals != null)
+                    _localStack.Push(closure.Locals);
             }
-            else if (closureValue.Type == ClosureType.Native)
+            else if (closure.Type == ClosureType.Native)
             {
-                return closureValue.NativeFunction(_state, arguments);
+                return closure.NativeFunction(_state, arguments);
             }
             else
             {
@@ -383,14 +383,14 @@ namespace Mond.VirtualMachine
                             {
                                 var argCount = ReadInt32(code, ref ip);
                                 var returnAddress = ip;
-                                var closure = _evalStack.Pop();
+                                var function = _evalStack.Pop();
 
-                                if (closure.Type != MondValueType.Closure)
-                                    throw new MondRuntimeException(RuntimeError.ValueNotCallable, closure.Type);
+                                if (function.Type != MondValueType.Function)
+                                    throw new MondRuntimeException(RuntimeError.ValueNotCallable, function.Type);
 
-                                var closureValue = closure.ClosureValue;
+                                var closure = function.FunctionValue;
 
-                                var argFrame = closure.ClosureValue.Arguments;
+                                var argFrame = function.FunctionValue.Arguments;
                                 if (argFrame == null)
                                     argFrame = new Frame(1, null, argCount);
                                 else
@@ -401,23 +401,23 @@ namespace Mond.VirtualMachine
                                     argFrame.Values[i] = _evalStack.Pop();
                                 }
 
-                                switch (closureValue.Type)
+                                switch (closure.Type)
                                 {
                                     case ClosureType.Mond:
                                         if (_callStack.Count >= MaxCallDepth)
                                             throw new MondRuntimeException(RuntimeError.StackOverflow);
 
                                         _callStack.Push(new ReturnAddress(program, returnAddress, argFrame));
-                                        _localStack.Push(closureValue.Locals);
-                                        program = closureValue.Program;
+                                        _localStack.Push(closure.Locals);
+                                        program = closure.Program;
                                         code = program.Bytecode;
-                                        ip = closureValue.Address;
+                                        ip = closure.Address;
                                         args = argFrame;
-                                        locals = closureValue.Locals;
+                                        locals = closure.Locals;
                                         break;
 
                                     case ClosureType.Native:
-                                        var result = closureValue.NativeFunction(_state, argFrame.Values);
+                                        var result = closure.NativeFunction(_state, argFrame.Values);
                                         _evalStack.Push(result);
                                         break;
 

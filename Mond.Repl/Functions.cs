@@ -74,7 +74,12 @@ namespace Mond.Repl
         {
             while (true)
             {
-                yield return (char)Console.Read();
+                var key = Console.Read();
+
+                if (key == -1)
+                    yield break;
+
+                yield return (char)key;
             }
         }
     }

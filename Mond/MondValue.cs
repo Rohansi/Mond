@@ -7,7 +7,7 @@ namespace Mond
 {
     public enum MondValueType
     {
-        Undefined, Null, True, False, Object, Array, Number, String, Closure
+        Undefined, Null, True, False, Object, Array, Number, String, Function
     }
 
     public partial class MondValue : IEquatable<MondValue>
@@ -25,7 +25,7 @@ namespace Mond
         private readonly double _numberValue;
         private readonly string _stringValue;
 
-        internal readonly Closure ClosureValue;
+        internal readonly Closure FunctionValue;
 
         private MondValue()
         {
@@ -36,7 +36,7 @@ namespace Mond
             _numberValue = 0;
             _stringValue = null;
 
-            ClosureValue = null;
+            FunctionValue = null;
         }
 
         /// <summary>
@@ -89,31 +89,31 @@ namespace Mond
         }
 
         /// <summary>
-        /// Construct a new Closure MondValue with the specified value.
+        /// Construct a new Function MondValue with the specified value.
         /// </summary>
         public MondValue(MondFunction function)
             : this()
         {
-            Type = MondValueType.Closure;
-            ClosureValue = new Closure(function);
+            Type = MondValueType.Function;
+            FunctionValue = new Closure(function);
         }
 
         /// <summary>
-        /// Construct a new Closure MondValue with the specified value. Instance closures will bind
-        /// themselves to their parent object when being retrieved.
+        /// Construct a new Function MondValue with the specified value. Instance functions will
+        /// bind themselves to their parent object when being retrieved.
         /// </summary>
         public MondValue(MondInstanceFunction function)
             : this()
         {
-            Type = MondValueType.Closure;
-            ClosureValue = new Closure(function);
+            Type = MondValueType.Function;
+            FunctionValue = new Closure(function);
         }
 
         internal MondValue(Closure closure)
             : this()
         {
-            Type = MondValueType.Closure;
-            ClosureValue = closure;
+            Type = MondValueType.Function;
+            FunctionValue = closure;
         }
 
         /// <summary>
@@ -300,8 +300,8 @@ namespace Mond
                 case MondValueType.String:
                     return _stringValue == other._stringValue;
 
-                case MondValueType.Closure:
-                    return ReferenceEquals(ClosureValue, other.ClosureValue);
+                case MondValueType.Function:
+                    return ReferenceEquals(FunctionValue, other.FunctionValue);
 
                 default:
                     return Type == other.Type;
@@ -347,8 +347,8 @@ namespace Mond
                 case MondValueType.String:
                     return _stringValue.GetHashCode();
 
-                case MondValueType.Closure:
-                    return ClosureValue.GetHashCode();
+                case MondValueType.Function:
+                    return FunctionValue.GetHashCode();
             }
 
             throw new NotSupportedException();
@@ -374,7 +374,7 @@ namespace Mond
                     return string.Format("{0:R}", _numberValue);
                 case MondValueType.String:
                     return _stringValue;
-                case MondValueType.Closure:
+                case MondValueType.Function:
                     return "function";
                 default:
                     throw new NotSupportedException();
@@ -383,10 +383,10 @@ namespace Mond
 
         private MondValue CheckWrapInstanceNative(MondValue value)
         {
-            if (value.Type != MondValueType.Closure || value.ClosureValue.Type != ClosureType.InstanceNative)
+            if (value.Type != MondValueType.Function || value.FunctionValue.Type != ClosureType.InstanceNative)
                 return value;
 
-            var func = value.ClosureValue.InstanceNativeFunction;
+            var func = value.FunctionValue.InstanceNativeFunction;
             var inst = this;
             return new MondValue((state, args) => func(state, inst, args));
         }
