@@ -185,7 +185,7 @@ namespace Mond.Compiler
                     var numberContents = TakeWhile(c => c == '.' ? char.IsDigit(PeekChar(1)) : char.IsDigit(c));
 
                     double number;
-                    if (!double.TryParse(numberContents, NumberStyles.AllowDecimalPoint, null, out number))
+                    if (!double.TryParse(numberContents, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out number))
                         throw new MondCompilerException(_fileName, _currentLine, CompilerError.InvalidNumber);
 
                     yield return new Token(_fileName, _currentLine, TokenType.Number, numberContents);
