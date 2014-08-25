@@ -27,26 +27,22 @@ namespace Mond
         /// </summary>
         /// <param name="source">Source code to compile</param>
         /// <param name="fileName">Optional file name to use in errors</param>
-        /// <param name="options"></param>
+        /// <param name="options">Compiler options</param>
         public static MondProgram Compile(string source, string fileName = null, MondCompilerOptions options = null)
         {
-            options = options ?? new MondCompilerOptions();
-
-            var lexer = new Lexer(source, fileName);
-            var parser = new Parser(lexer);
-            var expression = parser.ParseAll();
-
-            return CompileImpl(expression, options);
+            var lexer = new Lexer(source, int.MaxValue, fileName);
+            return ParseAndCompile(lexer, options);
         }
 
         /// <summary>
         /// Compiles a single statement from a stream of characters. This should
         /// only really be useful when implementing REPLs.
         /// </summary>
+        /// <param name="source">Source code to compile</param>
+        /// <param name="fileName">Optional file name to use in errors</param>
+        /// <param name="options">Compiler options</param>
         public static MondProgram CompileStatement(IEnumerable<char> source, string fileName = null, MondCompilerOptions options = null)
         {
-            options = options ?? new MondCompilerOptions();
-
             var lexer = new Lexer(source, int.MaxValue, fileName);
             var parser = new Parser(lexer);
             var expression = new BlockExpression(new List<Expression>
@@ -57,8 +53,17 @@ namespace Mond
             return CompileImpl(expression, options);
         }
 
+        private static MondProgram ParseAndCompile(IEnumerable<Token> lexer, MondCompilerOptions options)
+        {
+            var parser = new Parser(lexer);
+            var expression = parser.ParseAll();
+            return CompileImpl(expression, options);
+        }
+
         private static MondProgram CompileImpl(Expression expression, MondCompilerOptions options)
         {
+            options = options ?? new MondCompilerOptions();
+
             expression.SetParent(null);
             expression.Simplify();
 

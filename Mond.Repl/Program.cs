@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace Mond.Repl
 {
@@ -7,7 +8,47 @@ namespace Mond.Repl
     {
         private static Queue<char> _input;
 
-        static void Main()
+        static void Main(string[] args)
+        {
+            if (args.Length == 0)
+            {
+                InteractiveMain();
+                return;
+            }
+
+            var state = new MondState();
+            Functions.Register(state);
+
+            string source;
+
+            try
+            {
+                source = File.ReadAllText(args[0]);
+            }
+            catch
+            {
+                Console.WriteLine("Failed to read file: '{0}'", args[0]);
+                return;
+            }
+
+            try
+            {
+                var program = MondProgram.Compile(Functions.Definitions + source, Path.GetFileName(args[0]));
+                var result = state.Load(program);
+
+                if (result != MondValue.Undefined)
+                {
+                    result.Serialize(Console.Out);
+                    Console.WriteLine();
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+        }
+
+        static void InteractiveMain()
         {
             _input = new Queue<char>();
 
@@ -19,24 +60,7 @@ namespace Mond.Repl
                 UseImplicitGlobals = true
             };
 
-            state["print"] = new MondFunction((_, args) =>
-            {
-                if (args.Length == 0)
-                {
-                    Console.WriteLine();
-                }
-                else if (args[0].Type == MondValueType.String)
-                {
-                    Console.WriteLine((string)args[0]);
-                }
-                else
-                {
-                    args[0].Serialize(Console.Out);
-                    Console.WriteLine();
-                }
-
-                return MondValue.Undefined;
-            });
+            Functions.Register(state);
 
             var line = 1;
 
