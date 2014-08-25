@@ -38,5 +38,30 @@ namespace Mond
                 yield return enumerator["current"];
             }
         }
+
+        public static MondValue FromEnumerable(IEnumerable<MondValue> enumerable)
+        {
+            var enumerator = enumerable.GetEnumerator();
+            var enumerableObj = new MondValue(MondValueType.Object);
+
+            enumerableObj["current"] = Null;
+
+            enumerableObj["moveNext"] = new MondFunction((_, args) =>
+            {
+                var success = enumerator.MoveNext();
+                enumerableObj["current"] = success ? enumerator.Current : Null;
+                return success;
+            });
+
+            enumerableObj["dispose"] = new MondFunction((_, args) =>
+            {
+                enumerator.Dispose();
+                return Undefined;
+            });
+
+            enumerableObj["getEnumerator"] = new MondFunction((_, args) => enumerableObj);
+
+            return enumerableObj;
+        }
     }
 }

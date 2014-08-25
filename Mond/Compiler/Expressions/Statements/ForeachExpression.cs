@@ -78,6 +78,10 @@
 
             // after loop
             stack += context.Bind(end);
+            stack += context.Load(enumerator);
+            stack += context.LoadField(context.String("dispose"));
+            stack += context.Call(0);
+            stack += context.Drop();
 
             CheckStack(stack, 0);
             return stack;

@@ -49,6 +49,13 @@ namespace Mond.Compiler.Expressions.Statements
             getEnumerator.Load(enumerable);
             getEnumerator.Return();
 
+            var dispose = context.MakeFunction("dispose");
+            dispose.Function(dispose.FullName);
+            dispose.Bind(dispose.Label);
+            dispose.Enter();
+            dispose.LoadUndefined();
+            dispose.Return();
+
             stack += context.Bind(context.Label);
             stack += context.Enter();
 
@@ -74,6 +81,11 @@ namespace Mond.Compiler.Expressions.Statements
             stack += context.Closure(getEnumerator.Label);
             stack += context.Swap();
             stack += context.StoreField(context.String("getEnumerator"));
+
+            stack += context.Dup();
+            stack += context.Closure(dispose.Label);
+            stack += context.Swap();
+            stack += context.StoreField(context.String("dispose"));
 
             stack += context.Store(enumerable);
 

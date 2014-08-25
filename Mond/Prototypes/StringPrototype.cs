@@ -225,6 +225,8 @@ namespace Mond.Prototypes
                 return true;
             });
 
+            enumerator["dispose"] = new MondFunction((_, args) => MondValue.Undefined);
+
             return enumerator;
         }
 
