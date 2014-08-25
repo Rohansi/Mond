@@ -30,8 +30,8 @@ fun toArray(list) {
 }
 
 return range(0, 1000)
-       |> where(fun (x) -> x % 2 == 0)
-       |> select(fun (x) -> x / 2)
+       |> where(x -> x % 2 == 0)
+       |> select(x -> x / 2)
        |> toArray();
 ```
 
