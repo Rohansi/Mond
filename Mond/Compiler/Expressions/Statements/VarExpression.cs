@@ -62,14 +62,17 @@ namespace Mond.Compiler.Expressions.Statements
                 {
                     if (!context.DefineIdentifier(name, IsReadOnly))
                         throw new MondCompilerException(FileName, Line, CompilerError.IdentifierAlreadyDefined, name);
+                }
 
-                    if (declaration.Initializer != null)
-                    {
-                        var identifier = context.Identifier(name);
+                if (declaration.Initializer == null)
+                    continue;
 
-                        stack += declaration.Initializer.Compile(context);
-                        stack += context.Store(identifier);
-                    }
+                if (!shouldBeGlobal)
+                {
+                    var identifier = context.Identifier(name);
+
+                    stack += declaration.Initializer.Compile(context);
+                    stack += context.Store(identifier);
                 }
                 else
                 {
