@@ -228,5 +228,19 @@ namespace Mond.Tests
 
             Assert.True(new MondState().Call(obj["test"]) == MondValue.Undefined);
         }
+
+        [Test]
+        public void UserData()
+        {
+            var str = (object)"test";
+            var value = new MondValue(str);
+
+            Assert.True(ReferenceEquals(str, value.Data<string>()));
+
+            Assert.Throws<MondRuntimeException>(() =>
+            {
+                var a = MondValue.Null.Data<object>();
+            });
+        }
     }
 }

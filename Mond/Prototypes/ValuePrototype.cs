@@ -51,6 +51,9 @@ namespace Mond.Prototypes
                 case MondValueType.Function:
                     return "function";
 
+                case MondValueType.UserData:
+                    return "userdata";
+
                 default:
                     throw new NotSupportedException();
             }

@@ -7,7 +7,7 @@ namespace Mond
 {
     public enum MondValueType
     {
-        Undefined, Null, True, False, Object, Array, Number, String, Function
+        Undefined, Null, True, False, Object, Array, Number, String, Function, UserData
     }
 
     public partial class MondValue : IEquatable<MondValue>
@@ -27,6 +27,8 @@ namespace Mond
 
         internal readonly Closure FunctionValue;
 
+        private readonly object _userData;
+
         private MondValue()
         {
             Type = MondValueType.Undefined;
@@ -37,6 +39,8 @@ namespace Mond
             _stringValue = null;
 
             FunctionValue = null;
+
+            _userData = null;
         }
 
         /// <summary>
@@ -114,6 +118,17 @@ namespace Mond
         {
             Type = MondValueType.Function;
             FunctionValue = closure;
+        }
+
+        /// <summary>
+        /// Construct a new UserData MondValue with the specified value. The value can be retrieved
+        /// by calling Data.
+        /// </summary>
+        public MondValue(object value)
+            : this()
+        {
+            Type = MondValueType.UserData;
+            _userData = value;
         }
 
         /// <summary>
@@ -240,8 +255,9 @@ namespace Mond
         /// <summary>
         /// Gets the prototype object for this value.
         /// 
-        /// Sets the prototype object for this object. Can either be MondValueType.Object, MondValue.Null, MondValue.Undefined or null.
-        /// If set to MondValue.Undefined or null, the default prototype will be used.
+        /// Sets the prototype object for this object. Can either be MondValueType.Object,
+        /// MondValue.Null, MondValue.Undefined or null. If set to MondValue.Undefined or null,
+        /// the default prototype will be used.
         /// </summary>
         public MondValue Prototype
         {
@@ -302,6 +318,9 @@ namespace Mond
 
                 case MondValueType.Function:
                     return ReferenceEquals(FunctionValue, other.FunctionValue);
+
+                case MondValueType.UserData:
+                    return ReferenceEquals(_userData, other._userData);
 
                 default:
                     return Type == other.Type;
@@ -376,9 +395,22 @@ namespace Mond
                     return _stringValue;
                 case MondValueType.Function:
                     return "function";
+                case MondValueType.UserData:
+                    return "userdata";
                 default:
                     throw new NotSupportedException();
             }
+        }
+
+        /// <summary>
+        /// Gets the UserData from this value. 
+        /// </summary>
+        public T Data<T>()
+        {
+            if (Type != MondValueType.UserData)
+                throw new MondRuntimeException("Data can only be called on values of type UserData");
+
+            return (T)_userData;
         }
 
         private MondValue CheckWrapInstanceNative(MondValue value)
