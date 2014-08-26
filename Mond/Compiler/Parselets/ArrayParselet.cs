@@ -85,14 +85,12 @@ namespace Mond.Compiler.Parselets
 
             prev.Next = new YieldPart(token, firstExpression);
 
-            var block = new BlockExpression(new List<Expression>
+            var body = new BlockExpression(new List<Expression>
             {
                 root.Compile()
             });
 
-            var sequence = new SequenceExpression(token, null, new List<string>(), null, block);
-
-            return new CallExpression(token, sequence, new List<Expression>());
+            return new ListComprehensionExpression(token, body);
         }
 
         abstract class ComprehensionPart

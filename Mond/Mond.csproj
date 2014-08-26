@@ -45,6 +45,7 @@
     <Compile Include="Compiler\ConstantPool.cs" />
     <Compile Include="Compiler\Expressions\IBlockExpression.cs" />
     <Compile Include="Compiler\Expressions\GlobalExpression.cs" />
+    <Compile Include="Compiler\Expressions\ListComprehensionExpression.cs" />
     <Compile Include="Compiler\Expressions\PipelineExpression.cs" />
     <Compile Include="Compiler\Expressions\Statements\ForeachExpression.cs" />
     <Compile Include="Compiler\Expressions\Statements\SequenceExpression.cs" />
