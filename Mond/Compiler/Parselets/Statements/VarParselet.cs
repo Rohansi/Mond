@@ -6,6 +6,13 @@ namespace Mond.Compiler.Parselets.Statements
 {
     class VarParselet : IStatementParselet
     {
+        private readonly bool _isReadOnly;
+
+        public VarParselet(bool isReadOnly)
+        {
+            _isReadOnly = isReadOnly;
+        }
+
         public Expression Parse(Parser parser, Token token, out bool trailingSemicolon)
         {
             trailingSemicolon = true;
@@ -26,7 +33,7 @@ namespace Mond.Compiler.Parselets.Statements
                 declarations.Add(declaration);
             } while (parser.MatchAndTake(TokenType.Comma));
 
-            return new VarExpression(token, declarations);
+            return new VarExpression(token, declarations, _isReadOnly);
         }
     }
 }

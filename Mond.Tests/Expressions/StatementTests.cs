@@ -23,6 +23,32 @@ namespace Mond.Tests.Expressions
         }
 
         [Test]
+        public void Constant()
+        {
+            var result = Script.Run(@"
+                const a = 100;
+                return a;
+            ");
+
+            Assert.True(result == 100);
+            
+            Assert.Throws<MondCompilerException>(() => Script.Run(@"
+                const a = 100;
+                a = 123;
+            "));
+
+            Assert.Throws<MondCompilerException>(() => Script.Run(@"
+                const a = 100;
+                return a++;
+            "));
+
+            Assert.Throws<MondCompilerException>(() => Script.Run(@"
+                const a = 100;
+                return ++a;
+            "));
+        }
+
+        [Test]
         public void If()
         {
             var state = Script.Load(@"

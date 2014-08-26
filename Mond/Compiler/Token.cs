@@ -15,6 +15,7 @@
         Infinity,
 
         Var,
+        Const,
         Fun,
         Return,
         Seq,

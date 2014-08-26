@@ -70,6 +70,7 @@ namespace Mond.Compiler
                 { "Infinity", TokenType.Infinity },
 
                 { "var", TokenType.Var },
+                { "const", TokenType.Const },
                 { "fun", TokenType.Fun },
                 { "return", TokenType.Return },
                 { "seq", TokenType.Seq },

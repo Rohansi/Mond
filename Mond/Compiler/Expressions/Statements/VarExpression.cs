@@ -19,17 +19,19 @@ namespace Mond.Compiler.Expressions.Statements
         }
 
         public ReadOnlyCollection<Declaration> Declarations { get; private set; }
-        
-        public VarExpression(Token token, List<Declaration> declarations)
+        public bool IsReadOnly { get; private set; }
+
+        public VarExpression(Token token, List<Declaration> declarations, bool isReadOnly = false)
             : base(token.FileName, token.Line)
         {
             Declarations = declarations.AsReadOnly();
+            IsReadOnly = isReadOnly;
         }
 
         public override void Print(IndentTextWriter writer)
         {
             writer.WriteIndent();
-            writer.WriteLine("Var");
+            writer.WriteLine(IsReadOnly ? "Const": "Var");
 
             foreach (var declaration in Declarations)
             {
@@ -58,7 +60,7 @@ namespace Mond.Compiler.Expressions.Statements
 
                 if (!shouldBeGlobal)
                 {
-                    if (!context.DefineIdentifier(name))
+                    if (!context.DefineIdentifier(name, IsReadOnly))
                         throw new MondCompilerException(FileName, Line, CompilerError.IdentifierAlreadyDefined, name);
 
                     if (declaration.Initializer != null)

@@ -87,7 +87,8 @@ namespace Mond.Compiler
             RegisterStatement(TokenType.Yield, new YieldParselet());
             RegisterStatement(TokenType.Break, new BreakParselet());
             RegisterStatement(TokenType.Continue, new ContinueParselet());
-            RegisterStatement(TokenType.Var, new VarParselet());
+            RegisterStatement(TokenType.Var, new VarParselet(false));
+            RegisterStatement(TokenType.Const, new VarParselet(true));
             RegisterStatement(TokenType.If, new IfParselet());
             RegisterStatement(TokenType.While, new WhileParselet());
             RegisterStatement(TokenType.Do, new DoWhileParselet());

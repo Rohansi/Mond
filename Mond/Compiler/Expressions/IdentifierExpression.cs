@@ -24,7 +24,7 @@
             var identifier = context.Identifier(Name);
 
             if (!context.Compiler.Options.UseImplicitGlobals && identifier == null)
-                throw new MondCompilerException(FileName, Line, "Undefined identifier '{0}'", Name);
+                throw new MondCompilerException(FileName, Line, CompilerError.UndefinedIdentifier, Name);
 
             if (identifier == null)
             {
