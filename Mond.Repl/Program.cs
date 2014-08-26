@@ -6,16 +6,36 @@ namespace Mond.Repl
 {
     class Program
     {
-        private static Queue<char> _input;
-
         static void Main(string[] args)
         {
-            if (args.Length == 0)
+            if (args.Length >= 1)
             {
-                InteractiveMain();
+                try
+                {
+                    using (var file = File.OpenRead(args[0]))
+                    using (var reader = new StreamReader(file))
+                        ScriptMain(reader, args[0]);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Failed to open file '{0}':", args[0]);
+                    Console.WriteLine(e);
+                }
+
                 return;
             }
 
+            if (Console.IsInputRedirected)
+            {
+                ScriptMain(Console.In, "stdin");
+                return;
+            }
+
+            InteractiveMain();
+        }
+
+        static void ScriptMain(TextReader input, string fileName)
+        {
             var state = new MondState();
             Functions.Register(state);
 
@@ -23,17 +43,18 @@ namespace Mond.Repl
 
             try
             {
-                source = File.ReadAllText(args[0]);
+                source = input.ReadToEnd();
             }
-            catch
+            catch (Exception e)
             {
-                Console.WriteLine("Failed to read file: '{0}'", args[0]);
+                Console.WriteLine("Failed to read '{0}':", fileName);
+                Console.WriteLine(e);
                 return;
             }
 
             try
             {
-                var program = MondProgram.Compile(Functions.Definitions + source, Path.GetFileName(args[0]));
+                var program = MondProgram.Compile(Functions.Definitions + source, Path.GetFileName(fileName));
                 var result = state.Load(program);
 
                 if (result != MondValue.Undefined)
@@ -47,6 +68,8 @@ namespace Mond.Repl
                 Console.WriteLine(e.Message);
             }
         }
+
+        private static Queue<char> _input;
 
         static void InteractiveMain()
         {
