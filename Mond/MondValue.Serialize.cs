@@ -35,6 +35,8 @@ namespace Mond
 
         private void SerializeImpl(IndentTextWriter writer)
         {
+            bool first = true;
+
             switch (Type)
             {
                 case MondValueType.Undefined:
@@ -59,14 +61,24 @@ namespace Mond
 
                     foreach (var objValue in ObjectValue.Values)
                     {
-                        writer.WriteIndent();
+                        if (first)
+                        {
+                            writer.WriteIndent();
+                            first = false;
+                        }
+                        else
+                        {
+                            writer.Write(",");
+                            writer.WriteLine();
+                            writer.WriteIndent();
+                        }
+
                         objValue.Key.SerializeImpl(writer);
                         writer.Write(": ");
                         objValue.Value.SerializeImpl(writer);
-                        writer.Write(",");
-                        writer.WriteLine();
                     }
 
+                    writer.WriteLine();
                     writer.Indent--;
                     writer.WriteIndent();
                     writer.Write("}");
@@ -78,11 +90,22 @@ namespace Mond
 
                     foreach (var arrValue in ArrayValue)
                     {
-                        writer.WriteIndent();
+                        if (first)
+                        {
+                            writer.WriteIndent();
+                            first = false;
+                        }
+                        else
+                        {
+                            writer.Write(",");
+                            writer.WriteLine();
+                            writer.WriteIndent();
+                        }
+
                         arrValue.SerializeImpl(writer);
-                        writer.WriteLine(", ");
                     }
 
+                    writer.WriteLine();
                     writer.Indent--;
                     writer.WriteIndent();
                     writer.Write("]");
