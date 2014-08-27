@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Mond.Compiler.Expressions;
 using Mond.Compiler.Expressions.Statements;
+using Mond.Compiler.Parselets.Statements;
 
 namespace Mond.Compiler.Parselets
 {
@@ -50,11 +51,7 @@ namespace Mond.Compiler.Parselets
             parser.Take(TokenType.RightParen);
             parser.Take(TokenType.Pointy);
 
-            var body = new BlockExpression(new List<Expression>
-            {
-                new ReturnExpression(token, parser.ParseExpession())
-            });
-
+            var body = FunctionParselet.ParseLambdaExpressionBody(parser, token);
             return new FunctionExpression(token, null, arguments, otherArgs, body);
         }
     }

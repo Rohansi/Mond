@@ -173,5 +173,25 @@ namespace Mond.Tests.Expressions
 
             Assert.True(result == 2);
         }
+
+        [Test]
+        public void LambdaExpression()
+        {
+            Assert.True(Script.Run("return (() -> 100)();") == 100, "simple expression");
+
+            Assert.True(Script.Run("return (() -> { return 100; })();") == 100, "block expression");
+
+            Assert.True(Script.Run("return (() -> { })();") == MondValue.Undefined, "empty block does nothing");
+
+            Assert.True(Script.Run("return (() -> { a: 100 })();")["a"] == 100, "return object 1");
+
+            Assert.True(Script.Run("return (() -> { 'a': 100 })();")["a"] == 100, "return object 2");
+
+            Assert.True(Script.Run("var a = 100; return (() -> { a })();")["a"] == 100, "return object 3");
+
+            var result = Script.Run("var a = 100, b = 200; return (() -> { a, b })();");
+            Assert.True(result["a"] == 100, "return object 4a");
+            Assert.True(result["b"] == 200, "return object 4b");
+        }
     }
 }
