@@ -182,11 +182,40 @@ namespace Mond.Compiler
                 // number
                 if (char.IsDigit(ch))
                 {
-                    var numberContents = TakeWhile(c => c == '.' ? char.IsDigit(PeekChar(1)) : char.IsDigit(c));
+                    var hasDecimal = false;
+                    var hasExp = false;
+                    var justTake = false;
+
+                    var numberContents = TakeWhile(c =>
+                    {
+                        if (justTake)
+                        {
+                            justTake = false;
+                            return true;
+                        }
+
+                        if (c == '.' && !hasDecimal)
+                        {
+                            hasDecimal = true;
+                            return char.IsDigit(PeekChar(1));
+                        }
+
+                        if ((c == 'e' || c == 'E') && !hasExp)
+                        {
+                            var next = PeekChar(1);
+                            if (next == '+' || next == '-')
+                                justTake = true;
+
+                            hasExp = true;
+                            return true;
+                        }
+
+                        return char.IsDigit(c);
+                    });
 
                     double number;
-                    if (!double.TryParse(numberContents, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out number))
-                        throw new MondCompilerException(_fileName, _currentLine, CompilerError.InvalidNumber);
+                    if (!double.TryParse(numberContents, NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent, CultureInfo.InvariantCulture, out number))
+                        throw new MondCompilerException(_fileName, _currentLine, CompilerError.InvalidNumber, numberContents);
 
                     yield return new Token(_fileName, _currentLine, TokenType.Number, numberContents);
                     continue;

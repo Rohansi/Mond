@@ -8,6 +8,24 @@ namespace Mond.Tests.Expressions
         private MondValue _result;
 
         [Test]
+        public void NumberParse()
+        {
+            Assert.True(Script.Run("return 100;") == 100, "simple");
+
+            Assert.True(Script.Run("return 100.35;") == 100.35, "decimal");
+
+            Assert.True(Script.Run("return -100;") == -100, "sign");
+
+            Assert.True(Script.Run("return 10e4;") == 10e4, "exponent");
+
+            Assert.True(Script.Run("return 10e40;") == 10e40, "big exponent");
+
+            Assert.True(Script.Run("return 10e+4;") == 10e+4, "exponent sign +");
+
+            Assert.True(Script.Run("return 10e-4;") == 10e-4, "exponent sign -");
+        }
+
+        [Test]
         public void Add()
         {
             _result = Script.Run(@"
