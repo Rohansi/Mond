@@ -2,14 +2,17 @@
 ==========
 
 Mond is a simple scripting language written entirely in C#. It supports advanced features like:
-* sequences (generators)
-* list comprehension
+* [sequences](https://github.com/Rohansi/Mond/wiki/Sequences) ([generators](http://en.wikipedia.org/wiki/Generator_(computer_programming)))
+* [list comprehension](https://github.com/Rohansi/Mond/wiki/List-Comprehension)
 * lambda expressions
 * prototype-based inheritance
-* simple embedding
+* [simple embedding](https://github.com/Rohansi/Mond/wiki/Basic-Usage)
 * sane variable scopes
 
-This is what it looks like:
+### Documentation
+Please check [the wiki](https://github.com/Rohansi/Mond/wiki) for documentation.
+
+### Example
 ```
 seq range(start, end) {
     for (var i = start; i <= end; i++)
@@ -34,5 +37,3 @@ return range(0, 1000)
        |> select(x -> x / 2)
        |> toArray();
 ```
-
-Please check [the wiki](https://github.com/Rohansi/Mond/wiki) for documentation.
