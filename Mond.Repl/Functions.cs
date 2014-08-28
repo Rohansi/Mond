@@ -14,6 +14,7 @@ namespace Mond.Repl
             _functions = new Dictionary<string, MondFunction>
             {
                 { "print", Print },
+                { "printLn", PrintLn },
                 { "stdin", Stdin }
             };
         }
@@ -49,19 +50,24 @@ namespace Mond.Repl
         private static MondValue Print(MondState state, params MondValue[] args)
         {
             if (args.Length == 0)
+                return MondValue.Undefined;
+
+            if (args[0].Type == MondValueType.String)
             {
-                Console.WriteLine();
-            }
-            else if (args[0].Type == MondValueType.String)
-            {
-                Console.WriteLine((string)args[0]);
+                Console.Write((string)args[0]);
             }
             else
             {
                 args[0].Serialize(Console.Out);
-                Console.WriteLine();
             }
 
+            return MondValue.Undefined;
+        }
+
+        private static MondValue PrintLn(MondState state, params MondValue[] args)
+        {
+            Print(state, args);
+            Console.WriteLine();
             return MondValue.Undefined;
         }
 
