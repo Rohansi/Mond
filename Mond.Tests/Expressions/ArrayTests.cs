@@ -78,7 +78,17 @@ namespace Mond.Tests.Expressions
         [Test]
         public void Enumerator()
         {
-            
+            MondState state;
+            var array = Script.Run(out state, "return [ 1, 2, 3, 4, 5 ];");
+
+            var expected = new MondValue[]
+            {
+                1, 2, 3, 4, 5
+            };
+
+            Assert.AreEqual(array.Type, MondValueType.Array);
+            Assert.True(array.IsEnumerable);
+            Assert.True(array.Enumerate(state).SequenceEqual(expected));
         }
     }
 }

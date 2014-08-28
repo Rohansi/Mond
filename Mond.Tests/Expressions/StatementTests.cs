@@ -20,6 +20,22 @@ namespace Mond.Tests.Expressions
             ");
 
             Assert.True(result == MondValue.Undefined);
+
+            Assert.Throws<MondCompilerException>(() => Script.Run(@"
+                {
+                    var a = 1;
+                }
+
+                return a;
+            "));
+
+            Assert.Throws<MondCompilerException>(() => Script.Run(@"
+                var a = 1;
+
+                {
+                    var a = 2;
+                }
+            "));
         }
 
         [Test]

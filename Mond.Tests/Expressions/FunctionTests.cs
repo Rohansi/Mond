@@ -103,6 +103,7 @@ namespace Mond.Tests.Expressions
         [Test]
         public void TailCall()
         {
+            // will cause stack overflow if not tail call optimized
             var result = Script.Run(@"
                 fun loop(i) {
                     if (i == 0)
@@ -111,7 +112,7 @@ namespace Mond.Tests.Expressions
                     return loop(i - 1);
                 }
 
-                return loop(10);
+                return loop(10000);
             ");
 
             Assert.True(result == "done");
