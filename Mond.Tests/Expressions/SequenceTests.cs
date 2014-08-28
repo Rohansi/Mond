@@ -33,6 +33,35 @@ namespace Mond.Tests.Expressions
         }
 
         [Test]
+        public void SequenceScope()
+        {
+            MondState state;
+            var result = Script.Run(out state, @"
+                seq scope() {
+                    {
+                        var a = 10;
+                        yield a;
+                    }
+
+                    {
+                        var a;
+                        yield a;
+                    }
+                }
+
+                return scope();
+            ");
+
+            var expected = new[]
+            {
+                10, MondValue.Undefined
+            };
+
+            Assert.True(result.IsEnumerable);
+            Assert.True(result.Enumerate(state).SequenceEqual(expected));
+        }
+
+        [Test]
         public void SequenceErrors()
         {
             Assert.Throws<MondCompilerException>(() => Script.Run(@"
