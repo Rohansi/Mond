@@ -188,7 +188,46 @@ namespace Mond.Compiler.Expressions.Statements
 
     class SequenceBodyContext : FunctionContext
     {
+        class IdentifierMap
+        {
+            public readonly IdentifierMap Previous;
+            private Dictionary<string, string> _identifiers;
+
+            public IdentifierMap(IdentifierMap previous = null)
+            {
+                Previous = previous;
+                _identifiers = new Dictionary<string, string>();
+            }
+
+            public bool Add(string name, string value)
+            {
+                if (Get(name) != null)
+                    return false;
+
+                _identifiers.Add(name, value);
+                return true;
+            }
+
+            public string Get(string name)
+            {
+                var curr = this;
+
+                do
+                {
+                    string value;
+                    if (curr._identifiers.TryGetValue(name, out value))
+                        return value;
+
+                    curr = curr.Previous;
+                } while (curr != null);
+
+                return null;
+            }
+        }
+
         private readonly FunctionContext _forward;
+        private IdentifierMap _identifierMap;
+        private int _index;
 
         public readonly SequenceBodyExpression SequenceBody;
 
@@ -196,18 +235,63 @@ namespace Mond.Compiler.Expressions.Statements
             : base(compiler, forward.FrameIndex + 1, forward.Scope, forward.FullName, name)
         {
             _forward = forward;
+            _identifierMap = new IdentifierMap();
+            _index = 0;
 
             SequenceBody = sequenceBody;
         }
 
         public override bool DefineIdentifier(string name, bool isReadOnly = false)
         {
-            return _forward.DefineIdentifier(name, isReadOnly);
+            var uniqueName = string.Format("{0}#{1}", name, _index);
+            if (!_identifierMap.Add(name, uniqueName))
+                return false;
+
+            _index++;
+
+            return _forward.DefineIdentifier(uniqueName, isReadOnly);
+        }
+
+        public string Get(string name)
+        {
+            return _identifierMap.Get(name);
+        }
+
+        public override void PushScope()
+        {
+            _identifierMap = new IdentifierMap(_identifierMap);
+            Scope = new SequenceBodyScope(FrameIndex, Scope, this);
+        }
+
+        public override void PopScope()
+        {
+            _identifierMap = _identifierMap.Previous;
+            Scope = Scope.Previous;
         }
 
         public override IdentifierOperand DefineInternal(string name, bool canHaveMultiple = false)
         {
             return _forward.DefineInternal(name, canHaveMultiple);
+        }
+    }
+
+    class SequenceBodyScope : Scope
+    {
+        private readonly SequenceBodyContext _context;
+
+        public SequenceBodyScope(int frameIndex, Scope previous, SequenceBodyContext context)
+            : base(frameIndex, previous)
+        {
+            _context = context;
+        }
+
+        public override IdentifierOperand Get(string name, bool inherit = true)
+        {
+            var uniqueName = _context.Get(name);
+            if (uniqueName != null)
+                name = uniqueName;
+
+            return base.Get(name, inherit);
         }
     }
 }

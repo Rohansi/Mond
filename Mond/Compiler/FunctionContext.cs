@@ -9,10 +9,11 @@ namespace Mond.Compiler
         private readonly IndexedStack<Tuple<LabelOperand, LabelOperand>> _loopLabels;
 
         public readonly int FrameIndex;
-        public Scope Scope { get; private set; }
+        public Scope Scope;
 
         public readonly ExpressionCompiler Compiler;
 
+        public readonly string ParentName;
         public readonly string Name;
         public readonly string FullName;
 
@@ -31,6 +32,7 @@ namespace Mond.Compiler
 
             Scope = new Scope(frameIndex, prevScope);
 
+            ParentName = parentName;
             Name = name;
             FullName = string.Format("{0}{1}{2}", parentName, string.IsNullOrEmpty(parentName) ? "" : ".", Name ?? "");
 
@@ -93,7 +95,7 @@ namespace Mond.Compiler
             return Compiler.NumberPool.GetOperand(value);
         }
 
-        public ConstantOperand<string> String(string value)
+        public virtual ConstantOperand<string> String(string value)
         {
             return Compiler.StringPool.GetOperand(value);
         }

@@ -19,7 +19,7 @@ namespace Mond.Compiler
             Previous = previous;
         }
 
-        public bool Define(string name, bool isReadOnly)
+        public virtual bool Define(string name, bool isReadOnly)
         {
             if (IsDefined(name))
                 return false;
@@ -31,7 +31,7 @@ namespace Mond.Compiler
             return true;
         }
 
-        public bool DefineArgument(int index, string name)
+        public virtual bool DefineArgument(int index, string name)
         {
             if (IsDefined(name))
                 return false;
@@ -41,7 +41,7 @@ namespace Mond.Compiler
             return true;
         }
 
-        public IdentifierOperand DefineInternal(string name, bool canHaveMultiple = false)
+        public virtual IdentifierOperand DefineInternal(string name, bool canHaveMultiple = false)
         {
             name = "#" + name;
 
@@ -73,7 +73,7 @@ namespace Mond.Compiler
             return identifier;
         }
 
-        public IdentifierOperand Get(string name, bool inherit = true)
+        public virtual IdentifierOperand Get(string name, bool inherit = true)
         {
             IdentifierOperand identifier;
             if (_identifiers.TryGetValue(name, out identifier))
@@ -83,6 +83,11 @@ namespace Mond.Compiler
                 return Previous.Get(name);
 
             return null;
+        }
+
+        protected bool IsDefined(string name, bool inherit = true)
+        {
+            return Get(name, inherit) != null;
         }
 
         private Scope GetFrameScope()
@@ -104,11 +109,6 @@ namespace Mond.Compiler
             }
 
             return frameScope ?? this;
-        }
-
-        private bool IsDefined(string name, bool inherit = true)
-        {
-            return Get(name, inherit) != null;
         }
     }
 }
