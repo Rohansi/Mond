@@ -140,6 +140,7 @@
     <Compile Include="MondValue.Enumerable.cs" />
     <Compile Include="MondValue.Operators.cs" />
     <Compile Include="MondValue.Serialize.cs" />
+    <Compile Include="Prototypes\NumberPrototype.cs" />
     <Compile Include="RuntimeError.cs" />
     <Compile Include="Prototypes\ArrayPrototype.cs" />
     <Compile Include="VirtualMachine\Closure.cs" />

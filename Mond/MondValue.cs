@@ -271,6 +271,9 @@ namespace Mond
                     case MondValueType.Array:
                         return ArrayPrototype.Value;
 
+                    case MondValueType.Number:
+                        return NumberPrototype.Value;
+
                     case MondValueType.String:
                         return StringPrototype.Value;
 
