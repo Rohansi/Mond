@@ -1,0 +1,338 @@
+/*
+    highlight.mnd
+    
+    Syntax highlights Mond code from stdin. Outputs HTML.
+*/
+
+const Char = {
+    isWhiteSpace: fun (ch) {
+        return ch == " "  ||
+               ch == "\t" ||
+               ch == "\n" ||
+               ch == "\r";
+    },
+    
+    isLetter: fun (ch) {
+        return (ch >= "a" && ch <= "z") || (ch >= "A" && ch <= "Z");
+    },
+    
+    isDigit: fun (ch) {
+        return ch >= "0" && ch <= "9";
+    },
+    
+    isLetterOrDigit: fun (ch) {
+        return Char.isLetter(ch) || Char.isDigit(ch);
+    }
+};
+
+const tokenizerOperators = {
+    ";": [ ";" ],
+    ",": [ "," ],
+    ".": [ "...", "." ],
+    "?": [ "?" ],
+    ":": [ ":" ],
+    
+    "(": [ "(" ],
+    ")": [ ")" ],
+
+    "{": [ "{" ],
+    "}": [ "}" ],
+
+    "[": [ "[" ],
+    "]": [ "]" ],
+    
+    "+": [ "++", "+=", "+" ],
+    "-": [ "->", "--", "-=", "-" ],
+    "*": [ "*=", "*" ],
+    "/": [ "/=", "/" ],
+    "%": [ "%=", "%" ],
+    
+    "=": [ "==", "=" ],
+    "!": [ "!" ],
+    ">": [ ">=", ">" ],
+    "<": [ "<=", "<" ],
+    "&": [ "&&" ],
+    "|": [ "||", "|>" ]
+};
+
+const tokenizerKeywords = {
+    "global": 1,
+    "undefined": 1,
+    "null": 1,
+    "true": 1,
+    "false": 1,
+    "NaN": 1,
+    "Infinity": 1,
+    
+    "var": 1,
+    "const": 1,
+    "fun": 1,
+    "return": 1,
+    "seq": 1,
+    "yield": 1,
+    "if": 1,
+    "else": 1,
+    "for": 1,
+    "foreach": 1,
+    "in": 1,
+    "while": 1,
+    "do": 1,
+    "break": 1,
+    "continue": 1,
+    "switch": 1,
+    "case": 1,
+    "default": 1
+};
+
+seq tokenize(input) {
+    var source = input.getEnumerator();
+    var read = [];
+    
+    var offset = 0;
+    var length = Infinity;
+    
+    fun peekChar(distance) {
+        distance = distance || 0;
+        
+        while (read.length() <= distance) {
+            var success = source.moveNext();
+            
+            if (source.current == "\r")
+                continue;
+            
+            read.add(success ? source.current : "");
+            
+            if (!success)
+                length = offset + read.length() - 1;
+        }
+        
+        return read[distance];
+    }
+    
+    fun takeChar() {
+        peekChar();
+        
+        var ch = read[0];
+        read.removeAt(0);
+        offset++;
+        
+        return ch;
+    }
+    
+    fun takeWhile(predicate) {
+        var str = "";
+        
+        while (offset < length) {
+            var ch = peekChar();
+            
+            if (!predicate(ch))
+                break;
+                
+            str += takeChar();
+        }
+        
+        return str;
+    }
+    
+    fun isNext(str) {
+        if (offset + str.length() > length)
+            return false;
+            
+        for (var i = 0; i < str.length(); i++) {
+            if (peekChar(i) != str.charAt(i))
+                return false;
+        }
+        
+        return true;
+    }
+    
+    fun takeIfNext(str) {
+        if (!isNext(str))
+            return false;
+            
+        for (var i = 0; i < str.length(); i++)
+            takeChar();
+            
+        return true;
+    }
+    
+    while (offset < length) {
+        // single line comment
+        if (takeIfNext("//")) {
+            var comment = takeWhile(c -> c != "\n");
+            yield { type: "comment", contents: "//" + comment };
+            continue;
+        }
+        
+        // multi line comment
+        if (takeIfNext("/*")) {
+            var comment = "/*";
+            var depth = 1;
+            
+            while (offset < length && depth > 0) {
+                if (takeIfNext("/*")) {
+                    comment += "/*";
+                    depth++;
+                    continue;
+                }
+                
+                if (takeIfNext("*/")) {
+                    comment += "*/";
+                    depth--;
+                    continue;
+                }
+                
+                comment += takeChar();
+            }
+            
+            yield { type: "comment", contents: comment };
+            continue;
+        }
+        
+        var ch = peekChar();
+        
+        // operators
+        var opList = tokenizerOperators.get(ch);
+        if (opList) {
+            var op = null;
+            
+            for (var i = 0; i < opList.length(); i++) {
+                var it = opList[i];
+                if (takeIfNext(it)) {
+                    op = it;
+                    break;
+                }
+            }
+            
+            if (op) {
+                yield { type: "operator", contents: op };
+                continue;
+            }
+        }
+        
+        // string
+        if (takeIfNext("\"") || takeIfNext("\'")) {
+            var terminator = ch;
+            var string = "";
+            
+            while (true) {
+                if (offset >= length) {
+                    print("unterminated string");
+                    yield break;
+                }
+            
+                ch = takeChar();
+                
+                if (ch == terminator)
+                    break;
+                    
+                switch (ch) {
+                    case "\\":
+                        ch = takeChar();
+                        
+                        if (offset >= length) {
+                            print("unexpected end of string");
+                            yield break;
+                        }
+                            
+                        switch (ch) {
+                            case "\\":
+                                string += "\\\\";
+                            case "\"":
+                                string += "\\\"";
+                            case "'":
+                                string += "\\\'";
+                            default:
+                                string += "\\" + ch;
+                        }
+                        
+                    default:
+                        string += ch;
+                }
+            }
+            
+            yield { type: "string", contents: terminator + string + terminator };
+            continue;
+        }
+        
+        // keyword/word
+        if (Char.isLetter(ch) || ch == "_") {
+            var word = takeWhile(c -> Char.isLetterOrDigit(c) || c == "_");
+            var type = tokenizerKeywords.get(word) ? "keyword" : "word";
+            yield { type, contents: word };
+            continue;
+        }
+        
+        // number
+        if (Char.isDigit(ch)) {
+            var hasDecimal = false;
+            var hasExp = false;
+            var justTake = false;
+            
+            var number = takeWhile(c -> {
+                if (justTake) {
+                    justTake = false;
+                    return true;
+                }
+                
+                if (c == "." && !hasDecimal) {
+                    hasDecimal = true;
+                    return Char.isDigit(peekChar(1));
+                }
+                
+                if ((c == "e" || c == "E") && !hasExp) {
+                    var next = peekChar(1);
+                    if (next == "+" || next == "-")
+                        justTake = true;
+                        
+                    hasExp = true;
+                    return true;
+                }
+                
+                return Char.isDigit(c);
+            });
+            
+            yield { type: "number", contents: number };
+            continue;
+        }
+        
+        ch = takeChar();
+        yield { type: "unknown", contents: ch };
+    }
+}
+
+var tokens = stdin()
+             |> tokenize();
+
+print("
+<!doctype html>
+<html>
+  <head>
+    <style>
+      body { font-family: monospace; white-space: pre; }
+      .operator { font-weight: bold; }
+      .keyword { color: blue; font-weight: bold; }
+      .string { color: gray; }
+      .number { color: orange; }
+      .comment { color: green; }
+    </style>
+  </head>
+  <body>");
+             
+foreach (var token in tokens) {
+    var type = token.type;
+    var contents = token.contents.replace(">", "&gt;")
+                                 .replace("<", "&lt;")
+                                 .replace("\n", "<br>");
+    
+    if (type == "unknown" || type == "word") {
+        print(contents);
+        continue;
+    }
+        
+    print("<span class='" + type + "'>" + contents + "</span>");
+}
+
+print("
+  </body>
+</html>");
