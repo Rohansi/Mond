@@ -1,62 +1,62 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
+using System.Collections.ObjectModel;
 
 namespace Mond.Compiler
 {
     partial class Lexer
     {
-        private static HashSet<char> _punctuation;
-        private static List<Tuple<string, TokenType>> _operators;
+        private static OperatorDictionary _operators;
         private static Dictionary<string, TokenType> _keywords;
 
         static Lexer()
         {
-            _operators = new List<Tuple<string, TokenType>>
+            _operators = new OperatorDictionary
             {
-                Tuple.Create(";", TokenType.Semicolon),
-                Tuple.Create(",", TokenType.Comma),
-                Tuple.Create(".", TokenType.Dot),
-                Tuple.Create("=", TokenType.Assign),
+                { ";", TokenType.Semicolon },
+                { ",", TokenType.Comma },
+                { ".", TokenType.Dot },
+                { "=", TokenType.Assign },
 
-                Tuple.Create("(", TokenType.LeftParen),
-                Tuple.Create(")", TokenType.RightParen),
+                { "(", TokenType.LeftParen },
+                { ")", TokenType.RightParen },
 
-                Tuple.Create("{", TokenType.LeftBrace),
-                Tuple.Create("}", TokenType.RightBrace),
+                { "{", TokenType.LeftBrace },
+                { "}", TokenType.RightBrace },
 
-                Tuple.Create("[", TokenType.LeftSquare),
-                Tuple.Create("]", TokenType.RightSquare),
+                { "[", TokenType.LeftSquare },
+                { "]", TokenType.RightSquare },
 
-                Tuple.Create("+", TokenType.Add),
-                Tuple.Create("-", TokenType.Subtract),
-                Tuple.Create("*", TokenType.Multiply),
-                Tuple.Create("/", TokenType.Divide),
-                Tuple.Create("%", TokenType.Modulo),
-                Tuple.Create("++", TokenType.Increment),
-                Tuple.Create("--", TokenType.Decrement),
+                { "+", TokenType.Add },
+                { "-", TokenType.Subtract },
+                { "*", TokenType.Multiply },
+                { "/", TokenType.Divide },
+                { "%", TokenType.Modulo },
+                { "++", TokenType.Increment },
+                { "--", TokenType.Decrement },
 
-                Tuple.Create("+=", TokenType.AddAssign),
-                Tuple.Create("-=", TokenType.SubtractAssign),
-                Tuple.Create("*=", TokenType.MultiplyAssign),
-                Tuple.Create("/=", TokenType.DivideAssign),
-                Tuple.Create("%=", TokenType.ModuloAssign),
+                { "+=", TokenType.AddAssign },
+                { "-=", TokenType.SubtractAssign },
+                { "*=", TokenType.MultiplyAssign },
+                { "/=", TokenType.DivideAssign },
+                { "%=", TokenType.ModuloAssign },
                 
-                Tuple.Create("==", TokenType.EqualTo),
-                Tuple.Create("!=", TokenType.NotEqualTo),
-                Tuple.Create(">", TokenType.GreaterThan),
-                Tuple.Create(">=", TokenType.GreaterThanOrEqual),
-                Tuple.Create("<", TokenType.LessThan),
-                Tuple.Create("<=", TokenType.LessThanOrEqual),
-                Tuple.Create("!", TokenType.Not),
-                Tuple.Create("&&", TokenType.ConditionalAnd),
-                Tuple.Create("||", TokenType.ConditionalOr),
+                { "==", TokenType.EqualTo },
+                { "!=", TokenType.NotEqualTo },
+                { ">", TokenType.GreaterThan },
+                { ">=", TokenType.GreaterThanOrEqual },
+                { "<", TokenType.LessThan },
+                { "<=", TokenType.LessThanOrEqual },
+                { "!", TokenType.Not },
+                { "&&", TokenType.ConditionalAnd },
+                { "||", TokenType.ConditionalOr },
 
-                Tuple.Create("?", TokenType.QuestionMark),
-                Tuple.Create(":", TokenType.Colon),
-                Tuple.Create("->", TokenType.Pointy),
-                Tuple.Create("|>", TokenType.Pipeline),
-                Tuple.Create("...", TokenType.Ellipsis)
+                { "?", TokenType.QuestionMark },
+                { ":", TokenType.Colon },
+                { "->", TokenType.Pointy },
+                { "|>", TokenType.Pipeline },
+                { "...", TokenType.Ellipsis }
             };
 
             _keywords = new Dictionary<string, TokenType>
@@ -88,17 +88,49 @@ namespace Mond.Compiler
                 { "case", TokenType.Case },
                 { "default", TokenType.Default },
             };
+        }
 
-            // longest operators need to be first
-            _operators = _operators.OrderByDescending(o => o.Item1.Length).ToList();
+        class OperatorDictionary : IEnumerable<object>
+        {
+            private readonly GenericComparer<Tuple<string, TokenType>> _comparer; 
+            private Dictionary<char, List<Tuple<string, TokenType>>> _operatorDictionary;
 
-            // punctuation characters trigger operator detection, this should
-            // contain the first character of each operator
-            _punctuation = new HashSet<char>();
-
-            foreach (var ch in _operators.Select(t => t.Item1[0]))
+            public OperatorDictionary()
             {
-                _punctuation.Add(ch);
+                _comparer = new GenericComparer<Tuple<string, TokenType>>((a, b) => b.Item1.Length - a.Item1.Length);
+                _operatorDictionary = new Dictionary<char, List<Tuple<string, TokenType>>>();
+            }
+
+            public void Add(string op, TokenType type)
+            {
+                List<Tuple<string, TokenType>> list;
+                if (!_operatorDictionary.TryGetValue(op[0], out list))
+                {
+                    list = new List<Tuple<string, TokenType>>();
+                    _operatorDictionary.Add(op[0], list);
+                }
+
+                list.Add(Tuple.Create(op, type));
+                list.Sort(_comparer);
+            }
+
+            public ReadOnlyCollection<Tuple<string, TokenType>> Lookup(char ch)
+            {
+                List<Tuple<string, TokenType>> list;
+                if (!_operatorDictionary.TryGetValue(ch, out list))
+                    return null;
+
+                return list.AsReadOnly();
+            }
+
+            public IEnumerator<object> GetEnumerator()
+            {
+                throw new NotSupportedException();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return GetEnumerator();
             }
         }
     }

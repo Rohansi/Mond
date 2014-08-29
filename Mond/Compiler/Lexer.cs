@@ -88,9 +88,10 @@ namespace Mond.Compiler
                 var ch = PeekChar();
 
                 // operators
-                if (_punctuation.Contains(ch))
+                var opList = _operators.Lookup(ch);
+                if (opList != null)
                 {
-                    var op = _operators.FirstOrDefault(o => TakeIfNext(o.Item1));
+                    var op = opList.FirstOrDefault(o => TakeIfNext(o.Item1));
 
                     if (op != null)
                     {
