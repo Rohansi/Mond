@@ -45,31 +45,29 @@ namespace Mond.VirtualMachine
 
             var closure = function.FunctionValue;
 
-            if (closure.Type == ClosureType.Mond)
+            switch (closure.Type)
             {
-                var argFrame = closure.Arguments;
-                if (argFrame == null)
-                    argFrame = new Frame(0, null, arguments.Length);
-                else
-                    argFrame = new Frame(argFrame.Depth + 1, argFrame, arguments.Length);
+                case ClosureType.Mond:
+                    var argFrame = closure.Arguments;
+                    if (argFrame == null)
+                        argFrame = new Frame(0, null, arguments.Length);
+                    else
+                        argFrame = new Frame(argFrame.Depth + 1, argFrame, arguments.Length);
 
-                for (var i = 0; i < arguments.Length; i++)
-                {
-                    argFrame.Values[i] = arguments[i];
-                }
+                    for (var i = 0; i < arguments.Length; i++)
+                    {
+                        argFrame.Values[i] = arguments[i];
+                    }
 
-                _callStack.Push(new ReturnAddress(closure.Program, closure.Address, argFrame));
-
-                if (closure.Locals != null)
+                    _callStack.Push(new ReturnAddress(closure.Program, closure.Address, argFrame));
                     _localStack.Push(closure.Locals);
-            }
-            else if (closure.Type == ClosureType.Native)
-            {
-                return closure.NativeFunction(_state, arguments);
-            }
-            else
-            {
-                throw new NotSupportedException();
+                    break;
+
+                case ClosureType.Native:
+                    return closure.NativeFunction(_state, arguments);
+
+                default:
+                    throw new NotSupportedException();
             }
 
             return Run();
@@ -101,7 +99,7 @@ namespace Mond.VirtualMachine
                     {
                         var line = program.DebugInfo.FindLine(errorIp);
                         if (line.HasValue)
-                            Console.WriteLine("{0:X4} line {1,3}: {2}", errorIp, line.Value.LineNumber, (InstructionType)code[ip]);
+                            Console.WriteLine("{0:X4} {1} line {2}: {3}", errorIp, program.Strings[line.Value.FileName], line.Value.LineNumber, (InstructionType)code[ip]);
                         else
                             Console.WriteLine("{0:X4}: {1}", errorIp, (InstructionType)code[ip]);
                     }*/
@@ -460,17 +458,9 @@ namespace Mond.VirtualMachine
                         case (int)InstructionType.Enter:
                             {
                                 var localCount = ReadInt32(code, ref ip);
-                                Frame frame;
 
-                                if (_localStack.Count > 0)
-                                {
-                                    frame = _localStack.Pop();
-                                    frame = new Frame(frame.Depth + 1, frame, localCount);
-                                }
-                                else
-                                {
-                                    frame = new Frame(0, null, localCount);
-                                }
+                                var frame = _localStack.Pop();
+                                frame = new Frame(frame != null ? frame.Depth + 1 : 0, frame, localCount);
 
                                 _localStack.Push(frame);
                                 locals = frame;

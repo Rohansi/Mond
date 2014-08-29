@@ -11,6 +11,10 @@ namespace Mond.Compiler.Expressions
         public BlockExpression(Token token, IList<Expression> statements)
             : base(token.FileName, token.Line)
         {
+            var exprWithFile = statements.FirstOrDefault(e => e.FileName != null);
+            if (exprWithFile != null)
+                FileName = exprWithFile.FileName;
+
             Statements = new ReadOnlyCollection<Expression>(statements);
         }
 

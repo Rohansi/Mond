@@ -40,6 +40,7 @@ namespace Mond.Compiler
             RegisterFunction(context);
 
             context.Function(context.FullName);
+            context.Line(expression.FileName, 1);
 
             context.Enter();
             expression.Compile(context);

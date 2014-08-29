@@ -2,8 +2,8 @@
 {
     abstract class Expression
     {
-        public readonly string FileName;
-        public readonly int Line;
+        public string FileName { get; protected set; }
+        public int Line { get; protected set; }
 
         public Expression Parent { get; private set; }
 
