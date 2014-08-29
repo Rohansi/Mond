@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace Mond.Repl
@@ -13,6 +14,7 @@ namespace Mond.Repl
         {
             _functions = new Dictionary<string, MondFunction>
             {
+                { "require", Require },
                 { "print", Print },
                 { "printLn", PrintLn },
                 { "stdin", Stdin }
@@ -41,32 +43,45 @@ namespace Mond.Repl
                 }
 
                 var values = string.Join(", ", _functions.Keys.Select(fn => string.Format("{0}=global.{1}", fn, fn)));
-                _definitions = "var " + values + ";";
+                _definitions = "const " + values + ";";
 
                 return _definitions;
             }
         }
 
-        private static MondValue Print(MondState state, params MondValue[] args)
+        private static MondValue Require(MondState state, params MondValue[] arguments)
         {
-            if (args.Length == 0)
+            if (arguments.Length < 1)
+                throw new MondRuntimeException("require: must be called with 1 argument");
+
+            if (arguments[0].Type != MondValueType.String)
+                throw new MondRuntimeException("require: argument 1 must be of type String");
+
+            var fileName = (string)arguments[0];
+            var program = MondProgram.Compile(Definitions + File.ReadAllText(fileName), fileName);
+            return state.Load(program);
+        }
+
+        private static MondValue Print(MondState state, params MondValue[] arguments)
+        {
+            if (arguments.Length == 0)
                 return MondValue.Undefined;
 
-            if (args[0].Type == MondValueType.String)
+            if (arguments[0].Type == MondValueType.String)
             {
-                Console.Write((string)args[0]);
+                Console.Write((string)arguments[0]);
             }
             else
             {
-                args[0].Serialize(Console.Out);
+                arguments[0].Serialize(Console.Out);
             }
 
             return MondValue.Undefined;
         }
 
-        private static MondValue PrintLn(MondState state, params MondValue[] args)
+        private static MondValue PrintLn(MondState state, params MondValue[] arguments)
         {
-            Print(state, args);
+            Print(state, arguments);
             Console.WriteLine();
             return MondValue.Undefined;
         }
