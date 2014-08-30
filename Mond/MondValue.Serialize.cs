@@ -123,10 +123,6 @@ namespace Mond
                     writer.Write("function");
                     break;
 
-                case MondValueType.UserData:
-                    writer.Write("userdata");
-                    break;
-
                 default:
                     throw new NotSupportedException();
             }

@@ -7,7 +7,7 @@ namespace Mond
 {
     public enum MondValueType
     {
-        Undefined, Null, True, False, Object, Array, Number, String, Function, UserData
+        Undefined, Null, True, False, Object, Array, Number, String, Function
     }
 
     public partial class MondValue : IEquatable<MondValue>
@@ -27,8 +27,6 @@ namespace Mond
 
         internal readonly Closure FunctionValue;
 
-        private readonly object _userData;
-
         private MondValue()
         {
             Type = MondValueType.Undefined;
@@ -39,8 +37,6 @@ namespace Mond
             _stringValue = null;
 
             FunctionValue = null;
-
-            _userData = null;
         }
 
         /// <summary>
@@ -118,17 +114,6 @@ namespace Mond
         {
             Type = MondValueType.Function;
             FunctionValue = closure;
-        }
-
-        /// <summary>
-        /// Construct a new UserData MondValue with the specified value. The value can be retrieved
-        /// by calling Data.
-        /// </summary>
-        public MondValue(object value)
-            : this()
-        {
-            Type = MondValueType.UserData;
-            _userData = value;
         }
 
         /// <summary>
@@ -322,9 +307,6 @@ namespace Mond
                 case MondValueType.Function:
                     return ReferenceEquals(FunctionValue, other.FunctionValue);
 
-                case MondValueType.UserData:
-                    return ReferenceEquals(_userData, other._userData);
-
                 default:
                     return Type == other.Type;
             }
@@ -398,22 +380,30 @@ namespace Mond
                     return _stringValue;
                 case MondValueType.Function:
                     return "function";
-                case MondValueType.UserData:
-                    return "userdata";
                 default:
                     throw new NotSupportedException();
             }
         }
 
         /// <summary>
-        /// Gets the UserData from this value. 
+        /// Gets or sets the user data value of an Object.
         /// </summary>
-        public T Data<T>()
+        public object UserData
         {
-            if (Type != MondValueType.UserData)
-                throw new MondRuntimeException("Data can only be called on values of type UserData");
+            get
+            {
+                if (Type != MondValueType.Object)
+                    throw new MondRuntimeException("UserData is only available on Objects");
 
-            return (T)_userData;
+                return ObjectValue.UserData;
+            }
+            set
+            {
+                if (Type != MondValueType.Object)
+                    throw new MondRuntimeException("UserData is only available on Objects");
+
+                ObjectValue.UserData = value;
+            }
         }
 
         private MondValue CheckWrapInstanceNative(MondValue value)

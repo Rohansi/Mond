@@ -232,14 +232,20 @@ namespace Mond.Tests
         [Test]
         public void UserData()
         {
-            var str = (object)"test";
-            var value = new MondValue(str);
+            const string data = "test";
 
-            Assert.True(ReferenceEquals(str, value.Data<string>()));
+            var value = new MondValue(MondValueType.Object);
+            value.UserData = data;
+
+            Assert.True(ReferenceEquals(data, value.UserData));
+
+            value.UserData = null;
+
+            Assert.True(ReferenceEquals(null, value.UserData));
 
             Assert.Throws<MondRuntimeException>(() =>
             {
-                var a = MondValue.Null.Data<object>();
+                var a = MondValue.Null.UserData;
             });
         }
     }
