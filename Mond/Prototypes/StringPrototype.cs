@@ -221,7 +221,7 @@ namespace Mond.Prototypes
                 if (i >= str.Length)
                     return false;
 
-                enumerator["current"] = str[i++];
+                enumerator["current"] = new string(str[i++], 1);
                 return true;
             });
 
