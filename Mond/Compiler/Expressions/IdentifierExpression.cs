@@ -45,6 +45,9 @@
             var stack = 0;
             var identifier = context.Identifier(Name);
 
+            if (!context.Compiler.Options.UseImplicitGlobals && identifier == null)
+                throw new MondCompilerException(FileName, Line, CompilerError.UndefinedIdentifier, Name);
+
             if (identifier == null)
             {
                 stack += context.LoadGlobal();

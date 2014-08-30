@@ -19,7 +19,7 @@ namespace Mond.Tests.Expressions
         public void Ternary()
         {
             var state = Script.Load(@"
-                test = fun (n) {
+                global.test = fun (n) {
                     return n >= 10 ? 3 : 9;
                 };
             ");

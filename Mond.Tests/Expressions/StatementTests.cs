@@ -68,7 +68,7 @@ namespace Mond.Tests.Expressions
         public void If()
         {
             var state = Script.Load(@"
-                test = fun (x) {
+                global.test = fun (x) {
 
                     if (x < 0) {
                         return 1;
@@ -95,7 +95,7 @@ namespace Mond.Tests.Expressions
         public void Switch()
         {
             var state = Script.Load(@"
-                test = fun (x) {
+                global.test = fun (x) {
                     
                     switch (x) {
                         case 1:         return 1;
