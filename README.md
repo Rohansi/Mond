@@ -5,9 +5,9 @@ Mond is a simple scripting language written entirely in C#. It supports advanced
 * [sequences](https://github.com/Rohansi/Mond/wiki/Sequences) ([generators](http://en.wikipedia.org/wiki/Generator_(computer_programming)))
 * [list comprehension](https://github.com/Rohansi/Mond/wiki/List-Comprehension)
 * lambda expressions
-* prototype-based inheritance
+* [prototype-based inheritance](https://github.com/Rohansi/Mond/wiki/Prototypes)
 * [simple embedding](https://github.com/Rohansi/Mond/wiki/Basic-Usage)
-* sane variable scopes
+* [sane variable scopes](https://github.com/Rohansi/Mond/wiki/Syntax#scope)
 
 [![Build status](https://ci.appveyor.com/api/projects/status/di5tqqt73bu6aire)](https://ci.appveyor.com/project/Rohansi/mond)
 
