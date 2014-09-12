@@ -24,7 +24,7 @@ namespace Mond.Tests.Expressions
 
             Assert.True(Script.Run("return 10e-4;") == 10e-4, "exponent sign -");
 
-            Assert.True( Script.Run( "return 0xDEADBEEF;" ) == 0xDEADBEEF, "hex number" );
+            Assert.True(Script.Run("return 0xDEADBEEF;") == 0xDEADBEEF, "hex number");
         }
 
         [Test]

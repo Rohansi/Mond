@@ -17,8 +17,7 @@ namespace Mond.Compiler
             _statementParselets = new Dictionary<TokenType, IStatementParselet>();
 
             // leaves
-            RegisterPrefix(TokenType.DecimalNumber, new NumberParselet());
-            RegisterPrefix( TokenType.HexNumber, new NumberParselet() );
+            RegisterPrefix(TokenType.Number, new NumberParselet());
             RegisterPrefix(TokenType.String, new StringParselet());
             RegisterPrefix(TokenType.Identifier, new IdentifierParselet());
 

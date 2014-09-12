@@ -111,7 +111,7 @@ namespace Mond.Compiler.Expressions
                 if (leftNum != null && rigthNum != null)
                 {
                     var result = simplifyOp(leftNum.Value, rigthNum.Value);
-                    var token = new Token(FileName, Line, TokenType.DecimalNumber, null);
+                    var token = new Token(FileName, Line, TokenType.Number, null);
                     return new NumberExpression(token, result);
                 }
             }
