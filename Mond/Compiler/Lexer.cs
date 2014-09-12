@@ -204,6 +204,7 @@ namespace Mond.Compiler
                 // number
                 if (char.IsDigit(ch))
                 {
+                    var hasHexSpecifier = false;
                     var hasDecimal = false;
                     var hasExp = false;
                     var justTake = false;
@@ -232,15 +233,31 @@ namespace Mond.Compiler
                             return true;
                         }
 
-                        return char.IsDigit(c);
+                        if( ( c == 'x' || c == 'X' ) && !hasHexSpecifier )
+                        {
+                            hasHexSpecifier = true;
+                            justTake = true;
+                            return true;
+                        }
+
+                        return char.IsDigit( c ) || ( _hexChars.Contains( c ) && hasHexSpecifier ) ;
                     });
 
-                    double number;
-                    if (!double.TryParse(numberContents, NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent, CultureInfo.InvariantCulture, out number))
-                        throw new MondCompilerException(_fileName, _currentLine, CompilerError.InvalidNumber, numberContents);
+                    double floatNumber;
+                    long integralNumber;
 
-                    yield return new Token(_fileName, _currentLine, TokenType.Number, numberContents);
-                    continue;
+                    if( long.TryParse( numberContents.Substring( 2 ), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out integralNumber ) )
+                    {
+                        yield return new Token( _fileName, _currentLine, TokenType.Number, numberContents.Substring( 2 ) );
+                        continue;
+                    }
+                    else if( double.TryParse( numberContents, NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent, CultureInfo.InvariantCulture, out floatNumber ) )
+                    {
+                        yield return new Token( _fileName, _currentLine, TokenType.Number, numberContents );
+                        continue;
+                    }
+                    else
+                        throw new MondCompilerException(_fileName, _currentLine, CompilerError.InvalidNumber, numberContents);
                 }
 
                 throw new MondCompilerException(_fileName, _currentLine, CompilerError.UnexpectedCharacter, ch);
