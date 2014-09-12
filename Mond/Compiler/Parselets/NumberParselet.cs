@@ -9,14 +9,12 @@ namespace Mond.Compiler.Parselets
         {
             double value;
 
-            try
-            {
+            if( token.Type == TokenType.HexNumber )
                 value = (double)long.Parse( token.Contents, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture );
-            }
-            catch
-            {
+            else if( token.Type == TokenType.DecimalNumber )
                 value = double.Parse( token.Contents, NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent, CultureInfo.InvariantCulture );
-            }
+            else
+                throw new MondCompilerException( token.FileName, token.Line, CompilerError.InvalidNumber, token.Contents );
 
             return new NumberExpression(token, value);
         }

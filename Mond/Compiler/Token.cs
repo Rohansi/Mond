@@ -3,7 +3,8 @@
     enum TokenType
     {
         Identifier,
-        Number,
+        DecimalNumber,
+        HexNumber,
         String,
 
         Global,

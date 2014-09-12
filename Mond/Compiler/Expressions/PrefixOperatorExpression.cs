@@ -83,7 +83,7 @@ namespace Mond.Compiler.Expressions
                 var number = Right as NumberExpression;
                 if (number != null)
                 {
-                    var token = new Token(Right.FileName, Right.Line, TokenType.Number, null);
+                    var token = new Token(Right.FileName, Right.Line, TokenType.DecimalNumber, null);
                     return new NumberExpression(token, -number.Value);
                 }
             }

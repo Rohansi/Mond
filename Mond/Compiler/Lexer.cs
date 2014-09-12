@@ -246,14 +246,14 @@ namespace Mond.Compiler
                     double floatNumber;
                     long integralNumber;
 
-                    if( long.TryParse( numberContents.Substring( 2 ), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out integralNumber ) )
+                    if( hasHexSpecifier && long.TryParse( numberContents.Substring( 2 ), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out integralNumber ) )
                     {
-                        yield return new Token( _fileName, _currentLine, TokenType.Number, numberContents.Substring( 2 ) );
+                        yield return new Token( _fileName, _currentLine, TokenType.HexNumber, numberContents.Substring( 2 ) );
                         continue;
                     }
                     else if( double.TryParse( numberContents, NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent, CultureInfo.InvariantCulture, out floatNumber ) )
                     {
-                        yield return new Token( _fileName, _currentLine, TokenType.Number, numberContents );
+                        yield return new Token( _fileName, _currentLine, TokenType.DecimalNumber, numberContents );
                         continue;
                     }
                     else
