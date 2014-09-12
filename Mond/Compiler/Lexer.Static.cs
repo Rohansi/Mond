@@ -9,6 +9,7 @@ namespace Mond.Compiler
     {
         private static OperatorDictionary _operators;
         private static Dictionary<string, TokenType> _keywords;
+        private static char[] _hexChars;
 
         static Lexer()
         {
@@ -87,6 +88,12 @@ namespace Mond.Compiler
                 { "switch", TokenType.Switch },
                 { "case", TokenType.Case },
                 { "default", TokenType.Default },
+            };
+
+            _hexChars = new char[]
+            {
+                'a', 'b', 'c', 'd', 'e', 'f',
+                'A', 'B', 'C', 'D', 'E', 'F',
             };
         }
 
