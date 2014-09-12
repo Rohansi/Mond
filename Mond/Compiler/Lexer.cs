@@ -208,7 +208,19 @@ namespace Mond.Compiler
                     var hasDecimal = false;
                     var hasExp = false;
                     var justTake = false;
-
+                 
+                    if (ch == '0')
+                    {
+                        var nextChar = PeekChar(1);
+                        hasHexSpecifier = nextChar == 'x' || nextChar == 'X';
+                 
+                        if (hasHexSpecifier)
+                        {
+                            TakeChar(); // '0'
+                            TakeChar(); // 'x'
+                        }
+                    }
+                 
                     var numberContents = TakeWhile(c =>
                     {
                         if (justTake)
@@ -216,51 +228,43 @@ namespace Mond.Compiler
                             justTake = false;
                             return true;
                         }
-
+                 
                         if (c == '.' && !hasDecimal)
                         {
                             hasDecimal = true;
                             return char.IsDigit(PeekChar(1));
                         }
-
+                 
                         if ((c == 'e' || c == 'E') && !hasExp)
                         {
                             var next = PeekChar(1);
                             if (next == '+' || next == '-')
                                 justTake = true;
-
+                 
                             hasExp = true;
                             return true;
                         }
-
-                        if (c == '0' && (PeekChar(1) == 'x' || PeekChar(1) == 'X') && !hasHexSpecifier)
-                        {
-                            hasHexSpecifier = true;
-                            justTake = true;
-                            return true;
-                        }
-
-                        return char.IsDigit(c) || (_hexChars.Contains(c) && hasHexSpecifier);
+                 
+                        return char.IsDigit(c) || (hasHexSpecifier && _hexChars.Contains(c));
                     });
-
-
+                 
+                 
                     uint integralNumber;
                     double floatNumber;
-
-                    if (hasHexSpecifier && uint.TryParse(numberContents.Substring(2), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out integralNumber))
+                 
+                    if (hasHexSpecifier && uint.TryParse(numberContents, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out integralNumber))
                     {
                         yield return new Token(_fileName, _currentLine, TokenType.Number, integralNumber.ToString());
                         continue;
                     }
-                    else if (!hasHexSpecifier && double.TryParse(numberContents, NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent, CultureInfo.InvariantCulture, out floatNumber))
+                 
+                    if (!hasHexSpecifier && double.TryParse(numberContents, NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent, CultureInfo.InvariantCulture, out floatNumber))
                     {
                         yield return new Token(_fileName, _currentLine, TokenType.Number, numberContents);
                         continue;
                     }
-                    else
-                    {
-                        throw new MondCompilerException(_fileName, _currentLine, CompilerError.InvalidNumber, numberContents);
-                    }
+                 
+                    throw new MondCompilerException(_fileName, _currentLine, CompilerError.InvalidNumber, numberContents);
                 }
 
                 throw new MondCompilerException(_fileName, _currentLine, CompilerError.UnexpectedCharacter, ch);
