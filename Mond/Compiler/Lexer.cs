@@ -204,10 +204,23 @@ namespace Mond.Compiler
                 // number
                 if (char.IsDigit(ch))
                 {
+                    var hasHexSpecifier = false;
                     var hasDecimal = false;
                     var hasExp = false;
                     var justTake = false;
-
+                 
+                    if (ch == '0')
+                    {
+                        var nextChar = PeekChar(1);
+                        hasHexSpecifier = nextChar == 'x' || nextChar == 'X';
+                 
+                        if (hasHexSpecifier)
+                        {
+                            TakeChar(); // '0'
+                            TakeChar(); // 'x'
+                        }
+                    }
+                 
                     var numberContents = TakeWhile(c =>
                     {
                         if (justTake)
@@ -215,32 +228,43 @@ namespace Mond.Compiler
                             justTake = false;
                             return true;
                         }
-
+                 
                         if (c == '.' && !hasDecimal)
                         {
                             hasDecimal = true;
                             return char.IsDigit(PeekChar(1));
                         }
-
+                 
                         if ((c == 'e' || c == 'E') && !hasExp)
                         {
                             var next = PeekChar(1);
                             if (next == '+' || next == '-')
                                 justTake = true;
-
+                 
                             hasExp = true;
                             return true;
                         }
-
-                        return char.IsDigit(c);
+                 
+                        return char.IsDigit(c) || (hasHexSpecifier && _hexChars.Contains(c));
                     });
-
-                    double number;
-                    if (!double.TryParse(numberContents, NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent, CultureInfo.InvariantCulture, out number))
-                        throw new MondCompilerException(_fileName, _currentLine, CompilerError.InvalidNumber, numberContents);
-
-                    yield return new Token(_fileName, _currentLine, TokenType.Number, numberContents);
-                    continue;
+                 
+                 
+                    uint integralNumber;
+                    double floatNumber;
+                 
+                    if (hasHexSpecifier && uint.TryParse(numberContents, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out integralNumber))
+                    {
+                        yield return new Token(_fileName, _currentLine, TokenType.Number, integralNumber.ToString());
+                        continue;
+                    }
+                 
+                    if (!hasHexSpecifier && double.TryParse(numberContents, NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent, CultureInfo.InvariantCulture, out floatNumber))
+                    {
+                        yield return new Token(_fileName, _currentLine, TokenType.Number, numberContents);
+                        continue;
+                    }
+                 
+                    throw new MondCompilerException(_fileName, _currentLine, CompilerError.InvalidNumber, numberContents);
                 }
 
                 throw new MondCompilerException(_fileName, _currentLine, CompilerError.UnexpectedCharacter, ch);

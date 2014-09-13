@@ -1,4 +1,5 @@
 ﻿using Mond.Compiler.Expressions;
+using System.Globalization;
 
 namespace Mond.Compiler.Parselets
 {
@@ -6,7 +7,7 @@ namespace Mond.Compiler.Parselets
     {
         public Expression Parse(Parser parser, Token token)
         {
-            var value = double.Parse(token.Contents);
+            double value = double.Parse(token.Contents, NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent, CultureInfo.InvariantCulture);
             return new NumberExpression(token, value);
         }
     }
