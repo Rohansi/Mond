@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 
 namespace Mond.Compiler
 {
@@ -9,7 +8,7 @@ namespace Mond.Compiler
     {
         private static OperatorDictionary _operators;
         private static Dictionary<string, TokenType> _keywords;
-        private static char[] _hexChars;
+        private static HashSet<char> _hexChars;
 
         static Lexer()
         {
@@ -90,7 +89,7 @@ namespace Mond.Compiler
                 { "default", TokenType.Default },
             };
 
-            _hexChars = new char[]
+            _hexChars = new HashSet<char>
             {
                 'a', 'b', 'c', 'd', 'e', 'f',
                 'A', 'B', 'C', 'D', 'E', 'F',
@@ -121,13 +120,13 @@ namespace Mond.Compiler
                 list.Sort(_comparer);
             }
 
-            public ReadOnlyCollection<Tuple<string, TokenType>> Lookup(char ch)
+            public IEnumerable<Tuple<string, TokenType>> Lookup(char ch)
             {
                 List<Tuple<string, TokenType>> list;
                 if (!_operatorDictionary.TryGetValue(ch, out list))
                     return null;
 
-                return list.AsReadOnly();
+                return list;
             }
 
             public IEnumerator<object> GetEnumerator()
