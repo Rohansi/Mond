@@ -35,7 +35,14 @@ namespace Mond.Compiler
             RegisterInfix(TokenType.Multiply, new BinaryOperatorParselet((int)PrecedenceValue.Multiplication, false));
             RegisterInfix(TokenType.Divide, new BinaryOperatorParselet((int)PrecedenceValue.Multiplication, false));
             RegisterInfix(TokenType.Modulo, new BinaryOperatorParselet((int)PrecedenceValue.Multiplication, false));
+            RegisterInfix(TokenType.Exponent, new BinaryOperatorParselet((int)PrecedenceValue.Multiplication, false));
+            RegisterInfix(TokenType.BitLeftShift, new BinaryOperatorParselet((int)PrecedenceValue.BitShift, false));
+            RegisterInfix(TokenType.BitRightShift, new BinaryOperatorParselet((int)PrecedenceValue.BitShift, false));
+            RegisterInfix(TokenType.BitAnd, new BinaryOperatorParselet((int)PrecedenceValue.BitAnd, false));
+            RegisterInfix(TokenType.BitOr, new BinaryOperatorParselet((int)PrecedenceValue.BitOr, false));
+            RegisterInfix(TokenType.BitXor, new BinaryOperatorParselet((int)PrecedenceValue.BitXor, false));
             RegisterPrefix(TokenType.Subtract, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));
+            RegisterPrefix(TokenType.BitNot, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));
 
             // conditional operations
             RegisterPrefix(TokenType.Not, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));
@@ -65,6 +72,11 @@ namespace Mond.Compiler
             RegisterInfix(TokenType.MultiplyAssign, new BinaryOperatorParselet((int)PrecedenceValue.Assign, true));
             RegisterInfix(TokenType.DivideAssign, new BinaryOperatorParselet((int)PrecedenceValue.Assign, true));
             RegisterInfix(TokenType.ModuloAssign, new BinaryOperatorParselet((int)PrecedenceValue.Assign, true));
+            RegisterInfix(TokenType.BitLeftShiftAssign, new BinaryOperatorParselet((int)PrecedenceValue.Assign, true));
+            RegisterInfix(TokenType.BitRightShiftAssign, new BinaryOperatorParselet((int)PrecedenceValue.Assign, true));
+            RegisterInfix(TokenType.BitAndAssign, new BinaryOperatorParselet((int)PrecedenceValue.Assign, true));
+            RegisterInfix(TokenType.BitOrAssign, new BinaryOperatorParselet((int)PrecedenceValue.Assign, true));
+            RegisterInfix(TokenType.BitXorAssign, new BinaryOperatorParselet((int)PrecedenceValue.Assign, true));
 
             // other expression stuff
             RegisterPrefix(TokenType.LeftParen, new GroupParselet());

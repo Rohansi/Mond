@@ -19,5 +19,7 @@
 
         public const string UnhandledOpcode = "Unhandled opcode (runtime bug)";
         public const string UnhandledClosureType = "Unhandled closure type (runtime bug)";
+
+        public const string NegativeShift = "Can not shift by a negative amount.";
     }
 }

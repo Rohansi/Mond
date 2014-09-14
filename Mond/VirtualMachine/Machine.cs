@@ -306,9 +306,63 @@ namespace Mond.VirtualMachine
                                 break;
                             }
 
+                        case (int)InstructionType.Exp:
+                            {
+                                var left = _evalStack.Pop();
+                                var right = _evalStack.Pop();
+                                _evalStack.Push(MondValue.Pow(left, right));
+                                break;
+                            }
+
+                        case (int)InstructionType.BitLShift:
+                            {
+                                var left = _evalStack.Pop();
+                                var right = (int)_evalStack.Pop();
+                                _evalStack.Push(left << right);
+                                break;
+                            }
+
+                        case (int)InstructionType.BitRShift:
+                            {
+                                var left = _evalStack.Pop();
+                                var right = (int)_evalStack.Pop();
+                                _evalStack.Push(left >> right);
+                                break;
+                            }
+
+                        case (int)InstructionType.BitAnd:
+                            {
+                                var left = _evalStack.Pop();
+                                var right = _evalStack.Pop();
+                                _evalStack.Push(left & right);
+                                break;
+                            }
+
+                        case (int)InstructionType.BitOr:
+                            {
+                                var left = _evalStack.Pop();
+                                var right = _evalStack.Pop();
+                                _evalStack.Push(left | right);
+                                break;
+                            }
+
+                        case (int)InstructionType.BitXor:
+                            {
+                                var left = _evalStack.Pop();
+                                var right = _evalStack.Pop();
+                                _evalStack.Push(left ^ right);
+                                break;
+                            }
+
                         case (int)InstructionType.Neg:
                             {
                                 _evalStack.Push(-_evalStack.Pop());
+                                break;
+                            }
+
+                        case (int)InstructionType.BitNot:
+                            {
+                                _evalStack.Push(~_evalStack.Pop());
                                 break;
                             }
                         #endregion

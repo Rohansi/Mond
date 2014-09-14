@@ -9,10 +9,16 @@ namespace Mond.Tests.Expressions
         public void OrderOfOperations()
         {
             var result = Script.Run(@"
-                return 3 + 4 * 2 / (1 - 5) % 3;
+                return 3 + 4 ** 4 * 2 / (1 - 5) % 3;
             ");
 
             Assert.True(result == 1);
+
+            result = Script.Run(@"
+                return 4 | 2 * 6 << 4 ^ 6 >> 2 + 2 & 4;
+            ");
+
+            Assert.True(result == 196);
         }
 
         [Test]

@@ -50,6 +50,7 @@ namespace Mond.Compiler.Expressions
 
                 case TokenType.Subtract:
                 case TokenType.Not:
+                case TokenType.BitNot:
                     stack += Right.Compile(context);
                     stack += context.UnaryOperation(Operation);
                     break;
@@ -85,6 +86,16 @@ namespace Mond.Compiler.Expressions
                 {
                     var token = new Token(Right.FileName, Right.Line, TokenType.Number, null);
                     return new NumberExpression(token, -number.Value);
+                }
+            }
+
+            if (Operation == TokenType.BitNot)
+            {
+                var number = Right as NumberExpression;
+                if (number != null)
+                {
+                    var token = new Token(Right.FileName, Right.Line, TokenType.Number, null);
+                    return new NumberExpression(token, ~((int)Math.Truncate(number.Value)));
                 }
             }
 
