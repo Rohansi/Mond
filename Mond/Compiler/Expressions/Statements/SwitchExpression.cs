@@ -290,13 +290,13 @@ namespace Mond.Compiler.Expressions.Statements
                 }
 
                 var number = numberExpression.Value;
-                if (double.IsNaN(number) || double.IsInfinity(number) || Math.Abs(number - (int)Math.Truncate(number)) > double.Epsilon)
+                if (double.IsNaN(number) || double.IsInfinity(number) || Math.Abs(number - (int)number) > double.Epsilon)
                 {
                     rest.Add(jump);
                     continue;
                 }
 
-                numbers.Add(new JumpTableEntry<int>(jump.Condition, (int)Math.Truncate(number), jump.Label));
+                numbers.Add(new JumpTableEntry<int>(jump.Condition, (int)number, jump.Label));
             }
 
             return numbers;

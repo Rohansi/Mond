@@ -119,6 +119,102 @@ namespace Mond.Tests.Expressions
         }
 
         [Test]
+        public void Exponent()
+        {
+            _result = Script.Run(@"
+                var a = 2, b = 8;
+                return a ** b;
+            ");
+
+            Assert.True(_result == 256);
+
+            Assert.Throws<MondRuntimeException>(() => Script.Run(@"
+                var a = 'test', b = 10;
+                return a ** b;
+            "));
+        }
+
+        [Test]
+        public void LeftShift()
+        {
+            _result = Script.Run(@"
+                var a = 2, b = 4;
+                return a << b;
+            ");
+
+            Assert.True(_result == 32);
+
+            Assert.Throws<MondRuntimeException>(() => Script.Run(@"
+                var a = 'test', b = 4;
+                return a << b;
+            "));
+        }
+
+        [Test]
+        public void RightShift()
+        {
+            _result = Script.Run(@"
+                var a = 64, b = 2;
+                return a >> b;
+            ");
+
+            Assert.True(_result == 16);
+
+            Assert.Throws<MondRuntimeException>(() => Script.Run(@"
+                var a = 'test', b = 2;
+                return a << b;
+            "));
+        }
+
+        [Test]
+        public void BitOr()
+        {
+            _result = Script.Run(@"
+                var a = 2, b = 4;
+                return a | b;
+            ");
+
+            Assert.True(_result == 6);
+
+            Assert.Throws<MondRuntimeException>(() => Script.Run(@"
+                var a = 'test', b = 4;
+                return a | b;
+            "));
+        }
+
+        [Test]
+        public void BitAnd()
+        {
+            _result = Script.Run(@"
+                var a = 2 | 4, b = 4;
+                return a & b;
+            ");
+
+            Assert.True(_result == 4);
+
+            Assert.Throws<MondRuntimeException>(() => Script.Run(@"
+                var a = 'test', b = 4;
+                return a & b;
+            "));
+        }
+
+        [Test]
+        public void BitXor()
+        {
+            _result = Script.Run(@"
+                var a = 2 | 4, b = 4;
+                return a ^ b;
+            ");
+
+            Assert.True(_result == 2);
+
+            Assert.Throws<MondRuntimeException>(() => Script.Run(@"
+                var a = 'test', b = 4;
+                return a ^ b;
+            "));
+        }
+
+        [Test]
         public void Increment()
         {
             _result = Script.Run(@"
@@ -197,6 +293,17 @@ namespace Mond.Tests.Expressions
             ");
 
             Assert.True(_result == -100);
+        }
+
+        [Test]
+        public void BitNot()
+        {
+            _result = Script.Run(@"
+                var a = 100;
+                return ~a;
+            ");
+
+            Assert.True(_result == -101);
         }
     }
 }

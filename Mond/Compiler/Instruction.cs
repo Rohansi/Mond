@@ -25,10 +25,14 @@ namespace Mond.Compiler
 
         NewObject, NewArray,                // create object/array
 
-        Add, Sub, Mul, Div, Mod,            // math
+        Add, Sub, Mul, Div, Mod, Exp,       // math
         Neg,                                // negate
         Eq, Neq, Gt, Gte, Lt, Lte,          // comparison operators
         Not,                                // logical not
+
+        BitLShift, BitRShift,               //bitwise shift
+        BitAnd, BitOr, BitXor,              //bitwise and, bitwise or, bitwise xor
+        BitNot,                             //bitwise not (one's compliment)
 
         Closure, Call, TailCall,            // make closure, call function, tail call
         Enter, Ret,                         // begin function, return from function

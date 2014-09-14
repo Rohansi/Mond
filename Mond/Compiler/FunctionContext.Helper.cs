@@ -248,6 +248,13 @@ namespace Mond.Compiler
                 { TokenType.Multiply, InstructionType.Mul },
                 { TokenType.Divide, InstructionType.Div },
                 { TokenType.Modulo, InstructionType.Mod },
+                { TokenType.Exponent, InstructionType.Exp },
+
+                { TokenType.BitLeftShift, InstructionType.BitLShift },
+                { TokenType.BitRightShift, InstructionType.BitRShift },
+                { TokenType.BitAnd, InstructionType.BitAnd },
+                { TokenType.BitOr, InstructionType.BitOr },
+                { TokenType.BitXor, InstructionType.BitXor },
 
                 { TokenType.EqualTo, InstructionType.Eq },
                 { TokenType.NotEqualTo, InstructionType.Neq },
@@ -260,6 +267,7 @@ namespace Mond.Compiler
             _unaryOperationMap = new Dictionary<TokenType, InstructionType>
             {
                 { TokenType.Subtract, InstructionType.Neg },
+                { TokenType.BitNot, InstructionType.BitNot },
 
                 { TokenType.Not, InstructionType.Not }
             };

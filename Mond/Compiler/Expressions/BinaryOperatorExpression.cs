@@ -138,7 +138,13 @@ namespace Mond.Compiler.Expressions
                 { TokenType.SubtractAssign, TokenType.Subtract },
                 { TokenType.MultiplyAssign, TokenType.Multiply },
                 { TokenType.DivideAssign, TokenType.Divide },
-                { TokenType.ModuloAssign, TokenType.Modulo }
+                { TokenType.ModuloAssign, TokenType.Modulo },
+                { TokenType.ExponentAssign, TokenType.Exponent },
+                { TokenType.BitLeftShiftAssign, TokenType.BitLeftShift },
+                { TokenType.BitRightShiftAssign, TokenType.BitRightShift },
+                { TokenType.BitAndAssign, TokenType.BitAnd },
+                { TokenType.BitOrAssign, TokenType.BitOr },
+                { TokenType.BitXorAssign, TokenType.BitXor }
             };
 
             _simplifyMap = new Dictionary<TokenType, Func<double, double, double>>
@@ -147,7 +153,13 @@ namespace Mond.Compiler.Expressions
                 { TokenType.Subtract, (x, y) => x - y },
                 { TokenType.Multiply, (x, y) => x * y },
                 { TokenType.Divide, (x, y) => x / y },
-                { TokenType.Modulo, (x, y) => x % y }
+                { TokenType.Modulo, (x, y) => x % y },
+                { TokenType.Exponent, (x, y) => Math.Pow(x, y) },
+                { TokenType.BitLeftShift, (x, y) => (int)x << (int)y },
+                { TokenType.BitRightShift, (x, y) => (int)x >> (int)y },
+                { TokenType.BitAnd, (x, y) => (int)x & (int)y },
+                { TokenType.BitOr, (x, y) => (int)x | (int)y },
+                { TokenType.BitXor, (x, y) => (int)x ^ (int)y }
             };
         }
     }
