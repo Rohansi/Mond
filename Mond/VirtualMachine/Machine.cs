@@ -564,7 +564,7 @@ namespace Mond.VirtualMachine
                                 if (value.Type == MondValueType.Number)
                                 {
                                     var number = (double)value;
-                                    var numberInt = (int)Math.Truncate(number);
+                                    var numberInt = (int)number;
 
                                     if (number >= start && number < start + count &&
                                         Math.Abs(number - numberInt) <= double.Epsilon)

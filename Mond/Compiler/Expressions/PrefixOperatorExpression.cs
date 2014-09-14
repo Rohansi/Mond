@@ -95,7 +95,7 @@ namespace Mond.Compiler.Expressions
                 if (number != null)
                 {
                     var token = new Token(Right.FileName, Right.Line, TokenType.Number, null);
-                    return new NumberExpression(token, ~((int)Math.Truncate(number.Value)));
+                    return new NumberExpression(token, ~((int)number.Value));
                 }
             }
 

@@ -122,7 +122,7 @@ namespace Mond
 
         public static MondValue Pow(MondValue left, MondValue right)
         {
-            if(left.Type != MondValueType.Number || right.Type != MondValueType.Number)
+            if (left.Type != MondValueType.Number || right.Type != MondValueType.Number)
                 throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "exponent", left.Type, right.Type);
 
             return new MondValue(Math.Pow(left._numberValue, right._numberValue));
@@ -130,48 +130,42 @@ namespace Mond
 
         public static MondValue operator <<(MondValue left, int right)
         {
-            if(left.Type != MondValueType.Number)
+            if (left.Type != MondValueType.Number)
                 throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "bitwise left shift", left.Type, MondValueType.Number);
 
-            if(right < 0)
-                throw new MondRuntimeException(RuntimeError.NegativeShift);
-
-            return new MondValue(((int)Math.Truncate(left._numberValue)) << right);
+            return new MondValue(((int)left._numberValue) << right);
         }
 
         public static MondValue operator >>(MondValue left, int right)
         {
-            if(left.Type != MondValueType.Number)
+            if (left.Type != MondValueType.Number)
                 throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "bitwise right shift", left.Type, MondValueType.Number);
 
-            if(right < 0)
-                throw new MondRuntimeException(RuntimeError.NegativeShift);
-
-            return new MondValue(((int)Math.Truncate(left._numberValue)) >> right);
+            return new MondValue(((int)left._numberValue) >> right);
         }
 
         public static MondValue operator &(MondValue left, MondValue right)
         {
-            if(left.Type != MondValueType.Number || right.Type != MondValueType.Number)
+            if (left.Type != MondValueType.Number || right.Type != MondValueType.Number)
                 throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "bitwise and", left.Type, right.Type);
 
-            return new MondValue(((int)Math.Truncate(left._numberValue)) & ((int)Math.Truncate(right._numberValue)));
+            return new MondValue(((int)left._numberValue) & ((int)right._numberValue));
         }
 
         public static MondValue operator |(MondValue left, MondValue right)
         {
-            if(left.Type != MondValueType.Number || right.Type != MondValueType.Number)
+            if (left.Type != MondValueType.Number || right.Type != MondValueType.Number)
                 throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "bitwise or", left.Type, right.Type);
 
-            return new MondValue(((int)Math.Truncate(left._numberValue)) | ((int)Math.Truncate(right._numberValue)));
+            return new MondValue(((int)left._numberValue) | ((int)right._numberValue));
         }
 
         public static MondValue operator ^(MondValue left, MondValue right)
         {
-            if(left.Type != MondValueType.Number || right.Type != MondValueType.Number)
+            if (left.Type != MondValueType.Number || right.Type != MondValueType.Number)
                 throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "bitwise xor (exclusive or)", left.Type, right.Type);
 
-            return new MondValue(((int)Math.Truncate(left._numberValue)) ^ ((int)Math.Truncate(right._numberValue)));
+            return new MondValue(((int)left._numberValue) ^ ((int)right._numberValue));
         }
 
         public static MondValue operator -(MondValue value)
@@ -184,10 +178,10 @@ namespace Mond
 
         public static MondValue operator ~(MondValue value)
         {
-            if(value.Type != MondValueType.Number)
+            if (value.Type != MondValueType.Number)
                 throw new MondRuntimeException(RuntimeError.CantUseOperatorOnType, "bitwise not", value.Type);
 
-            return new MondValue(~((int)Math.Truncate(value._numberValue)));
+            return new MondValue(~((int)value._numberValue));
         }
 
         public static bool operator ==(MondValue left, MondValue right)

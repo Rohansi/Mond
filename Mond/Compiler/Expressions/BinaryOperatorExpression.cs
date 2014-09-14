@@ -155,11 +155,11 @@ namespace Mond.Compiler.Expressions
                 { TokenType.Divide, (x, y) => x / y },
                 { TokenType.Modulo, (x, y) => x % y },
                 { TokenType.Exponent, (x, y) => Math.Pow(x, y) },
-                { TokenType.BitLeftShift, (x, y) => (int)Math.Truncate(x) << (int)Math.Truncate(y) },
-                { TokenType.BitRightShift, (x, y) => (int)Math.Truncate(x) >> (int)Math.Truncate(y) },
-                { TokenType.BitAnd, (x, y) => (int)Math.Truncate(x) & (int)Math.Truncate(y) },
-                { TokenType.BitOr, (x, y) => (int)Math.Truncate(x) | (int)Math.Truncate(y) },
-                { TokenType.BitXor, (x, y) => (int)Math.Truncate(x) ^ (int)Math.Truncate(y) }
+                { TokenType.BitLeftShift, (x, y) => (int)x << (int)y },
+                { TokenType.BitRightShift, (x, y) => (int)x >> (int)y },
+                { TokenType.BitAnd, (x, y) => (int)x & (int)y },
+                { TokenType.BitOr, (x, y) => (int)x | (int)y },
+                { TokenType.BitXor, (x, y) => (int)x ^ (int)y }
             };
         }
     }
