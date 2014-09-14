@@ -30,8 +30,8 @@ namespace Mond.Compiler.Parselets
                 }
                 else
                 {
-                    var err = parser.Take();
-                    throw new MondCompilerException(err.FileName, err.Line, CompilerError.ExpectedButFound2, TokenType.Identifier, TokenType.String, err.Type);
+                    var errorToken = parser.Take();
+                    throw new MondCompilerException(errorToken.FileName, errorToken.Line, CompilerError.ExpectedButFound2, TokenType.Identifier, TokenType.String, errorToken);
                 }
 
                 if (value == null)

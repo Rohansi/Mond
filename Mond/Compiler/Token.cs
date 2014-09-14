@@ -106,5 +106,23 @@
             Type = type;
             Contents = contents;
         }
+
+        public override string ToString()
+        {
+            switch (Type)
+            {
+                case TokenType.Identifier:
+                case TokenType.Number:
+                case TokenType.String:
+                    var contentsStr = Contents;
+                    if (contentsStr.Length > 16)
+                        contentsStr = contentsStr.Substring(0, 13) + "...";
+
+                    return string.Format("{0}('{1}')", Type, contentsStr);
+
+                default:
+                    return Type.ToString();
+            }
+        }
     }
 }
