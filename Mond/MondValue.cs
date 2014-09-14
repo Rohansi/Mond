@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using Mond.Prototypes;
 using Mond.VirtualMachine;
+using Mond.VirtualMachine.Prototypes;
 
 namespace Mond
 {
@@ -19,7 +19,7 @@ namespace Mond
 
         public readonly MondValueType Type;
 
-        internal readonly MondObject ObjectValue;
+        internal readonly VirtualMachine.Object ObjectValue;
         internal readonly List<MondValue> ArrayValue;
 
         private readonly double _numberValue;
@@ -56,7 +56,7 @@ namespace Mond
                     break;
 
                 case MondValueType.Object:
-                    ObjectValue = new MondObject();
+                    ObjectValue = new VirtualMachine.Object();
                     break;
 
                 case MondValueType.Array:

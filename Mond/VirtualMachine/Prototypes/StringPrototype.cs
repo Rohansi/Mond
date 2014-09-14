@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Mond.Prototypes
+namespace Mond.VirtualMachine.Prototypes
 {
     static class StringPrototype
     {

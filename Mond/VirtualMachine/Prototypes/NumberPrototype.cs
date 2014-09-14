@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Mond.Prototypes
+namespace Mond.VirtualMachine.Prototypes
 {
     static class NumberPrototype
     {

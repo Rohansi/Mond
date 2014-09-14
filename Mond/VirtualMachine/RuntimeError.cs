@@ -1,4 +1,4 @@
-﻿namespace Mond
+﻿namespace Mond.VirtualMachine
 {
     static class RuntimeError
     {

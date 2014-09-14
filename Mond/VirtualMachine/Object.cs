@@ -1,15 +1,15 @@
 ﻿using System.Collections.Generic;
 
-namespace Mond
+namespace Mond.VirtualMachine
 {
-    class MondObject
+    class Object
     {
         public readonly Dictionary<MondValue, MondValue> Values;
         public bool Locked;
         public MondValue Prototype;
         public object UserData;
 
-        public MondObject()
+        public Object()
         {
             Values = new Dictionary<MondValue, MondValue>();
             Locked = false;

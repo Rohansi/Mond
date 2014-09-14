@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Mond.Prototypes
+namespace Mond.VirtualMachine.Prototypes
 {
     /// <summary>
     /// Contains members common to ALL values.
