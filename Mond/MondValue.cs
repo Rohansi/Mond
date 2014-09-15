@@ -5,11 +5,6 @@ using Mond.VirtualMachine.Prototypes;
 
 namespace Mond
 {
-    public enum MondValueType
-    {
-        Undefined, Null, True, False, Object, Array, Number, String, Function
-    }
-
     public partial class MondValue : IEquatable<MondValue>
     {
         public static readonly MondValue Undefined = new MondValue(MondValueType.Undefined);

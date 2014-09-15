@@ -41,6 +41,15 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Binding\BindingUtil.cs" />
+    <Compile Include="Binding\MondClassAttribute.cs" />
+    <Compile Include="Binding\MondClassBinder.cs" />
+    <Compile Include="Binding\MondClassConstructorAttribute.cs" />
+    <Compile Include="Binding\MondFunctionAttribute.cs" />
+    <Compile Include="Binding\MondFunctionBinder.cs" />
+    <Compile Include="Binding\MondFunctionBinder.Static.cs" />
+    <Compile Include="Binding\MondModuleAttribute.cs" />
+    <Compile Include="Binding\MondModuleBinder.cs" />
     <Compile Include="Compiler\CompilerError.cs" />
     <Compile Include="Compiler\ConstantPool.cs" />
     <Compile Include="Compiler\Expressions\IBlockExpression.cs" />
@@ -136,6 +145,7 @@
     <Compile Include="MondCompilerException.cs" />
     <Compile Include="MondCompilerOptions.cs" />
     <Compile Include="MondException.cs" />
+    <Compile Include="MondValueType.cs" />
     <Compile Include="VirtualMachine\Object.cs" />
     <Compile Include="MondValue.Enumerable.cs" />
     <Compile Include="MondValue.Operators.cs" />
