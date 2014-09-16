@@ -223,6 +223,12 @@ namespace Mond.Compiler
 
                     var numberContents = TakeWhile(c =>
                     {
+                        if (c == '_' && char.IsDigit(PeekChar(1)))
+                        {
+                            TakeChar();
+                            return true;
+                        }
+
                         if (justTake)
                         {
                             justTake = false;

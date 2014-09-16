@@ -421,6 +421,14 @@ namespace Mond.VirtualMachine
                                 _evalStack.Push(!_evalStack.Pop());
                                 break;
                             }
+
+                        case (int)InstructionType.In:
+                            {
+                                var left = _evalStack.Pop();
+                                var right = _evalStack.Pop();
+                                _evalStack.Push(right.Contains(left));
+                                break;
+                            }
                         #endregion
 
                         #region Functions

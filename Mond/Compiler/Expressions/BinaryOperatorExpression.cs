@@ -106,11 +106,11 @@ namespace Mond.Compiler.Expressions
             if (_simplifyMap.TryGetValue(Operation, out simplifyOp))
             {
                 var leftNum = Left as NumberExpression;
-                var rigthNum = Right as NumberExpression;
+                var rightNum = Right as NumberExpression;
 
-                if (leftNum != null && rigthNum != null)
+                if (leftNum != null && rightNum != null)
                 {
-                    var result = simplifyOp(leftNum.Value, rigthNum.Value);
+                    var result = simplifyOp(leftNum.Value, rightNum.Value);
                     var token = new Token(FileName, Line, TokenType.Number, null);
                     return new NumberExpression(token, result);
                 }

@@ -318,6 +318,20 @@ namespace Mond
             return Equals((MondValue)other);
         }
 
+        public bool Contains(MondValue search)
+        {
+            if (Type == MondValueType.String && search.Type == MondValueType.String)
+                return _stringValue.Contains(search._stringValue);
+
+            if (Type == MondValueType.Object)
+                return ObjectValue.Values.ContainsKey(search);
+
+            if (Type == MondValueType.Array)
+                return ArrayValue.Contains(search);
+
+            throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "in", Type, search.Type);
+        }
+
         public override int GetHashCode()
         {
             switch (Type)

@@ -111,5 +111,34 @@ namespace Mond.Tests.Expressions
                 return 1 |> 1;
             "), "right side of pipeline must be function");
         }
+
+        [Test]
+        public void In()
+        {
+            var result = Script.Run(@"
+                return 84 in [ 0, 7, 14, 21, 42 ];
+            ");
+
+            Assert.True(result == false);
+
+            result = Script.Run(@"
+                var object = {
+                    foo: 123,
+                    bar: 456,
+                };
+
+                var key = 'baz' in object ? 'baz' : 'foo';
+                return object[key];
+            ");
+
+            Assert.True(result == 123);
+
+            result = Script.Run(@"
+                var string = 'abcdef';
+                return 'ab' in string && 'cd' in string;
+            ");
+
+            Assert.True(result == true);
+        }
     }
 }

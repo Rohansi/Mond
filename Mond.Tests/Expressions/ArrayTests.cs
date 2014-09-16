@@ -63,6 +63,7 @@ namespace Mond.Tests.Expressions
             var array = Script.Run(@"
                 var array = [ 1, 2, 3 ];
                 array.add(4);
+
                 return array;
             ");
 
