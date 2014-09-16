@@ -128,16 +128,6 @@ namespace Mond
                     return ArrayValue[n];
                 }
 
-                if (Type == MondValueType.String && index.Type == MondValueType.Number)
-                {
-                    var n = (int)index._numberValue;
-
-                    if(n < 0 || n >= _stringValue.Length)
-                        throw new MondRuntimeException(RuntimeError.IndexOutOfBounds);
-
-                    return _stringValue[n];
-                }
-
                 if (Type == MondValueType.Object)
                 {
                     MondValue indexValue;
@@ -333,8 +323,8 @@ namespace Mond
             if (Type == MondValueType.String && search.Type == MondValueType.String)
                 return _stringValue.Contains(search._stringValue);
 
-            if (Type == MondValueType.Object && search.Type == MondValueType.String)
-                return ObjectValue.Values.ContainsKey(search._stringValue);
+            if (Type == MondValueType.Object)
+                return ObjectValue.Values.ContainsKey(search);
 
             if (Type == MondValueType.Array)
                 return ArrayValue.Contains(search);

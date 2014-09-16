@@ -63,15 +63,13 @@ namespace Mond.Tests.Expressions
             var array = Script.Run(@"
                 var array = [ 1, 2, 3 ];
                 array.add(4);
-                array += 5;
-                array += [ 6, 7 ];
 
                 return array;
             ");
 
             var expected = new MondValue[]
             {
-                1, 2, 3, 4, 5, 6, 7
+                1, 2, 3, 4
             };
 
             Assert.AreEqual(array.Type, MondValueType.Array);
