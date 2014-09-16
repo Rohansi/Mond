@@ -48,6 +48,7 @@ namespace Mond.Compiler
             RegisterPrefix(TokenType.Not, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));
             RegisterInfix(TokenType.ConditionalAnd, new BinaryOperatorParselet((int)PrecedenceValue.ConditionalAnd, false));
             RegisterInfix(TokenType.ConditionalOr, new BinaryOperatorParselet((int)PrecedenceValue.ConditionalOr, false));
+            RegisterInfix(TokenType.In, new BinaryOperatorParselet((int)PrecedenceValue.ConditionalIn, false));
 
             // relational operations
             RegisterInfix(TokenType.EqualTo, new BinaryOperatorParselet((int)PrecedenceValue.Equality, false));

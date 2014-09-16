@@ -77,9 +77,20 @@ namespace Mond
 
         public static MondValue operator +(MondValue left, MondValue right)
         {
-            var isString = left.Type == MondValueType.String || right.Type == MondValueType.String;
+            if (left.Type == MondValueType.Array)
+            {
+                var result = new MondValue(MondValueType.Array);
+                result.ArrayValue.AddRange(left.ArrayValue);
 
-            if (isString)
+                if (right.Type == MondValueType.Array)
+                    result.ArrayValue.AddRange(right.ArrayValue);
+                else
+                    result.ArrayValue.Add(right);
+
+                return result;
+            }
+
+            if (left.Type == MondValueType.String || right.Type == MondValueType.String)
                 return new MondValue(left.ToString() + right.ToString());
 
             if (left.Type != MondValueType.Number || right.Type != MondValueType.Number)

@@ -128,6 +128,16 @@ namespace Mond
                     return ArrayValue[n];
                 }
 
+                if (Type == MondValueType.String && index.Type == MondValueType.Number)
+                {
+                    var n = (int)index._numberValue;
+
+                    if(n < 0 || n >= _stringValue.Length)
+                        throw new MondRuntimeException(RuntimeError.IndexOutOfBounds);
+
+                    return _stringValue[n];
+                }
+
                 if (Type == MondValueType.Object)
                 {
                     MondValue indexValue;
@@ -316,6 +326,20 @@ namespace Mond
                 return false;
 
             return Equals((MondValue)other);
+        }
+
+        public bool Contains(MondValue search)
+        {
+            if (Type == MondValueType.String && search.Type == MondValueType.String)
+                return _stringValue.Contains(search._stringValue);
+
+            if (Type == MondValueType.Object && search.Type == MondValueType.String)
+                return ObjectValue.Values.ContainsKey(search._stringValue);
+
+            if (Type == MondValueType.Array)
+                return ArrayValue.Contains(search);
+
+            throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "in", Type, search.Type);
         }
 
         public override int GetHashCode()

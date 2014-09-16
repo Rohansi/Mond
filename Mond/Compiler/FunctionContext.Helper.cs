@@ -261,7 +261,8 @@ namespace Mond.Compiler
                 { TokenType.GreaterThan, InstructionType.Gt },
                 { TokenType.GreaterThanOrEqual, InstructionType.Gte },
                 { TokenType.LessThan, InstructionType.Lt },
-                { TokenType.LessThanOrEqual, InstructionType.Lte }
+                { TokenType.LessThanOrEqual, InstructionType.Lte },
+                { TokenType.In, InstructionType.In }
             };
 
             _unaryOperationMap = new Dictionary<TokenType, InstructionType>
