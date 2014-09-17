@@ -8,41 +8,6 @@ namespace Mond.Binding
 {
     public static partial class MondFunctionBinder
     {
-        /// <summary>
-        /// Generates a MondFunction binding for the given method.
-        /// </summary>
-        /// <param name="moduleName">Module name shown in errors. Can be null.</param>
-        /// <param name="methodName">Method name shown in errors.</param>
-        /// <param name="method">The function to bind.</param>
-        public static MondFunction Bind(string moduleName, string methodName, MethodInfo method)
-        {
-            if (!method.IsStatic)
-                throw new Exception("Bind only supports static methods");
-
-            return BindImpl<MondFunction>(moduleName, methodName, method, false, (p, a, r) => BindFunctionCall(method, null, false, p, a, r));
-        }
-
-        internal static MondInstanceFunction BindInstance(string className, string methodName, Type type, MethodInfo method)
-        {
-            if (className == null)
-                throw new ArgumentNullException("className");
-
-            if (method.IsStatic)
-                throw new Exception("BindInstance only supports instance methods");
-
-            return BindImpl<MondInstanceFunction>(className, methodName, method, true, (p, a, r) => BindFunctionCall(method, type, true, p, a, r));
-        }
-
-        internal static MondFunction BindConstructor(string className, ConstructorInfo constructor, MondValue prototype)
-        {
-            if (className == null)
-                throw new ArgumentNullException("className");
-
-            return BindImpl<MondFunction>(className, "#ctor", constructor, false, (p, a, r) => BindConstructorCall(constructor, prototype, a, r));
-        }
-
-        private delegate Expression BindCallFactory(List<ParameterExpression> parameters, List<Expression> arguments, LabelTarget returnLabel);
-
         private static T BindImpl<T>(string moduleName, string methodName, MethodBase method, bool instanceFunction, BindCallFactory callFactory)
         {
             // TODO: clean up everything below this line
@@ -79,6 +44,8 @@ namespace Mond.Binding
             {
                 var arg = arguments[i];
 
+                // TODO: attribute to verify type of UserData
+
                 if (arg.Index < 0 || arg.Type == typeof(MondValue) || arg.Type == typeof(MondState))
                     continue;
 
@@ -98,6 +65,7 @@ namespace Mond.Binding
 
                 if (arg.Type == typeof(MondValue))
                 {
+                    // TODO: use attribute to mark instance
                     if (instanceFunction && arg.Name == "instance")
                         callArgs.Add(parameters[1]);
                     else
@@ -106,13 +74,7 @@ namespace Mond.Binding
                     continue;
                 }
 
-                var input = argumentIndex(arg.Index);
-
-                Func<Expression, Expression> inputConversion;
-                if (ConversionMap.TryGetValue(arg.Type, out inputConversion))
-                    input = inputConversion(input);
-
-                callArgs.Add(Expression.Convert(input, arg.Type));
+                callArgs.Add(ConvertArgument(argumentIndex(arg.Index), arg.Type));
             }
 
             statements.Add(callFactory(parameters, callArgs, returnLabel));
@@ -124,6 +86,14 @@ namespace Mond.Binding
             return Expression.Lambda<T>(block, parameters).Compile();
         }
 
+        /// <summary>
+        /// Creates the function call and return statements needed for a function binding.
+        /// </summary>
+        private delegate Expression BindCallFactory(List<ParameterExpression> parameters, List<Expression> arguments, LabelTarget returnLabel);
+
+        /// <summary>
+        /// Creates the function call and return statements for normal function calls. Should be used through BindCallFactory.
+        /// </summary>
         private static Expression BindFunctionCall(MethodInfo method, Type instanceType, bool instanceFunction, List<ParameterExpression> parameters, IEnumerable<Expression> arguments, LabelTarget returnLabel)
         {
             var returnType = method.ReturnType;
@@ -143,18 +113,52 @@ namespace Mond.Binding
 
             if (returnType != typeof(void))
             {
-                var output = callExpr;
+                var variables = new List<ParameterExpression>();
+                var expressions = new List<Expression>();
+                Expression result;
 
-                Func<Expression, Expression> outputConversion;
-                if (ConversionMap.TryGetValue(returnType, out outputConversion))
-                    output = outputConversion(output);
+                if (BasicTypes.Contains(returnType))
+                {
+                    result = Expression.Convert(callExpr, typeof(MondValue));
+                }
+                else if (NumberTypes.Contains(returnType))
+                {
+                    result = Expression.Convert(Expression.Convert(callExpr, typeof(double)), typeof(MondValue));
+                }
+                else if (returnType.Attribute<MondClassAttribute>() != null)
+                {
+                    var tempVar = Expression.Variable(typeof(MondValue));
+                    variables.Add(tempVar);
 
-                callExpr = Expression.Return(returnLabel, Expression.Convert(output, typeof(MondValue)));
+                    var constructor = typeof(MondValue).GetConstructor(new[] { typeof(MondValueType) });
+                    if (constructor == null)
+                        throw new Exception("Could not find MondValue constructor");
+
+                    MondValue prototype;
+                    MondClassBinder.Bind(returnType, out prototype);
+                    
+                    expressions.Add(Expression.Assign(tempVar, Expression.New(constructor, Expression.Constant(MondValueType.Object))));
+                    expressions.Add(Expression.Assign(Expression.PropertyOrField(tempVar, "UserData"), callExpr));
+                    expressions.Add(Expression.Assign(Expression.PropertyOrField(tempVar, "Prototype"), Expression.Constant(prototype)));
+
+                    result = tempVar;
+                }
+                else
+                {
+                    throw new Exception("Unsupported return type " + returnType);
+                }
+
+                expressions.Add(Expression.Return(returnLabel, result));
+
+                callExpr = Expression.Block(variables, expressions);
             }
 
             return callExpr;
         }
 
+        /// <summary>
+        /// Creates the function call and return statements for a constructor function. Should be used through BindCallFactory.
+        /// </summary>
         private static Expression BindConstructorCall(ConstructorInfo constructor, MondValue prototype, IEnumerable<Expression> arguments, LabelTarget returnLabel)
         {
             var valueConstructor = typeof(MondValue).GetConstructor(new[] { typeof(MondValueType) });
@@ -172,21 +176,81 @@ namespace Mond.Binding
             return Expression.Block(new[] { objVar }, createObj, setObjData, setObjProto, retObj);
         }
 
+        /// <summary>
+        /// Creates a type check statement for the given argument.
+        /// </summary>
         private static Expression TypeCheck(string errorPrefix, int index, Expression argument, Type type)
         {
+            string expectedTypeName;
+            Expression condition;
+
             MondValueType[] mondTypes;
-            if (!TypeCheckMap.TryGetValue(type, out mondTypes))
-                throw new Exception("Unsupported type " + type);
+            MondClassAttribute mondClass;
 
-            var condition = Expression.NotEqual(Expression.PropertyOrField(argument, "Type"), Expression.Constant(mondTypes[0]));
-
-            for (var i = 1; i < mondTypes.Length; i++)
+            if (TypeCheckMap.TryGetValue(type, out mondTypes))
             {
-                condition = Expression.AndAlso(condition, Expression.NotEqual(Expression.PropertyOrField(argument, "Type"), Expression.Constant(mondTypes[i])));
+                expectedTypeName = mondTypes[0].GetName();
+
+                condition = Expression.NotEqual(Expression.PropertyOrField(argument, "Type"), Expression.Constant(mondTypes[0]));
+
+                for (var i = 1; i < mondTypes.Length; i++)
+                {
+                    condition = Expression.AndAlso(condition, Expression.NotEqual(Expression.PropertyOrField(argument, "Type"), Expression.Constant(mondTypes[i])));
+                }
+            }
+            else if ((mondClass = type.Attribute<MondClassAttribute>()) != null)
+            {
+                expectedTypeName = mondClass.Name ?? type.Name;
+
+                var argIsNotObject = Expression.NotEqual(Expression.PropertyOrField(argument, "Type"), Expression.Constant(MondValueType.Object));
+                var argIsWrongClass = Expression.Not(Expression.TypeIs(Expression.PropertyOrField(argument, "UserData"), type));
+                condition = Expression.OrElse(argIsNotObject, argIsWrongClass);
+            }
+            else
+            {
+                throw new Exception("Unsupported type " + type);
             }
 
-            var error = string.Format("{0}argument {1} must be of type {2}", errorPrefix, index, mondTypes[0].GetName());
+            var error = string.Format("{0}argument {1} must be of type {2}", errorPrefix, index, expectedTypeName);
             return Expression.IfThen(condition, Throw(error));
+        }
+
+        /// <summary>
+        /// Creates an expression that converts an argument from MondValue into the target type.
+        /// </summary>
+        private static Expression ConvertArgument(Expression argument, Type type)
+        {
+            if (BasicTypes.Contains(type))
+            {
+                argument = Expression.Convert(argument, type);
+            }
+            else if (NumberTypes.Contains(type))
+            {
+                argument = Expression.Convert(Expression.Convert(argument, typeof(double)), type);
+            }
+            else if (type.Attribute<MondClassAttribute>() != null)
+            {
+                argument = Expression.Convert(Expression.PropertyOrField(argument, "UserData"), type);
+            }
+            else
+            {
+                throw new Exception("Unsupported type " + type);
+            }
+
+            return argument;
+        }
+
+        /// <summary>
+        /// Creates a statement that throws a MondRuntimeException.
+        /// </summary>
+        private static Expression Throw(string message)
+        {
+            var constructor = typeof(MondRuntimeException).GetConstructor(new[] { typeof(string), typeof(bool) });
+
+            if (constructor == null)
+                throw new Exception("Could not find exception constructor");
+
+            return Expression.Throw(Expression.New(constructor, Expression.Constant(message), Expression.Constant(false)));
         }
 
         private class FunctionArgument
@@ -216,16 +280,6 @@ namespace Mond.Binding
                 if (!skip)
                     index++;
             }
-        }
-
-        private static Expression Throw(string message)
-        {
-            var constructor = typeof(MondRuntimeException).GetConstructor(new[] { typeof(string), typeof(bool) });
-
-            if (constructor == null)
-                throw new Exception("Could not find exception constructor");
-
-            return Expression.Throw(Expression.New(constructor, Expression.Constant(message), Expression.Constant(false)));
         }
     }
 }

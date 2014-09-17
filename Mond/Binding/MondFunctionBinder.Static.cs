@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
 
 namespace Mond.Binding
 {
     public static partial class MondFunctionBinder
     {
         private static readonly Dictionary<Type, MondValueType[]> TypeCheckMap;
-        private static readonly Dictionary<Type, Func<Expression, Expression>> ConversionMap;
+        private static readonly HashSet<Type> BasicTypes;
+        private static readonly HashSet<Type> NumberTypes;
 
         static MondFunctionBinder()
         {
@@ -27,15 +27,24 @@ namespace Mond.Binding
                 { typeof(bool),         new [] { MondValueType.True, MondValueType.False } }
             };
 
-            ConversionMap = new Dictionary<Type, Func<Expression, Expression>>
+            // types with a direct conversion to/from MondValue
+            BasicTypes = new HashSet<Type>
             {
-                { typeof(float),        e => Expression.Convert(e, typeof(double)) },
-                { typeof(int),          e => Expression.Convert(e, typeof(double)) },
-                { typeof(uint),         e => Expression.Convert(e, typeof(double)) },
-                { typeof(short),        e => Expression.Convert(e, typeof(double)) },
-                { typeof(ushort),       e => Expression.Convert(e, typeof(double)) },
-                { typeof(sbyte),        e => Expression.Convert(e, typeof(double)) },
-                { typeof(byte),         e => Expression.Convert(e, typeof(double)) }
+                typeof(double),
+                typeof(string),
+                typeof(bool)
+            };
+
+            // types that can be casted to/from double
+            NumberTypes = new HashSet<Type>
+            {
+                typeof(float),
+                typeof(int),
+                typeof(uint),
+                typeof(short),
+                typeof(ushort),
+                typeof(sbyte),
+                typeof(byte),
             };
         }
     }

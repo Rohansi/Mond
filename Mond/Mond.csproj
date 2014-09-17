@@ -47,6 +47,7 @@
     <Compile Include="Binding\MondClassConstructorAttribute.cs" />
     <Compile Include="Binding\MondFunctionAttribute.cs" />
     <Compile Include="Binding\MondFunctionBinder.cs" />
+    <Compile Include="Binding\MondFunctionBinder.Public.cs" />
     <Compile Include="Binding\MondFunctionBinder.Static.cs" />
     <Compile Include="Binding\MondModuleAttribute.cs" />
     <Compile Include="Binding\MondModuleBinder.cs" />
