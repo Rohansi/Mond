@@ -26,9 +26,13 @@ namespace Mond.Tests.Expressions
 
             Assert.True(Script.Run("return 10e-4;") == 10e-4, "exponent sign -");
 
-            Assert.True(Script.Run("return 0xDEADBEEF;") == 0xDEADBEEF, "hex number");
+			Assert.True(Script.Run("return 0x1234ABCD;") == 0x1234ABCD, "hex number");
 
-            Assert.True(Script.Run("return 0xDEAD_BEEF;") == 0xDEADBEEF, "hex number with separator");
+			Assert.True(Script.Run("return 0x1234_ABCD;") == 0x1234ABCD, "hex number with separator");
+
+			Assert.True(Script.Run("return 0b00010010001101001010101111001101;") == 0x1234ABCD, "binary number");
+
+			Assert.True(Script.Run("return 0b00010010_00110100_10101011_11001101;") == 0x1234ABCD, "binary number with separator");
         }
 
         [Test]
