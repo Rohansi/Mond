@@ -204,8 +204,7 @@ namespace Mond.Compiler
                 // number
                 if (char.IsDigit(ch))
                 {
-                    var hasHexSpecifier = false;
-                    var hasBinSpecifier = false;
+                    var format = NumberFormat.Decimal;
                     var hasDecimal = false;
                     var hasExp = false;
                     var justTake = false;
@@ -213,17 +212,21 @@ namespace Mond.Compiler
                     if (ch == '0')
                     {
                         var nextChar = PeekChar(1);
-                        hasHexSpecifier = nextChar == 'x' || nextChar == 'X';
-                        hasBinSpecifier = nextChar == 'b' || nextChar == 'B';
 
-                        if (hasHexSpecifier || hasBinSpecifier)
+                        if (nextChar == 'x' || nextChar == 'X')
+                            format = NumberFormat.Hexadecimal;
+
+                        if (nextChar == 'b' || nextChar == 'B')
+                            format = NumberFormat.Binary;
+
+                        if (format != NumberFormat.Decimal)
                         {
                             TakeChar(); // '0'
                             TakeChar(); // 'x' or 'b'
                         }
                     }
 
-                    Func<char, bool> isDigit = c => char.IsDigit(c) || (hasHexSpecifier && _hexChars.Contains(c));
+                    Func<char, bool> isDigit = c => char.IsDigit(c) || (format == NumberFormat.Hexadecimal && _hexChars.Contains(c));
 
                     var numberContents = TakeWhile(c =>
                     {
@@ -239,7 +242,7 @@ namespace Mond.Compiler
                             return true;
                         }
 
-                        if (!hasHexSpecifier && !hasBinSpecifier)
+                        if (format == NumberFormat.Decimal)
                         {
                             if (c == '.' && !hasDecimal)
                             {
@@ -261,29 +264,12 @@ namespace Mond.Compiler
                         return isDigit(c);
                     });
 
+                    double number;
+                    if (!TryParseNumber(numberContents, format, out number))
+                        throw new MondCompilerException(_fileName, _currentLine, CompilerError.InvalidNumber, format.ToString().ToLower(), numberContents);
 
-                    int integralNumber;
-                    double floatNumber;
-
-                    if (hasBinSpecifier && TryParse(numberContents, 2, out integralNumber))
-                    {
-                        yield return new Token(_fileName, _currentLine, TokenType.Number, integralNumber.ToString("G", CultureInfo.InvariantCulture));
-                        continue;
-                    }
-
-                    if (hasHexSpecifier && TryParse(numberContents, 16, out integralNumber))
-                    {
-                        yield return new Token(_fileName, _currentLine, TokenType.Number, integralNumber.ToString("G", CultureInfo.InvariantCulture));
-                        continue;
-                    }
-
-                    if (!hasBinSpecifier && !hasHexSpecifier && double.TryParse(numberContents, NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent, CultureInfo.InvariantCulture, out floatNumber))
-                    {
-                        yield return new Token(_fileName, _currentLine, TokenType.Number, numberContents);
-                        continue;
-                    }
-
-                    throw new MondCompilerException(_fileName, _currentLine, CompilerError.InvalidNumber, numberContents);
+                    yield return new Token(_fileName, _currentLine, TokenType.Number, number.ToString("G", CultureInfo.InvariantCulture));
+                    continue;
                 }
 
                 throw new MondCompilerException(_fileName, _currentLine, CompilerError.UnexpectedCharacter, ch);
@@ -387,7 +373,51 @@ namespace Mond.Compiler
             return GetEnumerator();
         }
 
-        private static bool TryParse(string value, int fromBase, out int result)
+        enum NumberFormat
+        {
+            Decimal, Hexadecimal, Binary
+        }
+
+        private bool TryParseNumber(string value, NumberFormat format, out double result)
+        {
+            int integralNumber;
+
+            switch (format)
+            {
+                case NumberFormat.Decimal:
+                    double floatNumber;
+                    if (double.TryParse(value, NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent, CultureInfo.InvariantCulture, out floatNumber))
+                    {
+                        result = floatNumber;
+                        return true;
+                    }
+                    break;
+
+                case NumberFormat.Hexadecimal:
+                    if (TryParseBase(value, 16, out integralNumber))
+                    {
+                        result = integralNumber;
+                        return true;
+                    }
+                    break;
+
+                case NumberFormat.Binary:
+                    if (TryParseBase(value, 2, out integralNumber))
+                    {
+                        result = integralNumber;
+                        return true;
+                    }
+                    break;
+
+                default:
+                    throw new MondCompilerException(_fileName, _currentLine, "Unsupported NumberFormat");
+            }
+
+            result = 0;
+            return false;
+        }
+
+        private static bool TryParseBase(string value, int fromBase, out int result)
         {
             try
             {
