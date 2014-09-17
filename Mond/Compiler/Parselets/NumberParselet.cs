@@ -7,7 +7,7 @@ namespace Mond.Compiler.Parselets
     {
         public Expression Parse(Parser parser, Token token)
         {
-            double value = double.Parse(token.Contents, NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent, CultureInfo.InvariantCulture);
+            double value = double.Parse(token.Contents, NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent, CultureInfo.InvariantCulture);
             return new NumberExpression(token, value);
         }
     }

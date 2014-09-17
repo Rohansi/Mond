@@ -205,6 +205,7 @@ namespace Mond.Compiler
                 if (char.IsDigit(ch))
                 {
                     var hasHexSpecifier = false;
+	                var hasBinSpecifier = false;
                     var hasDecimal = false;
                     var hasExp = false;
                     var justTake = false;
@@ -213,11 +214,12 @@ namespace Mond.Compiler
                     {
                         var nextChar = PeekChar(1);
                         hasHexSpecifier = nextChar == 'x' || nextChar == 'X';
+	                    hasBinSpecifier = nextChar == 'b' || nextChar == 'B';
 
-                        if (hasHexSpecifier)
+						if (hasHexSpecifier || hasBinSpecifier)
                         {
                             TakeChar(); // '0'
-                            TakeChar(); // 'x'
+                            TakeChar(); // 'x' or 'b'
                         }
                     }
 
@@ -237,7 +239,7 @@ namespace Mond.Compiler
                             return true;
                         }
 
-                        if (!hasHexSpecifier)
+                        if (!hasHexSpecifier && !hasBinSpecifier)
                         {
                             if (c == '.' && !hasDecimal)
                             {
@@ -260,16 +262,22 @@ namespace Mond.Compiler
                     });
 
 
-                    uint integralNumber;
+                    int integralNumber;
                     double floatNumber;
 
-                    if (hasHexSpecifier && uint.TryParse(numberContents, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out integralNumber))
+	                if (hasBinSpecifier && TryParse(numberContents, 2, out integralNumber))
+	                {
+		                yield return new Token(_fileName, _currentLine, TokenType.Number, integralNumber.ToString("G", CultureInfo.InvariantCulture));
+		                continue;
+	                }
+
+                    if (hasHexSpecifier && TryParse(numberContents, 16, out integralNumber))
                     {
                         yield return new Token(_fileName, _currentLine, TokenType.Number, integralNumber.ToString("G", CultureInfo.InvariantCulture));
                         continue;
                     }
 
-                    if (!hasHexSpecifier && double.TryParse(numberContents, NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent, CultureInfo.InvariantCulture, out floatNumber))
+                    if (!hasBinSpecifier && !hasHexSpecifier && double.TryParse(numberContents, NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent, CultureInfo.InvariantCulture, out floatNumber))
                     {
                         yield return new Token(_fileName, _currentLine, TokenType.Number, numberContents);
                         continue;
@@ -378,5 +386,19 @@ namespace Mond.Compiler
         {
             return GetEnumerator();
         }
+
+	    private static bool TryParse(string value, int fromBase, out int result)
+	    {
+			try
+			{
+				result = Convert.ToInt32(value, fromBase);
+				return true;
+			}
+			catch
+			{
+				result = 0;
+				return false;
+			}
+	    }
     }
 }
