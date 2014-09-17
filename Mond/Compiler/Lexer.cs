@@ -221,17 +221,19 @@ namespace Mond.Compiler
                         }
                     }
 
+                    Func<char, bool> isDigit = c => char.IsDigit(c) || (hasHexSpecifier && _hexChars.Contains(c));
+
                     var numberContents = TakeWhile(c =>
                     {
-                        if (c == '_' && char.IsDigit(PeekChar(1)))
-                        {
-                            TakeChar();
-                            return true;
-                        }
-
                         if (justTake)
                         {
                             justTake = false;
+                            return true;
+                        }
+
+                        if (c == '_' && isDigit(PeekChar(1)))
+                        {
+                            TakeChar();
                             return true;
                         }
 
@@ -240,7 +242,7 @@ namespace Mond.Compiler
                             if (c == '.' && !hasDecimal)
                             {
                                 hasDecimal = true;
-                                return char.IsDigit(PeekChar(1));
+                                return isDigit(PeekChar(1));
                             }
 
                             if ((c == 'e' || c == 'E') && !hasExp)
@@ -254,7 +256,7 @@ namespace Mond.Compiler
                             }
                         }
 
-                        return char.IsDigit(c) || (hasHexSpecifier && _hexChars.Contains(c));
+                        return isDigit(c);
                     });
 
 

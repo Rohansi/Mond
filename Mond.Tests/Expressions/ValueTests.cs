@@ -12,6 +12,8 @@ namespace Mond.Tests.Expressions
         {
             Assert.True(Script.Run("return 100;") == 100, "simple");
 
+            Assert.True(Script.Run("return 1_000;") == 1000, "simple with separator");
+
             Assert.True(Script.Run("return 100.35;") == 100.35, "decimal");
 
             Assert.True(Script.Run("return -100;") == -100, "sign");
@@ -25,6 +27,8 @@ namespace Mond.Tests.Expressions
             Assert.True(Script.Run("return 10e-4;") == 10e-4, "exponent sign -");
 
             Assert.True(Script.Run("return 0xDEADBEEF;") == 0xDEADBEEF, "hex number");
+
+            Assert.True(Script.Run("return 0xDEAD_BEEF;") == 0xDEADBEEF, "hex number with separator");
         }
 
         [Test]
