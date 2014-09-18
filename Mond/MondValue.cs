@@ -264,13 +264,13 @@ namespace Mond
             set
             {
                 if (Type != MondValueType.Object)
-                    throw new Exception("Prototypes can only be set on objects");
+                    throw new MondRuntimeException("Prototypes can only be set on objects");
 
                 if (value == Undefined)
                     value = null;
 
                 if (value != null && value.Type != MondValueType.Object && value.Type != MondValueType.Null)
-                    throw new Exception("Prototypes must be an object or null");
+                    throw new MondRuntimeException("Prototypes must be an object or null");
 
                 ObjectValue.Prototype = value;
             }

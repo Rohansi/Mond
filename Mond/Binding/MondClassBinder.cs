@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 
 namespace Mond.Binding
@@ -57,10 +56,11 @@ namespace Mond.Binding
             var classAttrib = type.Attribute<MondClassAttribute>();
 
             if (classAttrib == null)
-                throw new Exception("Type does not have the MondClass attribute");
+                throw new MondBindingException(BindingError.TypeMissingAttribute, "MondClass");
 
             var className = classAttrib.Name ?? type.Name;
 
+            var declarations = new HashSet<string>();
             MondFunction constructor = null;
             prototype = new MondValue(MondValueType.Object);
 
@@ -72,6 +72,10 @@ namespace Mond.Binding
                     continue;
 
                 var name = functionAttrib.Name ?? method.Name;
+
+                if (!declarations.Add(name))
+                    throw new MondBindingException(BindingError.DuplicateDefinition, name);
+
                 prototype[name] = MondFunctionBinder.BindInstance(className, name, method, type);
             }
 
@@ -86,12 +90,26 @@ namespace Mond.Binding
 
                 var getMethod = property.GetGetMethod();
                 var setMethod = property.GetSetMethod();
-                
+
                 if (getMethod != null && getMethod.IsPublic)
-                    prototype["get" + name] = MondFunctionBinder.BindInstance(className, name, getMethod, type);
+                {
+                    var getMethodName = "get" + name;
+
+                    if (!declarations.Add(getMethodName))
+                        throw new MondBindingException(BindingError.DuplicateDefinition, getMethodName);
+
+                    prototype[getMethodName] = MondFunctionBinder.BindInstance(className, name, getMethod, type);
+                }
 
                 if (setMethod != null && setMethod.IsPublic)
-                    prototype["set" + name] = MondFunctionBinder.BindInstance(className, name, setMethod, type);
+                {
+                    var setMethodName = "set" + name;
+
+                    if (!declarations.Add(setMethodName))
+                        throw new MondBindingException(BindingError.DuplicateDefinition, setMethodName);
+
+                    prototype[setMethodName] = MondFunctionBinder.BindInstance(className, name, setMethod, type);
+                }
             }
 
             foreach (var ctor in type.GetConstructors(BindingFlags.Public | BindingFlags.Instance))
@@ -102,13 +120,13 @@ namespace Mond.Binding
                     continue;
 
                 if (constructor != null)
-                    throw new Exception("Classes can not have multiple Mond constructors");
+                    throw new MondBindingException(BindingError.TooManyConstructors);
 
                 constructor = MondFunctionBinder.BindConstructor(className, ctor, prototype);
             }
 
             if (constructor == null)
-                throw new Exception("Classes must have one Mond constructor");
+                throw new MondBindingException(BindingError.NotEnoughConstructors);
 
             binding = new ClassBinding(constructor, prototype);
             _cache.Add(type, binding);

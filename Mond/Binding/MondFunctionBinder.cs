@@ -135,7 +135,7 @@ namespace Mond.Binding
 
                     var constructor = typeof(MondValue).GetConstructor(new[] { typeof(MondValueType) });
                     if (constructor == null)
-                        throw new Exception("Could not find MondValue constructor");
+                        throw new MondBindingException("Could not find MondValue constructor");
 
                     MondValue prototype;
                     MondClassBinder.Bind(returnType, out prototype);
@@ -148,7 +148,7 @@ namespace Mond.Binding
                 }
                 else
                 {
-                    throw new Exception("Unsupported return type " + returnType);
+                    throw new MondBindingException(BindingError.UnsupportedReturnType, returnType);
                 }
 
                 expressions.Add(Expression.Return(returnLabel, result));
@@ -167,7 +167,7 @@ namespace Mond.Binding
             var valueConstructor = typeof(MondValue).GetConstructor(new[] { typeof(MondValueType) });
 
             if (valueConstructor == null)
-                throw new Exception("Could not find MondValue constructor");
+                throw new MondBindingException("Could not find MondValue constructor");
 
             var objVar = Expression.Variable(typeof(MondValue));
 
@@ -211,7 +211,7 @@ namespace Mond.Binding
             }
             else
             {
-                throw new Exception("Unsupported type " + type);
+                throw new MondBindingException(BindingError.UnsupportedType, type);
             }
 
             var error = string.Format("{0}argument {1} must be of type {2}", errorPrefix, index, expectedTypeName);
@@ -237,7 +237,7 @@ namespace Mond.Binding
             }
             else
             {
-                throw new Exception("Unsupported type " + type);
+                throw new MondBindingException(BindingError.UnsupportedType, type);
             }
 
             return argument;
@@ -251,7 +251,7 @@ namespace Mond.Binding
             var constructor = typeof(MondRuntimeException).GetConstructor(new[] { typeof(string), typeof(bool) });
 
             if (constructor == null)
-                throw new Exception("Could not find exception constructor");
+                throw new MondBindingException("Could not find MondRuntimeException constructor");
 
             return Expression.Throw(Expression.New(constructor, Expression.Constant(message), Expression.Constant(false)));
         }

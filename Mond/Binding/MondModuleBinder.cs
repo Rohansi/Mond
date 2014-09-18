@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace Mond.Binding
@@ -15,10 +16,11 @@ namespace Mond.Binding
             var moduleAttrib = type.Attribute<MondModuleAttribute>();
 
             if (moduleAttrib == null)
-                throw new Exception("Type does not have the MondModule attribute");
+                throw new MondBindingException(BindingError.TypeMissingAttribute, "MondModule");
 
             var moduleName = moduleAttrib.Name ?? type.Name;
 
+            var declarations = new HashSet<string>();
             var result = new MondValue(MondValueType.Object);
 
             foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Static))
@@ -29,6 +31,9 @@ namespace Mond.Binding
                     continue;
 
                 var name = functionAttrib.Name ?? method.Name;
+
+                if (!declarations.Add(name))
+                    throw new MondBindingException(BindingError.DuplicateDefinition, name);
 
                 result[name] = MondFunctionBinder.Bind(moduleName, name, method);
             }
@@ -46,10 +51,24 @@ namespace Mond.Binding
                 var setMethod = property.GetSetMethod();
 
                 if (getMethod != null && getMethod.IsPublic)
-                    result["get" + name] = MondFunctionBinder.Bind(moduleName, name, getMethod);
+                {
+                    var getMethodName = "get" + name;
+
+                    if (!declarations.Add(getMethodName))
+                        throw new MondBindingException(BindingError.DuplicateDefinition, getMethodName);
+
+                    result[getMethodName] = MondFunctionBinder.Bind(moduleName, name, getMethod);
+                }
 
                 if (setMethod != null && setMethod.IsPublic)
-                    result["set" + name] = MondFunctionBinder.Bind(moduleName, name, setMethod);
+                {
+                    var setMethodName = "set" + name;
+
+                    if (!declarations.Add(setMethodName))
+                        throw new MondBindingException(BindingError.DuplicateDefinition, setMethodName);
+
+                    result[setMethodName] = MondFunctionBinder.Bind(moduleName, name, setMethod);
+                }
             }
 
             return result;

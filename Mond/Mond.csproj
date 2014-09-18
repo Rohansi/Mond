@@ -41,7 +41,9 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Binding\BindingError.cs" />
     <Compile Include="Binding\BindingUtil.cs" />
+    <Compile Include="Binding\MondBindingException.cs" />
     <Compile Include="Binding\MondClassAttribute.cs" />
     <Compile Include="Binding\MondClassBinder.cs" />
     <Compile Include="Binding\MondConstructorAttribute.cs" />

@@ -76,6 +76,20 @@ namespace Mond.Tests.Binding
             "));
         }
 
+        [Test]
+        public void Constructor()
+        {
+            Assert.Throws<MondBindingException>(() => MondClassBinder.Bind<NoConstructor>());
+
+            Assert.Throws<MondBindingException>(() => MondClassBinder.Bind<MultipleConstructors>());
+        }
+
+        [Test]
+        public void Duplicates()
+        {
+            Assert.Throws<MondBindingException>(() => MondClassBinder.Bind<TestDuplicate>());
+        }
+
         [MondClass]
         public class Person
         {
@@ -121,6 +135,46 @@ namespace Mond.Tests.Binding
             public static bool StaticFunction()
             {
                 return true;
+            }
+        }
+
+        [MondClass]
+        public class NoConstructor
+        {
+            
+        }
+
+        [MondClass]
+        public class MultipleConstructors
+        {
+            public int N;
+
+            [MondConstructor]
+            public MultipleConstructors()
+            {
+                N = 0;
+            }
+
+            [MondConstructor]
+            public MultipleConstructors(int n)
+            {
+                N = n;
+            }
+        }
+
+        [MondClass]
+        public class TestDuplicate
+        {
+            [MondFunction]
+            public void Method()
+            {
+
+            }
+
+            [MondFunction]
+            public void Method(int n)
+            {
+
             }
         }
     }

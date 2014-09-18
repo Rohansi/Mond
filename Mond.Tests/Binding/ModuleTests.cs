@@ -61,6 +61,12 @@ namespace Mond.Tests.Binding
             "));
         }
 
+        [Test]
+        public void Duplicates()
+        {
+            Assert.Throws<MondBindingException>(() => MondModuleBinder.Bind<TestDuplicate>());
+        }
+
         [MondModule]
         public class Test
         {
@@ -95,6 +101,22 @@ namespace Mond.Tests.Binding
             public int InstanceFunction()
             {
                 return 0;
+            }
+        }
+
+        [MondModule]
+        public class TestDuplicate
+        {
+            [MondFunction]
+            public static void Method()
+            {
+                
+            }
+
+            [MondFunction]
+            public static void Method(int n)
+            {
+                
             }
         }
     }

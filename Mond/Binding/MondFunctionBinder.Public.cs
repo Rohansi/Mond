@@ -11,7 +11,7 @@ namespace Mond.Binding
         public static MondFunction Bind(string moduleName, string methodName, MethodInfo method)
         {
             if (!method.IsStatic)
-                throw new Exception("Bind only supports static methods");
+                throw new MondBindingException("Bind only supports static methods");
 
             return BindImpl<MondFunction>(moduleName, methodName, method, false, (p, a, r) => BindFunctionCall(method, null, false, p, a, r));
         }
@@ -25,7 +25,7 @@ namespace Mond.Binding
                 throw new ArgumentNullException("className");
 
             if (type == null && !method.IsStatic)
-                throw new Exception("BindInstance requires a type for non-static methods");
+                throw new MondBindingException("BindInstance requires a type for non-static methods");
 
             return BindImpl<MondInstanceFunction>(className, methodName, method, true, (p, a, r) => BindFunctionCall(method, type, true, p, a, r));
         }
