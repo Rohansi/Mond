@@ -16,6 +16,12 @@
             return state.Load(program);
         }
 
+        public static MondValue Run(this MondState state, string source)
+        {
+            var program = MondProgram.Compile(source);
+            return state.Load(program);
+        }
+
         public static MondState Load(params string[] sources)
         {
             var state = new MondState();

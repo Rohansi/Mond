@@ -44,11 +44,12 @@
     <Compile Include="Binding\BindingUtil.cs" />
     <Compile Include="Binding\MondClassAttribute.cs" />
     <Compile Include="Binding\MondClassBinder.cs" />
-    <Compile Include="Binding\MondClassConstructorAttribute.cs" />
+    <Compile Include="Binding\MondConstructorAttribute.cs" />
     <Compile Include="Binding\MondFunctionAttribute.cs" />
     <Compile Include="Binding\MondFunctionBinder.cs" />
     <Compile Include="Binding\MondFunctionBinder.Public.cs" />
     <Compile Include="Binding\MondFunctionBinder.Static.cs" />
+    <Compile Include="Binding\MondInstanceAttribute.cs" />
     <Compile Include="Binding\MondModuleAttribute.cs" />
     <Compile Include="Binding\MondModuleBinder.cs" />
     <Compile Include="Compiler\CompilerError.cs" />

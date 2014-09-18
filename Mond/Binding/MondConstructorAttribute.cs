@@ -3,7 +3,7 @@
 namespace Mond.Binding
 {
     [AttributeUsage(AttributeTargets.Constructor)]
-    public class MondClassConstructorAttribute : Attribute
+    public class MondConstructorAttribute : Attribute
     {
 
     }

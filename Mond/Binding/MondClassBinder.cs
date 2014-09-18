@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 
 namespace Mond.Binding
 {
@@ -62,7 +64,7 @@ namespace Mond.Binding
             MondFunction constructor = null;
             prototype = new MondValue(MondValueType.Object);
 
-            foreach (var method in type.GetMethods())
+            foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Instance))
             {
                 var functionAttrib = method.Attribute<MondFunctionAttribute>();
 
@@ -73,7 +75,7 @@ namespace Mond.Binding
                 prototype[name] = MondFunctionBinder.BindInstance(className, name, method, type);
             }
 
-            foreach (var property in type.GetProperties())
+            foreach (var property in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
             {
                 var functionAttrib = property.Attribute<MondFunctionAttribute>();
 
@@ -84,7 +86,7 @@ namespace Mond.Binding
 
                 var getMethod = property.GetGetMethod();
                 var setMethod = property.GetSetMethod();
-
+                
                 if (getMethod != null && getMethod.IsPublic)
                     prototype["get" + name] = MondFunctionBinder.BindInstance(className, name, getMethod, type);
 
@@ -92,9 +94,9 @@ namespace Mond.Binding
                     prototype["set" + name] = MondFunctionBinder.BindInstance(className, name, setMethod, type);
             }
 
-            foreach (var ctor in type.GetConstructors())
+            foreach (var ctor in type.GetConstructors(BindingFlags.Public | BindingFlags.Instance))
             {
-                var constructorAttrib = ctor.Attribute<MondClassConstructorAttribute>();
+                var constructorAttrib = ctor.Attribute<MondConstructorAttribute>();
 
                 if (constructorAttrib == null)
                     continue;

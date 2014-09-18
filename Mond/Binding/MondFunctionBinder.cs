@@ -65,11 +65,14 @@ namespace Mond.Binding
 
                 if (arg.Type == typeof(MondValue))
                 {
-                    // TODO: use attribute to mark instance
-                    if (instanceFunction && arg.Name == "instance")
+                    if (instanceFunction && arg.Info.Attribute<MondInstanceAttribute>() != null)
+                    {
                         callArgs.Add(parameters[1]);
+                    }
                     else
+                    {
                         callArgs.Add(argumentIndex(arg.Index));
+                    }
 
                     continue;
                 }
@@ -256,14 +259,14 @@ namespace Mond.Binding
         private class FunctionArgument
         {
             public readonly int Index;
-            public readonly string Name;
-            public readonly Type Type;
+            public readonly ParameterInfo Info;
 
-            public FunctionArgument(int index, string name, Type type)
+            public Type Type { get { return Info.ParameterType; } }
+
+            public FunctionArgument(int index, ParameterInfo info)
             {
                 Index = index;
-                Name = name;
-                Type = type;
+                Info = info;
             }
         }
 
@@ -275,7 +278,7 @@ namespace Mond.Binding
             {
                 var skip = p.ParameterType == typeof(MondState) || (instanceFunction && p.ParameterType == typeof(MondValue) && p.Name == "instance");
 
-                yield return new FunctionArgument(skip ? -1 : index, p.Name, p.ParameterType);
+                yield return new FunctionArgument(skip ? -1 : index, p);
 
                 if (!skip)
                     index++;
