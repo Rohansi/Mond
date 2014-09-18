@@ -40,6 +40,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Binding\ClassTests.cs" />
+    <Compile Include="Binding\FunctionTests.cs" />
     <Compile Include="Binding\ModuleTests.cs" />
     <Compile Include="Expressions\ArrayTests.cs" />
     <Compile Include="Expressions\ExpressionTests.cs" />

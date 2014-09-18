@@ -120,7 +120,11 @@ namespace Mond.Binding
                 var expressions = new List<Expression>();
                 Expression result;
 
-                if (BasicTypes.Contains(returnType))
+                if (returnType == typeof(MondValue))
+                {
+                    result = callExpr;
+                }
+                else if (BasicTypes.Contains(returnType))
                 {
                     result = Expression.Convert(callExpr, typeof(MondValue));
                 }
