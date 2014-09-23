@@ -9,274 +9,308 @@ namespace Mond.Compiler
 {
     partial class Lexer : IEnumerable<Token>
     {
-        private readonly IEnumerator<char> _source;
+        private readonly string _fileName;
+        private readonly IEnumerable<char> _sourceEnumerable;
+
+        private IEnumerator<char> _source;
         private int _length;
         private List<char> _read;
 
-        private readonly string _fileName;
-
         private int _index;
         private int _currentLine;
+        private int _startLine;
 
-        public Lexer(string source, string fileName = null)
-            : this(source, source == null ? -1 : source.Length, fileName)
+        public Lexer(IEnumerable<char> source, string fileName = null)
         {
-
-        }
-
-        public Lexer(IEnumerable<char> source, int length, string fileName = null)
-        {
-            if (source == null || length <= 0)
-                throw new ArgumentNullException("source");
-
-            _source = source.GetEnumerator();
-            _length = length;
-            _read = new List<char>(16);
-
             _fileName = fileName;
-
-            _index = 0;
-            _currentLine = 1;
+            _sourceEnumerable = source;
         }
 
         public IEnumerator<Token> GetEnumerator()
         {
+            _length = int.MaxValue;
+            _source = _sourceEnumerable.GetEnumerator();
+            _read = new List<char>(16);
+
+            _index = 0;
+            _currentLine = 1;
+
             while (_index < _length)
             {
                 SkipWhiteSpace();
 
+                if (SkipComments())
+                    continue;
+
                 if (_index >= _length)
                     break;
 
-                // single line comment (discarded)
-                if (TakeIfNext("//"))
-                {
-                    while (!IsNext("\n"))
-                    {
-                        TakeChar();
-                    }
+                _startLine = _currentLine;
 
-                    continue;
-                }
-
-                // multi line comment (discarded)
-                if (TakeIfNext("/*"))
-                {
-                    var depth = 1;
-
-                    while (_index < _length && depth > 0)
-                    {
-                        if (TakeIfNext("/*"))
-                        {
-                            depth++;
-                            continue;
-                        }
-
-                        if (TakeIfNext("*/"))
-                        {
-                            depth--;
-                            continue;
-                        }
-
-                        TakeChar();
-                    }
-
-                    continue;
-                }
-
-                var startLine = _currentLine;
                 var ch = PeekChar();
+                Token token;
 
-                // operators
-                var opList = _operators.Lookup(ch);
-                if (opList != null)
+                if (!TryLexOperator(ch, out token) &&
+                    !TryLexString(ch, out token) &&
+                    !TryLexWord(ch, out token) &&
+                    !TryLexNumber(ch, out token))
                 {
-                    var op = opList.FirstOrDefault(o => TakeIfNext(o.Item1));
-
-                    if (op != null)
-                    {
-                        yield return new Token(_fileName, _currentLine, op.Item2, op.Item1);
-                        continue;
-                    }
+                    throw new MondCompilerException(_fileName, _currentLine, CompilerError.UnexpectedCharacter, ch);
                 }
 
-                // string
-                if (TakeIfNext('"') || TakeIfNext('\''))
-                {
-                    var stringTerminator = ch;
-                    var stringContentsBuilder = new StringBuilder();
-
-                    while (true)
-                    {
-                        if (_index >= _length)
-                            throw new MondCompilerException(_fileName, startLine, CompilerError.UnterminatedString);
-
-                        ch = TakeChar();
-
-                        if (ch == stringTerminator)
-                            break;
-
-                        switch (ch)
-                        {
-                            case '\\':
-                                ch = TakeChar();
-
-                                if (_index >= _length)
-                                    throw new MondCompilerException(_fileName, _currentLine, CompilerError.UnexpectedEofString);
-
-                                switch (ch)
-                                {
-                                    case '\\':
-                                        stringContentsBuilder.Append('\\');
-                                        break;
-
-                                    case '/':
-                                        stringContentsBuilder.Append('/');
-                                        break;
-
-                                    case '"':
-                                        stringContentsBuilder.Append('"');
-                                        break;
-
-                                    case '\'':
-                                        stringContentsBuilder.Append('\'');
-                                        break;
-
-                                    case 'b':
-                                        stringContentsBuilder.Append('\b');
-                                        break;
-
-                                    case 'f':
-                                        stringContentsBuilder.Append('\f');
-                                        break;
-
-                                    case 'n':
-                                        stringContentsBuilder.Append('\n');
-                                        break;
-
-                                    case 'r':
-                                        stringContentsBuilder.Append('\r');
-                                        break;
-
-                                    case 't':
-                                        stringContentsBuilder.Append('\t');
-                                        break;
-
-                                    case 'u':
-                                        var i = 0;
-                                        var hex = TakeWhile(c => ++i <= 4);
-                                        short hexValue;
-
-                                        if (!short.TryParse(hex, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out hexValue))
-                                            throw new MondCompilerException(_fileName, _currentLine, CompilerError.InvalidEscapeSequence, ch + hex);
-
-                                        stringContentsBuilder.Append((char)hexValue);
-                                        break;
-
-                                    default:
-                                        throw new MondCompilerException(_fileName, _currentLine, CompilerError.InvalidEscapeSequence, ch);
-                                }
-
-                                break;
-
-                            default:
-                                stringContentsBuilder.Append(ch);
-                                break;
-                        }
-                    }
-
-                    var stringContents = stringContentsBuilder.ToString();
-                    yield return new Token(_fileName, _currentLine, TokenType.String, stringContents);
-                    continue;
-                }
-
-                // keyword/word
-                if (char.IsLetter(ch) || ch == '_')
-                {
-                    var wordContents = TakeWhile(c => char.IsLetterOrDigit(c) || c == '_');
-                    TokenType keywordType;
-                    var isKeyword = _keywords.TryGetValue(wordContents, out keywordType);
-
-                    yield return new Token(_fileName, _currentLine, isKeyword ? keywordType : TokenType.Identifier, wordContents);
-                    continue;
-                }
-
-                // number
-                if (char.IsDigit(ch))
-                {
-                    var format = NumberFormat.Decimal;
-                    var hasDecimal = false;
-                    var hasExp = false;
-                    var justTake = false;
-
-                    if (ch == '0')
-                    {
-                        var nextChar = PeekChar(1);
-
-                        if (nextChar == 'x' || nextChar == 'X')
-                            format = NumberFormat.Hexadecimal;
-
-                        if (nextChar == 'b' || nextChar == 'B')
-                            format = NumberFormat.Binary;
-
-                        if (format != NumberFormat.Decimal)
-                        {
-                            TakeChar(); // '0'
-                            TakeChar(); // 'x' or 'b'
-                        }
-                    }
-
-                    Func<char, bool> isDigit = c => char.IsDigit(c) || (format == NumberFormat.Hexadecimal && _hexChars.Contains(c));
-
-                    var numberContents = TakeWhile(c =>
-                    {
-                        if (justTake)
-                        {
-                            justTake = false;
-                            return true;
-                        }
-
-                        if (c == '_' && isDigit(PeekChar(1)))
-                        {
-                            TakeChar();
-                            return true;
-                        }
-
-                        if (format == NumberFormat.Decimal)
-                        {
-                            if (c == '.' && !hasDecimal)
-                            {
-                                hasDecimal = true;
-                                return isDigit(PeekChar(1));
-                            }
-
-                            if ((c == 'e' || c == 'E') && !hasExp)
-                            {
-                                var next = PeekChar(1);
-                                if (next == '+' || next == '-')
-                                    justTake = true;
-
-                                hasExp = true;
-                                return true;
-                            }
-                        }
-
-                        return isDigit(c);
-                    });
-
-                    double number;
-                    if (!TryParseNumber(numberContents, format, out number))
-                        throw new MondCompilerException(_fileName, _currentLine, CompilerError.InvalidNumber, format.ToString().ToLower(), numberContents);
-
-                    yield return new Token(_fileName, _currentLine, TokenType.Number, number.ToString("G", CultureInfo.InvariantCulture));
-                    continue;
-                }
-
-                throw new MondCompilerException(_fileName, _currentLine, CompilerError.UnexpectedCharacter, ch);
+                yield return token;
             }
 
             while (true)
                 yield return new Token(_fileName, _currentLine, TokenType.Eof, null);
+        }
+
+        private bool TryLexOperator(char ch, out Token token)
+        {
+            var opList = _operators.Lookup(ch);
+            if (opList != null)
+            {
+                var op = opList.FirstOrDefault(o => TakeIfNext(o.Item1));
+
+                if (op != null)
+                {
+                    token = new Token(_fileName, _currentLine, op.Item2, op.Item1);
+                    return true;
+                }
+            }
+
+            token = null;
+            return false;
+        }
+
+        private bool TryLexString(char ch, out Token token)
+        {
+            if (ch == '\"' || ch == '\'')
+            {
+                TakeChar();
+
+                var stringTerminator = ch;
+                var stringContentsBuilder = new StringBuilder();
+
+                while (true)
+                {
+                    if (_index >= _length)
+                        throw new MondCompilerException(_fileName, _startLine, CompilerError.UnterminatedString);
+
+                    ch = TakeChar();
+
+                    if (ch == stringTerminator)
+                        break;
+
+                    switch (ch)
+                    {
+                        case '\\':
+                            ch = TakeChar();
+
+                            if (_index >= _length)
+                                throw new MondCompilerException(_fileName, _currentLine, CompilerError.UnexpectedEofString);
+
+                            switch (ch)
+                            {
+                                case '\\':
+                                    stringContentsBuilder.Append('\\');
+                                    break;
+
+                                case '/':
+                                    stringContentsBuilder.Append('/');
+                                    break;
+
+                                case '"':
+                                    stringContentsBuilder.Append('"');
+                                    break;
+
+                                case '\'':
+                                    stringContentsBuilder.Append('\'');
+                                    break;
+
+                                case 'b':
+                                    stringContentsBuilder.Append('\b');
+                                    break;
+
+                                case 'f':
+                                    stringContentsBuilder.Append('\f');
+                                    break;
+
+                                case 'n':
+                                    stringContentsBuilder.Append('\n');
+                                    break;
+
+                                case 'r':
+                                    stringContentsBuilder.Append('\r');
+                                    break;
+
+                                case 't':
+                                    stringContentsBuilder.Append('\t');
+                                    break;
+
+                                case 'u':
+                                    var i = 0;
+                                    var hex = TakeWhile(c => ++i <= 4);
+                                    short hexValue;
+
+                                    if (!short.TryParse(hex, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out hexValue))
+                                        throw new MondCompilerException(_fileName, _currentLine, CompilerError.InvalidEscapeSequence, ch + hex);
+
+                                    stringContentsBuilder.Append((char)hexValue);
+                                    break;
+
+                                default:
+                                    throw new MondCompilerException(_fileName, _currentLine, CompilerError.InvalidEscapeSequence, ch);
+                            }
+
+                            break;
+
+                        default:
+                            stringContentsBuilder.Append(ch);
+                            break;
+                    }
+                }
+
+                var stringContents = stringContentsBuilder.ToString();
+                token = new Token(_fileName, _currentLine, TokenType.String, stringContents);
+                return true;
+            }
+
+            token = null;
+            return false;
+        }
+
+        private bool TryLexWord(char ch, out Token token)
+        {
+            if (char.IsLetter(ch) || ch == '_')
+            {
+                var wordContents = TakeWhile(c => char.IsLetterOrDigit(c) || c == '_');
+                TokenType keywordType;
+                var isKeyword = _keywords.TryGetValue(wordContents, out keywordType);
+
+                token = new Token(_fileName, _currentLine, isKeyword ? keywordType : TokenType.Identifier, wordContents);
+                return true;
+            }
+
+            token = null;
+            return false;
+        }
+
+        private bool TryLexNumber(char ch, out Token token)
+        {
+            if (char.IsDigit(ch))
+            {
+                var format = NumberFormat.Decimal;
+                var hasDecimal = false;
+                var hasExp = false;
+                var justTake = false;
+
+                if (ch == '0')
+                {
+                    var nextChar = PeekChar(1);
+
+                    if (nextChar == 'x' || nextChar == 'X')
+                        format = NumberFormat.Hexadecimal;
+
+                    if (nextChar == 'b' || nextChar == 'B')
+                        format = NumberFormat.Binary;
+
+                    if (format != NumberFormat.Decimal)
+                    {
+                        TakeChar(); // '0'
+                        TakeChar(); // 'x' or 'b'
+                    }
+                }
+
+                Func<char, bool> isDigit = c => char.IsDigit(c) || (format == NumberFormat.Hexadecimal && _hexChars.Contains(c));
+
+                var numberContents = TakeWhile(c =>
+                {
+                    if (justTake)
+                    {
+                        justTake = false;
+                        return true;
+                    }
+
+                    if (c == '_' && isDigit(PeekChar(1)))
+                    {
+                        TakeChar();
+                        return true;
+                    }
+
+                    if (format == NumberFormat.Decimal)
+                    {
+                        if (c == '.' && !hasDecimal)
+                        {
+                            hasDecimal = true;
+                            return isDigit(PeekChar(1));
+                        }
+
+                        if ((c == 'e' || c == 'E') && !hasExp)
+                        {
+                            var next = PeekChar(1);
+                            if (next == '+' || next == '-')
+                                justTake = true;
+
+                            hasExp = true;
+                            return true;
+                        }
+                    }
+
+                    return isDigit(c);
+                });
+
+                double number;
+                if (!TryParseNumber(numberContents, format, out number))
+                    throw new MondCompilerException(_fileName, _currentLine, CompilerError.InvalidNumber, format.ToString().ToLower(), numberContents);
+
+                token =  new Token(_fileName, _currentLine, TokenType.Number, number.ToString("G", CultureInfo.InvariantCulture));
+                return true;
+            }
+
+            token = null;
+            return false;
+        }
+
+        private bool SkipComments()
+        {
+            // single line comment
+            if (TakeIfNext("//"))
+            {
+                while (!IsNext("\n"))
+                {
+                    TakeChar();
+                }
+
+                return true;
+            }
+
+            // multi line comment
+            if (TakeIfNext("/*"))
+            {
+                var depth = 1;
+
+                while (_index < _length && depth > 0)
+                {
+                    if (TakeIfNext("/*"))
+                    {
+                        depth++;
+                        continue;
+                    }
+
+                    if (TakeIfNext("*/"))
+                    {
+                        depth--;
+                        continue;
+                    }
+
+                    TakeChar();
+                }
+
+                return true;
+            }
+
+            return false;
         }
 
         private void SkipWhiteSpace()
@@ -300,15 +334,6 @@ namespace Mond.Compiler
             for (var i = 0; i < value.Length; i++)
                 TakeChar();
 
-            return true;
-        }
-
-        private bool TakeIfNext(char value)
-        {
-            if (PeekChar() != value)
-                return false;
-
-            TakeChar();
             return true;
         }
 

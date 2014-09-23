@@ -23,18 +23,6 @@ namespace Mond
         }
 
         /// <summary>
-        /// Compile a Mond program from a string.
-        /// </summary>
-        /// <param name="source">Source code to compile</param>
-        /// <param name="fileName">Optional file name to use in errors</param>
-        /// <param name="options">Compiler options</param>
-        public static MondProgram Compile(string source, string fileName = null, MondCompilerOptions options = null)
-        {
-            var lexer = new Lexer(source, fileName);
-            return ParseAndCompile(lexer, options);
-        }
-
-        /// <summary>
         /// Compile a Mond program from a stream of characters.
         /// </summary>
         /// <param name="source">Source code to compile</param>
@@ -42,7 +30,7 @@ namespace Mond
         /// <param name="options">Compiler options</param>
         public static MondProgram Compile(IEnumerable<char> source, string fileName = null, MondCompilerOptions options = null)
         {
-            var lexer = new Lexer(source, int.MaxValue, fileName);
+            var lexer = new Lexer(source, fileName);
             return ParseAndCompile(lexer, options);
         }
 
@@ -55,7 +43,7 @@ namespace Mond
         /// <param name="options">Compiler options</param>
         public static MondProgram CompileStatement(IEnumerable<char> source, string fileName = null, MondCompilerOptions options = null)
         {
-            var lexer = new Lexer(source, int.MaxValue, fileName);
+            var lexer = new Lexer(source, fileName);
             var parser = new Parser(lexer);
             var expression = new BlockExpression(new List<Expression>
             {
