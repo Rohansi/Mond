@@ -102,72 +102,68 @@ namespace Mond.Compiler
                     if (ch == stringTerminator)
                         break;
 
+                    if (ch != '\\')
+                    {
+                        stringContentsBuilder.Append(ch);
+                        continue;
+                    }
+
+                    ch = TakeChar();
+
+                    if (_index >= _length)
+                        throw new MondCompilerException(_fileName, _currentLine, CompilerError.UnexpectedEofString);
+
                     switch (ch)
                     {
                         case '\\':
-                            ch = TakeChar();
+                            stringContentsBuilder.Append('\\');
+                            break;
 
-                            if (_index >= _length)
-                                throw new MondCompilerException(_fileName, _currentLine, CompilerError.UnexpectedEofString);
+                        case '/':
+                            stringContentsBuilder.Append('/');
+                            break;
 
-                            switch (ch)
-                            {
-                                case '\\':
-                                    stringContentsBuilder.Append('\\');
-                                    break;
+                        case '"':
+                            stringContentsBuilder.Append('"');
+                            break;
 
-                                case '/':
-                                    stringContentsBuilder.Append('/');
-                                    break;
+                        case '\'':
+                            stringContentsBuilder.Append('\'');
+                            break;
 
-                                case '"':
-                                    stringContentsBuilder.Append('"');
-                                    break;
+                        case 'b':
+                            stringContentsBuilder.Append('\b');
+                            break;
 
-                                case '\'':
-                                    stringContentsBuilder.Append('\'');
-                                    break;
+                        case 'f':
+                            stringContentsBuilder.Append('\f');
+                            break;
 
-                                case 'b':
-                                    stringContentsBuilder.Append('\b');
-                                    break;
+                        case 'n':
+                            stringContentsBuilder.Append('\n');
+                            break;
 
-                                case 'f':
-                                    stringContentsBuilder.Append('\f');
-                                    break;
+                        case 'r':
+                            stringContentsBuilder.Append('\r');
+                            break;
 
-                                case 'n':
-                                    stringContentsBuilder.Append('\n');
-                                    break;
+                        case 't':
+                            stringContentsBuilder.Append('\t');
+                            break;
 
-                                case 'r':
-                                    stringContentsBuilder.Append('\r');
-                                    break;
+                        case 'u':
+                            var i = 0;
+                            var hex = TakeWhile(c => ++i <= 4);
+                            short hexValue;
 
-                                case 't':
-                                    stringContentsBuilder.Append('\t');
-                                    break;
+                            if (!short.TryParse(hex, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out hexValue))
+                                throw new MondCompilerException(_fileName, _currentLine, CompilerError.InvalidEscapeSequence, ch + hex);
 
-                                case 'u':
-                                    var i = 0;
-                                    var hex = TakeWhile(c => ++i <= 4);
-                                    short hexValue;
-
-                                    if (!short.TryParse(hex, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out hexValue))
-                                        throw new MondCompilerException(_fileName, _currentLine, CompilerError.InvalidEscapeSequence, ch + hex);
-
-                                    stringContentsBuilder.Append((char)hexValue);
-                                    break;
-
-                                default:
-                                    throw new MondCompilerException(_fileName, _currentLine, CompilerError.InvalidEscapeSequence, ch);
-                            }
-
+                            stringContentsBuilder.Append((char)hexValue);
                             break;
 
                         default:
-                            stringContentsBuilder.Append(ch);
-                            break;
+                            throw new MondCompilerException(_fileName, _currentLine, CompilerError.InvalidEscapeSequence, ch);
                     }
                 }
 
