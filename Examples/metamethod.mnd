@@ -1,0 +1,60 @@
+fun Set( array ) {
+    var instance = { };
+
+    instance.prototype( {
+        toArray: () -> array,
+
+        reverse: fun() {
+            var new = [];
+            var len = array.length() - 1;
+
+            for( var i = len; i >= 0; --i )
+                new.add( array[i] );
+
+            return Set( new );
+        },
+
+        __in: ( _, other ) -> other in array,
+
+        __add: fun ( self, right ) {
+            array.add( right );
+            return self;
+        },
+
+        __sub: fun( self, right ) {
+            array.remove( right );
+            return self;
+        },
+
+        __string: ( self ) -> self.serialize(),
+
+        __serialize: fun() {
+            var string = "[ ";
+
+            var len = array.length() - 1;
+            for( var i = 0; i <= len; ++i )
+            {
+                var item = array[i].toString();
+
+                if( i == len )
+                    string += item;
+                else
+                    string += item + ", ";
+            }
+
+            string += " ]";
+            return string;
+        },
+    } );
+
+    return instance;
+}
+
+var a = Set( [ 6, 4, 3, 2, 1 ] );
+var b = a.reverse();
+b += 5;
+b -= 6;
+
+printLn( b.toString() );     // #=> [ 1, 2, 3, 4, 5 ]
+printLn( a.toString() );     // #=> [ 6, 4, 3, 2, 1 ];
+printLn( 6 in a && 5 in b ); // #=> true

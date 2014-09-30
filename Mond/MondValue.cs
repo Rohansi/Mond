@@ -128,13 +128,6 @@ namespace Mond
                     return ArrayValue[n];
                 }
 
-                if (Type == MondValueType.Object)
-                {
-                    MondValue indexValue;
-                    if (ObjectValue.Values.TryGetValue(index, out indexValue))
-                        return CheckWrapInstanceNative(indexValue);
-                }
-
                 var i = 0;
                 var prototype = Prototype;
 
@@ -144,16 +137,26 @@ namespace Mond
 
                     if (currentValue.Type != MondValueType.Object)
                         break;
-                    
+
                     MondValue indexValue;
                     if (currentValue.ObjectValue.Values.TryGetValue(index, out indexValue))
                         return CheckWrapInstanceNative(indexValue);
-                    
+
                     prototype = currentValue.Prototype;
                     i++;
 
                     if (i > 100)
                         throw new MondRuntimeException(RuntimeError.CircularPrototype);
+                }
+
+                if (Type == MondValueType.Object)
+                {
+                    MondValue indexValue;
+                    if (ObjectValue.Values.TryGetValue(index, out indexValue))
+                        return CheckWrapInstanceNative(indexValue);
+
+                    if (TryDispatch("__get", out indexValue, this, index))
+                        return CheckWrapInstanceNative(indexValue);
                 }
 
                 return Undefined;
@@ -175,15 +178,6 @@ namespace Mond
 
                     ArrayValue[n] = value;
                     return;
-                }
-
-                if (Type == MondValueType.Object && !ObjectValue.Locked)
-                {
-                    if (ObjectValue.Values.ContainsKey(index))
-                    {
-                        ObjectValue.Values[index] = value;
-                        return;
-                    }
                 }
 
                 var i = 0;
@@ -216,6 +210,16 @@ namespace Mond
 
                 if (Type != MondValueType.Object)
                     throw new MondRuntimeException(RuntimeError.CantCreateField, Type);
+
+                if (ObjectValue.Values.ContainsKey(index))
+                {
+                    ObjectValue.Values[index] = value;
+                    return;
+                }
+
+                MondValue result;
+                if (TryDispatch("__set", out result, index, this, value))
+                    return;
 
                 ObjectValue.Values[index] = value;
             }
@@ -287,7 +291,16 @@ namespace Mond
             switch (Type)
             {
                 case MondValueType.Object:
-                    return ReferenceEquals(ObjectValue, other.ObjectValue);
+                    {
+                        if (ReferenceEquals(ObjectValue, other.ObjectValue))
+                            return true;
+
+                        MondValue result;
+                        if (TryDispatch("__eq", out result, this, other))
+                            return result;
+
+                        return false;
+                    }
 
                 case MondValueType.Array:
                     return ReferenceEquals(ArrayValue, other.ArrayValue);
@@ -324,7 +337,16 @@ namespace Mond
                 return _stringValue.Contains(search._stringValue);
 
             if (Type == MondValueType.Object)
-                return ObjectValue.Values.ContainsKey(search);
+            {
+                if (ObjectValue.Values.ContainsKey(search))
+                    return true;
+
+                MondValue result;
+                if (TryDispatch("__in", out result, this, search))
+                    return result;
+
+                return false;
+            }
 
             if (Type == MondValueType.Array)
                 return ArrayValue.Contains(search);
@@ -380,7 +402,13 @@ namespace Mond
                 case MondValueType.False:
                     return "false";
                 case MondValueType.Object:
-                    return "object";
+                    {
+                        MondValue result;
+                        if (TryDispatch("__string", out result, this))
+                            return result;
+
+                        return "object";
+                    }
                 case MondValueType.Array:
                     return "array";
                 case MondValueType.Number:
@@ -423,6 +451,18 @@ namespace Mond
             var func = value.FunctionValue.InstanceNativeFunction;
             var inst = this;
             return new MondValue((state, args) => func(state, inst, args));
+        }
+
+        //Convenience function on VirtualMachine.Object.TryDispatch
+        private bool TryDispatch(string name, out MondValue result, params MondValue[] args)
+        {
+            if (Type != MondValueType.Object)
+            {
+                result = Undefined;
+                return false;
+            }
+
+            return ObjectValue.TryDispatch(name, out result, args);
         }
     }
 }
