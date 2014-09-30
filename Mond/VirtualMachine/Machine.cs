@@ -239,9 +239,7 @@ namespace Mond.VirtualMachine
                         #region Object Creation
                         case (int)InstructionType.NewObject:
                             {
-                                var obj = new MondValue(MondValueType.Object);
-                                obj.ObjectValue.State = _state;
-
+                                var obj = new MondValue(MondValueType.Object, _state);
                                 _evalStack.Push(obj);
                                 break;
                             }

@@ -30,6 +30,12 @@ namespace Mond.VirtualMachine
 
         public bool TryDispatch(string name, out MondValue result, params MondValue[] args)
         {
+            if (_dispatcherState == null)
+            {
+                result = MondValue.Undefined;
+                return false;
+            }
+
             MondValue callable = null;
 
             if (!Values.TryGetValue(name, out callable))

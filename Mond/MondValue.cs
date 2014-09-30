@@ -64,6 +64,21 @@ namespace Mond
         }
 
         /// <summary>
+        /// Construct a new MondValue and attach a MondState to it. Only valid for objects.
+        /// </summary>
+        public MondValue(MondValueType type, MondState state)
+            : this()
+        {
+
+            if (type != MondValueType.Object)
+                throw new MondException( "Incorrect MondValue constructor use." );
+
+            Type = type;
+            ObjectValue = new VirtualMachine.Object();
+            ObjectValue.State = state;
+        }
+
+        /// <summary>
         /// Construct a new Number MondValue with the specified value.
         /// </summary>
         public MondValue(double value)
@@ -128,6 +143,13 @@ namespace Mond
                     return ArrayValue[n];
                 }
 
+                MondValue indexValue;
+                if (Type == MondValueType.Object)
+                {
+                    if (ObjectValue.Values.TryGetValue(index, out indexValue))
+                        return CheckWrapInstanceNative(indexValue);
+                }
+
                 var i = 0;
                 var prototype = Prototype;
 
@@ -138,7 +160,6 @@ namespace Mond
                     if (currentValue.Type != MondValueType.Object)
                         break;
 
-                    MondValue indexValue;
                     if (currentValue.ObjectValue.Values.TryGetValue(index, out indexValue))
                         return CheckWrapInstanceNative(indexValue);
 
@@ -151,10 +172,6 @@ namespace Mond
 
                 if (Type == MondValueType.Object)
                 {
-                    MondValue indexValue;
-                    if (ObjectValue.Values.TryGetValue(index, out indexValue))
-                        return CheckWrapInstanceNative(indexValue);
-
                     if (TryDispatch("__get", out indexValue, this, index))
                         return CheckWrapInstanceNative(indexValue);
                 }
@@ -178,6 +195,15 @@ namespace Mond
 
                     ArrayValue[n] = value;
                     return;
+                }
+
+                if (Type == MondValueType.Object && !ObjectValue.Locked)
+                {
+                    if (ObjectValue.Values.ContainsKey(index))
+                    {
+                        ObjectValue.Values[index] = value;
+                        return;
+                    }
                 }
 
                 var i = 0;
@@ -210,12 +236,6 @@ namespace Mond
 
                 if (Type != MondValueType.Object)
                     throw new MondRuntimeException(RuntimeError.CantCreateField, Type);
-
-                if (ObjectValue.Values.ContainsKey(index))
-                {
-                    ObjectValue.Values[index] = value;
-                    return;
-                }
 
                 MondValue result;
                 if (TryDispatch("__set", out result, index, this, value))
