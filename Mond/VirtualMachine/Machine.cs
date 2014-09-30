@@ -429,6 +429,27 @@ namespace Mond.VirtualMachine
                                 _evalStack.Push(right.Contains(left));
                                 break;
                             }
+
+                        case (int)InstructionType.NotIn:
+                            {
+                                var left = _evalStack.Pop();
+                                var right = _evalStack.Pop();
+                                _evalStack.Push(!right.Contains(left));
+                                break;
+                            }
+
+                        case (int)InstructionType.ChkNull:
+                            {
+                                var left = _evalStack.Pop();
+                                var right = _evalStack.Pop();
+
+                                if (left.IsNullOrUndefined())
+                                    _evalStack.Push(right);
+                                else
+                                    _evalStack.Push(left);
+
+                                break;
+                            }
                         #endregion
 
                         #region Functions

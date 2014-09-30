@@ -221,6 +221,11 @@ namespace Mond
             }
         }
 
+        internal bool IsNullOrUndefined()
+        {
+            return Type == MondValueType.Undefined || Type == MondValueType.Null;
+        }
+
         /// <summary>
         /// Locks an Object to prevent modification from scripts. All prototypes should be locked.
         /// </summary>

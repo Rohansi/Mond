@@ -25,6 +25,7 @@
         For,
         Foreach,
         In,
+        NotIn,
         While,
         Do,
         Break,
@@ -83,6 +84,7 @@
         ConditionalAnd,
         ConditionalOr,
 
+        DoubleQuestionMark,
         QuestionMark,
         Colon,
         Pointy,

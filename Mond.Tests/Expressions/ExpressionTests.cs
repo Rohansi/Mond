@@ -140,5 +140,48 @@ namespace Mond.Tests.Expressions
 
             Assert.True(result == true);
         }
+
+        [Test]
+        public void NotIn()
+        {
+            var result = Script.Run(@"
+                return 84 !in [ 0, 7, 14, 21, 42 ];
+            ");
+
+            Assert.True(result == true);
+
+            result = Script.Run(@"
+                var object = {
+                    foo: 123,
+                    bar: 456,
+                };
+
+                var key = 'baz' !in object ? 'foo' : 'baz';
+                return object[key];
+            ");
+
+            Assert.True(result == 123);
+
+            result = Script.Run(@"
+                var string = 'abcdef';
+                return 'gh' !in string && 'ij' !in string;
+            ");
+
+            Assert.True(result == true);
+        }
+
+        [Test]
+        public void NullCoalesce()
+        {
+            var result = Script.Run(@"
+                var obj = {
+                    baz: 123
+                };
+
+                return obj.foo ?? obj.bar ?? obj.baz;
+            ");
+
+            Assert.True(result == 123);
+        }
     }
 }

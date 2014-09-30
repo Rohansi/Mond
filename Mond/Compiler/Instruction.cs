@@ -28,7 +28,10 @@ namespace Mond.Compiler
         Add, Sub, Mul, Div, Mod, Exp,       // math
         Neg,                                // negate
         Eq, Neq, Gt, Gte, Lt, Lte,          // comparison operators
-        Not, In,                            // logical not, contains
+        Not,                                // logical not
+
+        In, NotIn,                          //contains, !contains
+        ChkNull,                            //check null (null coalesce operator)
 
         BitLShift, BitRShift,               //bitwise shift
         BitAnd, BitOr, BitXor,              //bitwise and, bitwise or, bitwise xor

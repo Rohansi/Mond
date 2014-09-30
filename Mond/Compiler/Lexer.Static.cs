@@ -69,7 +69,9 @@ namespace Mond.Compiler
                 { ":", TokenType.Colon },
                 { "->", TokenType.Pointy },
                 { "|>", TokenType.Pipeline },
-                { "...", TokenType.Ellipsis }
+                { "...", TokenType.Ellipsis },
+                { "!in", TokenType.NotIn },
+                { "??", TokenType.DoubleQuestionMark }
             };
 
             _keywords = new Dictionary<string, TokenType>
