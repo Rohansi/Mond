@@ -169,19 +169,5 @@ namespace Mond.Tests.Expressions
 
             Assert.True(result == true);
         }
-
-        [Test]
-        public void NullCoalesce()
-        {
-            var result = Script.Run(@"
-                var obj = {
-                    baz: 123
-                };
-
-                return obj.foo ?? obj.bar ?? obj.baz;
-            ");
-
-            Assert.True(result == 123);
-        }
     }
 }

@@ -263,8 +263,7 @@ namespace Mond.Compiler
                 { TokenType.LessThan, InstructionType.Lt },
                 { TokenType.LessThanOrEqual, InstructionType.Lte },
                 { TokenType.In, InstructionType.In },
-                { TokenType.NotIn, InstructionType.NotIn },
-                { TokenType.DoubleQuestionMark, InstructionType.ChkNull },
+                { TokenType.NotIn, InstructionType.NotIn }
             };
 
             _unaryOperationMap = new Dictionary<TokenType, InstructionType>
