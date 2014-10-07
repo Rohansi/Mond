@@ -40,6 +40,13 @@ namespace Mond.VirtualMachine
 
         public MondValue Call(MondValue function, params MondValue[] arguments)
         {
+            if (function.Type == MondValueType.Object)
+            {
+                MondValue result;
+                if (function.ObjectValue.TryDispatch("__call", out result, arguments))
+                    return result;
+            }
+
             if (function.Type != MondValueType.Function)
                 throw new MondRuntimeException(RuntimeError.ValueNotCallable, function.Type);
 
@@ -451,6 +458,20 @@ namespace Mond.VirtualMachine
                                 var argCount = ReadInt32(code, ref ip);
                                 var returnAddress = ip;
                                 var function = _evalStack.Pop();
+
+                                if (function.Type == MondValueType.Object)
+                                {
+                                    var argArr = new MondValue[argCount];
+
+                                    for (var i = argCount - 1; i >= 0; i--)
+                                    {
+                                        argArr[i] = _evalStack.Pop();
+                                    }
+
+                                    MondValue result;
+                                    if (function.ObjectValue.TryDispatch("__call", out result, argArr))
+                                        return result;
+                                }
 
                                 if (function.Type != MondValueType.Function)
                                     throw new MondRuntimeException(RuntimeError.ValueNotCallable, function.Type);

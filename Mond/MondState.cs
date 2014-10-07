@@ -28,9 +28,9 @@ namespace Mond
             return _machine.Load(program);
         }
 
-        public MondValue Call(MondValue closure, params MondValue[] arguments)
+        public MondValue Call(MondValue function, params MondValue[] arguments)
         {
-            return _machine.Call(closure, arguments);
+            return _machine.Call(function, arguments);
         }
     }
 }
