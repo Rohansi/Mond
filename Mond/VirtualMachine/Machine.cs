@@ -222,7 +222,6 @@ namespace Mond.VirtualMachine
                             {
                                 var index = _evalStack.Pop();
                                 var array = _evalStack.Pop();
-
                                 _evalStack.Push(array[index]);
                                 break;
                             }
@@ -232,7 +231,6 @@ namespace Mond.VirtualMachine
                                 var index = _evalStack.Pop();
                                 var array = _evalStack.Pop();
                                 var value = _evalStack.Pop();
-
                                 array[index] = value;
                                 break;
                             }
@@ -241,7 +239,8 @@ namespace Mond.VirtualMachine
                         #region Object Creation
                         case (int)InstructionType.NewObject:
                             {
-                                _evalStack.Push(new MondValue(MondValueType.Object));
+                                var obj = new MondValue(MondValueType.Object, _state);
+                                _evalStack.Push(obj);
                                 break;
                             }
 
@@ -317,16 +316,16 @@ namespace Mond.VirtualMachine
                         case (int)InstructionType.BitLShift:
                             {
                                 var left = _evalStack.Pop();
-                                var right = (int)_evalStack.Pop();
-                                _evalStack.Push(left << right);
+                                var right = _evalStack.Pop();
+                                _evalStack.Push(MondValue.LShift(left, right));
                                 break;
                             }
 
                         case (int)InstructionType.BitRShift:
                             {
                                 var left = _evalStack.Pop();
-                                var right = (int)_evalStack.Pop();
-                                _evalStack.Push(left >> right);
+                                var right = _evalStack.Pop();
+                                _evalStack.Push(MondValue.RShift(left, right));
                                 break;
                             }
 

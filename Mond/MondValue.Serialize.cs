@@ -56,6 +56,14 @@ namespace Mond
                     break;
 
                 case MondValueType.Object:
+
+                    MondValue result;
+                    if (TryDispatch("__serialize", out result, this))
+                    {
+                        result.Serialize( writer );
+                        break;
+                    }
+
                     writer.WriteLine("{");
                     writer.Indent++;
 
