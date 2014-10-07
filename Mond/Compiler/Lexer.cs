@@ -273,7 +273,7 @@ namespace Mond.Compiler
             // single line comment
             if (TakeIfNext("//"))
             {
-                while (!IsNext("\n"))
+                while (_index < _length && !IsNext("\n"))
                 {
                     TakeChar();
                 }
