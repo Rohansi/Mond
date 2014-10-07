@@ -64,16 +64,12 @@ namespace Mond
         }
 
         /// <summary>
-        /// Construct a new MondValue and attach a MondState to it. Only valid for objects.
+        /// Construct a new Object MondValue and attach a MondState to it. Should be used if using metamethods.
         /// </summary>
-        public MondValue(MondValueType type, MondState state)
+        public MondValue(MondState state)
             : this()
         {
-
-            if (type != MondValueType.Object)
-                throw new MondException( "Incorrect MondValue constructor use." );
-
-            Type = type;
+            Type = MondValueType.Object;
             ObjectValue = new VirtualMachine.Object();
             ObjectValue.State = state;
         }

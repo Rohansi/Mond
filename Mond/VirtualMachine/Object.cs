@@ -9,7 +9,7 @@ namespace Mond.VirtualMachine
         public MondValue Prototype;
         public object UserData;
 
-        private MondState _dispatcherState = null;
+        private MondState _dispatcherState;
 
         public MondState State
         {
@@ -36,7 +36,8 @@ namespace Mond.VirtualMachine
                 return false;
             }
 
-            MondValue callable = null;
+            MondState state = null;
+            MondValue callable;
 
             if (!Values.TryGetValue(name, out callable))
             {
@@ -45,7 +46,11 @@ namespace Mond.VirtualMachine
                 while (current != null && current.Type == MondValueType.Object)
                 {
                     if (current.ObjectValue.Values.TryGetValue(name, out callable))
+                    {
+                        // we should use the state from the metamethod's object
+                        state = current.ObjectValue._dispatcherState;
                         break;
+                    }
 
                     current = current.Prototype;
                 }
@@ -57,7 +62,11 @@ namespace Mond.VirtualMachine
                 return false;
             }
 
-            result = _dispatcherState.Call(callable, args);
+            state = state ?? _dispatcherState;
+            if (state == null)
+                throw new MondRuntimeException("MondValue must have an attached state to use metamethods");
+
+            result = state.Call(callable, args);
             return true;
         }
     }
