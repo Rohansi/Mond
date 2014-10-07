@@ -57,6 +57,7 @@ namespace Mond.Compiler
             RegisterInfix(TokenType.LessThan, new BinaryOperatorParselet((int)PrecedenceValue.Relational, false));
             RegisterInfix(TokenType.LessThanOrEqual, new BinaryOperatorParselet((int)PrecedenceValue.Relational, false));
             RegisterInfix(TokenType.In, new BinaryOperatorParselet((int)PrecedenceValue.Relational, false));
+            RegisterInfix(TokenType.NotIn, new BinaryOperatorParselet((int)PrecedenceValue.Relational, false));
 
             // prefix inc/decrement
             RegisterPrefix(TokenType.Increment, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));

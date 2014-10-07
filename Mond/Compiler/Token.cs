@@ -25,6 +25,7 @@
         For,
         Foreach,
         In,
+        NotIn,
         While,
         Do,
         Break,
