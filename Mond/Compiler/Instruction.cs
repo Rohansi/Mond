@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -30,11 +29,11 @@ namespace Mond.Compiler
         Eq, Neq, Gt, Gte, Lt, Lte,          // comparison operators
         Not,                                // logical not
 
-        In, NotIn,                          //contains, !contains
+        In, NotIn,                          // contains, !contains
 
-        BitLShift, BitRShift,               //bitwise shift
-        BitAnd, BitOr, BitXor,              //bitwise and, bitwise or, bitwise xor
-        BitNot,                             //bitwise not (one's compliment)
+        BitLShift, BitRShift,               // bitwise shift
+        BitAnd, BitOr, BitXor,              // bitwise and, bitwise or, bitwise xor
+        BitNot,                             // bitwise not (one's compliment)
 
         Closure, Call, TailCall,            // make closure, call function, tail call
         Enter, Ret,                         // begin function, return from function

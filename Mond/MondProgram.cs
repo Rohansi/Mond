@@ -31,33 +31,47 @@ namespace Mond
         public static MondProgram Compile(IEnumerable<char> source, string fileName = null, MondCompilerOptions options = null)
         {
             var lexer = new Lexer(source, fileName);
-            return ParseAndCompile(lexer, options);
+            var parser = new Parser(lexer);
+            return CompileImpl(parser.ParseAll(), options);
         }
 
         /// <summary>
-        /// Compiles a single statement from a stream of characters. This should
-        /// only really be useful when implementing REPLs.
+        /// Compiles statements from an infinite stream of characters.
+        /// This should only be useful when implementing REPLs.
         /// </summary>
         /// <param name="source">Source code to compile</param>
         /// <param name="fileName">Optional file name to use in errors</param>
         /// <param name="options">Compiler options</param>
-        public static MondProgram CompileStatement(IEnumerable<char> source, string fileName = null, MondCompilerOptions options = null)
+        /// <param name="errorHandler">Callback to call if an exception is thrown</param>
+        public static IEnumerable<MondProgram> CompileStatements(IEnumerable<char> source, string fileName = null, MondCompilerOptions options = null, Action<Exception> errorHandler = null)
         {
             var lexer = new Lexer(source, fileName);
             var parser = new Parser(lexer);
-            var expression = new BlockExpression(new List<Expression>
+
+            while (true)
             {
-                parser.ParseStatement()
-            });
+                MondProgram program;
 
-            return CompileImpl(expression, options);
-        }
+                try
+                {
+                    var expression = new BlockExpression(new[]
+                    {
+                        parser.ParseStatement()
+                    });
 
-        private static MondProgram ParseAndCompile(IEnumerable<Token> lexer, MondCompilerOptions options)
-        {
-            var parser = new Parser(lexer);
-            var expression = parser.ParseAll();
-            return CompileImpl(expression, options);
+                    program = CompileImpl(expression, options);
+                }
+                catch (Exception e)
+                {
+                    if (errorHandler == null)
+                        throw;
+
+                    errorHandler(e);
+                    continue;
+                }
+
+                yield return program;
+            }
         }
 
         private static MondProgram CompileImpl(Expression expression, MondCompilerOptions options)

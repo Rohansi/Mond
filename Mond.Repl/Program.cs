@@ -57,11 +57,11 @@ namespace Mond.Repl
                 var program = MondProgram.Compile(Functions.Definitions + source, Path.GetFileName(fileName));
                 var result = state.Load(program);
 
-                if (result != MondValue.Undefined)
-                {
-                    result.Serialize(Console.Out);
-                    Console.WriteLine();
-                }
+                if (result == MondValue.Undefined)
+                    return;
+
+                result.Serialize(Console.Out);
+                Console.WriteLine();
             }
             catch (Exception e)
             {
@@ -70,10 +70,12 @@ namespace Mond.Repl
         }
 
         private static Queue<char> _input;
+        private static bool _first;
 
         static void InteractiveMain()
         {
             _input = new Queue<char>();
+            _first = true;
 
             var state = new MondState();
             var options = new MondCompilerOptions
@@ -85,48 +87,13 @@ namespace Mond.Repl
 
             Functions.Register(state);
 
-            var line = 1;
-
-            while (true)
+            foreach (var program in MondProgram.CompileStatements(ConsoleInput(), "stdin", options, PrintException))
             {
+                MondValue result;
+
                 try
                 {
-                    MondValue result;
-
-                    do
-                    {
-                        var program = MondProgram.CompileStatement(ConsoleInput(), string.Format("stdin_{0:D}", line), options);
-                        result = state.Load(program);
-
-                        // get rid of leading whitespace
-                        while (_input.Count > 0 && char.IsWhiteSpace(_input.Peek()))
-                        {
-                            _input.Dequeue();
-                        }
-
-                    } while (_input.Count > 0); // we only want the result of the last statement
-
-                    line++;
-
-                    // ignore undefined return value, it's almost always useless
-                    if (result == MondValue.Undefined)
-                        continue;
-
-                    if (result["moveNext"] && result.IsEnumerable)
-                    {
-                        foreach (var value in result.Enumerate(state))
-                        {
-                            value.Serialize(Console.Out);
-                            Console.WriteLine();
-                        }
-                    }
-                    else
-                    {
-                        result.Serialize(Console.Out);
-                        Console.WriteLine();
-                    }
-
-                    Console.WriteLine();
+                    result = state.Load(program);
                 }
                 catch (Exception e)
                 {
@@ -134,24 +101,54 @@ namespace Mond.Repl
                     Console.WriteLine();
 
                     _input.Clear();
+                    continue;
                 }
+
+                // get rid of leading whitespace
+                while (_input.Count > 0 && char.IsWhiteSpace(_input.Peek()))
+                {
+                    _input.Dequeue();
+                }
+
+                if (_input.Count != 0)
+                    continue;
+
+                _first = true;
+
+                // ignore undefined return value, it's almost always useless
+                if (result == MondValue.Undefined)
+                    continue;
+
+                if (result["moveNext"] && result.IsEnumerable)
+                {
+                    foreach (var value in result.Enumerate(state))
+                    {
+                        value.Serialize(Console.Out);
+                        Console.WriteLine();
+                    }
+                }
+                else
+                {
+                    result.Serialize(Console.Out);
+                    Console.WriteLine();
+                }
+
+                Console.WriteLine();
             }
         }
 
         static IEnumerable<char> ConsoleInput()
         {
-            var first = _input.Count == 0;
-
             while (true)
             {
                 if (_input.Count == 0)
                 {
-                    Console.Write(first ? "> " : ">> ");
+                    Console.Write(_first ? "> " : ">> ");
 
                     var line = Console.ReadLine();
                     if (line != null)
                     {
-                        if (first && line.StartsWith("="))
+                        if (_first && line.StartsWith("="))
                             line = "return " + line.Substring(1);
 
                         foreach (var c in line)
@@ -162,12 +159,22 @@ namespace Mond.Repl
                         _input.Enqueue('\n');
                     }
 
-                    first = false;
+                    _first = false;
                     continue;
                 }
 
                 yield return _input.Dequeue();
             }
+        }
+
+        static void PrintException(Exception e)
+        {
+            string message = e is MondException ? e.Message : e.ToString();
+
+            Console.WriteLine(message);
+            Console.WriteLine();
+
+            _input.Clear();
         }
     }
 }
