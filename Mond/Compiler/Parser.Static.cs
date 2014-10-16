@@ -91,6 +91,7 @@ namespace Mond.Compiler
             RegisterPrefix(TokenType.Fun, new FunctionParselet());
             RegisterPrefix(TokenType.Seq, new SequenceParselet());
             RegisterInfix(TokenType.Pipeline, new PipelineParselet());
+            RegisterPrefix(TokenType.Ellipsis, new UnpackParselet());
 
             // statements
             RegisterStatement(TokenType.Semicolon, new SemicolonParselet());

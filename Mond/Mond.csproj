@@ -64,6 +64,7 @@
     <Compile Include="Compiler\Expressions\Statements\SequenceExpression.cs" />
     <Compile Include="Compiler\Expressions\Statements\YieldBreakExpression.cs" />
     <Compile Include="Compiler\Expressions\Statements\YieldExpression.cs" />
+    <Compile Include="Compiler\Expressions\UnpackExpression.cs" />
     <Compile Include="Compiler\FunctionContext.cs" />
     <Compile Include="Compiler\Expressions\ArrayExpression.cs" />
     <Compile Include="Compiler\Expressions\Statements\ContinueExpression.cs" />
@@ -87,6 +88,7 @@
     <Compile Include="Compiler\Parselets\Statements\SequenceParselet.cs" />
     <Compile Include="Compiler\Parselets\Statements\YieldParselet.cs" />
     <Compile Include="Compiler\Parselets\UndefinedParselet.cs" />
+    <Compile Include="Compiler\Parselets\UnpackParselet.cs" />
     <Compile Include="Compiler\Parser.Static.cs" />
     <Compile Include="Compiler\Scope.cs" />
     <Compile Include="CoreAnnotations.cs" />

@@ -166,15 +166,26 @@ namespace Mond.Compiler
             return 1;
         }
 
-        public int Call(int argumentCount)
+        public int Call(int argumentCount, List<ImmediateOperand> unpackIndices)
         {
-            Emit(new Instruction(InstructionType.Call, new ImmediateOperand(argumentCount)));
+            Emit(new Instruction(
+                InstructionType.Call,
+                new ImmediateOperand(argumentCount),
+                new ImmediateByteOperand((byte)unpackIndices.Count),
+                new ListOperand<ImmediateOperand>(unpackIndices)));
+
             return -argumentCount - 1 + 1;
         }
 
-        public int TailCall(int argumentCount, LabelOperand label)
+        public int TailCall(int argumentCount, LabelOperand label, List<ImmediateOperand> unpackIndices)
         {
-            Emit(new Instruction(InstructionType.TailCall, new ImmediateOperand(argumentCount), label));
+            Emit(new Instruction(
+                InstructionType.TailCall,
+                new ImmediateOperand(argumentCount),
+                label,
+                new ImmediateByteOperand((byte)unpackIndices.Count),
+                new ListOperand<ImmediateOperand>(unpackIndices)));
+
             return -argumentCount;
         }
 

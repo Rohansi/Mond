@@ -46,7 +46,7 @@ namespace Mond.Compiler.Expressions
             var stack = Arguments.Sum(argument => argument.Compile(context));
 
             stack += Method.Compile(context);
-            stack += context.Call(Arguments.Count);
+            stack += context.Call(Arguments.Count, GetUnpackIndices());
 
             CheckStack(stack, 1);
             return stack;
@@ -57,10 +57,25 @@ namespace Mond.Compiler.Expressions
             context.Line(FileName, Line);
 
             var stack = Arguments.Sum(argument => argument.Compile(context));
-            stack += context.TailCall(Arguments.Count, context.Label);
+            stack += context.TailCall(Arguments.Count, context.Label, GetUnpackIndices());
 
             CheckStack(stack, 0);
             return stack;
+        }
+
+        private List<ImmediateOperand> GetUnpackIndices()
+        {
+            var unpackIndices = Arguments
+                .Select((e, i) => new { Expression = e, Index = i })
+                .Where(e => e.Expression is UnpackExpression)
+                .Select(e => new ImmediateOperand(e.Index))
+                .OrderByDescending(i => i.Value)
+                .ToList();
+
+            if (unpackIndices.Count < byte.MinValue || unpackIndices.Count > byte.MaxValue)
+                throw new MondCompilerException(FileName, Line, CompilerError.TooManyUnpacks);
+
+            return unpackIndices;
         }
 
         public override Expression Simplify()

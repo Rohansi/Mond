@@ -58,6 +58,28 @@ namespace Mond.Compiler
         }
     }
 
+    class ImmediateByteOperand : IInstructionOperand
+    {
+        public readonly byte Value;
+
+        public ImmediateByteOperand(byte value)
+        {
+            Value = value;
+        }
+
+        public void Print()
+        {
+            Console.Write("{0,-30} (immediate byte)", Value);
+        }
+
+        public int Length { get { return 1; } }
+
+        public void Write(BinaryWriter writer)
+        {
+            writer.Write(Value);
+        }
+    }
+
     class ConstantOperand<T> : IInstructionOperand
     {
         public readonly int Id;

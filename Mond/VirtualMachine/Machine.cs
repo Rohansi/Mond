@@ -456,16 +456,33 @@ namespace Mond.VirtualMachine
                         case (int)InstructionType.Call:
                             {
                                 var argCount = ReadInt32(code, ref ip);
-                                var returnAddress = ip;
+                                var unpackCount = code[ip++];
+
                                 var function = _evalStack.Pop();
+
+                                List<MondValue> unpackedArgs = null;
+
+                                if (unpackCount > 0)
+                                    unpackedArgs = UnpackArgs(code, ref ip, argCount, unpackCount);
+
+                                var returnAddress = ip;
 
                                 if (function.Type == MondValueType.Object)
                                 {
-                                    var argArr = new MondValue[argCount];
+                                    MondValue[] argArr;
 
-                                    for (var i = argCount - 1; i >= 0; i--)
+                                    if (unpackedArgs == null)
                                     {
-                                        argArr[i] = _evalStack.Pop();
+                                        argArr = new MondValue[argCount];
+
+                                        for (var i = argCount - 1; i >= 0; i--)
+                                        {
+                                            argArr[i] = _evalStack.Pop();
+                                        }
+                                    }
+                                    else
+                                    {
+                                        argArr = unpackedArgs.ToArray();
                                     }
 
                                     MondValue result;
@@ -479,14 +496,27 @@ namespace Mond.VirtualMachine
                                 var closure = function.FunctionValue;
 
                                 var argFrame = function.FunctionValue.Arguments;
-                                if (argFrame == null)
-                                    argFrame = new Frame(1, null, argCount);
-                                else
-                                    argFrame = new Frame(argFrame.Depth + 1, argFrame, argCount);
+                                var argFrameCount = unpackedArgs == null ? argCount : unpackedArgs.Count;
 
-                                for (var i = argCount - 1; i >= 0; i--)
+                                if (argFrame == null)
+                                    argFrame = new Frame(1, null, argFrameCount);
+                                else
+                                    argFrame = new Frame(argFrame.Depth + 1, argFrame, argFrameCount);
+
+                                // copy arguments into frame
+                                if (unpackedArgs == null)
                                 {
-                                    argFrame.Values[i] = _evalStack.Pop();
+                                    for (var i = argFrameCount - 1; i >= 0; i--)
+                                    {
+                                        argFrame.Values[i] = _evalStack.Pop();
+                                    }
+                                }
+                                else
+                                {
+                                    for (var i = 0; i < argFrameCount; i++)
+                                    {
+                                        argFrame.Values[i] = unpackedArgs[i];
+                                    }
                                 }
 
                                 switch (closure.Type)
@@ -520,18 +550,45 @@ namespace Mond.VirtualMachine
                             {
                                 var argCount = ReadInt32(code, ref ip);
                                 var address = ReadInt32(code, ref ip);
+                                var unpackCount = code[ip++];
+
+                                List<MondValue> unpackedArgs = null;
+
+                                if (unpackCount > 0)
+                                    unpackedArgs = UnpackArgs(code, ref ip, argCount, unpackCount);
 
                                 var returnAddress = _callStack.Pop();
                                 var argFrame = returnAddress.Arguments;
+                                int last;
 
                                 // copy arguments into frame
-                                for (var i = argCount - 1; i >= 0; i--)
+                                if (unpackedArgs == null)
                                 {
-                                    argFrame.Values[i] = _evalStack.Pop();
+                                    last = argCount;
+
+                                    // make sure the array is the right size
+                                    argFrame.Set(argFrame.Depth, last - 1, MondValue.Undefined);
+
+                                    for (var i = last - 1; i >= 0; i--)
+                                    {
+                                        argFrame.Values[i] = _evalStack.Pop();
+                                    }
+                                }
+                                else
+                                {
+                                    last = unpackedArgs.Count;
+
+                                    // make sure the array is the right size
+                                    argFrame.Set(argFrame.Depth, last - 1, MondValue.Undefined);
+
+                                    for (var i = last - 1; i >= 0; i--)
+                                    {
+                                        argFrame.Values[i] = unpackedArgs[i];
+                                    }
                                 }
 
                                 // clear other arguments
-                                for (var i = argCount; i < argFrame.Values.Length; i++)
+                                for (var i = last; i < argFrame.Values.Length; i++)
                                 {
                                     argFrame.Values[i] = MondValue.Undefined;
                                 }
@@ -706,6 +763,50 @@ namespace Mond.VirtualMachine
                 throw new MondRuntimeException(errorBuilder.ToString(), e, true);
             }
         }
+
+        private List<MondValue> UnpackArgs(byte[] code, ref int ip, int argCount, int unpackCount)
+        {
+            var unpackIndices = new List<int>(unpackCount);
+
+            for (var i = 0; i < unpackCount; i++)
+            {
+                unpackIndices.Add(ReadInt32(code, ref ip));
+            }
+
+            var unpackedArgs = new List<MondValue>(argCount + unpackCount * 16);
+            var argIndex = 0;
+            var unpackIndex = 0;
+
+            for (var i = argCount - 1; i >= 0; i--)
+            {
+                var value = _evalStack.Pop();
+
+                if (unpackIndex < unpackIndices.Count && i == unpackIndices[unpackIndex])
+                {
+                    unpackIndex++;
+
+                    var start = argIndex;
+                    var count = 0;
+
+                    foreach (var unpackedValue in value.Enumerate(_state))
+                    {
+                        unpackedArgs.Add(unpackedValue);
+                        argIndex++;
+                        count++;
+                    }
+
+                    unpackedArgs.Reverse(start, count);
+
+                    continue;
+                }
+
+                unpackedArgs.Add(value);
+                argIndex++;
+            }
+
+            unpackedArgs.Reverse();
+            return unpackedArgs;
+        } 
 
         private static int ReadInt32(byte[] buffer, ref int offset)
         {

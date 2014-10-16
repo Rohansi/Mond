@@ -1,4 +1,6 @@
-﻿namespace Mond.Compiler.Expressions.Statements
+﻿using System.Collections.Generic;
+
+namespace Mond.Compiler.Expressions.Statements
 {
     class ForeachExpression : Expression, IStatementExpression
     {
@@ -47,14 +49,14 @@
             // set enumerator
             stack += Expression.Compile(context);
             stack += context.LoadField(context.String("getEnumerator"));
-            stack += context.Call(0);
+            stack += context.Call(0, new List<ImmediateOperand>());
             stack += context.Store(enumerator);
 
             // loop while moveNext returns true
             stack += context.Bind(start);
             stack += context.Load(enumerator);
             stack += context.LoadField(context.String("moveNext"));
-            stack += context.Call(0);
+            stack += context.Call(0, new List<ImmediateOperand>());
             stack += context.JumpFalse(end);
 
             // loop body
@@ -80,7 +82,7 @@
             stack += context.Bind(end);
             stack += context.Load(enumerator);
             stack += context.LoadField(context.String("dispose"));
-            stack += context.Call(0);
+            stack += context.Call(0, new List<ImmediateOperand>());
             stack += context.Drop();
 
             CheckStack(stack, 0);

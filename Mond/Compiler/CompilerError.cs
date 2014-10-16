@@ -29,6 +29,9 @@
 
         public const string PipelineNeedsCall = "The right side of the pipeline operator must be a function call";
 
+        public const string UnpackMustBeInCall = "The unpack operator can only be used as a function call argument";
+        public const string TooManyUnpacks = "Can not have more than 255 unpacks in a single function call";
+
         public const string FailedToDefineInternal = "Failed to define internal variable (compiler bug)";
         public const string BadStackState = "Bad stack state (compiler bug)";
     }
