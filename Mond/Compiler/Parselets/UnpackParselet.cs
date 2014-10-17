@@ -6,7 +6,7 @@ namespace Mond.Compiler.Parselets
     {
         public Expression Parse(Parser parser, Token token)
         {
-            var right = parser.ParseExpession((int)PrecedenceValue.Prefix);
+            var right = parser.ParseExpession();
             return new UnpackExpression(token, right);
         }
     }
