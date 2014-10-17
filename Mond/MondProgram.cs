@@ -42,35 +42,19 @@ namespace Mond
         /// <param name="source">Source code to compile</param>
         /// <param name="fileName">Optional file name to use in errors</param>
         /// <param name="options">Compiler options</param>
-        /// <param name="errorHandler">Callback to call if an exception is thrown</param>
-        public static IEnumerable<MondProgram> CompileStatements(IEnumerable<char> source, string fileName = null, MondCompilerOptions options = null, Action<Exception> errorHandler = null)
+        public static IEnumerable<MondProgram> CompileStatements(IEnumerable<char> source, string fileName = null, MondCompilerOptions options = null)
         {
             var lexer = new Lexer(source, fileName);
             var parser = new Parser(lexer);
 
             while (true)
             {
-                MondProgram program;
-
-                try
+                var expression = new BlockExpression(new[]
                 {
-                    var expression = new BlockExpression(new[]
-                    {
-                        parser.ParseStatement()
-                    });
+                    parser.ParseStatement()
+                });
 
-                    program = CompileImpl(expression, options);
-                }
-                catch (Exception e)
-                {
-                    if (errorHandler == null)
-                        throw;
-
-                    errorHandler(e);
-                    continue;
-                }
-
-                yield return program;
+                yield return CompileImpl(expression, options);;
             }
         }
 

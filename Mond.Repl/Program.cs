@@ -87,54 +87,68 @@ namespace Mond.Repl
 
             Functions.Register(state);
 
-            foreach (var program in MondProgram.CompileStatements(ConsoleInput(), "stdin", options, PrintException))
+            while (true)
             {
-                MondValue result;
+                _first = true;
 
                 try
                 {
-                    result = state.Load(program);
+                    foreach (var program in MondProgram.CompileStatements(ConsoleInput(), "stdin", options))
+                    {
+                        InteractiveRun(state, program);
+                    }
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.Message);
+                    PrintException(e);
+                }
+            }
+        }
+
+        static void InteractiveRun(MondState state, MondProgram program)
+        {
+            MondValue result;
+
+            try
+            {
+                result = state.Load(program);
+            }
+            catch (Exception e)
+            {
+                PrintException(e);
+                return;
+            }
+
+            // get rid of leading whitespace
+            while (_input.Count > 0 && char.IsWhiteSpace(_input.Peek()))
+            {
+                _input.Dequeue();
+            }
+
+            if (_input.Count != 0)
+                return;
+
+            _first = true;
+
+            // ignore undefined return value, it's almost always useless
+            if (result == MondValue.Undefined)
+                return;
+
+            if (result["moveNext"] && result.IsEnumerable)
+            {
+                foreach (var value in result.Enumerate(state))
+                {
+                    value.Serialize(Console.Out);
                     Console.WriteLine();
-
-                    _input.Clear();
-                    continue;
                 }
-
-                // get rid of leading whitespace
-                while (_input.Count > 0 && char.IsWhiteSpace(_input.Peek()))
-                {
-                    _input.Dequeue();
-                }
-
-                if (_input.Count != 0)
-                    continue;
-
-                _first = true;
-
-                // ignore undefined return value, it's almost always useless
-                if (result == MondValue.Undefined)
-                    continue;
-
-                if (result["moveNext"] && result.IsEnumerable)
-                {
-                    foreach (var value in result.Enumerate(state))
-                    {
-                        value.Serialize(Console.Out);
-                        Console.WriteLine();
-                    }
-                }
-                else
-                {
-                    result.Serialize(Console.Out);
-                    Console.WriteLine();
-                }
-
+            }
+            else
+            {
+                result.Serialize(Console.Out);
                 Console.WriteLine();
             }
+
+            Console.WriteLine();
         }
 
         static IEnumerable<char> ConsoleInput()
