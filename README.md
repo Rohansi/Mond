@@ -1,4 +1,4 @@
- Mond
+ Mond [![Build status](https://ci.appveyor.com/api/projects/status/di5tqqt73bu6aire)](https://ci.appveyor.com/project/Rohansi/mond)
 ==========
 
 Mond is a simple scripting language written entirely in C#. It supports advanced features like:
@@ -9,7 +9,7 @@ Mond is a simple scripting language written entirely in C#. It supports advanced
 * [simple embedding](https://github.com/Rohansi/Mond/wiki/Basic-Usage)
 * [sane variable scopes](https://github.com/Rohansi/Mond/wiki/Syntax#scope)
 
-[![Build status](https://ci.appveyor.com/api/projects/status/di5tqqt73bu6aire)](https://ci.appveyor.com/project/Rohansi/mond)
+[Try it in your browser!](https://fpp.literallybrian.com/mond/)
 
 ### Documentation
 Please check [the wiki](https://github.com/Rohansi/Mond/wiki) for documentation.
