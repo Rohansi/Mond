@@ -6,7 +6,7 @@ namespace Mond.VirtualMachine
     {
         public readonly int Depth;
         public readonly Frame Previous;
-        public MondValue[] Values { get; private set; }
+        public MondValue[] Values;
 
         public Frame(int depth, Frame previous, int valueCount)
         {
@@ -51,7 +51,7 @@ namespace Mond.VirtualMachine
 
             if (index >= values.Length)
             {
-                var oldLength = current.Values.Length;
+                var oldLength = values.Length;
                 var newLength = index + 1;
 
                 Array.Resize(ref values, newLength);
@@ -59,7 +59,7 @@ namespace Mond.VirtualMachine
 
                 for (var i = oldLength; i < newLength; i++)
                 {
-                    current.Values[i] = MondValue.Undefined;
+                    values[i] = MondValue.Undefined;
                 }
             }
 

@@ -22,23 +22,10 @@ namespace Mond
 
         internal readonly Closure FunctionValue;
 
-        private MondValue()
-        {
-            Type = MondValueType.Undefined;
-
-            ObjectValue = null;
-            ArrayValue = null;
-            _numberValue = 0;
-            _stringValue = null;
-
-            FunctionValue = null;
-        }
-
         /// <summary>
         /// Construct a new MondValue. Should only be used for Object or Array.
         /// </summary>
         public MondValue(MondValueType type)
-            : this()
         {
             Type = type;
 
@@ -67,7 +54,6 @@ namespace Mond
         /// Construct a new Object MondValue and attach a MondState to it. Should be used if using metamethods.
         /// </summary>
         public MondValue(MondState state)
-            : this()
         {
             Type = MondValueType.Object;
             ObjectValue = new VirtualMachine.Object();
@@ -78,7 +64,6 @@ namespace Mond
         /// Construct a new Number MondValue with the specified value.
         /// </summary>
         public MondValue(double value)
-            : this()
         {
             Type = MondValueType.Number;
             _numberValue = value;
@@ -88,7 +73,6 @@ namespace Mond
         /// Construct a new String MondValue with the specified value.
         /// </summary>
         public MondValue(string value)
-            : this()
         {
             Type = MondValueType.String;
             _stringValue = value;
@@ -98,7 +82,6 @@ namespace Mond
         /// Construct a new Function MondValue with the specified value.
         /// </summary>
         public MondValue(MondFunction function)
-            : this()
         {
             Type = MondValueType.Function;
             FunctionValue = new Closure(function);
@@ -109,14 +92,12 @@ namespace Mond
         /// bind themselves to their parent object when being retrieved.
         /// </summary>
         public MondValue(MondInstanceFunction function)
-            : this()
         {
             Type = MondValueType.Function;
             FunctionValue = new Closure(function);
         }
 
         internal MondValue(Closure closure)
-            : this()
         {
             Type = MondValueType.Function;
             FunctionValue = closure;

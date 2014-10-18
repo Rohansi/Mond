@@ -1,31 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Mond.Compiler;
 
 namespace Mond.VirtualMachine
 {
-    class Machine
+    partial class Machine
     {
-        private const int MaxCallDepth = 250;
-        private const int InitialEvalStackCapacity = 500;
-
         private readonly MondState _state;
-
-        private readonly Stack<ReturnAddress> _callStack;
-        private readonly Stack<Frame> _localStack;
-        private readonly Stack<MondValue> _evalStack;
-
         public MondValue Global;
 
         public Machine(MondState state)
+            : this()
         {
             _state = state;
-
-            _callStack = new Stack<ReturnAddress>(MaxCallDepth);
-            _localStack = new Stack<Frame>(MaxCallDepth);
-            _evalStack = new Stack<MondValue>(InitialEvalStackCapacity);
-
             Global = new MondValue(MondValueType.Object);
         }
 
@@ -66,8 +55,8 @@ namespace Mond.VirtualMachine
                         argFrame.Values[i] = arguments[i];
                     }
 
-                    _callStack.Push(new ReturnAddress(closure.Program, closure.Address, argFrame));
-                    _localStack.Push(closure.Locals);
+                    PushCall(new ReturnAddress(closure.Program, closure.Address, argFrame));
+                    PushLocal(closure.Locals);
                     break;
 
                 case ClosureType.Native:
@@ -82,13 +71,13 @@ namespace Mond.VirtualMachine
 
         public MondValue Run()
         {
-            var functionAddress = _callStack.Peek();
+            var functionAddress = PeekCall();
             var program = functionAddress.Program;
             var code = program.Bytecode;
 
-            var initialCallDepth = _callStack.Count - 1;
-            var initialLocalDepth = _localStack.Count;
-            var initialEvalDepth = _evalStack.Count;
+            var initialCallDepth = _callStackSize - 1;
+            var initialLocalDepth = _localStackSize;
+            var initialEvalDepth = _evalStackSize;
 
             var ip = functionAddress.Address;
             var errorIp = 0;
@@ -116,22 +105,22 @@ namespace Mond.VirtualMachine
                         #region Stack Manipulation
                         case (int)InstructionType.Dup:
                             {
-                                _evalStack.Push(_evalStack.Peek());
+                                Push(Peek());
                                 break;
                             }
 
                         case (int)InstructionType.Drop:
                             {
-                                _evalStack.Pop();
+                                Pop();
                                 break;
                             }
 
                         case (int)InstructionType.Swap:
                             {
-                                var value1 = _evalStack.Pop();
-                                var value2 = _evalStack.Pop();
-                                _evalStack.Push(value1);
-                                _evalStack.Push(value2);
+                                var value1 = Pop();
+                                var value2 = Pop();
+                                Push(value1);
+                                Push(value2);
                                 break;
                             }
                         #endregion
@@ -139,45 +128,45 @@ namespace Mond.VirtualMachine
                         #region Constants
                         case (int)InstructionType.LdUndef:
                             {
-                                _evalStack.Push(MondValue.Undefined);
+                                Push(MondValue.Undefined);
                                 break;
                             }
 
                         case (int)InstructionType.LdNull:
                             {
-                                _evalStack.Push(MondValue.Null);
+                                Push(MondValue.Null);
                                 break;
                             }
 
                         case (int)InstructionType.LdTrue:
                             {
-                                _evalStack.Push(MondValue.True);
+                                Push(MondValue.True);
                                 break;
                             }
 
                         case (int)InstructionType.LdFalse:
                             {
-                                _evalStack.Push(MondValue.False);
+                                Push(MondValue.False);
                                 break;
                             }
 
                         case (int)InstructionType.LdNum:
                             {
                                 var numId = ReadInt32(code, ref ip);
-                                _evalStack.Push(program.Numbers[numId]);
+                                Push(program.Numbers[numId]);
                                 break;
                             }
 
                         case (int)InstructionType.LdStr:
                             {
                                 var strId = ReadInt32(code, ref ip);
-                                _evalStack.Push(program.Strings[strId]);
+                                Push(program.Strings[strId]);
                                 break;
                             }
 
                         case (int)InstructionType.LdGlobal:
                             {
-                                _evalStack.Push(Global);
+                                Push(Global);
                                 break;
                             }
                         #endregion
@@ -189,9 +178,9 @@ namespace Mond.VirtualMachine
                                 var index = ReadInt32(code, ref ip);
 
                                 if (depth < 0)
-                                    _evalStack.Push(args.Get(Math.Abs(depth), index));
+                                    Push(args.Get(-depth, index));
                                 else
-                                    _evalStack.Push(locals.Get(depth, index));
+                                    Push(locals.Get(depth, index));
 
                                 break;
                             }
@@ -202,24 +191,24 @@ namespace Mond.VirtualMachine
                                 var index = ReadInt32(code, ref ip);
 
                                 if (depth < 0)
-                                    args.Set(Math.Abs(depth), index, _evalStack.Pop());
+                                    args.Set(-depth, index, Pop());
                                 else
-                                    locals.Set(depth, index, _evalStack.Pop());
+                                    locals.Set(depth, index, Pop());
 
                                 break;
                             }
 
                         case (int)InstructionType.LdFld:
                             {
-                                var obj = _evalStack.Pop();
-                                _evalStack.Push(obj[program.Strings[ReadInt32(code, ref ip)]]);
+                                var obj = Pop();
+                                Push(obj[program.Strings[ReadInt32(code, ref ip)]]);
                                 break;
                             }
 
                         case (int)InstructionType.StFld:
                             {
-                                var obj = _evalStack.Pop();
-                                var value = _evalStack.Pop();
+                                var obj = Pop();
+                                var value = Pop();
 
                                 obj[program.Strings[ReadInt32(code, ref ip)]] = value;
                                 break;
@@ -227,17 +216,17 @@ namespace Mond.VirtualMachine
 
                         case (int)InstructionType.LdArr:
                             {
-                                var index = _evalStack.Pop();
-                                var array = _evalStack.Pop();
-                                _evalStack.Push(array[index]);
+                                var index = Pop();
+                                var array = Pop();
+                                Push(array[index]);
                                 break;
                             }
 
                         case (int)InstructionType.StArr:
                             {
-                                var index = _evalStack.Pop();
-                                var array = _evalStack.Pop();
-                                var value = _evalStack.Pop();
+                                var index = Pop();
+                                var array = Pop();
+                                var value = Pop();
                                 array[index] = value;
                                 break;
                             }
@@ -247,7 +236,7 @@ namespace Mond.VirtualMachine
                         case (int)InstructionType.NewObject:
                             {
                                 var obj = new MondValue(_state);
-                                _evalStack.Push(obj);
+                                Push(obj);
                                 break;
                             }
 
@@ -263,10 +252,10 @@ namespace Mond.VirtualMachine
 
                                 for (var i = count - 1; i >= 0; i--)
                                 {
-                                    array.ArrayValue[i] = _evalStack.Pop();
+                                    array.ArrayValue[i] = Pop();
                                 }
 
-                                _evalStack.Push(array);
+                                Push(array);
                                 break;
                             }
                         #endregion
@@ -274,101 +263,101 @@ namespace Mond.VirtualMachine
                         #region Math
                         case (int)InstructionType.Add:
                             {
-                                var left = _evalStack.Pop();
-                                var right = _evalStack.Pop();
-                                _evalStack.Push(left + right);
+                                var left = Pop();
+                                var right = Pop();
+                                Push(left + right);
                                 break;
                             }
 
                         case (int)InstructionType.Sub:
                             {
-                                var left = _evalStack.Pop();
-                                var right = _evalStack.Pop();
-                                _evalStack.Push(left - right);
+                                var left = Pop();
+                                var right = Pop();
+                                Push(left - right);
                                 break;
                             }
 
                         case (int)InstructionType.Mul:
                             {
-                                var left = _evalStack.Pop();
-                                var right = _evalStack.Pop();
-                                _evalStack.Push(left * right);
+                                var left = Pop();
+                                var right = Pop();
+                                Push(left * right);
                                 break;
                             }
 
                         case (int)InstructionType.Div:
                             {
-                                var left = _evalStack.Pop();
-                                var right = _evalStack.Pop();
-                                _evalStack.Push(left / right);
+                                var left = Pop();
+                                var right = Pop();
+                                Push(left / right);
                                 break;
                             }
 
                         case (int)InstructionType.Mod:
                             {
-                                var left = _evalStack.Pop();
-                                var right = _evalStack.Pop();
-                                _evalStack.Push(left % right);
+                                var left = Pop();
+                                var right = Pop();
+                                Push(left % right);
                                 break;
                             }
 
                         case (int)InstructionType.Exp:
                             {
-                                var left = _evalStack.Pop();
-                                var right = _evalStack.Pop();
-                                _evalStack.Push(MondValue.Pow(left, right));
+                                var left = Pop();
+                                var right = Pop();
+                                Push(MondValue.Pow(left, right));
                                 break;
                             }
 
                         case (int)InstructionType.BitLShift:
                             {
-                                var left = _evalStack.Pop();
-                                var right = _evalStack.Pop();
-                                _evalStack.Push(MondValue.LShift(left, right));
+                                var left = Pop();
+                                var right = Pop();
+                                Push(MondValue.LShift(left, right));
                                 break;
                             }
 
                         case (int)InstructionType.BitRShift:
                             {
-                                var left = _evalStack.Pop();
-                                var right = _evalStack.Pop();
-                                _evalStack.Push(MondValue.RShift(left, right));
+                                var left = Pop();
+                                var right = Pop();
+                                Push(MondValue.RShift(left, right));
                                 break;
                             }
 
                         case (int)InstructionType.BitAnd:
                             {
-                                var left = _evalStack.Pop();
-                                var right = _evalStack.Pop();
-                                _evalStack.Push(left & right);
+                                var left = Pop();
+                                var right = Pop();
+                                Push(left & right);
                                 break;
                             }
 
                         case (int)InstructionType.BitOr:
                             {
-                                var left = _evalStack.Pop();
-                                var right = _evalStack.Pop();
-                                _evalStack.Push(left | right);
+                                var left = Pop();
+                                var right = Pop();
+                                Push(left | right);
                                 break;
                             }
 
                         case (int)InstructionType.BitXor:
                             {
-                                var left = _evalStack.Pop();
-                                var right = _evalStack.Pop();
-                                _evalStack.Push(left ^ right);
+                                var left = Pop();
+                                var right = Pop();
+                                Push(left ^ right);
                                 break;
                             }
 
                         case (int)InstructionType.Neg:
                             {
-                                _evalStack.Push(-_evalStack.Pop());
+                                Push(-Pop());
                                 break;
                             }
 
                         case (int)InstructionType.BitNot:
                             {
-                                _evalStack.Push(~_evalStack.Pop());
+                                Push(~Pop());
                                 break;
                             }
                         #endregion
@@ -376,71 +365,71 @@ namespace Mond.VirtualMachine
                         #region Logic
                         case (int)InstructionType.Eq:
                             {
-                                var left = _evalStack.Pop();
-                                var right = _evalStack.Pop();
-                                _evalStack.Push(left == right);
+                                var left = Pop();
+                                var right = Pop();
+                                Push(left == right);
                                 break;
                             }
 
                         case (int)InstructionType.Neq:
                             {
-                                var left = _evalStack.Pop();
-                                var right = _evalStack.Pop();
-                                _evalStack.Push(left != right);
+                                var left = Pop();
+                                var right = Pop();
+                                Push(left != right);
                                 break;
                             }
 
                         case (int)InstructionType.Gt:
                             {
-                                var left = _evalStack.Pop();
-                                var right = _evalStack.Pop();
-                                _evalStack.Push(left > right);
+                                var left = Pop();
+                                var right = Pop();
+                                Push(left > right);
                                 break;
                             }
 
                         case (int)InstructionType.Gte:
                             {
-                                var left = _evalStack.Pop();
-                                var right = _evalStack.Pop();
-                                _evalStack.Push(left >= right);
+                                var left = Pop();
+                                var right = Pop();
+                                Push(left >= right);
                                 break;
                             }
 
                         case (int)InstructionType.Lt:
                             {
-                                var left = _evalStack.Pop();
-                                var right = _evalStack.Pop();
-                                _evalStack.Push(left < right);
+                                var left = Pop();
+                                var right = Pop();
+                                Push(left < right);
                                 break;
                             }
 
                         case (int)InstructionType.Lte:
                             {
-                                var left = _evalStack.Pop();
-                                var right = _evalStack.Pop();
-                                _evalStack.Push(left <= right);
+                                var left = Pop();
+                                var right = Pop();
+                                Push(left <= right);
                                 break;
                             }
 
                         case (int)InstructionType.Not:
                             {
-                                _evalStack.Push(!_evalStack.Pop());
+                                Push(!Pop());
                                 break;
                             }
 
                         case (int)InstructionType.In:
                             {
-                                var left = _evalStack.Pop();
-                                var right = _evalStack.Pop();
-                                _evalStack.Push(right.Contains(left));
+                                var left = Pop();
+                                var right = Pop();
+                                Push(right.Contains(left));
                                 break;
                             }
 
                         case (int)InstructionType.NotIn:
                             {
-                                var left = _evalStack.Pop();
-                                var right = _evalStack.Pop();
-                                _evalStack.Push(!right.Contains(left));
+                                var left = Pop();
+                                var right = Pop();
+                                Push(!right.Contains(left));
                                 break;
                             }
                         #endregion
@@ -449,7 +438,7 @@ namespace Mond.VirtualMachine
                         case (int)InstructionType.Closure:
                             {
                                 var address = ReadInt32(code, ref ip);
-                                _evalStack.Push(new MondValue(new Closure(program, address, args, locals)));
+                                Push(new MondValue(new Closure(program, address, args, locals)));
                                 break;
                             }
 
@@ -458,7 +447,7 @@ namespace Mond.VirtualMachine
                                 var argCount = ReadInt32(code, ref ip);
                                 var unpackCount = code[ip++];
 
-                                var function = _evalStack.Pop();
+                                var function = Pop();
 
                                 List<MondValue> unpackedArgs = null;
 
@@ -477,7 +466,7 @@ namespace Mond.VirtualMachine
 
                                         for (var i = argCount - 1; i >= 0; i--)
                                         {
-                                            argArr[i] = _evalStack.Pop();
+                                            argArr[i] = Pop();
                                         }
                                     }
                                     else
@@ -508,7 +497,7 @@ namespace Mond.VirtualMachine
                                 {
                                     for (var i = argFrameCount - 1; i >= 0; i--)
                                     {
-                                        argFrame.Values[i] = _evalStack.Pop();
+                                        argFrame.Values[i] = Pop();
                                     }
                                 }
                                 else
@@ -522,11 +511,9 @@ namespace Mond.VirtualMachine
                                 switch (closure.Type)
                                 {
                                     case ClosureType.Mond:
-                                        if (_callStack.Count >= MaxCallDepth)
-                                            throw new MondRuntimeException(RuntimeError.StackOverflow);
+                                        PushCall(new ReturnAddress(program, returnAddress, argFrame));
+                                        PushLocal(closure.Locals);
 
-                                        _callStack.Push(new ReturnAddress(program, returnAddress, argFrame));
-                                        _localStack.Push(closure.Locals);
                                         program = closure.Program;
                                         code = program.Bytecode;
                                         ip = closure.Address;
@@ -536,7 +523,7 @@ namespace Mond.VirtualMachine
 
                                     case ClosureType.Native:
                                         var result = closure.NativeFunction(_state, argFrame.Values);
-                                        _evalStack.Push(result);
+                                        Push(result);
                                         break;
 
                                     default:
@@ -557,7 +544,7 @@ namespace Mond.VirtualMachine
                                 if (unpackCount > 0)
                                     unpackedArgs = UnpackArgs(code, ref ip, argCount, unpackCount);
 
-                                var returnAddress = _callStack.Pop();
+                                var returnAddress = PopCall();
                                 var argFrame = returnAddress.Arguments;
                                 int last;
 
@@ -571,7 +558,7 @@ namespace Mond.VirtualMachine
 
                                     for (var i = last - 1; i >= 0; i--)
                                     {
-                                        argFrame.Values[i] = _evalStack.Pop();
+                                        argFrame.Values[i] = Pop();
                                     }
                                 }
                                 else
@@ -594,9 +581,9 @@ namespace Mond.VirtualMachine
                                 }
 
                                 // get rid of old locals
-                                _localStack.Push(_localStack.Pop().Previous);
+                                PushLocal(PopLocal().Previous);
 
-                                _callStack.Push(new ReturnAddress(returnAddress.Program, returnAddress.Address, argFrame));
+                                PushCall(new ReturnAddress(returnAddress.Program, returnAddress.Address, argFrame));
 
                                 ip = address;
                                 break;
@@ -606,28 +593,28 @@ namespace Mond.VirtualMachine
                             {
                                 var localCount = ReadInt32(code, ref ip);
 
-                                var frame = _localStack.Pop();
+                                var frame = PopLocal();
                                 frame = new Frame(frame != null ? frame.Depth + 1 : 0, frame, localCount);
 
-                                _localStack.Push(frame);
+                                PushLocal(frame);
                                 locals = frame;
                                 break;
                             }
 
                         case (int)InstructionType.Ret:
                             {
-                                var returnAddress = _callStack.Pop();
-                                _localStack.Pop();
+                                var returnAddress = PopCall();
+                                PopLocal();
 
                                 program = returnAddress.Program;
                                 code = program.Bytecode;
                                 ip = returnAddress.Address;
 
-                                args = _callStack.Count > 0 ? _callStack.Peek().Arguments : null;
-                                locals = _localStack.Count > 0 ? _localStack.Peek() : null;
+                                args = _callStackSize > 0 ? PeekCall().Arguments : null;
+                                locals = _localStackSize > 0 ? PeekLocal() : null;
 
-                                if (_callStack.Count == initialCallDepth)
-                                    return _evalStack.Pop();
+                                if (_callStackSize == initialCallDepth)
+                                    return Pop();
 
                                 break;
                             }
@@ -653,7 +640,7 @@ namespace Mond.VirtualMachine
 
                                 var endIp = ip + count * 4;
 
-                                var value = _evalStack.Pop();
+                                var value = Pop();
                                 if (value.Type == MondValueType.Number)
                                 {
                                     var number = (double)value;
@@ -685,7 +672,7 @@ namespace Mond.VirtualMachine
                             {
                                 var address = ReadInt32(code, ref ip);
 
-                                if (_evalStack.Peek())
+                                if (Peek())
                                     ip = address;
 
                                 break;
@@ -695,7 +682,7 @@ namespace Mond.VirtualMachine
                             {
                                 var address = ReadInt32(code, ref ip);
 
-                                if (!_evalStack.Peek())
+                                if (!Peek())
                                     ip = address;
 
                                 break;
@@ -705,7 +692,7 @@ namespace Mond.VirtualMachine
                             {
                                 var address = ReadInt32(code, ref ip);
 
-                                if (_evalStack.Pop())
+                                if (Pop())
                                     ip = address;
 
                                 break;
@@ -715,7 +702,7 @@ namespace Mond.VirtualMachine
                             {
                                 var address = ReadInt32(code, ref ip);
 
-                                if (!_evalStack.Pop())
+                                if (!Pop())
                                     ip = address;
 
                                 break;
@@ -741,23 +728,23 @@ namespace Mond.VirtualMachine
 
                 errorBuilder.AppendLine(GetAddressDebugInfo(program, errorIp));
 
-                while (_callStack.Count > initialCallDepth + 1)
+                while (_callStackSize > initialCallDepth + 1)
                 {
-                    var returnAddress = _callStack.Pop();
+                    var returnAddress = PopCall();
 
                     errorBuilder.AppendLine(GetAddressDebugInfo(returnAddress.Program, returnAddress.Address));
                 }
 
-                _callStack.Pop();
+                PopCall();
 
-                while (_localStack.Count > initialLocalDepth)
+                while (_localStackSize > initialLocalDepth)
                 {
-                    _localStack.Pop();
+                    PopLocal();
                 }
 
-                while (_evalStack.Count > initialEvalDepth)
+                while (_evalStackSize > initialEvalDepth)
                 {
-                    _evalStack.Pop();
+                    Pop();
                 }
 
                 throw new MondRuntimeException(errorBuilder.ToString(), e, true);
@@ -779,7 +766,7 @@ namespace Mond.VirtualMachine
 
             for (var i = argCount - 1; i >= 0; i--)
             {
-                var value = _evalStack.Pop();
+                var value = Pop();
 
                 if (unpackIndex < unpackIndices.Count && i == unpackIndices[unpackIndex])
                 {
@@ -806,8 +793,9 @@ namespace Mond.VirtualMachine
 
             unpackedArgs.Reverse();
             return unpackedArgs;
-        } 
+        }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int ReadInt32(byte[] buffer, ref int offset)
         {
             return buffer[offset++] <<  0 |

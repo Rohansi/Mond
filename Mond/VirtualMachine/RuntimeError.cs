@@ -16,6 +16,7 @@
         public const string ValueNotCallable = "Value of type {0} is not callable";
 
         public const string StackOverflow = "Stack overflow";
+        public const string StackEmpty = "Stack is empty";
 
         public const string UnhandledOpcode = "Unhandled opcode (runtime bug)";
         public const string UnhandledClosureType = "Unhandled closure type (runtime bug)";
