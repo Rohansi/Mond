@@ -89,8 +89,6 @@ namespace Mond.Repl
 
             while (true)
             {
-                _first = true;
-
                 try
                 {
                     foreach (var program in MondProgram.CompileStatements(ConsoleInput(), "stdin", options))
@@ -188,6 +186,7 @@ namespace Mond.Repl
             Console.WriteLine(message);
             Console.WriteLine();
 
+            _first = true;
             _input.Clear();
         }
     }
