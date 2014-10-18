@@ -41,8 +41,7 @@ namespace Mond
                     return false;
 
                 case MondValueType.Number:
-                    // ReSharper disable once CompareOfFloatsByEqualityOperator
-                    return value._numberValue != 0 && !double.IsNaN(value._numberValue);
+                    return !double.IsNaN(value._numberValue);
 
                 case MondValueType.Object:
                     {
