@@ -56,7 +56,6 @@ namespace Mond
                     break;
 
                 case MondValueType.Object:
-
                     MondValue result;
                     if (TryDispatch("__serialize", out result, this))
                     {

@@ -15,8 +15,12 @@
 
         public const string ValueNotCallable = "Value of type {0} is not callable";
 
+        public const string NumberCastWrongType = "__number must return a Number";
+        public const string StringCastWrongType = "__string must return a String";
+        public const string BoolCastWrongType = "__bool must return a Bool";
+
         public const string StackOverflow = "Stack overflow";
-        public const string StackEmpty = "Stack is empty";
+        public const string StackEmpty = "Stack is empty (runtime bug)";
 
         public const string UnhandledOpcode = "Unhandled opcode (runtime bug)";
         public const string UnhandledClosureType = "Unhandled closure type (runtime bug)";

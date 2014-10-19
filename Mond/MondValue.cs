@@ -402,7 +402,12 @@ namespace Mond
                     {
                         MondValue result;
                         if (TryDispatch("__string", out result, this))
+                        {
+                            if (result.Type != MondValueType.String)
+                                throw new MondRuntimeException(RuntimeError.StringCastWrongType);
+
                             return result;
+                        }
 
                         return "object";
                     }

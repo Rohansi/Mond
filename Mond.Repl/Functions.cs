@@ -20,7 +20,7 @@ namespace Mond.Repl
                 { "stdin", Stdin }
             };
         }
-         
+
         public static void Register(MondState state)
         {
             foreach (var fn in _functions)
@@ -64,16 +64,9 @@ namespace Mond.Repl
 
         private static MondValue Print(MondState state, params MondValue[] arguments)
         {
-            if (arguments.Length == 0)
-                return MondValue.Undefined;
-
-            if (arguments[0].Type == MondValueType.String)
+            foreach (var v in arguments)
             {
-                Console.Write((string)arguments[0]);
-            }
-            else
-            {
-                arguments[0].Serialize(Console.Out);
+                PrintImpl(v);
             }
 
             return MondValue.Undefined;
@@ -81,9 +74,21 @@ namespace Mond.Repl
 
         private static MondValue PrintLn(MondState state, params MondValue[] arguments)
         {
-            Print(state, arguments);
-            Console.WriteLine();
+            if (arguments.Length == 0)
+                Console.WriteLine();
+
+            foreach (var v in arguments)
+            {
+                PrintImpl(v);
+                Console.WriteLine();
+            }
+
             return MondValue.Undefined;
+        }
+
+        private static void PrintImpl(MondValue value)
+        {
+            Console.Write((string)value);
         }
 
         private static MondValue Stdin(MondState state, params MondValue[] arguments)
