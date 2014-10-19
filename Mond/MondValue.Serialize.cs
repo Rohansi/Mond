@@ -16,7 +16,7 @@ namespace Mond
             using (var stringWriter = new StringWriter(stringBuilder))
             using (var writer = new IndentTextWriter(stringWriter))
             {
-                SerializeImpl(writer);
+                SerializeImpl(writer, 0);
             }
 
             return stringBuilder.ToString();
@@ -29,12 +29,18 @@ namespace Mond
         {
             using (var writer = new IndentTextWriter(textWriter))
             {
-                SerializeImpl(writer);
+                SerializeImpl(writer, 0);
             }
         }
 
-        private void SerializeImpl(IndentTextWriter writer)
+        private bool SerializeImpl(IndentTextWriter writer, int depth)
         {
+            if (depth >= 64)
+            {
+                writer.Write("< max depth reached >");
+                return false;
+            }
+
             bool first = true;
 
             switch (Type)
@@ -59,7 +65,9 @@ namespace Mond
                     MondValue result;
                     if (TryDispatch("__serialize", out result, this))
                     {
-                        result.Serialize( writer );
+                        if (!result.SerializeImpl(writer, depth + 1))
+                            return false;
+
                         break;
                     }
 
@@ -80,9 +88,13 @@ namespace Mond
                             writer.WriteIndent();
                         }
 
-                        objValue.Key.SerializeImpl(writer);
+                        if (!objValue.Key.SerializeImpl(writer, depth + 1))
+                            break;
+
                         writer.Write(": ");
-                        objValue.Value.SerializeImpl(writer);
+
+                        if (!objValue.Value.SerializeImpl(writer, depth + 1))
+                            break;
                     }
 
                     writer.WriteLine();
@@ -109,7 +121,8 @@ namespace Mond
                             writer.WriteIndent();
                         }
 
-                        arrValue.SerializeImpl(writer);
+                        if (!arrValue.SerializeImpl(writer, depth + 1))
+                            break;
                     }
 
                     writer.WriteLine();
@@ -123,7 +136,7 @@ namespace Mond
                     break;
 
                 case MondValueType.String:
-                    writer.Write("\"{0}\"", _stringValue);
+                    SerializeString(writer, _stringValue);
                     break;
 
                 case MondValueType.Function:
@@ -133,6 +146,53 @@ namespace Mond
                 default:
                     throw new NotSupportedException();
             }
+
+            return true;
+        }
+
+        private static void SerializeString(TextWriter writer, string value)
+        {
+            writer.Write('"');
+
+            foreach (var c in value)
+            {
+                switch (c)
+                {
+                    case '\\':
+                        writer.Write("\\\\");
+                        break;
+
+                    case '\"':
+                        writer.Write("\\\"");
+                        break;
+
+                    case '\b':
+                        writer.Write("\\b");
+                        break;
+
+                    case '\f':
+                        writer.Write("\\f");
+                        break;
+
+                    case '\n':
+                        writer.Write("\\n");
+                        break;
+
+                    case '\r':
+                        writer.Write("\\r");
+                        break;
+
+                    case '\t':
+                        writer.Write("\\t");
+                        break;
+
+                    default:
+                        writer.Write(c);
+                        break;
+                }
+            }
+
+            writer.Write('"');
         }
     }
 }
