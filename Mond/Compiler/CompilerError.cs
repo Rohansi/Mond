@@ -12,25 +12,25 @@
 
         public const string UndefinedIdentifier = "Undefined identifier '{0}'";
         public const string IdentifierAlreadyDefined = "Identifier '{0}' was previously defined in this scope";
-        public const string CantModifyReadonlyVar = "Can not modify '{0}' because it is readonly";
+        public const string CantModifyReadonlyVar = "Cannot modify '{0}' because it is readonly";
         public const string LeftSideMustBeStorable = "The left side of an assignment must be storable";
 
         public const string ExpectedConstant = "Expected a constant value";
         public const string DuplicateCase = "Duplicate case value";
 
-        public const string BadForLoopInitializer = "For loop initializer can not be statement";
+        public const string BadForLoopInitializer = "For loop initializer cannot be statement";
 
         public const string FunctionNeverUsed = "Function is never used";
 
         public const string UnresolvedJump = "Unresolved jump";
 
-        public const string YieldInFun = "'yield' can not be used in functions";
+        public const string YieldInFun = "'yield' cannot be used in functions";
         public const string ReturnInSeq = "'yield break' should be used to return from sequences";
 
         public const string PipelineNeedsCall = "The right side of the pipeline operator must be a function call";
 
         public const string UnpackMustBeInCall = "The unpack operator can only be used as a function call argument";
-        public const string TooManyUnpacks = "Can not have more than 255 unpacks in a single function call";
+        public const string TooManyUnpacks = "Cannot have more than 255 unpacks in a single function call";
 
         public const string FailedToDefineInternal = "Failed to define internal variable (compiler bug)";
         public const string BadStackState = "Bad stack state (compiler bug)";

@@ -212,7 +212,7 @@ namespace Mond
                 }
 
                 if (Type != MondValueType.Object)
-                    throw new MondRuntimeException(RuntimeError.CantCreateField, Type);
+                    throw new MondRuntimeException(RuntimeError.CantCreateField, Type.GetName());
 
                 MondValue result;
                 if (TryDispatch("__set", out result, index, this, value))
@@ -348,7 +348,7 @@ namespace Mond
             if (Type == MondValueType.Array)
                 return ArrayValue.Contains(search);
 
-            throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "in", Type, search.Type);
+            throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "in", Type, search.Type.GetName());
         }
 
         public override int GetHashCode()
@@ -390,10 +390,6 @@ namespace Mond
         {
             switch (Type)
             {
-                case MondValueType.Undefined:
-                    return "undefined";
-                case MondValueType.Null:
-                    return "null";
                 case MondValueType.True:
                     return "true";
                 case MondValueType.False:
@@ -411,16 +407,12 @@ namespace Mond
 
                         return "object";
                     }
-                case MondValueType.Array:
-                    return "array";
                 case MondValueType.Number:
                     return string.Format("{0:R}", _numberValue);
                 case MondValueType.String:
                     return _stringValue;
-                case MondValueType.Function:
-                    return "function";
                 default:
-                    throw new NotSupportedException();
+                    return Type.GetName();
             }
         }
 

@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Text;
 
 namespace Mond
@@ -45,14 +44,6 @@ namespace Mond
 
             switch (Type)
             {
-                case MondValueType.Undefined:
-                    writer.Write("undefined");
-                    break;
-
-                case MondValueType.Null:
-                    writer.Write("null");
-                    break;
-
                 case MondValueType.True:
                     writer.Write("true");
                     break;
@@ -139,12 +130,9 @@ namespace Mond
                     SerializeString(writer, _stringValue);
                     break;
 
-                case MondValueType.Function:
-                    writer.Write("function");
-                    break;
-
                 default:
-                    throw new NotSupportedException();
+                    writer.Write(Type.GetName());
+                    break;
             }
 
             return true;

@@ -145,6 +145,8 @@ namespace Mond.Tests.Expressions
 
             Assert.True(state.Call(test, MondValue.Undefined) == 10);
 
+            Assert.True(state.Call(test, 11) == 11);
+
             Assert.Throws<MondCompilerException>(() => Script.Run(@"
                 switch (1) { var }
             "));

@@ -9,7 +9,7 @@
 
         public const string DuplicateDefinition = "Duplicate definition of '{0}'";
 
-        public const string TooManyConstructors = "Classes can not have multiple Mond constructors";
+        public const string TooManyConstructors = "Classes cannot have multiple Mond constructors";
         public const string NotEnoughConstructors = "Classes must have one Mond constructor";
     }
 }

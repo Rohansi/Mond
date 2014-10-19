@@ -37,7 +37,7 @@ namespace Mond.VirtualMachine
             }
 
             if (function.Type != MondValueType.Function)
-                throw new MondRuntimeException(RuntimeError.ValueNotCallable, function.Type);
+                throw new MondRuntimeException(RuntimeError.ValueNotCallable, function.Type.GetName());
 
             var closure = function.FunctionValue;
 
@@ -480,7 +480,7 @@ namespace Mond.VirtualMachine
                                 }
 
                                 if (function.Type != MondValueType.Function)
-                                    throw new MondRuntimeException(RuntimeError.ValueNotCallable, function.Type);
+                                    throw new MondRuntimeException(RuntimeError.ValueNotCallable, function.Type.GetName());
 
                                 var closure = function.FunctionValue;
 

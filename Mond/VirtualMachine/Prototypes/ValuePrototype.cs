@@ -26,7 +26,6 @@
             return instance.Type.GetName();
         }
 
-
         private static MondValue ToString(MondState state, MondValue instance, params MondValue[] args)
         {
             return instance.ToString();

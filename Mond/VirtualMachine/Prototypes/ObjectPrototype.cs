@@ -161,7 +161,7 @@ namespace Mond.VirtualMachine.Prototypes
 
             instance.Prototype = obj;
 
-            return MondValue.Undefined;
+            return instance;
         }
 
         private static void Check(string method, MondValueType type, IList<MondValue> arguments, params MondValueType[] requiredTypes)

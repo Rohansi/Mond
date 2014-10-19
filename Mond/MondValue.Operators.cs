@@ -84,7 +84,7 @@ namespace Mond
                 return result;
             }
 
-            throw new MondRuntimeException(RuntimeError.CantCastTo, value.Type, MondValueType.Number);
+            throw new MondRuntimeException(RuntimeError.CantCastTo, value.Type.GetName(), MondValueType.Number.GetName());
         }
 
         public static implicit operator string(MondValue value)
@@ -109,7 +109,7 @@ namespace Mond
                 return new MondValue((double)left + (double)right);
             }
 
-            throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "addition", left.Type, right.Type);
+            throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "addition", left.Type.GetName(), right.Type.GetName());
         }
 
         public static MondValue operator -(MondValue left, MondValue right)
@@ -126,7 +126,7 @@ namespace Mond
                 return new MondValue((double)left - (double)right);
             }
 
-            throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "subtraction", left.Type, right.Type);
+            throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "subtraction", left.Type.GetName(), right.Type.GetName());
         }
 
         public static MondValue operator *(MondValue left, MondValue right)
@@ -143,7 +143,7 @@ namespace Mond
                 return new MondValue((double)left * (double)right);
             }
 
-            throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "multiplication", left.Type, right.Type);
+            throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "multiplication", left.Type.GetName(), right.Type.GetName());
         }
 
         public static MondValue operator /(MondValue left, MondValue right)
@@ -160,7 +160,7 @@ namespace Mond
                 return new MondValue((double)left / (double)right);
             }
 
-            throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "division", left.Type, right.Type);
+            throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "division", left.Type.GetName(), right.Type.GetName());
         }
 
         public static MondValue operator %(MondValue left, MondValue right)
@@ -177,7 +177,7 @@ namespace Mond
                 return new MondValue((double)left % (double)right);
             }
 
-            throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "modulo", left.Type, right.Type);
+            throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "modulo", left.Type.GetName(), right.Type.GetName());
         }
 
         public static MondValue Pow(MondValue left, MondValue right)
@@ -194,7 +194,7 @@ namespace Mond
                 return new MondValue(Math.Pow(left, right));
             }
 
-            throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "exponent", left.Type, right.Type);
+            throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "exponent", left.Type.GetName(), right.Type.GetName());
         }
 
         public static MondValue LShift(MondValue left, MondValue right)
@@ -239,7 +239,7 @@ namespace Mond
                 return new MondValue((int)left << right);
             }
 
-            throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "bitwise left shift", left.Type, MondValueType.Number);
+            throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "bitwise left shift", left.Type.GetName(), MondValueType.Number.GetName());
         }
 
         public static MondValue operator >>(MondValue left, int right)
@@ -256,7 +256,7 @@ namespace Mond
                 return new MondValue((int)left >> right);
             }
 
-            throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "bitwise right shift", left.Type, MondValueType.Number);
+            throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "bitwise right shift", left.Type.GetName(), MondValueType.Number.GetName());
         }
 
         public static MondValue operator &(MondValue left, MondValue right)
@@ -273,7 +273,7 @@ namespace Mond
                 return new MondValue((int)left & (int)right);
             }
 
-            throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "bitwise and", left.Type, right.Type);
+            throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "bitwise and", left.Type.GetName(), right.Type.GetName());
         }
 
         public static MondValue operator |(MondValue left, MondValue right)
@@ -290,7 +290,7 @@ namespace Mond
                 return new MondValue((int)left | (int)right);
             }
 
-            throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "bitwise or", left.Type, right.Type);
+            throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "bitwise or", left.Type.GetName(), right.Type.GetName());
         }
 
         public static MondValue operator ^(MondValue left, MondValue right)
@@ -307,7 +307,7 @@ namespace Mond
                 return new MondValue((int)left ^ (int)right);
             }
 
-            throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "bitwise xor", left.Type, right.Type);
+            throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "bitwise xor", left.Type.GetName(), right.Type.GetName());
         }
 
         public static MondValue operator -(MondValue value)
@@ -324,7 +324,7 @@ namespace Mond
                 return new MondValue(-(double)value);
             }
 
-            throw new MondRuntimeException(RuntimeError.CantUseOperatorOnType, "negation", value.Type);
+            throw new MondRuntimeException(RuntimeError.CantUseOperatorOnType, "negation", value.Type.GetName());
         }
 
         public static MondValue operator ~(MondValue value)
@@ -341,7 +341,7 @@ namespace Mond
                 return new MondValue(~(int)value);
             }
 
-            throw new MondRuntimeException(RuntimeError.CantUseOperatorOnType, "bitwise not", value.Type);
+            throw new MondRuntimeException(RuntimeError.CantUseOperatorOnType, "bitwise not", value.Type.GetName());
         }
 
         public static bool operator ==(MondValue left, MondValue right)
@@ -366,13 +366,13 @@ namespace Mond
             {
                 case MondValueType.Number:
                     if (right.Type != MondValueType.Number)
-                        throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "relational", left.Type, right.Type);
+                        throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "relational", left.Type.GetName(), right.Type.GetName());
 
                     return left._numberValue > right._numberValue;
 
                 case MondValueType.String:
                     if (right.Type != MondValueType.String)
-                        throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "relational", left.Type, right.Type);
+                        throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "relational", left.Type.GetName(), right.Type.GetName());
 
                     return string.Compare(left._stringValue, right._stringValue, CultureInfo.InvariantCulture, CompareOptions.None) > 0;
 
@@ -384,7 +384,7 @@ namespace Mond
                     goto default;
 
                 default:
-                    throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "relational", left.Type, right.Type);
+                    throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "relational", left.Type.GetName(), right.Type.GetName());
             }
         }
 
