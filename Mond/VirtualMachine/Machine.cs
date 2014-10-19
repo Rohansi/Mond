@@ -31,6 +31,11 @@ namespace Mond.VirtualMachine
         {
             if (function.Type == MondValueType.Object)
             {
+                // insert "this" value into argument array
+                Array.Resize(ref arguments, arguments.Length + 1);
+                Array.Copy(arguments, 0, arguments, 1, arguments.Length - 1);
+                arguments[0] = function;
+
                 MondValue result;
                 if (function.ObjectValue.TryDispatch("__call", out result, arguments))
                     return result;
@@ -305,7 +310,7 @@ namespace Mond.VirtualMachine
                             {
                                 var left = Pop();
                                 var right = Pop();
-                                Push(MondValue.Pow(left, right));
+                                Push(left.Pow(right));
                                 break;
                             }
 
@@ -313,7 +318,7 @@ namespace Mond.VirtualMachine
                             {
                                 var left = Pop();
                                 var right = Pop();
-                                Push(MondValue.LShift(left, right));
+                                Push(left.LShift(right));
                                 break;
                             }
 
@@ -321,7 +326,7 @@ namespace Mond.VirtualMachine
                             {
                                 var left = Pop();
                                 var right = Pop();
-                                Push(MondValue.RShift(left, right));
+                                Push(left.RShift(right));
                                 break;
                             }
 
@@ -462,21 +467,27 @@ namespace Mond.VirtualMachine
 
                                     if (unpackedArgs == null)
                                     {
-                                        argArr = new MondValue[argCount];
+                                        argArr = new MondValue[argCount + 1];
 
-                                        for (var i = argCount - 1; i >= 0; i--)
+                                        for (var i = argCount; i >= 1; i--)
                                         {
                                             argArr[i] = Pop();
                                         }
+
+                                        argArr[0] = function;
                                     }
                                     else
                                     {
+                                        unpackedArgs.Insert(0, function);
                                         argArr = unpackedArgs.ToArray();
                                     }
 
                                     MondValue result;
                                     if (function.ObjectValue.TryDispatch("__call", out result, argArr))
-                                        return result;
+                                    {
+                                        Push(result);
+                                        break;
+                                    }
                                 }
 
                                 if (function.Type != MondValueType.Function)

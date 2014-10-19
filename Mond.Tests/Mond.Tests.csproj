@@ -48,6 +48,7 @@
     <Compile Include="Expressions\ArrayTests.cs" />
     <Compile Include="Expressions\ExpressionTests.cs" />
     <Compile Include="Expressions\FunctionTests.cs" />
+    <Compile Include="Expressions\MetamethodTests.cs" />
     <Compile Include="Expressions\ObjectTests.cs" />
     <Compile Include="Expressions\SequenceTests.cs" />
     <Compile Include="Expressions\ValueTests.cs" />

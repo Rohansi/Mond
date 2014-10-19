@@ -215,7 +215,7 @@ namespace Mond
                     throw new MondRuntimeException(RuntimeError.CantCreateField, Type.GetName());
 
                 MondValue result;
-                if (TryDispatch("__set", out result, index, this, value))
+                if (TryDispatch("__set", out result, this, index, value))
                     return;
 
                 ObjectValue.Values[index] = value;
@@ -280,9 +280,6 @@ namespace Mond
         public bool Equals(MondValue other)
         {
             if (ReferenceEquals(other, null))
-                return false;
-
-            if (Type != other.Type)
                 return false;
 
             switch (Type)

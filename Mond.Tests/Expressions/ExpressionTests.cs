@@ -38,6 +38,31 @@ namespace Mond.Tests.Expressions
         }
 
         [Test]
+        public void NestedTernary()
+        {
+            var state = Script.Load(@"
+                global.test = fun (n) {
+                    return n == 1 ? 2 :
+                           n == 2 ? 3 :
+                           n == 3 ? 4 :
+                           n == 4 ? 5 : 1;
+                };
+            ");
+
+            var func = state["test"];
+
+            Assert.True(state.Call(func, 0) == 1);
+
+            Assert.True(state.Call(func, 1) == 2);
+
+            Assert.True(state.Call(func, 2) == 3);
+
+            Assert.True(state.Call(func, 3) == 4);
+
+            Assert.True(state.Call(func, 4) == 5);
+        }
+
+        [Test]
         public void LogicalOr()
         {
             var result = Script.Run(@"

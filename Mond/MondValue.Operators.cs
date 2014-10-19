@@ -180,49 +180,49 @@ namespace Mond
             throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "modulo", left.Type.GetName(), right.Type.GetName());
         }
 
-        public static MondValue Pow(MondValue left, MondValue right)
+        public MondValue Pow(MondValue right)
         {
-            if (left.Type == MondValueType.Number && right.Type == MondValueType.Number)
-                return new MondValue(Math.Pow(left._numberValue, right._numberValue));
+            if (Type == MondValueType.Number && right.Type == MondValueType.Number)
+                return new MondValue(Math.Pow(_numberValue, right._numberValue));
 
-            if (left.Type == MondValueType.Object || right.Type == MondValueType.Object)
+            if (Type == MondValueType.Object || right.Type == MondValueType.Object)
             {
                 MondValue result;
-                if (left.TryDispatch("__pow", out result, left, right))
+                if (TryDispatch("__pow", out result, this, right))
                     return result;
 
-                return new MondValue(Math.Pow(left, right));
+                return new MondValue(Math.Pow(this, right));
             }
 
-            throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "exponent", left.Type.GetName(), right.Type.GetName());
+            throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "exponent", Type.GetName(), right.Type.GetName());
         }
 
-        public static MondValue LShift(MondValue left, MondValue right)
+        public MondValue LShift(MondValue right)
         {
-            if (left.Type == MondValueType.Object || right.Type == MondValueType.Object)
+            if (Type == MondValueType.Object || right.Type == MondValueType.Object)
             {
                 MondValue result;
-                if (left.TryDispatch("__lshift", out result, left, right))
+                if (TryDispatch("__lshift", out result, this, right))
                     return result;
 
-                return new MondValue((int)left << (int)right);
+                return new MondValue((int)this << (int)right);
             }
 
-            return left << (int)right;
+            return this << (int)right;
         }
 
-        public static MondValue RShift(MondValue left, MondValue right)
+        public MondValue RShift(MondValue right)
         {
-            if (left.Type == MondValueType.Object || right.Type == MondValueType.Object)
+            if (Type == MondValueType.Object || right.Type == MondValueType.Object)
             {
                 MondValue result;
-                if (left.TryDispatch("__rshift", out result, left, right))
+                if (TryDispatch("__rshift", out result, this, right))
                     return result;
 
-                return new MondValue((int)left >> (int)right);
+                return new MondValue((int)this >> (int)right);
             }
 
-            return left >> (int)right;
+            return this >> (int)right;
         }
 
         public static MondValue operator <<(MondValue left, int right)

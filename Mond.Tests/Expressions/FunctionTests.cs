@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using System.Linq;
+using NUnit.Framework;
 
 namespace Mond.Tests.Expressions
 {
@@ -136,6 +137,51 @@ namespace Mond.Tests.Expressions
             ");
 
             Assert.True(result == 6);
+        }
+
+        [Test]
+        public void Unpack()
+        {
+            var result = Script.Run(@"
+                fun add(a, b) -> a + b;
+                
+                fun call(function, ...args) -> function(...args);
+
+                return call(add, 10, 5);
+            ");
+
+            Assert.True(result == 15, "single unpack");
+
+            result = Script.Run(@"
+                fun array(...values) -> values;
+
+                return array(1, 2, 3, ...[4, 5, 6], 7, ...[8, 9, 10]);
+            ");
+
+            Assert.True(result.ArrayValue.SequenceEqual(new MondValue[]
+            {
+                1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+            }), "multiple unpack");
+        }
+
+        [Test]
+        public void UnpackTailCall()
+        {
+            var result = Script.Run(@"
+                fun sum(x, y, ...args) {
+                    if (y == undefined)
+                        return x;
+        
+                    if (args.length() == 0)
+                        return x + y;
+        
+                    return sum(x + y, args[0], ...args.removeAt(0));
+                }
+
+                return sum(100, 50, 10, 5, 1);
+            ");
+
+            Assert.True(result == 166);
         }
 
         [Test]
