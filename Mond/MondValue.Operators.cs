@@ -390,37 +390,16 @@ namespace Mond
 
         public static bool operator >=(MondValue left, MondValue right)
         {
-            if (left.Type == MondValueType.Object)
-            {
-                MondValue result;
-                if (left.TryDispatch("__gte", out result, left, right))
-                    return result;
-            }
-
             return left > right || left == right;
         }
 
         public static bool operator <(MondValue left, MondValue right)
         {
-            if (left.Type == MondValueType.Object)
-            {
-                MondValue result;
-                if (left.TryDispatch("__lt", out result, left, right))
-                    return result;
-            }
-
             return !(left >= right);
         }
 
         public static bool operator <=(MondValue left, MondValue right)
         {
-            if (left.Type == MondValueType.Object)
-            {
-                MondValue result;
-                if (left.TryDispatch("__lte", out result, left, right))
-                    return result;
-            }
-
             return !(left > right);
         }
     }
