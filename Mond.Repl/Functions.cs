@@ -17,7 +17,8 @@ namespace Mond.Repl
                 { "require", Require },
                 { "print", Print },
                 { "printLn", PrintLn },
-                { "stdin", Stdin }
+                { "stdin", Stdin },
+                { "error", Error }
             };
         }
 
@@ -51,11 +52,11 @@ namespace Mond.Repl
 
         private static MondValue Require(MondState state, params MondValue[] arguments)
         {
-            if (arguments.Length < 1)
+            if (arguments.Length != 1)
                 throw new MondRuntimeException("require: must be called with 1 argument");
 
             if (arguments[0].Type != MondValueType.String)
-                throw new MondRuntimeException("require: argument 1 must be of type String");
+                throw new MondRuntimeException("require: argument 1 must be of type string");
 
             var fileName = (string)arguments[0];
             var program = MondProgram.Compile(Definitions + File.ReadAllText(fileName), fileName);
@@ -107,6 +108,14 @@ namespace Mond.Repl
 
                 yield return (char)key;
             }
+        }
+
+        private static MondValue Error(MondState state, params MondValue[] arguments)
+        {
+            if (arguments.Length != 1)
+                throw new MondRuntimeException("error: must be called with 1 argument");
+
+            throw new MondRuntimeException(arguments[0]);
         }
     }
 }

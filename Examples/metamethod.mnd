@@ -1,7 +1,7 @@
 fun Set( array ) {
     var instance = { };
 
-    instance.prototype( {
+    instance.setPrototype( {
         toArray: () -> array,
 
         reverse: fun() {

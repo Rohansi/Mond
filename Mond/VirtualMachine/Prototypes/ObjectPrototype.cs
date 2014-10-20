@@ -23,7 +23,7 @@ namespace Mond.VirtualMachine.Prototypes
             Value["length"] = new MondInstanceFunction(Length);
             Value["getEnumerator"] = new MondInstanceFunction(GetEnumerator);
 
-            Value["prototype"] = new MondInstanceFunction(Prototype);
+            Value["setPrototype"] = new MondInstanceFunction(SetPrototype);
 
             Value.Lock();
         }
@@ -145,19 +145,15 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// prototype(): object
-        /// prototype(value: any)
+        /// setPrototype(value: any)
         /// </summary>
-        private static MondValue Prototype(MondState state, MondValue instance, params MondValue[] arguments)
+        private static MondValue SetPrototype(MondState state, MondValue instance, params MondValue[] arguments)
         {
-            Check("prototype", instance.Type, arguments);
-
-            if (arguments.Length == 0)
-                return instance.Prototype;
+            Check("setPrototype", instance.Type, arguments, MondValueType.Undefined);
 
             var obj = arguments[0];
             if (obj.Type != MondValueType.Object && obj.Type != MondValueType.Null && obj.Type != MondValueType.Undefined)
-                throw new MondRuntimeException("Object.prototype: prototype value must be an object, null, or undefined");
+                throw new MondRuntimeException("Object.setPrototype: prototype value must be an object, null, or undefined");
 
             instance.Prototype = obj;
 
@@ -167,7 +163,7 @@ namespace Mond.VirtualMachine.Prototypes
         private static void Check(string method, MondValueType type, IList<MondValue> arguments, params MondValueType[] requiredTypes)
         {
             if (type != MondValueType.Object)
-                throw new MondRuntimeException("Object.{0}: must be called on an Object", method);
+                throw new MondRuntimeException("Object.{0}: must be called on an object", method);
 
             if (arguments.Count < requiredTypes.Length)
                 throw new MondRuntimeException("Object.{0}: must be called with {1} argument{2}", method, requiredTypes.Length, requiredTypes.Length == 1 ? "" : "s");

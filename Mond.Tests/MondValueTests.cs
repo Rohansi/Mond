@@ -173,7 +173,7 @@ namespace Mond.Tests
 
             Assert.True(obj["undef"] == MondValue.Undefined);
 
-            Assert.True(obj["prototype"] != MondValue.Undefined);
+            Assert.True(obj["setPrototype"] != MondValue.Undefined);
 
             obj["test"] = 123;
             Assert.True(obj["test"] == 123);

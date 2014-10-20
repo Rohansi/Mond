@@ -14,6 +14,7 @@ namespace Mond.VirtualMachine.Prototypes
             Value.Prototype = ValuePrototype.Value;
 
             Value["charAt"] = new MondInstanceFunction(CharAt);
+            Value["charCodeAt"] = new MondInstanceFunction(CharCodeAt);
             Value["contains"] = new MondInstanceFunction(Contains);
             Value["endsWith"] = new MondInstanceFunction(EndsWith);
             Value["indexOf"] = new MondInstanceFunction(IndexOf);
@@ -49,6 +50,22 @@ namespace Mond.VirtualMachine.Prototypes
                 throw new MondRuntimeException(IndexOutOfBounds, "charAt");
 
             return new string(instStr[index], 1);
+        }
+
+        /// <summary>
+        /// charCodeAt(index: number): number
+        /// </summary>
+        private static MondValue CharCodeAt(MondState state, MondValue instance, params MondValue[] arguments)
+        {
+            Check("charCodeAt", instance.Type, arguments, MondValueType.Number);
+
+            var instStr = (string)instance;
+            var index = (int)arguments[0];
+
+            if (index < 0 || index >= instStr.Length)
+                throw new MondRuntimeException(IndexOutOfBounds, "charAt");
+
+            return (double)instStr[index];
         }
 
         /// <summary>
@@ -159,7 +176,7 @@ namespace Mond.VirtualMachine.Prototypes
                 return instStr.Substring((int)arguments[0]);
 
             if (arguments[1].Type != MondValueType.Number)
-                throw new MondRuntimeException("Argument 2 in String.substring must be of type Number");
+                throw new MondRuntimeException("Argument 2 in String.substring must be of type number");
 
             var length = (int)arguments[1];
             if (startIndex + length >= instStr.Length)
@@ -233,7 +250,7 @@ namespace Mond.VirtualMachine.Prototypes
         private static void Check(string method, MondValueType type, IList<MondValue> arguments, params MondValueType[] requiredTypes)
         {
             if (type != MondValueType.String)
-                throw new MondRuntimeException("String.{0}: must be called on a String", method);
+                throw new MondRuntimeException("String.{0}: must be called on a string", method);
 
             if (arguments.Count < requiredTypes.Length)
                 throw new MondRuntimeException("String.{0}: must be called with {1} argument{2}", method, requiredTypes.Length, requiredTypes.Length == 1 ? "" : "s");

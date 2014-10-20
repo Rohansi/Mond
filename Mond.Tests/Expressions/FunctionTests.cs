@@ -89,7 +89,7 @@ namespace Mond.Tests.Expressions
                     };
 
                     base = Base();
-                    this.prototype(base);
+                    this.setPrototype(base);
 
                     return this;
                 }

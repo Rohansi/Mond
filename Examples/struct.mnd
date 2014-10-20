@@ -1,0 +1,45 @@
+
+const valuePrototype = {}.getPrototype().getPrototype();
+
+const structMetas = {
+    __get: fun (this, index) {
+        error("unknown field '" + index + "' (get)");
+    },
+    __set: fun (this, index, value) {
+        error("unknown field '" + index + "' (set)");
+    }
+}.setPrototype(valuePrototype);
+
+fun struct(...properties) {
+    foreach (var property in properties) {
+        if (property.getType() != "string")
+            error("struct field names must be strings");
+    }
+
+    return fun (...values) {
+        if (values.length() != properties.length()) {
+            error("struct requires " + properties.length() + "values"); 
+        }
+        
+        var value = {};
+        
+        for (var i = 0; i < properties.length(); i++) {
+            value[properties[i]] = values[i];
+        }
+        
+        return value.setPrototype(structMetas);
+    };
+}
+
+var Point = struct("x", "y");
+
+var p1 = Point(1, 2);
+var p2 = Point(10, 20);
+
+printLn("p1.x = " + p1.x);
+printLn("p1.y = " + p1.y);
+
+printLn();
+
+printLn("p2.x = " + p2.x);
+printLn("p2.y = " + p2.y);

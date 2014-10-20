@@ -15,6 +15,8 @@
             Value["getType"] = new MondInstanceFunction(GetType);
             Value["toString"] = new MondInstanceFunction(ToString);
             Value["serialize"] = new MondInstanceFunction(Serialize);
+            Value["getPrototype"] = new MondInstanceFunction(GetPrototype);
+
             Value.Lock();
         }
 
@@ -26,14 +28,28 @@
             return instance.Type.GetName();
         }
 
+        /// <summary>
+        /// toString(): string
+        /// </summary>
         private static MondValue ToString(MondState state, MondValue instance, params MondValue[] args)
         {
             return instance.ToString();
         }
 
+        /// <summary>
+        /// serialize(): string
+        /// </summary>
         private static MondValue Serialize(MondState state, MondValue instance, params MondValue[] args)
         {
             return instance.Serialize();
+        }
+
+        /// <summary>
+        /// getPrototype(): object
+        /// </summary>
+        private static MondValue GetPrototype(MondState state, MondValue instance, params MondValue[] args)
+        {
+            return instance.Prototype;
         }
     }
 }
