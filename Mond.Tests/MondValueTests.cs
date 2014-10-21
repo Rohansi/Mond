@@ -1,4 +1,5 @@
-﻿using Mond.VirtualMachine;
+﻿using System;
+using Mond.VirtualMachine;
 using NUnit.Framework;
 
 namespace Mond.Tests
@@ -88,6 +89,91 @@ namespace Mond.Tests
         }
 
         [Test]
+        public void OperatorPow()
+        {
+            _left = 10.0;
+            _right = 7.0;
+            Assert.AreEqual(_left.Pow(_right), new MondValue(Math.Pow(10.0, 7.0)));
+
+            _left = 123;
+            _right = "abc";
+            Assert.Throws<MondRuntimeException>(() => { _left = _left.Pow(_right); });
+        }
+
+        [Test]
+        public void OperatorLShift()
+        {
+            _left = 10.0;
+            _right = 7.0;
+            Assert.AreEqual(_left.LShift(_right), new MondValue(10 << 7));
+
+            _left = 10.0;
+            Assert.AreEqual(_left << 7, new MondValue(10 << 7));
+
+            _left = 123;
+            _right = "abc";
+            Assert.Throws<MondRuntimeException>(() => { _left = _left.LShift(_right); });
+
+            _left = "abc";
+            Assert.Throws<MondRuntimeException>(() => { _left = _left.LShift(_right); });
+        }
+
+        [Test]
+        public void OperatorRShift()
+        {
+            _left = 10.0;
+            _right = 2.0;
+            Assert.AreEqual(_left.RShift(_right), new MondValue(10 >> 2));
+
+            _left = 10.0;
+            Assert.AreEqual(_left >> 2, new MondValue(10 >> 2));
+
+            _left = 123;
+            _right = "abc";
+            Assert.Throws<MondRuntimeException>(() => { _left = _left.RShift(_right); });
+
+            _left = "abc";
+            _right = 2.0;
+            Assert.Throws<MondRuntimeException>(() => { _left = _left.RShift(_right); });
+        }
+
+        [Test]
+        public void OperatorAnd()
+        {
+            _left = 10.0;
+            _right = 7.0;
+            Assert.AreEqual(_left & _right, new MondValue(10 & 7));
+
+            _left = 123;
+            _right = "abc";
+            Assert.Throws<MondRuntimeException>(() => { _left &= _right; });
+        }
+
+        [Test]
+        public void OperatorOr()
+        {
+            _left = 10.0;
+            _right = 7.0;
+            Assert.AreEqual(_left | _right, new MondValue(10 | 7));
+
+            _left = 123;
+            _right = "abc";
+            Assert.Throws<MondRuntimeException>(() => { _left |= _right; });
+        }
+
+        [Test]
+        public void OperatorXor()
+        {
+            _left = 10.0;
+            _right = 7.0;
+            Assert.AreEqual(_left ^ _right, new MondValue(10 ^ 7));
+
+            _left = 123;
+            _right = "abc";
+            Assert.Throws<MondRuntimeException>(() => { _left ^= _right; });
+        }
+
+        [Test]
         public void OperatorNegate()
         {
             _left = 10;
@@ -95,6 +181,16 @@ namespace Mond.Tests
 
             _left = "10";
             Assert.Throws<MondRuntimeException>(() => { _left = -_left; });
+        }
+
+        [Test]
+        public void OperatorNot()
+        {
+            _left = 10;
+            Assert.AreEqual(~_left, new MondValue(~10));
+
+            _left = "10";
+            Assert.Throws<MondRuntimeException>(() => { _left = ~_left; });
         }
 
         [Test]
@@ -122,6 +218,15 @@ namespace Mond.Tests
         }
 
         [Test]
+        public void OperatorNotEqualTo()
+        {
+            _left = 10;
+            _right = 11;
+
+            Assert.True(_left != _right);
+        }
+
+        [Test]
         public void OperatorGreaterThan()
         {
             _left = 11;
@@ -145,6 +250,54 @@ namespace Mond.Tests
             Assert.Throws<MondRuntimeException>(() => { var a = _left > _right; });
         }
 
+        [Test]
+        public void OperatorGreaterThanOrEqual()
+        {
+            _left = 11;
+            _right = 10;
+            Assert.True(_left >= _right);
+
+            _left = 11;
+            _right = 11;
+            Assert.True(_left >= _right);
+
+            _left = 11;
+            _right = 12;
+            Assert.False(_left >= _right);
+        }
+
+        [Test]
+        public void OperatorLessThan()
+        {
+            _left = 9;
+            _right = 10;
+            Assert.True(_left < _right);
+
+            _left = 10;
+            _right = 10;
+            Assert.False(_left < _right);
+
+            _left = 11;
+            _right = 10;
+            Assert.False(_left < _right);
+        }
+
+        [Test]
+        public void OperatorLessThanOrEqual()
+        {
+            _left = 9;
+            _right = 10;
+            Assert.True(_left <= _right);
+
+            _left = 10;
+            _right = 10;
+            Assert.True(_left <= _right);
+
+            _left = 11;
+            _right = 10;
+            Assert.False(_left <= _right);
+        }
+
         #endregion
 
         [Test]
@@ -162,7 +315,25 @@ namespace Mond.Tests
             value = MondValue.True;
             Assert.True(value);
 
+            value = 0;
+            Assert.True(value);
+
+            value = 1;
+            Assert.True(value);
+
+            value = double.NaN;
+            Assert.False(value);
+
+            value = "hello";
+            Assert.True(value);
+
             value = new MondValue(MondValueType.Object);
+            Assert.True(value);
+
+            value = new MondValue(MondValueType.Array);
+            Assert.True(value);
+
+            value = new MondFunction((state, arguments) => MondValue.Undefined);
             Assert.True(value);
         }
 
