@@ -2,7 +2,7 @@
 
 namespace Mond.Binding
 {
-    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Property)]
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Property, AllowMultiple = false)]
     public class MondFunctionAttribute : Attribute
     {
         public readonly string Name;

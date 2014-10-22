@@ -79,6 +79,8 @@ namespace Mond.Tests.Binding
         [Test]
         public void Constructor()
         {
+            Assert.True(_state.Run("return global.brian.test;") == 123);
+
             Assert.Throws<MondBindingException>(() => MondClassBinder.Bind<NoConstructor>());
 
             Assert.Throws<MondBindingException>(() => MondClassBinder.Bind<MultipleConstructors>());
@@ -94,10 +96,12 @@ namespace Mond.Tests.Binding
         public class Person
         {
             [MondConstructor]
-            public Person(string name)
+            public Person([MondInstance] MondValue instance, string name)
             {
                 Name = name;
                 Age = -1;
+
+                instance["test"] = 123;
             }
 
             [MondFunction]

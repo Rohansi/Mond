@@ -2,7 +2,7 @@
 
 namespace Mond.Binding
 {
-    [AttributeUsage(AttributeTargets.Class)]
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public class MondClassAttribute : Attribute
     {
         public readonly string Name;

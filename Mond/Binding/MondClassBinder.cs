@@ -8,13 +8,13 @@ namespace Mond.Binding
     {
         private class ClassBinding
         {
-            public readonly MondFunction Constructor;
-            public readonly MondValue Prototype;
+            public readonly MondConstructor Constructor;
+            public readonly Dictionary<string, MondInstanceFunction> PrototypeFunctions;
 
-            public ClassBinding(MondFunction constructor, MondValue prototype)
+            public ClassBinding(MondConstructor constructor, Dictionary<string, MondInstanceFunction> prototypeFunctions)
             {
                 Constructor = constructor;
-                Prototype = prototype;
+                PrototypeFunctions = prototypeFunctions;
             }
         }
 
@@ -23,11 +23,10 @@ namespace Mond.Binding
         /// <summary>
         /// Generate a class binding for T. Returns the constructor function.
         /// </summary>
-        public static MondFunction Bind<T>()
+        public static MondFunction Bind<T>(MondState state = null)
         {
             MondValue prototype;
-            var ctor = Bind<T>(out prototype);
-            prototype.Lock();
+            var ctor = Bind<T>(out prototype, state);
             return ctor;
         }
 
@@ -35,21 +34,51 @@ namespace Mond.Binding
         /// Generate a class binding for T. Returns the constructor function and
         /// sets prototype to the generated prototype.
         /// </summary>
-        public static MondFunction Bind<T>(out MondValue prototype)
+        public static MondFunction Bind<T>(out MondValue prototype, MondState state = null)
         {
-            return Bind(typeof(T), out prototype);
+            return Bind(typeof(T), out prototype, state);
         }
 
         /// <summary>
         /// Generates a class binding for the given type. Returns the constructor
         /// function and sets prototype to the generated prototype.
         /// </summary>
-        public static MondFunction Bind(Type type, out MondValue prototype)
+        public static MondFunction Bind(Type type, out MondValue prototype, MondState state = null)
+        {
+            Dictionary<string, MondInstanceFunction> functions;
+            var constructor = BindImpl(type, out functions);
+            var prototypeObj = CopyToObject(functions, state);
+
+            prototype = prototypeObj;
+
+            return (_, arguments) =>
+            {
+                var instance = new MondValue(_);
+                instance.Prototype = prototypeObj;
+                instance.UserData = constructor(_, instance, arguments);
+                return instance;
+            };
+        }
+
+        private static MondValue CopyToObject(Dictionary<string, MondInstanceFunction> functions, MondState state)
+        {
+            var obj = new MondValue(state);
+
+            foreach (var func in functions)
+            {
+                obj[func.Key] = new MondValue(func.Value);
+            }
+
+            obj.Lock();
+            return obj;
+        }
+
+        private static MondConstructor BindImpl(Type type, out Dictionary<string, MondInstanceFunction> prototypeFunctions)
         {
             ClassBinding binding;
             if (_cache.TryGetValue(type, out binding))
             {
-                prototype = binding.Prototype;
+                prototypeFunctions = binding.PrototypeFunctions;
                 return binding.Constructor;
             }
 
@@ -60,9 +89,8 @@ namespace Mond.Binding
 
             var className = classAttrib.Name ?? type.Name;
 
-            var declarations = new HashSet<string>();
-            MondFunction constructor = null;
-            prototype = new MondValue(MondValueType.Object);
+            MondConstructor constructor = null;
+            var functions = new Dictionary<string, MondInstanceFunction>();
 
             foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Instance))
             {
@@ -73,10 +101,10 @@ namespace Mond.Binding
 
                 var name = functionAttrib.Name ?? method.Name;
 
-                if (!declarations.Add(name))
+                if (functions.ContainsKey(name))
                     throw new MondBindingException(BindingError.DuplicateDefinition, name);
 
-                prototype[name] = MondFunctionBinder.BindInstance(className, name, method, type);
+                functions[name] = MondFunctionBinder.BindInstance(className, name, method, type);
             }
 
             foreach (var property in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
@@ -95,20 +123,20 @@ namespace Mond.Binding
                 {
                     var getMethodName = "get" + name;
 
-                    if (!declarations.Add(getMethodName))
+                    if (functions.ContainsKey(getMethodName))
                         throw new MondBindingException(BindingError.DuplicateDefinition, getMethodName);
 
-                    prototype[getMethodName] = MondFunctionBinder.BindInstance(className, name, getMethod, type);
+                    functions[getMethodName] = MondFunctionBinder.BindInstance(className, name, getMethod, type);
                 }
 
                 if (setMethod != null && setMethod.IsPublic)
                 {
                     var setMethodName = "set" + name;
 
-                    if (!declarations.Add(setMethodName))
+                    if (functions.ContainsKey(setMethodName))
                         throw new MondBindingException(BindingError.DuplicateDefinition, setMethodName);
 
-                    prototype[setMethodName] = MondFunctionBinder.BindInstance(className, name, setMethod, type);
+                    functions[setMethodName] = MondFunctionBinder.BindInstance(className, name, setMethod, type);
                 }
             }
 
@@ -122,15 +150,16 @@ namespace Mond.Binding
                 if (constructor != null)
                     throw new MondBindingException(BindingError.TooManyConstructors);
 
-                constructor = MondFunctionBinder.BindConstructor(className, ctor, prototype);
+                constructor = MondFunctionBinder.BindConstructor(className, ctor);
             }
 
             if (constructor == null)
                 throw new MondBindingException(BindingError.NotEnoughConstructors);
 
-            binding = new ClassBinding(constructor, prototype);
+            binding = new ClassBinding(constructor, functions);
             _cache.Add(type, binding);
 
+            prototypeFunctions = functions;
             return constructor;
         }
     }

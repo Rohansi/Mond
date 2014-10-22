@@ -8,7 +8,7 @@ namespace Mond.Binding
 {
     public static partial class MondFunctionBinder
     {
-        private static T BindImpl<T>(string moduleName, string methodName, MethodBase method, bool instanceFunction, BindCallFactory callFactory)
+        private static TFunc BindImpl<TFunc, TReturn>(string moduleName, string methodName, MethodBase method, bool instanceFunction, BindCallFactory callFactory)
         {
             // TODO: clean up everything below this line
 
@@ -30,26 +30,32 @@ namespace Mond.Binding
             Func<int, Expression> argumentIndex = i => Expression.ArrayIndex(argumentsParam, Expression.Constant(i));
 
             var statements = new List<Expression>();
-            var returnLabel = Expression.Label(typeof(MondValue));
+            var returnLabel = Expression.Label(typeof(TReturn));
 
-            // argument count check
-            var argLength = Expression.Condition(Expression.Equal(argumentsParam, Expression.Constant(null)), Expression.Constant(0), Expression.PropertyOrField(argumentsParam, "Length"));
-            var requiredArgLength = arguments.Count(a => a.Index >= 0);
-            var argLengthError = string.Format("{0}must be called with {1} argument{2}", errorPrefix, requiredArgLength, requiredArgLength != 1 ? "s" : "");
+            // skip type checks if using params MondValue[]
+            var skipTypeChecks = arguments.Any(a => a.Index < 0 && a.Type == typeof(MondValue[]));
 
-            statements.Add(Expression.IfThen(Expression.NotEqual(argLength, Expression.Constant(requiredArgLength)), Throw(argLengthError)));
-
-            // argument type checks
-            for (var i = 0; i < arguments.Length; i++)
+            if (!skipTypeChecks)
             {
-                var arg = arguments[i];
+                // argument count check
+                var argLength = Expression.Condition(Expression.Equal(argumentsParam, Expression.Constant(null)), Expression.Constant(0), Expression.PropertyOrField(argumentsParam, "Length"));
+                var requiredArgLength = arguments.Count(a => a.Index >= 0);
+                var argLengthError = string.Format("{0}must be called with {1} argument{2}", errorPrefix, requiredArgLength, requiredArgLength != 1 ? "s" : "");
 
-                // TODO: attribute to verify type of UserData
+                statements.Add(Expression.IfThen(Expression.NotEqual(argLength, Expression.Constant(requiredArgLength)), Throw(argLengthError)));
 
-                if (arg.Index < 0 || arg.Type == typeof(MondValue) || arg.Type == typeof(MondState))
-                    continue;
+                // argument type checks
+                for (var i = 0; i < arguments.Length; i++)
+                {
+                    var arg = arguments[i];
 
-                statements.Add(TypeCheck(errorPrefix, i + 1, argumentIndex(arg.Index), arg.Type));
+                    // TODO: attribute to verify type of UserData
+
+                    if (arg.Index < 0 || arg.Type == typeof(MondValue))
+                        continue;
+
+                    statements.Add(TypeCheck(errorPrefix, i + 1, argumentIndex(arg.Index), arg.Type));
+                }
             }
 
             // call
@@ -77,6 +83,12 @@ namespace Mond.Binding
                     continue;
                 }
 
+                if (arg.Index < 0 && arg.Type == typeof(MondValue[])) // params MondValue[]
+                {
+                    callArgs.Add(argumentsParam);
+                    continue;
+                }
+
                 callArgs.Add(ConvertArgument(argumentIndex(arg.Index), arg.Type));
             }
 
@@ -86,7 +98,7 @@ namespace Mond.Binding
             statements.Add(Expression.Label(returnLabel, Expression.Constant(MondValue.Undefined)));
 
             var block = Expression.Block(statements);
-            return Expression.Lambda<T>(block, parameters).Compile();
+            return Expression.Lambda<TFunc>(block, parameters).Compile();
         }
 
         /// <summary>
@@ -132,24 +144,6 @@ namespace Mond.Binding
                 {
                     result = Expression.Convert(Expression.Convert(callExpr, typeof(double)), typeof(MondValue));
                 }
-                else if (returnType.Attribute<MondClassAttribute>() != null)
-                {
-                    var tempVar = Expression.Variable(typeof(MondValue));
-                    variables.Add(tempVar);
-
-                    var constructor = typeof(MondValue).GetConstructor(new[] { typeof(MondValueType) });
-                    if (constructor == null)
-                        throw new MondBindingException("Could not find MondValue constructor");
-
-                    MondValue prototype;
-                    MondClassBinder.Bind(returnType, out prototype);
-                    
-                    expressions.Add(Expression.Assign(tempVar, Expression.New(constructor, Expression.Constant(MondValueType.Object))));
-                    expressions.Add(Expression.Assign(Expression.PropertyOrField(tempVar, "UserData"), callExpr));
-                    expressions.Add(Expression.Assign(Expression.PropertyOrField(tempVar, "Prototype"), Expression.Constant(prototype)));
-
-                    result = tempVar;
-                }
                 else
                 {
                     throw new MondBindingException(BindingError.UnsupportedReturnType, returnType);
@@ -166,21 +160,9 @@ namespace Mond.Binding
         /// <summary>
         /// Creates the function call and return statements for a constructor function. Should be used through BindCallFactory.
         /// </summary>
-        private static Expression BindConstructorCall(ConstructorInfo constructor, MondValue prototype, IEnumerable<Expression> arguments, LabelTarget returnLabel)
+        private static Expression BindConstructorCall(ConstructorInfo constructor, IEnumerable<Expression> arguments, LabelTarget returnLabel)
         {
-            var valueConstructor = typeof(MondValue).GetConstructor(new[] { typeof(MondValueType) });
-
-            if (valueConstructor == null)
-                throw new MondBindingException("Could not find MondValue constructor");
-
-            var objVar = Expression.Variable(typeof(MondValue));
-
-            var createObj = Expression.Assign(objVar, Expression.New(valueConstructor, Expression.Constant(MondValueType.Object)));
-            var setObjData = Expression.Assign(Expression.PropertyOrField(objVar, "UserData"), Expression.New(constructor, arguments));
-            var setObjProto = Expression.Assign(Expression.PropertyOrField(objVar, "Prototype"), Expression.Constant(prototype));
-            var retObj = Expression.Return(returnLabel, objVar);
-
-            return Expression.Block(new[] { objVar }, createObj, setObjData, setObjProto, retObj);
+            return Expression.Return(returnLabel, Expression.New(constructor, arguments));
         }
 
         /// <summary>
@@ -276,11 +258,16 @@ namespace Mond.Binding
 
         private static IEnumerable<FunctionArgument> GetArguments(MethodBase method, bool instanceFunction)
         {
+            var parameters = method.GetParameters();
             var index = 0;
 
-            foreach (var p in method.GetParameters())
+            for (var i = 0; i < parameters.Length; i++)
             {
-                var skip = p.ParameterType == typeof(MondState) || (instanceFunction && p.ParameterType == typeof(MondValue) && p.Name == "instance");
+                var p = parameters[i];
+
+                var skip = (p.ParameterType == typeof(MondState)) ||
+                           (instanceFunction && p.ParameterType == typeof(MondValue) && p.Attribute<MondInstanceAttribute>() != null) ||
+                           (i == parameters.Length - 1 && p.ParameterType == typeof(MondValue[]) && p.Attribute<ParamArrayAttribute>() != null);
 
                 yield return new FunctionArgument(skip ? -1 : index, p);
 

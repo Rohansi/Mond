@@ -3,6 +3,8 @@ using System.Reflection;
 
 namespace Mond.Binding
 {
+    internal delegate object MondConstructor(MondState state, MondValue instance, params MondValue[] arguments);
+
     public static partial class MondFunctionBinder
     {
         /// <summary>
@@ -13,7 +15,7 @@ namespace Mond.Binding
             if (!method.IsStatic)
                 throw new MondBindingException("Bind only supports static methods");
 
-            return BindImpl<MondFunction>(moduleName, methodName, method, false, (p, a, r) => BindFunctionCall(method, null, false, p, a, r));
+            return BindImpl<MondFunction, MondValue>(moduleName, methodName, method, false, (p, a, r) => BindFunctionCall(method, null, false, p, a, r));
         }
 
         /// <summary>
@@ -27,18 +29,18 @@ namespace Mond.Binding
             if (type == null && !method.IsStatic)
                 throw new MondBindingException("BindInstance requires a type for non-static methods");
 
-            return BindImpl<MondInstanceFunction>(className, methodName, method, true, (p, a, r) => BindFunctionCall(method, type, true, p, a, r));
+            return BindImpl<MondInstanceFunction, MondValue>(className, methodName, method, true, (p, a, r) => BindFunctionCall(method, type, true, p, a, r));
         }
 
         /// <summary>
-        /// Generates a MondFunction binding for the given constructor.
+        /// Generates a MondConstructor binding for the given constructor.
         /// </summary>
-        internal static MondFunction BindConstructor(string className, ConstructorInfo constructor, MondValue prototype)
+        internal static MondConstructor BindConstructor(string className, ConstructorInfo constructor)
         {
             if (className == null)
                 throw new ArgumentNullException("className");
 
-            return BindImpl<MondFunction>(className, "#ctor", constructor, false, (p, a, r) => BindConstructorCall(constructor, prototype, a, r));
+            return BindImpl<MondConstructor, object>(className, "#ctor", constructor, true, (p, a, r) => BindConstructorCall(constructor, a, r));
         }
     }
 }

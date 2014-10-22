@@ -1,4 +1,5 @@
-﻿using Mond.Binding;
+﻿using System.Linq;
+using Mond.Binding;
 using NUnit.Framework;
 
 namespace Mond.Tests.Binding
@@ -16,6 +17,7 @@ namespace Mond.Tests.Binding
             // TODO: need a better function binder
             _state["ArgumentTypes"] = MondFunctionBinder.Bind(null, "ArgumentTypes", typeof(FunctionTests).GetMethod("ArgumentTypes"));
             _state["Add"] = MondFunctionBinder.Bind(null, "Add", typeof(FunctionTests).GetMethod("Add"));
+            _state["Concat"] = MondFunctionBinder.Bind(null, "Concat", typeof(FunctionTests).GetMethod("Concat"));
         }
 
         [Test]
@@ -102,6 +104,18 @@ namespace Mond.Tests.Binding
             "));
         }
 
+        [Test]
+        public void ParamsArgument()
+        {
+            Assert.True(_state.Run(@"
+                return global.Concat();
+            ") == "");
+
+            Assert.True(_state.Run(@"
+                return global.Concat('hello', ' world');
+            ") == "hello world");
+        }
+
         // TODO: need to test return types
 
         public static MondValue ArgumentTypes(
@@ -130,6 +144,11 @@ namespace Mond.Tests.Binding
         public static void Add(MondValue a, MondState state, MondValue b)
         {
             state["result"] = a + b;
+        }
+
+        public static string Concat(params MondValue[] values)
+        {
+            return string.Concat(values.Select(v => (string)v));
         }
     }
 }
