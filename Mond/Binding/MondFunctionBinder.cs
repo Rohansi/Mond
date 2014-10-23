@@ -14,7 +14,7 @@ namespace Mond.Binding
 
             var arguments = GetArguments(method, instanceFunction).ToArray();
 
-            var errorPrefix = string.Format("{0}{1}{2}: ", moduleName ?? "", moduleName != null ? "." : "", methodName);
+            var errorPrefix = string.Format("{0}{1}{2}: ", moduleName ?? "", string.IsNullOrEmpty(moduleName) ? "" : ".", methodName);
 
             var parameters = new List<ParameterExpression>
             {

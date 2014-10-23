@@ -2,97 +2,84 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Mond.Binding;
+using Mond.Repl.Modules;
 
 namespace Mond.Repl
 {
-    static class Functions
+    [MondModule("")]
+    class Functions
     {
-        private static Dictionary<string, MondFunction> _functions;
-        private static string _definitions;
+        private static List<KeyValuePair<string, MondValue>> _values;
+
+        public static string Definitions { get; private set; }
 
         static Functions()
         {
-            _functions = new Dictionary<string, MondFunction>
+            var functions = MondModuleBinder.BindFunctions<Functions>()
+                                            .ToDictionary(kv => kv.Key, kv => new MondValue(kv.Value));
+
+            var modules = new Dictionary<string, MondValue>
             {
-                { "require", Require },
-                { "print", Print },
-                { "printLn", PrintLn },
-                { "stdin", Stdin },
-                { "error", Error }
+                { "Math", MondMath.Binding }
             };
+
+            _values = functions.Concat(modules).ToList();
+
+            if (_values.Count == 0)
+            {
+                Definitions = "";
+                return;
+            }
+
+            Definitions = "const " + string.Join(",", _values.Select(v => string.Format("{0}=global.{0}", v.Key))) + ";";
         }
 
         public static void Register(MondState state)
         {
-            foreach (var fn in _functions)
+            foreach (var kv in _values)
             {
-                state[fn.Key] = fn.Value;
+                state[kv.Key] = kv.Value;
             }
         }
 
-        public static string Definitions
+        [MondFunction("require")]
+        public static MondValue Require(MondState state, string fileName)
         {
-            get
-            {
-                if (_definitions != null)
-                    return _definitions;
-
-                if (_functions.Count == 0)
-                {
-                    _definitions = "";
-                    return _definitions;
-                }
-
-                var values = string.Join(", ", _functions.Keys.Select(fn => string.Format("{0}=global.{1}", fn, fn)));
-                _definitions = "const " + values + ";";
-
-                return _definitions;
-            }
-        }
-
-        private static MondValue Require(MondState state, params MondValue[] arguments)
-        {
-            if (arguments.Length != 1)
-                throw new MondRuntimeException("require: must be called with 1 argument");
-
-            if (arguments[0].Type != MondValueType.String)
-                throw new MondRuntimeException("require: argument 1 must be of type string");
-
-            var fileName = (string)arguments[0];
             var program = MondProgram.Compile(Definitions + File.ReadAllText(fileName), fileName);
             return state.Load(program);
         }
 
-        private static MondValue Print(MondState state, params MondValue[] arguments)
+        [MondFunction("print")]
+        public static void Print(params MondValue[] arguments)
         {
             foreach (var v in arguments)
             {
-                PrintImpl(v);
+                Console.Write((string)v);
             }
-
-            return MondValue.Undefined;
         }
 
-        private static MondValue PrintLn(MondState state, params MondValue[] arguments)
+        [MondFunction("printLn")]
+        public static void PrintLn(params MondValue[] arguments)
         {
             if (arguments.Length == 0)
                 Console.WriteLine();
 
             foreach (var v in arguments)
             {
-                PrintImpl(v);
+                Console.Write((string)v);
                 Console.WriteLine();
             }
-
-            return MondValue.Undefined;
         }
 
-        private static void PrintImpl(MondValue value)
+        [MondFunction("error")]
+        public static void Error(string message)
         {
-            Console.Write((string)value);
+            throw new MondRuntimeException(message);
         }
 
-        private static MondValue Stdin(MondState state, params MondValue[] arguments)
+        [MondFunction("stdin")]
+        public static MondValue Stdin()
         {
             return MondValue.FromEnumerable(StdinEnumerable().Select(c => new MondValue(new string(c, 1))));
         }
@@ -108,14 +95,6 @@ namespace Mond.Repl
 
                 yield return (char)key;
             }
-        }
-
-        private static MondValue Error(MondState state, params MondValue[] arguments)
-        {
-            if (arguments.Length != 1)
-                throw new MondRuntimeException("error: must be called with 1 argument");
-
-            throw new MondRuntimeException(arguments[0]);
         }
     }
 }

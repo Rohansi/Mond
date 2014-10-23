@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using Mond.VirtualMachine.Prototypes;
 
 namespace Mond.Binding
 {
@@ -57,13 +58,13 @@ namespace Mond.Binding
         private static MondValue CopyToObject(Dictionary<string, MondFunction> functions, MondState state)
         {
             var obj = new MondValue(state);
+            obj.Prototype = ValuePrototype.Value;
 
             foreach (var func in functions)
             {
                 obj[func.Key] = func.Value;
             }
 
-            obj.Lock();
             return obj;
         }
 

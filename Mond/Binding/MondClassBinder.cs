@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using Mond.VirtualMachine.Prototypes;
 
 namespace Mond.Binding
 {
@@ -21,12 +22,14 @@ namespace Mond.Binding
         private static Dictionary<Type, ClassBinding> _cache = new Dictionary<Type, ClassBinding>();
 
         /// <summary>
-        /// Generate a class binding for T. Returns the constructor function.
+        /// Generate a class binding for T. Returns the constructor function. The
+        /// generated prototype will be locked.
         /// </summary>
         public static MondFunction Bind<T>(MondState state = null)
         {
             MondValue prototype;
             var ctor = Bind<T>(out prototype, state);
+            prototype.Lock();
             return ctor;
         }
 
@@ -63,13 +66,13 @@ namespace Mond.Binding
         private static MondValue CopyToObject(Dictionary<string, MondInstanceFunction> functions, MondState state)
         {
             var obj = new MondValue(state);
+            obj.Prototype = ValuePrototype.Value;
 
             foreach (var func in functions)
             {
                 obj[func.Key] = new MondValue(func.Value);
             }
 
-            obj.Lock();
             return obj;
         }
 
