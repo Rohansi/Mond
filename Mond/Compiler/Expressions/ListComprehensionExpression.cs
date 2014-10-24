@@ -42,5 +42,12 @@ namespace Mond.Compiler.Expressions
             Body = (BlockExpression)Body.Simplify();
             return this;
         }
+
+        public override void SetParent(Expression parent)
+        {
+            base.SetParent(parent);
+
+            Body.SetParent(this);
+        }
     }
 }

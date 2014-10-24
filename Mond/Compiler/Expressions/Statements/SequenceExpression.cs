@@ -108,7 +108,7 @@ namespace Mond.Compiler.Expressions.Statements
 
         public SequenceBodyExpression(Token token, string name, BlockExpression block, string debugName,
                                       IdentifierOperand state, IdentifierOperand enumerable)
-            : base(token, name, new List<string>(), null, block, debugName)
+            : base(token, name, new List<string> { "#input" }, null, block, debugName)
         {
             _stateLabels = new List<LabelOperand>();
 

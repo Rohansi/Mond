@@ -33,7 +33,7 @@ namespace Mond.Compiler
 
         public virtual bool DefineArgument(int index, string name)
         {
-            if (IsDefined(name))
+            if (name[0] != '#' && IsDefined(name))
                 return false;
 
             var identifier = new ArgumentIdentifierOperand(-_frameIndex, index, name);

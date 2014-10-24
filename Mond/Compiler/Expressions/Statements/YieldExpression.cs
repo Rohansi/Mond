@@ -47,6 +47,20 @@
 
             stack += context.Bind(nextStateLabel);
 
+            if (!(Parent is IBlockExpression))
+            {
+                var parentBinOp = Parent as BinaryOperatorExpression;
+                if ((parentBinOp != null && parentBinOp.IsAssign) || Parent is VarExpression)
+                {
+                    stack += context.Load(context.Identifier("#input"));
+                    CheckStack(stack, 1);
+                    return stack;
+                }
+
+                // TODO: allow more cases? can't yield with stuff on the stack
+                throw new MondCompilerException(FileName, Line, CompilerError.YieldNotInAssign);
+            }
+
             CheckStack(stack, 0);
             return stack;
         }

@@ -33,12 +33,11 @@ namespace Mond.Compiler.Expressions
             context.Line(FileName, Line);
 
             var stack = 0;
-
+            
             TokenType assignOperation;
-            var hasAssignOperation = _assignMap.TryGetValue(Operation, out assignOperation);
-            var isAssign = Operation == TokenType.Assign || hasAssignOperation;
+            var isAssignOperation = _assignMap.TryGetValue(Operation, out assignOperation);
 
-            if (isAssign)
+            if (IsAssign)
             {
                 var storable = Left as IStorableExpression;
                 if (storable == null)
@@ -48,7 +47,7 @@ namespace Mond.Compiler.Expressions
 
                 stack += Right.Compile(context);
 
-                if (hasAssignOperation)
+                if (isAssignOperation)
                 {
                     stack += Left.Compile(context);
                     stack += context.BinaryOperation(assignOperation);
@@ -125,6 +124,14 @@ namespace Mond.Compiler.Expressions
 
             Left.SetParent(this);
             Right.SetParent(this);
+        }
+
+        public bool IsAssign
+        {
+            get
+            {
+                return Operation == TokenType.Assign || _assignMap.ContainsKey(Operation);
+            }
         }
 
         private static Dictionary<TokenType, TokenType> _assignMap;
