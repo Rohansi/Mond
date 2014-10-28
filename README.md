@@ -1,5 +1,5 @@
-<p align="center"><img src="http://i.imgur.com/5oL2kVC.png" alt="Mond"/></p>
-<b>Mond is a simple and elegant scripting language written in C#</b>
+<p align="center"><img src="http://i.imgur.com/5oL2kVC.png" alt="Mond"/>
+<br><b>Mond is a simple and elegant scripting language written in C#</b></p>
 
 ### Features
 * [sequences](https://github.com/Rohansi/Mond/wiki/Sequences)
