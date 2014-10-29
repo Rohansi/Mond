@@ -168,6 +168,8 @@ namespace Mond
                         var line = new DebugInfo.Line(address, fileName, lineNumber);
                         lines.Add(line);
                     }
+
+                    debugInfo = new DebugInfo(functions, lines);
                 }
 
                 return new MondProgram(bytecode, numbers, strings, debugInfo);
