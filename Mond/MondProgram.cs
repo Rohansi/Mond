@@ -11,8 +11,8 @@ namespace Mond
 {
     public sealed class MondProgram
     {
-        private const uint MAGIC_ID = 0xFA57C0DE;
-        private const byte FORMAT_VERSION = 1;
+        private const uint MagicId = 0xFA57C0DE;
+        private const byte FormatVersion = 1;
 
         internal readonly byte[] Bytecode;
         internal readonly List<MondValue> Numbers;
@@ -31,11 +31,11 @@ namespace Mond
         /// Writes the compiled Mond program to the specified file.
         /// </summary>
         /// <param name="path">File to write the bytecode to.</param>
-        public void Dump(string path)
+        public void SaveBytecode(string path)
         {
             using (var fs = File.Open(path, FileMode.Create, FileAccess.Write, FileShare.None))
             {
-                Dump(fs);
+                SaveBytecode(fs);
             }
         }
 
@@ -43,12 +43,12 @@ namespace Mond
         /// Writes the compiled Mond program to the specified stream.
         /// </summary>
         /// <param name="output">Stream to write to.</param>
-        public void Dump(Stream output)
+        public void SaveBytecode(Stream output)
         {
             using (var writer = new BinaryWriter(output, Encoding.UTF8, true))
             {
-                writer.Write(MAGIC_ID);
-                writer.Write(FORMAT_VERSION);
+                writer.Write(MagicId);
+                writer.Write(FormatVersion);
                 writer.Write(DebugInfo != null);
                 writer.Write(Strings.Count);
 
@@ -103,11 +103,11 @@ namespace Mond
         /// Loads Mond bytecode from the specified file.
         /// </summary>
         /// <param name="path">The file to load.</param>
-        public static MondProgram Load(string path)
+        public static MondProgram LoadBytecode(string path)
         {
             using (var fs = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
-                return Load(fs);
+                return LoadBytecode(fs);
             }
         }
 
@@ -115,27 +115,27 @@ namespace Mond
         /// Loads Mond bytecode from the specified stream.
         /// </summary>
         /// <param name="stream">Stream to read from.</param>
-        public static MondProgram Load(Stream stream)
+        public static MondProgram LoadBytecode(Stream stream)
         {
             using (var reader = new BinaryReader(stream, Encoding.UTF8, true))
             {
-                if (reader.ReadUInt32() != MAGIC_ID)
+                if (reader.ReadUInt32() != MagicId)
                     throw new NotSupportedException("Input is not valid.");
 
                 byte version;
-                if ((version = reader.ReadByte()) != FORMAT_VERSION)
-                    throw new NotSupportedException(string.Format("Wrong version. Expected {0:X2}, got {1:X2}.", FORMAT_VERSION, version));
+                if ((version = reader.ReadByte()) != FormatVersion)
+                    throw new NotSupportedException(string.Format("Wrong version. Expected 0x{0:X2}, got 0x{1:X2}.", FormatVersion, version));
 
                 var hasDebugInfo = reader.ReadBoolean();
 
                 var stringCount = reader.ReadInt32();
-                var strings = new List<string>();
+                var strings = new List<string>(stringCount);
 
                 for (var i = 0; i < stringCount; ++i)
                     strings.Add(reader.ReadString());
 
                 var numberCount = reader.ReadInt32();
-                var numbers = new List<double>();
+                var numbers = new List<double>(numberCount);
 
                 for (var i = 0; i < numberCount; ++i)
                     numbers.Add(reader.ReadDouble());
@@ -147,7 +147,7 @@ namespace Mond
                 if (hasDebugInfo)
                 {
                     var functionCount = reader.ReadInt32();
-                    var functions = new List<DebugInfo.Function>();
+                    var functions = new List<DebugInfo.Function>(functionCount);
 
                     for (var i = 0; i < functionCount; ++i)
                     {
@@ -158,7 +158,7 @@ namespace Mond
                     }
 
                     var lineCount = reader.ReadInt32();
-                    var lines = new List<DebugInfo.Line>();
+                    var lines = new List<DebugInfo.Line>(lineCount);
 
                     for (var i = 0; i < lineCount; ++i)
                     {
