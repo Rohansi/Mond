@@ -18,7 +18,7 @@ fun struct(...properties) {
 
     return fun (...values) {
         if (values.length() != properties.length()) {
-            error("struct requires " + properties.length() + "values"); 
+            error("struct requires " + properties.length() + " values"); 
         }
         
         var value = {};
