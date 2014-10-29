@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace Mond.VirtualMachine
 {
@@ -32,6 +33,16 @@ namespace Mond.VirtualMachine
 
         private readonly List<Function> _functions;
         private readonly List<Line> _lines;
+
+        internal ReadOnlyCollection<Function> Functions
+        {
+            get { return _functions.AsReadOnly(); }
+        }
+
+        internal ReadOnlyCollection<Line> Lines
+        {
+            get { return _lines.AsReadOnly(); }
+        }
 
         public DebugInfo(List<Function> functions, List<Line> lines)
         {
