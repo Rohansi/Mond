@@ -27,6 +27,7 @@ namespace Mond.VirtualMachine.Prototypes
             Value["toUpper"] = new MondInstanceFunction(ToUpper);
             Value["toLower"] = new MondInstanceFunction(ToLower);
             Value["trim"] = new MondInstanceFunction(Trim);
+            Value["format"] = new MondInstanceFunction(Format);
 
             Value["length"] = new MondInstanceFunction(Length);
             Value["getEnumerator"] = new MondInstanceFunction(GetEnumerator);
@@ -210,6 +211,37 @@ namespace Mond.VirtualMachine.Prototypes
         {
             Check("trim", instance.Type, arguments);
             return ((string)instance).Trim();
+        }
+
+        /// <summary>
+        /// format(): string
+        /// </summary>
+        private static MondValue Format(MondState state, MondValue instance, params MondValue[] arguments)
+        {
+            if(arguments.Length == 0)
+                return instance;
+
+            Check("format", instance.Type, arguments);
+
+            var values = arguments.Select<MondValue, object>(x =>
+            {
+                //System.String.Format has certain format specifiers
+                //that are valid for integers but not floats
+                //(ex. String.Format( "{0:x2}", 1.23f ); throws FormatException
+                //So we treat all whole numbers as integers, everything else
+                //remains unchanged.
+                if(x.Type == MondValueType.Number)
+                {
+                    if( x % 1.0 == 0.0 )
+                        return (int)x;
+                    else
+                        return (double)x;
+                }
+
+                return x.ToString();
+            }).ToArray();
+
+            return string.Format(instance.ToString(), values);
         }
 
         /// <summary>

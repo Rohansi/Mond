@@ -214,6 +214,9 @@ namespace Mond
                 if (Type != MondValueType.Object)
                     throw new MondRuntimeException(RuntimeError.CantCreateField, Type.GetName());
 
+                if (ObjectValue.Locked)
+                    return;
+
                 MondValue result;
                 if (TryDispatch("__set", out result, this, index, value))
                     return;
