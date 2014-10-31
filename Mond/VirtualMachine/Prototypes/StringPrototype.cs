@@ -220,9 +220,6 @@ namespace Mond.VirtualMachine.Prototypes
         {
             Check("format", instance.Type, arguments);
 
-            if (arguments.Length == 0)
-                return instance;
-
             var values = arguments.Select<MondValue, object>(x =>
             {
                 //System.String.Format has certain format specifiers
@@ -230,7 +227,7 @@ namespace Mond.VirtualMachine.Prototypes
                 //(ex. String.Format( "{0:x2}", 1.23f ); throws FormatException
                 //So we treat all whole numbers as integers, everything else
                 //remains unchanged.
-                if(x.Type == MondValueType.Number)
+                if (x.Type == MondValueType.Number)
                 {
                     if (x % 1.0 == 0.0)
                         return (int)x;
