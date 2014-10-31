@@ -218,10 +218,10 @@ namespace Mond.VirtualMachine.Prototypes
         /// </summary>
         private static MondValue Format(MondState state, MondValue instance, params MondValue[] arguments)
         {
-            if(arguments.Length == 0)
-                return instance;
-
             Check("format", instance.Type, arguments);
+
+            if (arguments.Length == 0)
+                return instance;
 
             var values = arguments.Select<MondValue, object>(x =>
             {
