@@ -232,10 +232,10 @@ namespace Mond.VirtualMachine.Prototypes
                 //remains unchanged.
                 if(x.Type == MondValueType.Number)
                 {
-                    if( x % 1.0 == 0.0 )
+                    if (x % 1.0 == 0.0)
                         return (int)x;
-                    else
-                        return (double)x;
+
+                    return (double)x;
                 }
 
                 return x.ToString();
