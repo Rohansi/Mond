@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using Mond.Compiler.Expressions.Statements;
 
 namespace Mond.Compiler.Expressions
 {
@@ -27,15 +28,27 @@ namespace Mond.Compiler.Expressions
 
         public override int Compile(FunctionContext context)
         {
-            var callExpression = Right as CallExpression;
-            if (callExpression == null)
+            if (!(Right is CallExpression) && !(Right is FunctionExpression))
                 throw new MondCompilerException(FileName, Line, CompilerError.PipelineNeedsCall);
 
-            var token = new Token(callExpression.FileName, callExpression.Line, TokenType.LeftParen, null);
-            var transformedArgs = Enumerable.Repeat(Left, 1).Concat(callExpression.Arguments).ToList();
-            var transformedCall = new CallExpression(token, callExpression.Method, transformedArgs);
+            CallExpression callExpression;
+            Token token;
 
-            return transformedCall.Compile(context);
+            if (Right is CallExpression)
+            {
+                callExpression = Right as CallExpression;
+                token = new Token(callExpression.FileName, callExpression.Line, TokenType.LeftParen, null);
+                var transformedArgs = Enumerable.Repeat(Left, 1).Concat(callExpression.Arguments).ToList();
+                callExpression = new CallExpression(token, callExpression.Method, transformedArgs);
+            }
+            else
+            {
+                var functionExpression = Right as FunctionExpression;
+                token = new Token(functionExpression.FileName, functionExpression.Line, TokenType.Fun, null);
+                callExpression = new CallExpression(token, functionExpression, new[] { Left }.ToList());
+            }
+
+            return callExpression.Compile(context);
         }
 
         public override Expression Simplify()

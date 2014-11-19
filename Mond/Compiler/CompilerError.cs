@@ -28,7 +28,7 @@
         public const string YieldNotInAssign = "'yield' expressions can only appear in assignments";
         public const string ReturnInSeq = "'yield break' should be used to return from sequences";
 
-        public const string PipelineNeedsCall = "The right side of the pipeline operator must be a function call";
+        public const string PipelineNeedsCall = "The right side of the pipeline operator must be a function call or function declaration.";
 
         public const string UnpackMustBeInCall = "The unpack operator can only be used as a function call argument";
         public const string TooManyUnpacks = "Cannot have more than 255 unpacks in a single function call";
