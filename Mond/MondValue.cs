@@ -246,6 +246,12 @@ namespace Mond
             if (Type != MondValueType.Object)
                 throw new MondRuntimeException("Attempt to lock non-object");
 
+            if (ObjectValue.LockState == lockState)
+                return;
+
+            if (ObjectValue.LockState != ObjectLockState.None && lockState == ObjectLockState.None)
+                throw new MondRuntimeException("Cannot unlock a locked/frozen object.");
+
             if (ObjectValue.LockState == ObjectLockState.Frozen)
                 throw new MondRuntimeException("Cannot change the lock state of a frozen object.");
 
