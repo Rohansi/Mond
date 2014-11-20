@@ -13,7 +13,7 @@ namespace Mond.VirtualMachine.Prototypes
 
             Value["isNaN"] = new MondInstanceFunction(IsNaN);
 
-            Value.Lock();
+            Value.Freeze();
         }
 
         private static MondValue IsNaN(MondState state, MondValue instance, params MondValue[] arguments)

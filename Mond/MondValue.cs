@@ -174,9 +174,9 @@ namespace Mond
                     return;
                 }
 
-                if (Type == MondValueType.Object && !ObjectValue.Locked)
+                if (Type == MondValueType.Object)
                 {
-                    if (ObjectValue.Values.ContainsKey(index))
+                    if (ObjectValue.Values.ContainsKey(index) && ObjectValue.LockState == ObjectLockState.None)
                     {
                         ObjectValue.Values[index] = value;
                         return;
@@ -194,7 +194,7 @@ namespace Mond
                         break;
 
                     // skip locked objects because they cant be written to
-                    if (!currentValue.ObjectValue.Locked)
+                    if (currentValue.ObjectValue.LockState != ObjectLockState.None)
                     {
                         var values = currentValue.ObjectValue.Values;
                         if (values.ContainsKey(index))
@@ -214,7 +214,7 @@ namespace Mond
                 if (Type != MondValueType.Object)
                     throw new MondRuntimeException(RuntimeError.CantCreateField, Type.GetName());
 
-                if (ObjectValue.Locked)
+                if (ObjectValue.LockState == ObjectLockState.Frozen)
                     return;
 
                 MondValue result;
@@ -226,14 +226,30 @@ namespace Mond
         }
 
         /// <summary>
-        /// Locks an Object to prevent modification from scripts. All prototypes should be locked.
+        /// Prevents and object's existing fields from being removed, however their values can still be changed and new fields can still be created.
         /// </summary>
         public void Lock()
+        {
+            LockImpl(ObjectLockState.Locked);
+        }
+
+        /// <summary>
+        /// Makes an object completely immutable. Ideal for prototypes.
+        /// </summary>
+        public void Freeze()
+        {
+            LockImpl(ObjectLockState.Frozen);
+        }
+
+        private void LockImpl(ObjectLockState lockState)
         {
             if (Type != MondValueType.Object)
                 throw new MondRuntimeException("Attempt to lock non-object");
 
-            ObjectValue.Locked = true;
+            if (ObjectValue.LockState == ObjectLockState.Frozen)
+                throw new MondRuntimeException("Cannot change the lock state of a frozen object.");
+
+            ObjectValue.LockState = lockState;
         }
 
         /// <summary>

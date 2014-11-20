@@ -17,7 +17,7 @@
             Value["serialize"] = new MondInstanceFunction(Serialize);
             Value["getPrototype"] = new MondInstanceFunction(GetPrototype);
 
-            Value.Lock();
+            Value.Freeze();
         }
 
         /// <summary>

@@ -19,16 +19,18 @@ namespace Mond.VirtualMachine.Prototypes
             Value["containsValue"] = new MondInstanceFunction(ContainsValue);
             Value["get"] = new MondInstanceFunction(Get);
             Value["remove"] = new MondInstanceFunction(Remove);
+            Value["lock"] = new MondInstanceFunction(Lock);
+            Value["freeze"] = new MondInstanceFunction(Freeze);
 
             Value["length"] = new MondInstanceFunction(Length);
             Value["getEnumerator"] = new MondInstanceFunction(GetEnumerator);
 
             Value["setPrototype"] = new MondInstanceFunction(SetPrototype);
 
-            Value.Lock();
+            Value.Freeze();
         }
 
-        private const string LockedError = "Object.{0}: object is locked";
+        private const string LockedError = "Object.{0}: object is {1}";
 
         /// <summary>
         /// add(key, value): object
@@ -37,8 +39,8 @@ namespace Mond.VirtualMachine.Prototypes
         {
             Check("add", instance.Type, arguments, MondValueType.Undefined, MondValueType.Undefined);
 
-            if (instance.ObjectValue.Locked)
-                throw new MondRuntimeException(LockedError, "add");
+            if (instance.ObjectValue.LockState == ObjectLockState.Frozen)
+                throw new MondRuntimeException(LockedError, "add", "frozen");
 
             instance.ObjectValue.Values[arguments[0]] = arguments[1];
             return instance;
@@ -51,8 +53,8 @@ namespace Mond.VirtualMachine.Prototypes
         {
             Check("clear", instance.Type, arguments);
 
-            if (instance.ObjectValue.Locked)
-                throw new MondRuntimeException(LockedError, "clear");
+            if (instance.ObjectValue.LockState != ObjectLockState.None)
+                throw new MondRuntimeException(LockedError, "clear", Enum.GetName(typeof(ObjectLockState), instance.ObjectValue.LockState));
 
             instance.ObjectValue.Values.Clear();
             return instance;
@@ -97,10 +99,30 @@ namespace Mond.VirtualMachine.Prototypes
         {
             Check("remove", instance.Type, arguments, MondValueType.Undefined);
 
-            if (instance.ObjectValue.Locked)
-                throw new MondRuntimeException(LockedError, "clear");
+            if (instance.ObjectValue.LockState != ObjectLockState.None)
+                throw new MondRuntimeException(LockedError, "clear", Enum.GetName(typeof(ObjectLockState), instance.ObjectValue.LockState));
 
             instance.ObjectValue.Values.Remove(arguments[0]);
+            return instance;
+        }
+
+        /// <summary>
+        /// lock(): object
+        /// </summary>
+        private static MondValue Lock(MondState state, MondValue instance, params MondValue[] arguments)
+        {
+            Check("lock", instance.Type, arguments);
+            instance.Lock();
+            return instance;
+        }
+
+        /// <summary>
+        /// freeze(): object
+        /// </summary>
+        private static MondValue Freeze(MondState state, MondValue instance, params MondValue[] arguments)
+        {
+            Check("freeze", instance.Type, arguments);
+            instance.Freeze();
             return instance;
         }
 
