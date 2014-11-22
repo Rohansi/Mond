@@ -4,7 +4,7 @@ using Mond.VirtualMachine;
 
 namespace Mond
 {
-    public partial class MondValue
+    public sealed partial class MondValue
     {
         public static implicit operator MondValue(bool value)
         {
