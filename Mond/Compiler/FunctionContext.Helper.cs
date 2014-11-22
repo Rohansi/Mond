@@ -65,12 +65,17 @@ namespace Mond.Compiler
                 return 1;
             }
 
-            if (operand is IdentifierOperand)
+            var identifier = operand as IdentifierOperand;
+            if (identifier != null)
             {
-                Emit(new Instruction(InstructionType.LdLoc, operand));
+                if (identifier.FrameIndex != FrameIndex)
+                    Emit(new Instruction(InstructionType.LdLoc, operand));
+                else
+                    Emit(new Instruction(InstructionType.LdLocF, new ImmediateOperand(identifier.Id)));
+
                 return 1;
             }
-            
+
             throw new NotSupportedException();
         }
 
@@ -94,7 +99,11 @@ namespace Mond.Compiler
 
         public int Store(IdentifierOperand operand)
         {
-            Emit(new Instruction(InstructionType.StLoc, operand));
+            if (operand.FrameIndex != FrameIndex)
+                Emit(new Instruction(InstructionType.StLoc, operand));
+            else
+                Emit(new Instruction(InstructionType.StLocF, new ImmediateOperand(operand.Id)));
+
             return -1;
         }
 
@@ -248,7 +257,7 @@ namespace Mond.Compiler
         }
 
         private static Dictionary<TokenType, InstructionType> _binaryOperationMap;
-        private static Dictionary<TokenType, InstructionType> _unaryOperationMap; 
+        private static Dictionary<TokenType, InstructionType> _unaryOperationMap;
 
         static FunctionContext()
         {

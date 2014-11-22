@@ -18,6 +18,7 @@ namespace Mond.Compiler
         LdNum, LdStr,                       // load number/string constant
         LdGlobal,                           // load global object
 
+        LdLocF, StLocF,                     // load/store local in current frame
         LdLoc, StLoc,                       // load/store local
         LdFld, StFld,                       // load/store field
         LdArr, StArr,                       // load/store array

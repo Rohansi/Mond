@@ -177,6 +177,20 @@ namespace Mond.VirtualMachine
                         #endregion
 
                         #region Storables
+                        case (int)InstructionType.LdLocF:
+                            {
+                                var index = ReadInt32(code, ref ip);
+                                Push(locals.Values[index]);
+                                break;
+                            }
+
+                        case (int)InstructionType.StLocF:
+                            {
+                                var index = ReadInt32(code, ref ip);
+                                locals.Values[index] = Pop();
+                                break;
+                            }
+
                         case (int)InstructionType.LdLoc:
                             {
                                 var depth = ReadInt32(code, ref ip);
