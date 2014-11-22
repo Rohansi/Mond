@@ -32,7 +32,7 @@ namespace Mond.VirtualMachine.Prototypes
             Value["length"] = new MondInstanceFunction(Length);
             Value["getEnumerator"] = new MondInstanceFunction(GetEnumerator);
 
-            Value.Lock();
+            Value.Freeze();
         }
 
         private const string IndexOutOfBounds = "String.{0}: index out of bounds";

@@ -2,10 +2,17 @@
 
 namespace Mond.VirtualMachine
 {
+    enum ObjectLockState
+    {
+        None,
+        Locked,
+        Frozen,
+    }
+
     class Object
     {
         public readonly Dictionary<MondValue, MondValue> Values;
-        public bool Locked;
+        public ObjectLockState LockState;
         public MondValue Prototype;
         public object UserData;
 
@@ -23,7 +30,7 @@ namespace Mond.VirtualMachine
         public Object()
         {
             Values = new Dictionary<MondValue, MondValue>();
-            Locked = false;
+            LockState = ObjectLockState.None;
             Prototype = null;
             UserData = null;
         }

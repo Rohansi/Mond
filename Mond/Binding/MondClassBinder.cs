@@ -29,7 +29,7 @@ namespace Mond.Binding
         {
             MondValue prototype;
             var ctor = Bind<T>(out prototype, state);
-            prototype.Lock();
+            prototype.Freeze();
             return ctor;
         }
 
