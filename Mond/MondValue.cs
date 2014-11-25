@@ -205,9 +205,10 @@ namespace Mond
                     var values = currentValue.ObjectValue.Values;
                     if (values.ContainsKey(index))
                     {
-                        if (!currentValue.ObjectValue.Locked)
-                            values[index] = value;
+                        if (currentValue.ObjectValue.Locked)
+                            break; // hit a wall in the prototype chain, don't continue
 
+                        values[index] = value;
                         return;
                     }
 

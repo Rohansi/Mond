@@ -424,14 +424,14 @@ namespace Mond.Tests
         public void Lock()
         {
             var obj = new MondValue(MondValueType.Object);
+            var prototype = obj.Prototype;
 
             Assert.True(obj["getType"].Type == MondValueType.Function, "no getType");
 
             obj["getType"] = 123;
 
-            Assert.False(obj["getType"].Type == MondValueType.Number, "set on locked prototype");
-
-            var prototype = obj.Prototype;
+            Assert.True(prototype["getType"].Type == MondValueType.Function, "set wrong field on locked prototype");
+            Assert.True(obj["getType"] == 123, "set on locked prototype");
 
             prototype["getType"] = 123;
 
