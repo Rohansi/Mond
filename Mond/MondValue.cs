@@ -22,10 +22,10 @@ namespace Mond
 
         [FieldOffset(16)]
         internal readonly VirtualMachine.Object ObjectValue;
-        
-        [FieldOffset(16)]        
+
+        [FieldOffset(16)]
         internal readonly List<MondValue> ArrayValue;
-        
+
         [FieldOffset(16)]
         private readonly string _stringValue;
 
@@ -184,13 +184,12 @@ namespace Mond
                     return;
                 }
 
-                if (Type == MondValueType.Object && !ObjectValue.Locked)
+                if (Type == MondValueType.Object && ObjectValue.Values.ContainsKey(index))
                 {
-                    if (ObjectValue.Values.ContainsKey(index))
-                    {
+                    if (!ObjectValue.Locked)
                         ObjectValue.Values[index] = value;
-                        return;
-                    }
+
+                    return;
                 }
 
                 var i = 0;
@@ -203,15 +202,13 @@ namespace Mond
                     if (currentValue.Type != MondValueType.Object)
                         break;
 
-                    // skip locked objects because they cant be written to
-                    if (!currentValue.ObjectValue.Locked)
+                    var values = currentValue.ObjectValue.Values;
+                    if (values.ContainsKey(index))
                     {
-                        var values = currentValue.ObjectValue.Values;
-                        if (values.ContainsKey(index))
-                        {
+                        if (!currentValue.ObjectValue.Locked)
                             values[index] = value;
-                            return;
-                        }
+
+                        return;
                     }
 
                     prototype = currentValue.Prototype;

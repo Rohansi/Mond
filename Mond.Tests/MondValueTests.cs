@@ -419,5 +419,30 @@ namespace Mond.Tests
                 var a = MondValue.Null.UserData;
             });
         }
+
+        [Test]
+        public void Lock()
+        {
+            var obj = new MondValue(MondValueType.Object);
+
+            Assert.True(obj["getType"].Type == MondValueType.Function, "no getType");
+
+            obj["getType"] = 123;
+
+            Assert.False(obj["getType"].Type == MondValueType.Number, "set on locked prototype");
+
+            var prototype = obj.Prototype;
+
+            prototype["getType"] = 123;
+
+            Assert.True(prototype["getType"].Type == MondValueType.Function, "set on locked object");
+
+            Assert.True(obj["test"] == MondValue.Undefined);
+
+            obj.Lock();
+            obj["test"] = 123;
+
+            Assert.True(obj["test"] == MondValue.Undefined, "create on locked object");
+        }
     }
 }
