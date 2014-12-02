@@ -277,6 +277,17 @@ namespace Mond.VirtualMachine
                                 Push(array);
                                 break;
                             }
+
+                        case (int)InstructionType.Slice:
+                            {
+                                var step = Pop();
+                                var end = Pop();
+                                var start = Pop();
+                                var array = Pop();
+
+                                Push(array.Slice(start, end, step));
+                                break;
+                            }
                         #endregion
 
                         #region Math

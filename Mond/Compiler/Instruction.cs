@@ -24,6 +24,7 @@ namespace Mond.Compiler
         LdArr, StArr,                       // load/store array
 
         NewObject, NewArray,                // create object/array
+        Slice,                              // slice array
 
         Add, Sub, Mul, Div, Mod, Exp,       // math
         Neg,                                // negate

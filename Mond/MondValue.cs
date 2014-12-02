@@ -234,17 +234,6 @@ namespace Mond
         }
 
         /// <summary>
-        /// Locks an Object to prevent modification from scripts. All prototypes should be locked.
-        /// </summary>
-        public void Lock()
-        {
-            if (Type != MondValueType.Object)
-                throw new MondRuntimeException("Attempt to lock non-object");
-
-            ObjectValue.Locked = true;
-        }
-
-        /// <summary>
         /// Gets the prototype object for this value.
         /// 
         /// Sets the prototype object for this object. Can either be MondValueType.Object,
@@ -286,6 +275,135 @@ namespace Mond
 
                 ObjectValue.Prototype = value;
             }
+        }
+
+        /// <summary>
+        /// Gets or sets the user data value of an Object.
+        /// </summary>
+        public object UserData
+        {
+            get
+            {
+                if (Type != MondValueType.Object)
+                    throw new MondRuntimeException("UserData is only available on Objects");
+
+                return ObjectValue.UserData;
+            }
+            set
+            {
+                if (Type != MondValueType.Object)
+                    throw new MondRuntimeException("UserData is only available on Objects");
+
+                ObjectValue.UserData = value;
+            }
+        }
+
+        /// <summary>
+        /// Locks an Object to prevent modification from scripts. All prototypes should be locked.
+        /// </summary>
+        public void Lock()
+        {
+            if (Type != MondValueType.Object)
+                throw new MondRuntimeException("Attempt to lock non-object");
+
+            ObjectValue.Locked = true;
+        }
+
+        public bool Contains(MondValue search)
+        {
+            if (Type == MondValueType.String && search.Type == MondValueType.String)
+                return _stringValue.Contains(search._stringValue);
+
+            if (Type == MondValueType.Object)
+            {
+                if (ObjectValue.Values.ContainsKey(search))
+                    return true;
+
+                MondValue result;
+                if (TryDispatch("__in", out result, this, search))
+                    return result;
+
+                return false;
+            }
+
+            if (Type == MondValueType.Array)
+                return ArrayValue.Contains(search);
+
+            throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "in", Type, search.Type.GetName());
+        }
+
+        public MondValue Slice(MondValue start = null, MondValue end = null, MondValue step = null)
+        {
+            if (Type != MondValueType.Array)
+                throw new MondRuntimeException("Slices can only be created from arrays");
+
+            Func<MondValue, int, int> toIntOrDefault = (value, defaultValue) =>
+            {
+                if (value == null || !value)
+                    return defaultValue;
+
+                return (int)value;
+            };
+
+            // get start value
+            var startIndex = toIntOrDefault(start, 0);
+
+            if (startIndex < 0)
+                startIndex += ArrayValue.Count;
+
+            if (startIndex < 0 || (startIndex >= ArrayValue.Count && ArrayValue.Count > 0))
+                throw new MondRuntimeException("Slice start index out of bounds");
+
+            // get end value
+            var endIndex = toIntOrDefault(end, Math.Max(0, ArrayValue.Count - 1));
+
+            if (endIndex < 0)
+                endIndex += ArrayValue.Count;
+
+            if (endIndex < 0 || (endIndex >= ArrayValue.Count && ArrayValue.Count > 0))
+                throw new MondRuntimeException("Slice end index out of bounds");
+
+            // get step value
+            var stepValue = toIntOrDefault(step, startIndex <= endIndex ? 1 : -1);
+
+            if (stepValue == 0)
+                throw new MondRuntimeException("Slice step value must be non-zero");
+
+            // allow reversing with default indices, ex: [::-1]
+            if (stepValue < 0 && (start == null || !start) && (end == null || !end))
+            {
+                startIndex = Math.Max(0, ArrayValue.Count - 1);
+                endIndex = 0;
+            }
+
+            // make sure the range makes sense
+            if ((stepValue < 0 && endIndex > startIndex) || (stepValue > 0 && startIndex > endIndex))
+                throw new MondRuntimeException("Slice range is invalid"); // TODO: better error message
+
+            // find size of slice
+            int length;
+
+            if (ArrayValue.Count == 0 && startIndex == 0 && endIndex == 0)
+            {
+                length = 0; // allow cloning empty arrays
+            }
+            else
+            {
+                var range = endIndex - startIndex + Math.Sign(stepValue);
+                length = (range / stepValue) + (range % stepValue != 0 ? 1 : 0);
+            }
+
+            // copy values to new array
+            var result = new MondValue(MondValueType.Array);
+            result.ArrayValue.Capacity = length;
+
+            var src = startIndex;
+            for (var dst = 0; dst < length; src += stepValue, dst++)
+            {
+                result.ArrayValue.Add(ArrayValue[src]);
+            }
+
+            return result;
         }
 
         public bool Equals(MondValue other)
@@ -334,29 +452,6 @@ namespace Mond
                 return false;
 
             return Equals((MondValue)other);
-        }
-
-        public bool Contains(MondValue search)
-        {
-            if (Type == MondValueType.String && search.Type == MondValueType.String)
-                return _stringValue.Contains(search._stringValue);
-
-            if (Type == MondValueType.Object)
-            {
-                if (ObjectValue.Values.ContainsKey(search))
-                    return true;
-
-                MondValue result;
-                if (TryDispatch("__in", out result, this, search))
-                    return result;
-
-                return false;
-            }
-
-            if (Type == MondValueType.Array)
-                return ArrayValue.Contains(search);
-
-            throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "in", Type, search.Type.GetName());
         }
 
         public override int GetHashCode()
@@ -424,27 +519,6 @@ namespace Mond
             }
         }
 
-        /// <summary>
-        /// Gets or sets the user data value of an Object.
-        /// </summary>
-        public object UserData
-        {
-            get
-            {
-                if (Type != MondValueType.Object)
-                    throw new MondRuntimeException("UserData is only available on Objects");
-
-                return ObjectValue.UserData;
-            }
-            set
-            {
-                if (Type != MondValueType.Object)
-                    throw new MondRuntimeException("UserData is only available on Objects");
-
-                ObjectValue.UserData = value;
-            }
-        }
-
         private MondValue CheckWrapInstanceNative(MondValue value)
         {
             if (value.Type != MondValueType.Function || value.FunctionValue.Type != ClosureType.InstanceNative)
@@ -455,16 +529,14 @@ namespace Mond
             return new MondValue((state, args) => func(state, inst, args));
         }
 
-        //Convenience function on VirtualMachine.Object.TryDispatch
+        // Convenience function on VirtualMachine.Object.TryDispatch
         private bool TryDispatch(string name, out MondValue result, params MondValue[] args)
         {
-            if (Type != MondValueType.Object)
-            {
-                result = Undefined;
-                return false;
-            }
+            if (Type == MondValueType.Object)
+                return ObjectValue.TryDispatch(name, out result, args);
 
-            return ObjectValue.TryDispatch(name, out result, args);
+            result = Undefined;
+            return false;
         }
     }
 }

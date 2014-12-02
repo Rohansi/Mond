@@ -91,5 +91,31 @@ namespace Mond.Tests.Expressions
             Assert.True(array.IsEnumerable);
             Assert.True(array.Enumerate(state).SequenceEqual(expected));
         }
+
+        [Test]
+        public void Slice()
+        {
+            var arr = new MondValue(MondValueType.Array);
+            arr.ArrayValue.AddRange(new MondValue[] { 1, 2, 3, 4, 5 });
+
+            var state = new MondState();
+            state["arr"] = arr;
+
+            Assert.True(state.Run("return global.arr[:];").Enumerate(state).SequenceEqual(new MondValue[] { 1, 2, 3, 4, 5 }), "no values");
+
+            Assert.True(state.Run("return global.arr[3:];").Enumerate(state).SequenceEqual(new MondValue[] { 4, 5 }), "just start");
+
+            Assert.True(state.Run("return global.arr[:2];").Enumerate(state).SequenceEqual(new MondValue[] { 1, 2, 3 }), "just end");
+
+            Assert.True(state.Run("return global.arr[::-1];").Enumerate(state).SequenceEqual(new MondValue[] { 5, 4, 3, 2, 1 }), "just step");
+
+            Assert.True(state.Run("return global.arr[1:2];").Enumerate(state).SequenceEqual(new MondValue[] { 2, 3 }));
+
+            Assert.True(state.Run("return global.arr[0:4:2];").Enumerate(state).SequenceEqual(new MondValue[] { 1, 3, 5 }));
+
+            Assert.Throws<MondCompilerException>(() => state.Run("return global.arr[::];"), "no values, extra colon");
+
+            Assert.Throws<MondCompilerException>(() => state.Run("return global.arr[0:1:];"), "indices, extra colon");
+        }
     }
 }

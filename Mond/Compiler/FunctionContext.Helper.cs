@@ -131,6 +131,12 @@ namespace Mond.Compiler
             return -length + 1;
         }
 
+        public int Slice()
+        {
+            Emit(new Instruction(InstructionType.Slice));
+            return -4 + 1;
+        }
+
         public int Dup()
         {
             Emit(new Instruction(InstructionType.Dup));

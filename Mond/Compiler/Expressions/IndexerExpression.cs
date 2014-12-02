@@ -22,7 +22,7 @@
 
             writer.Indent += 2;
             Left.Print(writer);
-            writer.Indent += 2;
+            writer.Indent -= 2;
 
             writer.WriteIndent();
             writer.WriteLine("-Index");
@@ -63,6 +63,14 @@
             Index = Index.Simplify();
 
             return this;
+        }
+
+        public override void SetParent(Expression parent)
+        {
+            base.SetParent(parent);
+
+            Left.SetParent(this);
+            Index.SetParent(this);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Mond.VirtualMachine;
 using NUnit.Framework;
 
@@ -443,6 +444,66 @@ namespace Mond.Tests
             obj["test"] = 123;
 
             Assert.True(obj["test"] == MondValue.Undefined, "create on locked object");
+        }
+
+        [Test]
+        public void Contains()
+        {
+            var arr = new MondValue(MondValueType.Array);
+            arr.ArrayValue.AddRange(new MondValue[] { 1, 2, 3, 4, 5 });
+
+            Assert.True(arr.Contains(3));
+            Assert.False(arr.Contains(10));
+
+            var str = new MondValue("hello world");
+
+            Assert.True(str.Contains("hello"));
+            Assert.False(str.Contains("asdf"));
+
+            var obj = new MondValue(new MondState());
+            obj["__in"] = new MondFunction((state, args) => args[1].Type == MondValueType.Number);
+
+            Assert.True(obj.Contains(3));
+            Assert.False(obj.Contains("hello"));
+
+            Assert.Throws<MondRuntimeException>(() => MondValue.False.Contains(0));
+        }
+
+        [Test]
+        public void Slice()
+        {
+            var state = new MondState();
+
+            var arr = new MondValue(MondValueType.Array);
+            arr.ArrayValue.AddRange(new MondValue[] { 1, 2, 3, 4, 5 });
+
+            Assert.True(arr.Slice().Enumerate(state).SequenceEqual(arr.Enumerate(state)), "clone");
+
+            Assert.True(arr.Slice(step: -1).Enumerate(state).SequenceEqual(new MondValue[] { 5, 4, 3, 2, 1 }), "reverse");
+
+            Assert.True(arr.Slice(1, 3).Enumerate(state).SequenceEqual(new MondValue[] { 2, 3, 4 }), "range");
+            Assert.True(arr.Slice(3, 1).Enumerate(state).SequenceEqual(new MondValue[] { 4, 3, 2 }), "reverse range");
+
+            Assert.True(arr.Slice(0, 0).Enumerate(state).SequenceEqual(new MondValue[] { 1 }), "same start and end");
+
+            Assert.True(arr.Slice(-4, -2).Enumerate(state).SequenceEqual(new MondValue[] { 2, 3, 4 }), "negative range");
+            Assert.True(arr.Slice(-2, -4).Enumerate(state).SequenceEqual(new MondValue[] { 4, 3, 2 }), "negative range reverse");
+
+            Assert.True(arr.Slice(step: 2).Enumerate(state).SequenceEqual(new MondValue[] { 1, 3, 5 }), "skip");
+            Assert.True(arr.Slice(step: -2).Enumerate(state).SequenceEqual(new MondValue[] { 5, 3, 1 }), "skip negative");
+
+            Assert.Throws<MondRuntimeException>(() => arr.Slice(-6, 0, "out of bounds 1"));
+            Assert.Throws<MondRuntimeException>(() => arr.Slice(0, 5, "out of bounds 2"));
+
+            Assert.Throws<MondRuntimeException>(() => arr.Slice(step: 0), "invalid step");
+
+            Assert.Throws<MondRuntimeException>(() => arr.Slice(4, 0, 1), "invalid range");
+            Assert.Throws<MondRuntimeException>(() => arr.Slice(0, 4, -1), "invalid range negative");
+
+            Assert.Throws<MondRuntimeException>(() => MondValue.Undefined.Slice(), "slice non-array");
+
+            var empty = new MondValue(MondValueType.Array);
+            Assert.True(!empty.Slice().Enumerate(state).Any(), "clone empty");
         }
     }
 }

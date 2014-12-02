@@ -59,5 +59,15 @@ namespace Mond.Compiler.Expressions
 
             return this;
         }
+
+        public override void SetParent(Expression parent)
+        {
+            base.SetParent(parent);
+
+            foreach (var value in Values)
+            {
+                value.Value.SetParent(this);
+            }
+        }
     }
 }
