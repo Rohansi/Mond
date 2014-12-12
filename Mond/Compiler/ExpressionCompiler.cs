@@ -23,7 +23,7 @@ namespace Mond.Compiler
         public ExpressionCompiler(MondCompilerOptions options)
         {
             _contexts = new List<FunctionContext>();
-            _scope = new Scope(0, null);
+            _scope = new Scope(0, 0, null);
             _labelIndex = 0;
 
             Options = options;
@@ -36,7 +36,7 @@ namespace Mond.Compiler
 
         public MondProgram Compile(Expression expression)
         {
-            var context = new FunctionContext(this, 0, _scope, null, null);
+            var context = new FunctionContext(this, 0, 0, _scope, null, null);
             RegisterFunction(context);
 
             context.Function(context.FullName);

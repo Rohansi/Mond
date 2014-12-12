@@ -1,4 +1,6 @@
-﻿namespace Mond.Compiler.Expressions.Statements
+﻿using Mond.Compiler.Visitors;
+
+namespace Mond.Compiler.Expressions.Statements
 {
     class DoWhileExpression : Expression, IStatementExpression
     {
@@ -19,18 +21,43 @@
             var stack = 0;
             var start = context.MakeLabel("doWhileStart");
             var cont = context.MakeLabel("doWhileContinue");
+            var brk = context.MakeLabel("doWhileBreak");
             var end = context.MakeLabel("doWhileEnd");
 
-            stack += context.Bind(start);
+            var containsFunction = new LoopContainsFunctionVisitor();
+            Block.Accept(containsFunction);
 
-            context.PushLoop(cont, end);
-            stack += Block.Compile(context);
-            context.PopLoop();
+            var loopContext = containsFunction.Value ? new LoopContext(context) : context;
 
-            stack += context.Bind(cont);
+            // body
+            loopContext.PushLoop(cont, containsFunction.Value ? brk : end);
+
+            stack += loopContext.Bind(start);
+
+            if (containsFunction.Value)
+                stack += loopContext.Enter();
+
+            stack += Block.Compile(loopContext);
+            loopContext.PopLoop();
+
+            // condition check
+            stack += context.Bind(cont); // continue
+
+            if (containsFunction.Value)
+                stack += context.Leave();
+
             stack += Condition.Compile(context);
             stack += context.JumpTrue(start);
-            stack += context.Bind(end);
+
+            if (containsFunction.Value)
+            {
+                stack += context.Jump(end);
+
+                stack += context.Bind(brk); // break (with function)
+                stack += context.Leave();
+            }
+
+            stack += context.Bind(end); // break (without function)
 
             CheckStack(stack, 0);
             return stack;

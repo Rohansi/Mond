@@ -68,7 +68,7 @@ namespace Mond.Compiler
             var identifier = operand as IdentifierOperand;
             if (identifier != null)
             {
-                if (identifier.FrameIndex != FrameIndex)
+                if (identifier.FrameIndex != LocalIndex)
                     Emit(new Instruction(InstructionType.LdLoc, operand));
                 else
                     Emit(new Instruction(InstructionType.LdLocF, new ImmediateOperand(identifier.Id)));
@@ -99,7 +99,7 @@ namespace Mond.Compiler
 
         public int Store(IdentifierOperand operand)
         {
-            if (operand.FrameIndex != FrameIndex)
+            if (operand.FrameIndex != LocalIndex)
                 Emit(new Instruction(InstructionType.StLoc, operand));
             else
                 Emit(new Instruction(InstructionType.StLocF, new ImmediateOperand(operand.Id)));
@@ -212,7 +212,13 @@ namespace Mond.Compiler
 
         public int Enter()
         {
-            Emit(new Instruction(InstructionType.Enter));
+            Emit(new Instruction(InstructionType.Enter, new DeferredImmediateOperand(() => IdentifierCount)));
+            return 0;
+        }
+
+        public int Leave()
+        {
+            Emit(new Instruction(InstructionType.Leave));
             return 0;
         }
 

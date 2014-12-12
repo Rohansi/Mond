@@ -8,8 +8,9 @@ namespace Mond.Compiler
         private readonly List<Instruction> _instructions;
         private readonly IndexedStack<Tuple<LabelOperand, LabelOperand>> _loopLabels;
 
-        public readonly int FrameIndex;
-        public Scope Scope;
+        public readonly int ArgIndex;
+        public readonly int LocalIndex;
+        public Scope Scope { get; protected set; }
 
         public readonly ExpressionCompiler Compiler;
 
@@ -22,15 +23,16 @@ namespace Mond.Compiler
 
         public int IdentifierCount { get; protected set; }
 
-        public FunctionContext(ExpressionCompiler compiler, int frameIndex, Scope prevScope, string parentName, string name)
+        public FunctionContext(ExpressionCompiler compiler, int argIndex, int localIndex, Scope prevScope, string parentName, string name)
         {
             _instructions = new List<Instruction>();
             _loopLabels = new IndexedStack<Tuple<LabelOperand, LabelOperand>>();
 
             Compiler = compiler;
-            FrameIndex = frameIndex;
+            ArgIndex = argIndex;
+            LocalIndex = localIndex;
 
-            Scope = new Scope(frameIndex, prevScope);
+            Scope = new Scope(ArgIndex, LocalIndex, prevScope);
 
             ParentName = parentName;
             Name = name;
@@ -44,23 +46,14 @@ namespace Mond.Compiler
 
         public IEnumerable<Instruction> Instructions
         {
-            get
-            {
-                foreach (var instruction in _instructions)
-                {
-                    if (instruction.Type == InstructionType.Enter)
-                        yield return new Instruction(InstructionType.Enter, new ImmediateOperand(IdentifierCount));
-                    else
-                        yield return instruction;
-                }
-            }
+            get { return _instructions; }
         }
 
         public virtual FunctionContext MakeFunction(string name)
         {
             name = name ?? string.Format("lambda_{0}", Compiler.LambdaId++);
 
-            var context = new FunctionContext(Compiler, FrameIndex + 1, Scope, FullName, name);
+            var context = new FunctionContext(Compiler, ArgIndex + 1, LocalIndex + 1, Scope, FullName, name);
             Compiler.RegisterFunction(context);
             return context;
         }
@@ -72,7 +65,7 @@ namespace Mond.Compiler
 
         public virtual void PushScope()
         {
-            Scope = new Scope(FrameIndex, Scope);
+            Scope = new Scope(ArgIndex, LocalIndex, Scope);
         }
 
         public virtual void PopScope()

@@ -1,4 +1,6 @@
-﻿namespace Mond.Compiler.Expressions.Statements
+﻿using Mond.Compiler.Visitors;
+
+namespace Mond.Compiler.Expressions.Statements
 {
     class WhileExpression : Expression, IStatementExpression
     {
@@ -18,12 +20,19 @@
 
             var stack = 0;
             var start = context.MakeLabel("whileStart");
+            var cont = context.MakeLabel("whileContinue");
+            var brk = context.MakeLabel("whileBreak");
             var end = context.MakeLabel("whileEnd");
 
             var boolExpression = Condition as BoolExpression;
             var isInfinite = boolExpression != null && boolExpression.Value;
 
-            stack += context.Bind(start);
+            var containsFunction = new LoopContainsFunctionVisitor();
+            Block.Accept(containsFunction);
+
+            var loopContext = containsFunction.Value ? new LoopContext(context) : context;
+
+            stack += context.Bind(start); // continue (without function)
 
             if (!isInfinite)
             {
@@ -31,12 +40,30 @@
                 stack += context.JumpFalse(end);
             }
 
-            context.PushLoop(start, end);
-            stack += Block.Compile(context);
-            context.PopLoop();
+            loopContext.PushLoop(containsFunction.Value ? cont : start, containsFunction.Value ? brk : end);
+
+            if (containsFunction.Value)
+                stack += loopContext.Enter();
+
+            stack += Block.Compile(loopContext);
+
+            if (containsFunction.Value)
+            {
+                stack += loopContext.Bind(cont); // continue (with function)
+                stack += loopContext.Leave();
+            }
+
+            loopContext.PopLoop();
 
             stack += context.Jump(start);
-            stack += context.Bind(end);
+
+            if (containsFunction.Value)
+            {
+                stack += context.Bind(brk); // break (with function)
+                stack += context.Leave();
+            }
+
+            stack += context.Bind(end); // break (without function)
 
             CheckStack(stack, 0);
             return stack;

@@ -27,6 +27,25 @@ namespace Mond.Tests.Expressions
             ");
 
             Assert.True(result == 256);
+
+            result = Script.Run(@"
+                var i = 0;
+                var arr = [];
+            
+                while (i < 10) {
+                    var ii = i;
+                    arr.add(() -> ii);
+
+                    i++;
+
+                    if (i >= 5) break;
+                    if (i == 2) continue;
+                }
+
+                return arr[4]();
+            ");
+
+            Assert.True(result == 4, "closure in loop");
         }
 
         [Test]
@@ -63,6 +82,23 @@ namespace Mond.Tests.Expressions
             ");
 
             Assert.True(result == 10);
+
+            result = Script.Run(@"
+                var i = 0;
+                var arr = [];
+
+                do {
+                    var ii = i;
+                    arr.add(() -> ii);
+
+                    if (i >= 5) break;
+                    if (i == 2) continue;
+                } while (++i < 10);
+
+                return arr[4]();
+            ");
+
+            Assert.True(result == 4, "closure in loop");
         }
 
         [Test]
@@ -79,6 +115,22 @@ namespace Mond.Tests.Expressions
             ");
 
             Assert.True(result == 3628800);
+
+            result = Script.Run(@"
+                var arr = [];
+            
+                for (var i = 0; i < 10; i++) {
+                    var ii = i;
+                    arr.add(() -> ii);
+
+                    if (i >= 5) break;
+                    if (i == 2) continue;
+                }
+
+                return arr[4]();
+            ");
+
+            Assert.True(result == 4, "closure in loop");
 
             Assert.Throws<MondCompilerException>(() => Script.Run(@"
                 var i;
@@ -161,6 +213,21 @@ namespace Mond.Tests.Expressions
             ");
 
             Assert.True(result == 15);
+
+            result = Script.Run(@"
+                var arr = [];
+
+                foreach (var i in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]) {
+                    arr.add(() -> i);
+
+                    if (i >= 5) break;
+                    if (i == 2) continue;
+                }
+
+                return arr[4]();
+            ");
+
+            Assert.True(result == 4, "closure in loop");
 
             Assert.Throws<MondCompilerException>(() => Script.Run(@"
                 var i;

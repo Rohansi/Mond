@@ -150,7 +150,7 @@ namespace Mond.Compiler.Expressions.Statements
         private readonly FunctionContext _forward;
 
         public SequenceContext(ExpressionCompiler compiler, string name, SequenceBodyExpression sequenceBody, FunctionContext forward)
-            : base(compiler, forward.FrameIndex, forward.Scope, forward.FullName, name)
+            : base(compiler, forward.ArgIndex, forward.LocalIndex, forward.Scope, forward.FullName, name)
         {
             _sequenceBody = sequenceBody;
             _forward = forward;
@@ -215,7 +215,7 @@ namespace Mond.Compiler.Expressions.Statements
         public readonly SequenceBodyExpression SequenceBody;
 
         public SequenceBodyContext(ExpressionCompiler compiler, string name, SequenceBodyExpression sequenceBody, FunctionContext forward)
-            : base(compiler, forward.FrameIndex + 1, forward.Scope, forward.FullName, name)
+            : base(compiler, forward.ArgIndex + 1, forward.LocalIndex + 1, forward.Scope, forward.FullName, name)
         {
             _forward = forward;
             _identifierMap = new IdentifierMap();
@@ -243,7 +243,7 @@ namespace Mond.Compiler.Expressions.Statements
         public override void PushScope()
         {
             _identifierMap = new IdentifierMap(_identifierMap);
-            Scope = new SequenceBodyScope(FrameIndex, Scope, this);
+            Scope = new SequenceBodyScope(ArgIndex, LocalIndex, Scope, this);
         }
 
         public override void PopScope()
@@ -262,8 +262,8 @@ namespace Mond.Compiler.Expressions.Statements
     {
         private readonly SequenceBodyContext _context;
 
-        public SequenceBodyScope(int frameIndex, Scope previous, SequenceBodyContext context)
-            : base(frameIndex, previous)
+        public SequenceBodyScope(int argIndex, int localIndex, Scope previous, SequenceBodyContext context)
+            : base(argIndex, localIndex, previous)
         {
             _context = context;
         }

@@ -38,7 +38,7 @@ namespace Mond.Compiler
         BitNot,                             // bitwise not (one's compliment)
 
         Closure, Call, TailCall,            // make closure, call function, tail call
-        Enter, Ret,                         // begin function, return from function
+        Enter, Leave, Ret,                  // push locals/begin function, pop locals, pop locals and return from function
         VarArgs,                            // setup variable length args
 
         Jmp,                                // jump unconditionally

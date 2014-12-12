@@ -5,15 +5,17 @@ namespace Mond.Compiler
     class Scope
     {
         private readonly Dictionary<string, IdentifierOperand> _identifiers;
-        private readonly int _frameIndex;
+        private readonly int _argIndex;
+        private readonly int _localIndex;
         private int _nextId;
 
         public readonly Scope Previous;
 
-        public Scope(int frameIndex, Scope previous)
+        public Scope(int argIndex, int localIndex, Scope previous)
         {
             _identifiers = new Dictionary<string, IdentifierOperand>();
-            _frameIndex = frameIndex;
+            _argIndex = argIndex;
+            _localIndex = localIndex;
             _nextId = 0;
 
             Previous = previous;
@@ -26,7 +28,7 @@ namespace Mond.Compiler
 
             var frameScope = GetFrameScope();
             var id = frameScope._nextId++;
-            var identifier = new IdentifierOperand(_frameIndex, id, name, isReadOnly);
+            var identifier = new IdentifierOperand(_localIndex, id, name, isReadOnly);
             _identifiers.Add(name, identifier);
             return true;
         }
@@ -36,7 +38,7 @@ namespace Mond.Compiler
             if (name[0] != '#' && IsDefined(name))
                 return false;
 
-            var identifier = new ArgumentIdentifierOperand(-_frameIndex, index, name);
+            var identifier = new ArgumentIdentifierOperand(-_argIndex, index, name);
             _identifiers.Add(name, identifier);
             return true;
         }
@@ -63,12 +65,12 @@ namespace Mond.Compiler
                         break;
                 }
 
-                identifier = new IdentifierOperand(_frameIndex, id, numberedName, false);
+                identifier = new IdentifierOperand(_localIndex, id, numberedName, false);
                 _identifiers.Add(numberedName, identifier);
                 return identifier;
             }
 
-            identifier = new IdentifierOperand(_frameIndex, id, name, false);
+            identifier = new IdentifierOperand(_localIndex, id, name, false);
             _identifiers.Add(name, identifier);
             return identifier;
         }
@@ -97,7 +99,7 @@ namespace Mond.Compiler
             if (Previous != null)
             {
                 var curr = Previous;
-                while (curr._frameIndex == _frameIndex)
+                while (curr._localIndex == _localIndex)
                 {
                     frameScope = curr;
 

@@ -33,7 +33,7 @@ namespace Mond.Compiler.Expressions.Statements
             context.Line(FileName, Line);
 
             var stack = 0;
-            var shouldBeGlobal = context.FrameIndex == 0 && context.Compiler.Options.MakeRootDeclarationsGlobal;
+            var shouldBeGlobal = context.ArgIndex == 0 && context.Compiler.Options.MakeRootDeclarationsGlobal;
 
             foreach (var declaration in Declarations)
             {

@@ -637,6 +637,16 @@ namespace Mond.VirtualMachine
                                 break;
                             }
 
+                        case (int)InstructionType.Leave:
+                            {
+                                var frame = PopLocal();
+                                frame = frame.Previous;
+
+                                PushLocal(frame);
+                                locals = frame;
+                                break;
+                            }
+
                         case (int)InstructionType.Ret:
                             {
                                 var returnAddress = PopCall();

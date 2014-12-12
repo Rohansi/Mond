@@ -69,6 +69,8 @@
     <Compile Include="Compiler\Expressions\Statements\YieldBreakExpression.cs" />
     <Compile Include="Compiler\Expressions\Statements\YieldExpression.cs" />
     <Compile Include="Compiler\Expressions\UnpackExpression.cs" />
+    <Compile Include="Compiler\LoopContext.cs" />
+    <Compile Include="Compiler\Visitors\LoopContainsFunctionVisitor.cs" />
     <Compile Include="Compiler\Visitors\ExpressionPrintVisitor.cs" />
     <Compile Include="Compiler\Visitors\ExpressionVisitor.cs" />
     <Compile Include="Compiler\FunctionContext.cs" />

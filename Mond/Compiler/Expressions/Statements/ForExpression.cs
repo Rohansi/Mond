@@ -1,4 +1,6 @@
-﻿namespace Mond.Compiler.Expressions.Statements
+﻿using Mond.Compiler.Visitors;
+
+namespace Mond.Compiler.Expressions.Statements
 {
     class ForExpression : Expression, IStatementExpression
     {
@@ -23,32 +25,54 @@
             var stack = 0;
             var start = context.MakeLabel("forStart");
             var increment = context.MakeLabel("forContinue");
+            var brk = context.MakeLabel("forBreak");
             var end = context.MakeLabel("forEnd");
+
+            var containsFunction = new LoopContainsFunctionVisitor();
+            Block.Accept(containsFunction);
 
             context.PushScope();
 
             if (Initializer != null)
                 stack += Initializer.Compile(context);
 
+            // loop body
             context.Bind(start);
+
             if (Condition != null)
             {
                 stack += Condition.Compile(context);
                 stack += context.JumpFalse(end);
             }
 
-            context.PushLoop(increment, end);
-            stack += Block.Compile(context);
-            context.PopLoop();
+            var loopContext = containsFunction.Value ? new LoopContext(context) : context;
 
-            stack += context.Bind(increment);
+            loopContext.PushLoop(increment, containsFunction.Value ? brk : end);
+
+            if (containsFunction.Value)
+                stack += loopContext.Enter();
+
+            stack += Block.Compile(loopContext);
+
+            stack += context.Bind(increment); // continue
+
+            if (containsFunction.Value)
+                stack += loopContext.Leave();
+
+            loopContext.PopLoop();
 
             if (Increment != null)
                 stack += Increment.Compile(context);
 
             stack += context.Jump(start);
 
-            stack += context.Bind(end);
+            if (containsFunction.Value)
+            {
+                stack += context.Bind(brk); // break (with function)
+                stack += context.Leave();
+            }
+
+            stack += context.Bind(end); // break (without function)
 
             context.PopScope();
 

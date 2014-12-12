@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Mond.Compiler.Visitors;
 
 namespace Mond.Compiler.Expressions.Statements
 {
@@ -24,7 +25,12 @@ namespace Mond.Compiler.Expressions.Statements
 
             var stack = 0;
             var start = context.MakeLabel("foreachStart");
+            var cont = context.MakeLabel("foreachContinue");
+            var brk = context.MakeLabel("foreachBreak");
             var end = context.MakeLabel("foreachEnd");
+
+            var containsFunction = new LoopContainsFunctionVisitor();
+            Block.Accept(containsFunction);
 
             // set enumerator
             stack += Expression.Compile(context);
@@ -32,34 +38,53 @@ namespace Mond.Compiler.Expressions.Statements
             stack += context.Call(0, new List<ImmediateOperand>());
             stack += context.Store(enumerator);
 
-            // loop while moveNext returns true
-            stack += context.Bind(start);
-            stack += context.Load(enumerator);
-            stack += context.LoadField(context.String("moveNext"));
-            stack += context.Call(0, new List<ImmediateOperand>());
-            stack += context.JumpFalse(end);
+            var loopContext = containsFunction.Value ? new LoopContext(context) : context;
 
             // loop body
-            context.PushScope();
-            context.PushLoop(start, end);
+            loopContext.PushScope();
+            loopContext.PushLoop(containsFunction.Value ? cont : start, containsFunction.Value ? brk : end);
 
-            if (!context.DefineIdentifier(Identifier))
+            stack += loopContext.Bind(start); // continue (without function)
+
+            if (containsFunction.Value)
+                stack += loopContext.Enter();
+
+            // loop while moveNext returns true
+            stack += loopContext.Load(enumerator);
+            stack += loopContext.LoadField(context.String("moveNext"));
+            stack += loopContext.Call(0, new List<ImmediateOperand>());
+            stack += loopContext.JumpFalse(containsFunction.Value ? brk : end);
+
+            if (!loopContext.DefineIdentifier(Identifier))
                 throw new MondCompilerException(FileName, Line, CompilerError.IdentifierAlreadyDefined, Identifier);
 
-            var identifier = context.Identifier(Identifier);
+            var identifier = loopContext.Identifier(Identifier);
 
-            stack += context.Load(enumerator);
-            stack += context.LoadField(context.String("current"));
-            stack += context.Store(identifier);
+            stack += loopContext.Load(enumerator);
+            stack += loopContext.LoadField(context.String("current"));
+            stack += loopContext.Store(identifier);
 
-            stack += Block.Compile(context);
-            stack += context.Jump(start);
+            stack += Block.Compile(loopContext);
 
-            context.PopLoop();
-            context.PopScope();
+            if (containsFunction.Value)
+            {
+                stack += loopContext.Bind(cont); // continue (with function)
+                stack += loopContext.Leave();
+            }
+
+            stack += loopContext.Jump(start);
+
+            if (containsFunction.Value)
+            {
+                stack += loopContext.Bind(brk); // break (with function)
+                stack += loopContext.Leave();
+            }
+
+            loopContext.PopLoop();
+            loopContext.PopScope();
 
             // after loop
-            stack += context.Bind(end);
+            stack += context.Bind(end); // break (without function)
             stack += context.Load(enumerator);
             stack += context.LoadField(context.String("dispose"));
             stack += context.Call(0, new List<ImmediateOperand>());

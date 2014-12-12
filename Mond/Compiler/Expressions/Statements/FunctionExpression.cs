@@ -43,7 +43,7 @@ namespace Mond.Compiler.Expressions.Statements
         public override int Compile(FunctionContext context)
         {
             var isStatement = Parent is IBlockExpression;
-            var shouldBeGlobal = context.FrameIndex == 0 && context.Compiler.Options.MakeRootDeclarationsGlobal;
+            var shouldBeGlobal = context.ArgIndex == 0 && context.Compiler.Options.MakeRootDeclarationsGlobal;
 
             if (Name == null && isStatement)
                 throw new MondCompilerException(FileName, Line, CompilerError.FunctionNeverUsed);
