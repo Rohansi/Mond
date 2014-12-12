@@ -28,45 +28,6 @@ namespace Mond.Compiler.Expressions.Statements
             Else = elseBranch;
         }
 
-        public override void Print(IndentTextWriter writer)
-        {
-            writer.WriteIndent();
-            writer.WriteLine("If Statement");
-
-            var first = true;
-
-            foreach (var branch in Branches)
-            {
-                writer.WriteIndent();
-                writer.WriteLine(first ? "-If" : "-ElseIf");
-                first = false;
-
-                writer.Indent += 2;
-                branch.Condition.Print(writer);
-                writer.Indent -= 2;
-
-                writer.WriteIndent();
-                writer.WriteLine(" Do");
-
-                writer.Indent += 2;
-                branch.Block.Print(writer);
-                writer.Indent -= 2;
-            }
-
-            if (Else != null)
-            {
-                writer.WriteIndent();
-                writer.WriteLine("-Else");
-
-                writer.WriteIndent();
-                writer.WriteLine(" Do");
-
-                writer.Indent += 2;
-                Else.Block.Print(writer);
-                writer.Indent -= 2;
-            }
-        }
-
         public override int Compile(FunctionContext context)
         {
             context.Line(FileName, Line);
@@ -137,6 +98,11 @@ namespace Mond.Compiler.Expressions.Statements
 
             if (Else != null)
                 Else.Block.SetParent(this);
+        }
+
+        public override T Accept<T>(IExpressionVisitor<T> visitor)
+        {
+            return visitor.Visit(this);
         }
     }
 }

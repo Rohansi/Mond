@@ -13,9 +13,9 @@
             Line = line;
         }
 
-        public abstract void Print(IndentTextWriter writer);
         public abstract int Compile(FunctionContext context);
         public abstract Expression Simplify();
+        public abstract T Accept<T>(IExpressionVisitor<T> visitor);
 
         public virtual void SetParent(Expression parent)
         {

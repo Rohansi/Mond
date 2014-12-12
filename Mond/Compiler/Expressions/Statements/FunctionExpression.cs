@@ -23,28 +23,6 @@ namespace Mond.Compiler.Expressions.Statements
             DebugName = debugName;
         }
 
-        public override void Print(IndentTextWriter writer)
-        {
-            writer.WriteIndent();
-            writer.WriteLine("Function " + Name);
-
-            writer.WriteIndent();
-            writer.WriteLine("-Arguments: {0}", string.Join(", ", Arguments));
-
-            if (OtherArguments != null)
-            {
-                writer.WriteIndent();
-                writer.WriteLine("-Other Arguments: {0}", OtherArguments);
-            }
-
-            writer.WriteIndent();
-            writer.WriteLine("-Block");
-
-            writer.Indent += 2;
-            Block.Print(writer);
-            writer.Indent -= 2;
-        }
-
         public virtual void CompileBody(FunctionContext context)
         {
             var stack = 0;
@@ -142,6 +120,11 @@ namespace Mond.Compiler.Expressions.Statements
             base.SetParent(parent);
 
             Block.SetParent(this);
+        }
+
+        public override T Accept<T>(IExpressionVisitor<T> visitor)
+        {
+            return visitor.Visit(this);
         }
     }
 }

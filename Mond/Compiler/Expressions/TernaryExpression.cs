@@ -14,33 +14,6 @@
             IfFalse = ifFalse;
         }
 
-        public override void Print(IndentTextWriter writer)
-        {
-            writer.WriteIndent();
-            writer.WriteLine("Conditional");
-
-            writer.WriteIndent();
-            writer.WriteLine("-Expression");
-
-            writer.Indent += 2;
-            Condition.Print(writer);
-            writer.Indent -= 2;
-
-            writer.WriteIndent();
-            writer.WriteLine("-True");
-
-            writer.Indent += 2;
-            IfTrue.Print(writer);
-            writer.Indent -= 2;
-
-            writer.WriteIndent();
-            writer.WriteLine("-False");
-
-            writer.Indent += 2;
-            IfFalse.Print(writer);
-            writer.Indent -= 2;
-        }
-
         public override int Compile(FunctionContext context)
         {
             context.Line(FileName, Line);
@@ -77,6 +50,11 @@
             Condition.SetParent(this);
             IfTrue.SetParent(this);
             IfFalse.SetParent(this);
+        }
+
+        public override T Accept<T>(IExpressionVisitor<T> visitor)
+        {
+            return visitor.Visit(this);
         }
     }
 }

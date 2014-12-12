@@ -24,5 +24,10 @@ namespace Mond.Compiler.Expressions
 
             return stack;
         }
+
+        public override T Accept<T>(IExpressionVisitor<T> visitor)
+        {
+            return visitor.Visit(this);
+        }
     }
 }

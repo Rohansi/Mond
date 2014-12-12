@@ -10,28 +10,6 @@ namespace Mond.Compiler.Expressions.Statements
 
         }
 
-        public override void Print(IndentTextWriter writer)
-        {
-            writer.WriteIndent();
-            writer.WriteLine("Sequence " + Name);
-
-            writer.WriteIndent();
-            writer.WriteLine("-Arguments: {0}", string.Join(", ", Arguments));
-
-            if (OtherArguments != null)
-            {
-                writer.WriteIndent();
-                writer.WriteLine("-Other Arguments: {0}", OtherArguments);
-            }
-
-            writer.WriteIndent();
-            writer.WriteLine("-Block");
-
-            writer.Indent += 2;
-            Block.Print(writer);
-            writer.Indent -= 2;
-        }
-
         public override void CompileBody(FunctionContext context)
         {
             var state = context.DefineInternal("state");
@@ -93,6 +71,11 @@ namespace Mond.Compiler.Expressions.Statements
             stack += context.Return();
 
             CheckStack(stack, 0);
+        }
+
+        public override T Accept<T>(IExpressionVisitor<T> visitor)
+        {
+            return visitor.Visit(this);
         }
     }
 

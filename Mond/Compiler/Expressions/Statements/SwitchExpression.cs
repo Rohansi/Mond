@@ -31,49 +31,6 @@ namespace Mond.Compiler.Expressions.Statements
             DefaultBlock = defaultBlock;
         }
 
-        public override void Print(IndentTextWriter writer)
-        {
-            writer.WriteIndent();
-            writer.WriteLine("Switch");
-
-            writer.WriteIndent();
-            writer.WriteLine("-Expression");
-
-            writer.Indent += 2;
-            Expression.Print(writer);
-            writer.Indent -= 2;
-
-            foreach (var branch in Branches)
-            {
-                writer.WriteIndent();
-                writer.WriteLine("-Cases");
-
-                writer.Indent += 2;
-                foreach (var condition in branch.Conditions)
-                {
-                    condition.Print(writer);
-                }
-                writer.Indent -= 2;
-
-                writer.WriteIndent();
-                writer.WriteLine(" Do");
-
-                writer.Indent += 2;
-                branch.Block.Print(writer);
-                writer.Indent -= 2;
-            }
-
-            if (DefaultBlock != null)
-            {
-                writer.WriteIndent();
-                writer.WriteLine("-Default");
-
-                writer.Indent += 2;
-                DefaultBlock.Print(writer);
-                writer.Indent -= 2;
-            }
-        }
-
         public override int Compile(FunctionContext context)
         {
             context.Line(FileName, Line);
@@ -186,6 +143,11 @@ namespace Mond.Compiler.Expressions.Statements
             {
                 DefaultBlock.SetParent(this);
             }
+        }
+
+        public override T Accept<T>(IExpressionVisitor<T> visitor)
+        {
+            return visitor.Visit(this);
         }
 
         #region Jump Table Stuff

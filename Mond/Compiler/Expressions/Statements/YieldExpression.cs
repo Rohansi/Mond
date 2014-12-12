@@ -10,16 +10,6 @@
             Value = value;
         }
 
-        public override void Print(IndentTextWriter writer)
-        {
-            writer.WriteIndent();
-            writer.WriteLine("Yield");
-
-            writer.Indent++;
-            Value.Print(writer);
-            writer.Indent--;
-        }
-
         public override int Compile(FunctionContext context)
         {
             context.Line(FileName, Line);
@@ -76,6 +66,11 @@
             base.SetParent(parent);
 
             Value.SetParent(this);
+        }
+
+        public override T Accept<T>(IExpressionVisitor<T> visitor)
+        {
+            return visitor.Visit(this);
         }
     }
 }

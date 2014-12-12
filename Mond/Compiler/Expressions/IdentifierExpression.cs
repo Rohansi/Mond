@@ -10,12 +10,6 @@
             Name = token.Contents;
         }
 
-        public override void Print(IndentTextWriter writer)
-        {
-            writer.WriteIndent();
-            writer.WriteLine("identifier: {0}", Name);
-        }
-
         public override int Compile(FunctionContext context)
         {
             context.Line(FileName, Line);
@@ -67,6 +61,11 @@
         public override Expression Simplify()
         {
             return this;
+        }
+
+        public override T Accept<T>(IExpressionVisitor<T> visitor)
+        {
+            return visitor.Visit(this);
         }
     }
 }

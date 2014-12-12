@@ -14,22 +14,6 @@ namespace Mond.Compiler.Expressions
             Values = values.AsReadOnly();
         }
 
-        public override void Print(IndentTextWriter writer)
-        {
-            writer.WriteIndent();
-            writer.WriteLine("Object");
-
-            foreach (var value in Values)
-            {
-                writer.WriteIndent();
-                writer.WriteLine("-" + value.Key);
-
-                writer.Indent += 2;
-                value.Value.Print(writer);
-                writer.Indent -= 2;
-            }
-        }
-
         public override int Compile(FunctionContext context)
         {
             context.Line(FileName, Line);
@@ -68,6 +52,11 @@ namespace Mond.Compiler.Expressions
             {
                 value.Value.SetParent(this);
             }
+        }
+
+        public override T Accept<T>(IExpressionVisitor<T> visitor)
+        {
+            return visitor.Visit(this);
         }
     }
 }

@@ -16,26 +16,6 @@ namespace Mond.Compiler.Expressions.Statements
             Block = block;
         }
 
-        public override void Print(IndentTextWriter writer)
-        {
-            writer.WriteIndent();
-            writer.WriteLine("Foreach - {0}", Identifier);
-
-            writer.WriteIndent();
-            writer.WriteLine("-Expression");
-
-            writer.Indent += 2;
-            Expression.Print(writer);
-            writer.Indent -= 2;
-
-            writer.WriteIndent();
-            writer.WriteLine("-Block");
-
-            writer.Indent += 2;
-            Block.Print(writer);
-            writer.Indent -= 2;
-        }
-
         public override int Compile(FunctionContext context)
         {
             context.Line(FileName, Line);
@@ -103,6 +83,11 @@ namespace Mond.Compiler.Expressions.Statements
 
             Expression.SetParent(this);
             Block.SetParent(this);
+        }
+
+        public override T Accept<T>(IExpressionVisitor<T> visitor)
+        {
+            return visitor.Visit(this);
         }
     }
 }

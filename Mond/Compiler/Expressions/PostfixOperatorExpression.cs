@@ -14,18 +14,6 @@ namespace Mond.Compiler.Expressions
             Left = left;
         }
 
-        public override void Print(IndentTextWriter writer)
-        {
-            var discardResult = Parent == null || Parent is BlockExpression;
-            
-            writer.WriteIndent();
-            writer.WriteLine("Postfix {0}" + (discardResult ? " - Result not used" : ""), Operation);
-
-            writer.Indent++;
-            Left.Print(writer);
-            writer.Indent--;
-        }
-
         public override int Compile(FunctionContext context)
         {
             context.Line(FileName, Line);
@@ -74,6 +62,11 @@ namespace Mond.Compiler.Expressions
             base.SetParent(parent);
 
             Left.SetParent(this);
+        }
+
+        public override T Accept<T>(IExpressionVisitor<T> visitor)
+        {
+            return visitor.Visit(this);
         }
     }
 }

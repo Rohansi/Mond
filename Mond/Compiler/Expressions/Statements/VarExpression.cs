@@ -28,25 +28,6 @@ namespace Mond.Compiler.Expressions.Statements
             IsReadOnly = isReadOnly;
         }
 
-        public override void Print(IndentTextWriter writer)
-        {
-            writer.WriteIndent();
-            writer.WriteLine(IsReadOnly ? "Const": "Var");
-
-            foreach (var declaration in Declarations)
-            {
-                writer.WriteIndent();
-                writer.WriteLine("-" + declaration.Name + (declaration.Initializer != null ? " =" : ""));
-
-                if (declaration.Initializer != null)
-                {
-                    writer.Indent += 2;
-                    declaration.Initializer.Print(writer);
-                    writer.Indent -= 2;
-                }
-            }
-        }
-
         public override int Compile(FunctionContext context)
         {
             context.Line(FileName, Line);
@@ -104,6 +85,11 @@ namespace Mond.Compiler.Expressions.Statements
             {
                 declaration.Initializer.SetParent(this);
             }
+        }
+
+        public override T Accept<T>(IExpressionVisitor<T> visitor)
+        {
+            return visitor.Visit(this);
         }
     }
 }

@@ -12,16 +12,6 @@
             Name = token.Contents;
         }
 
-        public override void Print(IndentTextWriter writer)
-        {
-            writer.WriteIndent();
-            writer.WriteLine("Field {0}", Name);
-
-            writer.Indent++;
-            Left.Print(writer);
-            writer.Indent--;
-        }
-
         public override int Compile(FunctionContext context)
         {
             context.Line(FileName, Line);
@@ -54,6 +44,11 @@
             base.SetParent(parent);
 
             Left.SetParent(this);
+        }
+
+        public override T Accept<T>(IExpressionVisitor<T> visitor)
+        {
+            return visitor.Visit(this);
         }
     }
 }

@@ -16,49 +16,6 @@
             Block = block;
         }
 
-        public override void Print(IndentTextWriter writer)
-        {
-            writer.WriteIndent();
-            writer.WriteLine("For");
-
-            if (Initializer != null)
-            {
-                writer.WriteIndent();
-                writer.WriteLine("-Initializer");
-
-                writer.Indent += 2;
-                Initializer.Print(writer);
-                writer.Indent -= 2;
-            }
-
-            if (Condition != null)
-            {
-                writer.WriteIndent();
-                writer.WriteLine("-Condition");
-
-                writer.Indent += 2;
-                Condition.Print(writer);
-                writer.Indent -= 2;
-            }
-
-            if (Increment != null)
-            {
-                writer.WriteIndent();
-                writer.WriteLine("-Increment");
-
-                writer.Indent += 2;
-                Increment.Print(writer);
-                writer.Indent -= 2;
-            }
-
-            writer.WriteIndent();
-            writer.WriteLine("-Block");
-
-            writer.Indent += 2;
-            Block.Print(writer);
-            writer.Indent -= 2;
-        }
-
         public override int Compile(FunctionContext context)
         {
             context.Line(FileName, Line);
@@ -129,6 +86,11 @@
                 Increment.SetParent(this);
 
             Block.SetParent(this);
+        }
+
+        public override T Accept<T>(IExpressionVisitor<T> visitor)
+        {
+            return visitor.Visit(this);
         }
     }
 }

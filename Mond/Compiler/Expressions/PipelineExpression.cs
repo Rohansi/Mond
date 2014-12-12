@@ -14,17 +14,6 @@ namespace Mond.Compiler.Expressions
             Right = right;
         }
 
-        public override void Print(IndentTextWriter writer)
-        {
-            writer.WriteIndent();
-            writer.WriteLine("Pipeline");
-
-            writer.Indent++;
-            Left.Print(writer);
-            Right.Print(writer);
-            writer.Indent--;
-        }
-
         public override int Compile(FunctionContext context)
         {
             var callExpression = Right as CallExpression;
@@ -52,6 +41,11 @@ namespace Mond.Compiler.Expressions
 
             Left.SetParent(this);
             Right.SetParent(this);
+        }
+
+        public override T Accept<T>(IExpressionVisitor<T> visitor)
+        {
+            return visitor.Visit(this);
         }
     }
 }

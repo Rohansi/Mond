@@ -14,16 +14,6 @@ namespace Mond.Compiler.Expressions
             Right = right;
         }
 
-        public override void Print(IndentTextWriter writer)
-        {
-            writer.WriteIndent();
-            writer.WriteLine("Prefix {0}", Operation);
-
-            writer.Indent++;
-            Right.Print(writer);
-            writer.Indent--;
-        }
-
         public override int Compile(FunctionContext context)
         {
             context.Line(FileName, Line);
@@ -107,6 +97,11 @@ namespace Mond.Compiler.Expressions
             base.SetParent(parent);
 
             Right.SetParent(this);
+        }
+
+        public override T Accept<T>(IExpressionVisitor<T> visitor)
+        {
+            return visitor.Visit(this);
         }
     }
 }

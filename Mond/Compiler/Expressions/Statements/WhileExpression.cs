@@ -12,26 +12,6 @@
             Block = block;
         }
 
-        public override void Print(IndentTextWriter writer)
-        {
-            writer.WriteIndent();
-            writer.WriteLine("While");
-
-            writer.WriteIndent();
-            writer.WriteLine("-Condition");
-
-            writer.Indent += 2;
-            Condition.Print(writer);
-            writer.Indent -= 2;
-
-            writer.WriteIndent();
-            writer.WriteLine("-Do");
-
-            writer.Indent += 2;
-            Block.Print(writer);
-            writer.Indent -= 2;
-        }
-
         public override int Compile(FunctionContext context)
         {
             context.Line(FileName, Line);
@@ -76,6 +56,11 @@
 
             Condition.SetParent(this);
             Block.SetParent(this);
+        }
+
+        public override T Accept<T>(IExpressionVisitor<T> visitor)
+        {
+            return visitor.Visit(this);
         }
     }
 }

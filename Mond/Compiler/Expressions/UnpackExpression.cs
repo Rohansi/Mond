@@ -10,16 +10,6 @@
             Right = right;
         }
 
-        public override void Print(IndentTextWriter writer)
-        {
-            writer.WriteIndent();
-            writer.WriteLine("Unpack");
-
-            writer.Indent++;
-            Right.Print(writer);
-            writer.Indent--;
-        }
-
         public override int Compile(FunctionContext context)
         {
             var parentCall = Parent as CallExpression;
@@ -40,6 +30,11 @@
             base.SetParent(parent);
 
             Right.SetParent(this);
+        }
+
+        public override T Accept<T>(IExpressionVisitor<T> visitor)
+        {
+            return visitor.Visit(this);
         }
     }
 }

@@ -69,14 +69,12 @@ namespace Mond
                     {
                         if (first)
                         {
-                            writer.WriteIndent();
                             first = false;
                         }
                         else
                         {
                             writer.Write(",");
                             writer.WriteLine();
-                            writer.WriteIndent();
                         }
 
                         if (!objValue.Key.SerializeImpl(writer, depth + 1))
@@ -90,7 +88,6 @@ namespace Mond
 
                     writer.WriteLine();
                     writer.Indent--;
-                    writer.WriteIndent();
                     writer.Write("}");
                     break;
 
@@ -102,14 +99,12 @@ namespace Mond
                     {
                         if (first)
                         {
-                            writer.WriteIndent();
                             first = false;
                         }
                         else
                         {
                             writer.Write(",");
                             writer.WriteLine();
-                            writer.WriteIndent();
                         }
 
                         if (!arrValue.SerializeImpl(writer, depth + 1))
@@ -118,7 +113,6 @@ namespace Mond
 
                     writer.WriteLine();
                     writer.Indent--;
-                    writer.WriteIndent();
                     writer.Write("]");
                     break;
 

@@ -69,6 +69,8 @@
     <Compile Include="Compiler\Expressions\Statements\YieldBreakExpression.cs" />
     <Compile Include="Compiler\Expressions\Statements\YieldExpression.cs" />
     <Compile Include="Compiler\Expressions\UnpackExpression.cs" />
+    <Compile Include="Compiler\Visitors\ExpressionPrintVisitor.cs" />
+    <Compile Include="Compiler\Visitors\ExpressionVisitor.cs" />
     <Compile Include="Compiler\FunctionContext.cs" />
     <Compile Include="Compiler\Expressions\ArrayExpression.cs" />
     <Compile Include="Compiler\Expressions\Statements\ContinueExpression.cs" />
@@ -78,6 +80,7 @@
     <Compile Include="Compiler\Expressions\IStorableExpression.cs" />
     <Compile Include="Compiler\Expressions\ObjectExpression.cs" />
     <Compile Include="Compiler\Expressions\UndefinedExpression.cs" />
+    <Compile Include="Compiler\Visitors\IExpressionVisitor.cs" />
     <Compile Include="Compiler\Instruction.cs" />
     <Compile Include="Compiler\Parselets\ArrayParselet.cs" />
     <Compile Include="Compiler\Parselets\GlobalParselet.cs" />

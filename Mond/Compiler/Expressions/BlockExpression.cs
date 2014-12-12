@@ -24,14 +24,6 @@ namespace Mond.Compiler.Expressions
             
         }
 
-        public override void Print(IndentTextWriter writer)
-        {
-            foreach (var statement in Statements)
-            {
-                statement.Print(writer);
-            }
-        }
-
         public override int Compile(FunctionContext context)
         {
             foreach (var statement in Statements)
@@ -66,6 +58,11 @@ namespace Mond.Compiler.Expressions
             {
                 statement.SetParent(this);
             }
+        }
+
+        public override T Accept<T>(IExpressionVisitor<T> visitor)
+        {
+            return visitor.Visit(this);
         }
     }
 }

@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using Mond.Compiler;
 using Mond.Compiler.Expressions;
+using Mond.Compiler.Visitors;
 using Mond.VirtualMachine;
 
 namespace Mond
@@ -219,8 +220,8 @@ namespace Mond
             expression.SetParent(null);
             expression.Simplify();
 
-            //using (var writer = new IndentTextWriter(Console.Out, " "))
-            //    expression.Print(writer);
+            //using (var printer = new ExpressionPrintVisitor(Console.Out))
+            //    expression.Accept(printer);
 
             var compiler = new ExpressionCompiler(options);
             return compiler.Compile(expression);

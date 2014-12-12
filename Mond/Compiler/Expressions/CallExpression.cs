@@ -16,29 +16,6 @@ namespace Mond.Compiler.Expressions
             Arguments = arguments.AsReadOnly();
         }
 
-        public override void Print(IndentTextWriter writer)
-        {
-            writer.WriteIndent();
-            writer.WriteLine("Call");
-
-            writer.WriteIndent();
-            writer.WriteLine("-Expression");
-
-            writer.Indent += 2;
-            Method.Print(writer);
-            writer.Indent -= 2;
-
-            writer.WriteIndent();
-            writer.WriteLine("-Arguments");
-
-            writer.Indent += 2;
-            foreach (var arg in Arguments)
-            {
-                arg.Print(writer);
-            }
-            writer.Indent -= 2;
-        }
-
         public override int Compile(FunctionContext context)
         {
             context.Line(FileName, Line);
@@ -100,6 +77,11 @@ namespace Mond.Compiler.Expressions
             {
                 arg.SetParent(this);
             }
+        }
+
+        public override T Accept<T>(IExpressionVisitor<T> visitor)
+        {
+            return visitor.Visit(this);
         }
     }
 }

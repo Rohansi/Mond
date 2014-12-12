@@ -16,49 +16,6 @@
             Step = step;
         }
 
-        public override void Print(IndentTextWriter writer)
-        {
-            writer.WriteIndent();
-            writer.WriteLine("Slice");
-
-            writer.WriteIndent();
-            writer.WriteLine("-Left");
-
-            writer.Indent += 2;
-            Left.Print(writer);
-            writer.Indent -= 2;
-
-            if (Start != null)
-            {
-                writer.WriteIndent();
-                writer.WriteLine("-Start");
-
-                writer.Indent += 2;
-                Start.Print(writer);
-                writer.Indent -= 2;
-            }
-
-            if (End != null)
-            {
-                writer.WriteIndent();
-                writer.WriteLine("-End");
-
-                writer.Indent += 2;
-                End.Print(writer);
-                writer.Indent -= 2;
-            }
-
-            if (Step != null)
-            {
-                writer.WriteIndent();
-                writer.WriteLine("-Step");
-
-                writer.Indent += 2;
-                Step.Print(writer);
-                writer.Indent -= 2;
-            }
-        }
-
         public override int Compile(FunctionContext context)
         {
             context.Line(FileName, Line);
@@ -118,6 +75,11 @@
 
             if (Step != null)
                 Step.SetParent(this);
+        }
+
+        public override T Accept<T>(IExpressionVisitor<T> visitor)
+        {
+            return visitor.Visit(this);
         }
     }
 }

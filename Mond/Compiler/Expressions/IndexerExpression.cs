@@ -12,26 +12,6 @@
             Index = index;
         }
 
-        public override void Print(IndentTextWriter writer)
-        {
-            writer.WriteIndent();
-            writer.WriteLine("Indexer");
-
-            writer.WriteIndent();
-            writer.WriteLine("-Left");
-
-            writer.Indent += 2;
-            Left.Print(writer);
-            writer.Indent -= 2;
-
-            writer.WriteIndent();
-            writer.WriteLine("-Index");
-
-            writer.Indent += 2;
-            Index.Print(writer);
-            writer.Indent -= 2;
-        }
-
         public override int Compile(FunctionContext context)
         {
             context.Line(FileName, Line);
@@ -71,6 +51,11 @@
 
             Left.SetParent(this);
             Index.SetParent(this);
+        }
+
+        public override T Accept<T>(IExpressionVisitor<T> visitor)
+        {
+            return visitor.Visit(this);
         }
     }
 }
