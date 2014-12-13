@@ -10,6 +10,11 @@
             _parent = parent;
         }
 
+        public override FunctionContext Root
+        {
+            get { return _parent.Root; }
+        }
+
         public override void PushLoop(LabelOperand continueTarget, LabelOperand breakTarget)
         {
             _parent.PushLoop(continueTarget, breakTarget);

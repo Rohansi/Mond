@@ -44,6 +44,11 @@ namespace Mond.Compiler
             IdentifierCount = 0;
         }
 
+        public virtual FunctionContext Root
+        {
+            get { return this; }
+        }
+
         public IEnumerable<Instruction> Instructions
         {
             get { return _instructions; }

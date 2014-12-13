@@ -14,7 +14,7 @@
         {
             context.Line(FileName, Line);
 
-            var sequenceContext = context as SequenceBodyContext;
+            var sequenceContext = context.Root as SequenceBodyContext;
             if (sequenceContext == null)
                 throw new MondCompilerException(FileName, Line, CompilerError.YieldInFun);
 
@@ -32,10 +32,12 @@
             stack += context.Load(enumerable);
             stack += context.StoreField(context.String("current"));
 
+            stack += context.StoreLocals(sequenceContext.LocalIndex - 1); // save locals
             stack += context.LoadTrue();
             stack += context.Return();
 
             stack += context.Bind(nextStateLabel);
+            stack += context.LoadLocals(sequenceContext.LocalIndex - 1); // load locals
 
             if (!(Parent is IBlockExpression))
             {

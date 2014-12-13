@@ -192,5 +192,27 @@ namespace Mond.Tests.Expressions
             Assert.True(result.IsEnumerable);
             Assert.True(result.Enumerate(state).SequenceEqual(expected));
         }
+
+        [Test]
+        public void LambdaInLoop()
+        {
+            MondState state;
+            var result = Script.Run(out state, @"
+                seq ints() {
+                    var i = 0;
+                    while (true) {
+                        var ii = i++;
+                        yield () -> ii;
+                    }
+                }
+
+                return ints();
+            ");
+
+            Assert.True(result.IsEnumerable);
+
+            result = result.Enumerate(state).Skip(4).FirstOrDefault();
+            Assert.True(state.Call(result) == 4);
+        }
     }
 }

@@ -249,6 +249,26 @@ namespace Mond.VirtualMachine
                                 array[index] = value;
                                 break;
                             }
+
+                        case (int)InstructionType.LdLocals:
+                            {
+                                var depth = ReadInt32(code, ref ip);
+                                var frame = locals.GetFrame(depth);
+                                locals = frame.StoredFrame;
+
+                                PopLocal();
+                                PushLocal(locals);
+
+                                break;
+                            }
+
+                        case (int)InstructionType.StLocals:
+                            {
+                                var depth = ReadInt32(code, ref ip);
+                                var frame = locals.GetFrame(depth);
+                                frame.StoredFrame = locals;
+                                break;
+                            }
                         #endregion
 
                         #region Object Creation

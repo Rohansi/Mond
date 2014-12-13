@@ -12,7 +12,7 @@
         {
             context.Line(FileName, Line);
 
-            var sequenceContext = context as SequenceBodyContext;
+            var sequenceContext = context.Root as SequenceBodyContext;
             if (sequenceContext == null)
                 throw new MondCompilerException(FileName, Line, CompilerError.YieldInFun);
 

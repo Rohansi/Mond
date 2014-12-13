@@ -7,6 +7,7 @@ namespace Mond.VirtualMachine
         public readonly int Depth;
         public readonly Frame Previous;
         public MondValue[] Values;
+        public Frame StoredFrame;
 
         public Frame(int depth, Frame previous, int valueCount)
         {
@@ -22,32 +23,22 @@ namespace Mond.VirtualMachine
 
         public MondValue Get(int depth, int index)
         {
-            var current = this;
+            var frame = GetFrame(depth);
 
-            while (current.Depth > depth)
-            {
-                current = current.Previous;
-            }
-
-            if (index < 0 || index >= current.Values.Length)
+            if (index < 0 || index >= frame.Values.Length)
                 return MondValue.Undefined;
 
-            return current.Values[index];
+            return frame.Values[index];
         }
 
         public void Set(int depth, int index, MondValue value)
         {
-            var current = this;
-
-            while (current.Depth > depth)
-            {
-                current = current.Previous;
-            }
+            var frame = GetFrame(depth);
 
             if (index < 0)
                 return;
 
-            var values = current.Values;
+            var values = frame.Values;
 
             if (index >= values.Length)
             {
@@ -55,7 +46,7 @@ namespace Mond.VirtualMachine
                 var newLength = index + 1;
 
                 Array.Resize(ref values, newLength);
-                current.Values = values;
+                frame.Values = values;
 
                 for (var i = oldLength; i < newLength; i++)
                 {
@@ -64,6 +55,18 @@ namespace Mond.VirtualMachine
             }
 
             values[index] = value;
+        }
+
+        public Frame GetFrame(int depth)
+        {
+            var current = this;
+
+            while (current.Depth > depth)
+            {
+                current = current.Previous;
+            }
+
+            return current;
         }
     }
 }
