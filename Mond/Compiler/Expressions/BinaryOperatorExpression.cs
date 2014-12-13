@@ -104,6 +104,19 @@ namespace Mond.Compiler.Expressions
                 }
             }
 
+            if (Operation == TokenType.Add)
+            {
+                var leftStr = Left as StringExpression;
+                var rightStr = Right as StringExpression;
+
+                if (leftStr != null && rightStr != null)
+                {
+                    var result = leftStr.Value + rightStr.Value;
+                    var token = new Token(FileName, Line, TokenType.String, null);
+                    return new StringExpression(token, result);
+                }
+            }
+
             return this;
         }
 
@@ -155,7 +168,7 @@ namespace Mond.Compiler.Expressions
                 { TokenType.Multiply, (x, y) => x * y },
                 { TokenType.Divide, (x, y) => x / y },
                 { TokenType.Modulo, (x, y) => x % y },
-                { TokenType.Exponent, (x, y) => Math.Pow(x, y) },
+                { TokenType.Exponent, Math.Pow },
                 { TokenType.BitLeftShift, (x, y) => (int)x << (int)y },
                 { TokenType.BitRightShift, (x, y) => (int)x >> (int)y },
                 { TokenType.BitAnd, (x, y) => (int)x & (int)y },
