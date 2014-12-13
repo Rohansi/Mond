@@ -21,8 +21,6 @@ namespace Mond.Compiler.Expressions.Statements
         {
             context.Line(FileName, Line);
 
-            var enumerator = context.DefineInternal("enumerator", true);
-
             var stack = 0;
             var start = context.MakeLabel("foreachStart");
             var cont = context.MakeLabel("foreachContinue");
@@ -31,6 +29,13 @@ namespace Mond.Compiler.Expressions.Statements
 
             var containsFunction = new LoopContainsFunctionVisitor();
             Block.Accept(containsFunction);
+
+            var enumerator = context.DefineInternal("enumerator", true);
+
+            if (!context.DefineIdentifier(Identifier))
+                throw new MondCompilerException(FileName, Line, CompilerError.IdentifierAlreadyDefined, Identifier);
+
+            var identifier = context.Identifier(Identifier);
 
             // set enumerator
             stack += Expression.Compile(context);
@@ -54,11 +59,6 @@ namespace Mond.Compiler.Expressions.Statements
             stack += loopContext.LoadField(context.String("moveNext"));
             stack += loopContext.Call(0, new List<ImmediateOperand>());
             stack += loopContext.JumpFalse(containsFunction.Value ? brk : end);
-
-            if (!loopContext.DefineIdentifier(Identifier))
-                throw new MondCompilerException(FileName, Line, CompilerError.IdentifierAlreadyDefined, Identifier);
-
-            var identifier = loopContext.Identifier(Identifier);
 
             stack += loopContext.Load(enumerator);
             stack += loopContext.LoadField(context.String("current"));

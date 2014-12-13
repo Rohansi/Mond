@@ -218,7 +218,8 @@ namespace Mond.Tests.Expressions
                 var arr = [];
 
                 foreach (var i in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]) {
-                    arr.add(() -> i);
+                    var ii = i;
+                    arr.add(() -> ii);
 
                     if (i >= 5) break;
                     if (i == 2) continue;
