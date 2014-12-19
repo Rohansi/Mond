@@ -46,8 +46,49 @@ namespace Mond.Repl
         [MondFunction("require")]
         public static MondValue Require(MondState state, string fileName)
         {
-            var program = MondProgram.Compile(Definitions + File.ReadAllText(fileName), fileName);
-            return state.Load(program);
+            // make sure we have somewhere to cache modules
+            if (state["__modules"].Type != MondValueType.Object)
+                state["__modules"] = new MondValue(state);
+
+            // return cached module if it exists
+            var cachedExports = state["__modules"][fileName];
+            if (cachedExports)
+                return cachedExports;
+
+            // create a new object to store the exports
+            var exports = new MondValue(state);
+            exports.Prototype = null;
+
+            // instantly cache it so we can have circular dependencies
+            state["__modules"][fileName] = exports;
+
+            // wrap the module script in a function so we can pass out exports object to it
+            var moduleSource = File.ReadAllText(fileName);
+            var source = Definitions + "return fun Module(exports) {" + moduleSource + "return exports; };";
+
+            var program = MondProgram.Compile(source, fileName);
+            var initializer = state.Load(program);
+
+            var result = state.Call(initializer, exports);
+
+            if (result.Type != MondValueType.Object)
+                throw new MondRuntimeException("Modules must return an Object");
+
+            if (!ReferenceEquals(exports, result))
+            {
+                // module returned a different object, merge with ours
+                exports.Prototype = result.Prototype;
+
+                foreach (var kv in result.RawEnumerate())
+                {
+                    var key = kv["key"];
+                    var value = kv["value"];
+
+                    exports[key] = value;
+                }
+            }
+
+            return exports;
         }
 
         [MondFunction("print")]
@@ -72,29 +113,16 @@ namespace Mond.Repl
             }
         }
 
+        [MondFunction("readLn")]
+        public static string ReadLn()
+        {
+            return Console.ReadLine();
+        }
+
         [MondFunction("error")]
         public static void Error(string message)
         {
             throw new MondRuntimeException(message);
-        }
-
-        [MondFunction("stdin")]
-        public static MondValue Stdin()
-        {
-            return MondValue.FromEnumerable(StdinEnumerable().Select(c => new MondValue(new string(c, 1))));
-        }
-
-        private static IEnumerable<char> StdinEnumerable()
-        {
-            while (true)
-            {
-                var key = Console.Read();
-
-                if (key == -1)
-                    yield break;
-
-                yield return (char)key;
-            }
         }
     }
 }
