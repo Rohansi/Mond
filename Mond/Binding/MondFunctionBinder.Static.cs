@@ -38,6 +38,7 @@ namespace Mond.Binding
             // types that can be casted to/from double
             NumberTypes = new HashSet<Type>
             {
+                typeof(double),
                 typeof(float),
                 typeof(int),
                 typeof(uint),
