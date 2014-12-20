@@ -89,7 +89,8 @@ namespace Mond.Binding
 
                 if (arg.Index < 0 && arg.Type == typeof(MondValue[])) // params MondValue[]
                 {
-                    callArgs.Add(argumentsParam);
+                    var sliceMethod = typeof(MondFunctionBinder).GetMethod("Slice", BindingFlags.NonPublic | BindingFlags.Static);
+                    callArgs.Add(Expression.Call(sliceMethod, argumentsParam, Expression.Constant(requiredArgLength)));
                     continue;
                 }
 

@@ -87,7 +87,7 @@ namespace Mond.Binding
                             break;
 
                         case SpecialArgumentType.Params:
-                            result[i] = args;
+                            result[i] = Slice(args, requiredArgsLength);
                             break;
 
                         default:

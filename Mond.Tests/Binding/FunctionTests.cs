@@ -108,12 +108,12 @@ namespace Mond.Tests.Binding
         public void ParamsArgument()
         {
             Assert.True(_state.Run(@"
-                return global.Concat();
-            ") == "");
+                return global.Concat('test');
+            ") == "test");
 
             Assert.True(_state.Run(@"
-                return global.Concat('hello', ' world');
-            ") == "hello world");
+                return global.Concat('hello', ' world', '!');
+            ") == "hello world!");
         }
 
         // TODO: need to test return types
@@ -146,9 +146,9 @@ namespace Mond.Tests.Binding
             state["result"] = a + b;
         }
 
-        public static string Concat(params MondValue[] values)
+        public static string Concat(string first, params MondValue[] values)
         {
-            return string.Concat(values.Select(v => (string)v));
+            return first + string.Concat(values.Select(v => (string)v));
         }
     }
 }

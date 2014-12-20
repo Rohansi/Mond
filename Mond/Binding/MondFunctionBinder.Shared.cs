@@ -54,5 +54,18 @@ namespace Mond.Binding
                     index++;
             }
         }
+
+        internal static MondValue[] Slice(MondValue[] values, int index)
+        {
+            var result = new MondValue[values.Length - index];
+
+            var j = 0;
+            for (var i = index; i < values.Length; i++, j++)
+            {
+                result[j] = values[i];
+            }
+
+            return result;
+        }
     }
 }
