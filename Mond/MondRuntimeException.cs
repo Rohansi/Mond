@@ -7,16 +7,16 @@ namespace Mond
     {
         public bool HasStackTrace { get; internal set; }
 
-        public MondRuntimeException(string message, bool hasStackTrace = false)
+        public MondRuntimeException(string message)
             : base(message)
         {
-            HasStackTrace = hasStackTrace;
+            HasStackTrace = false;
         }
 
-        public MondRuntimeException(string message, Exception innerException, bool hasStackTrace = false)
+        public MondRuntimeException(string message, Exception innerException)
             : base(message, innerException)
         {
-            HasStackTrace = hasStackTrace;
+            HasStackTrace = false;
         }
 
         [StringFormatMethod("format")]
@@ -24,6 +24,12 @@ namespace Mond
             : base(string.Format(format, args))
         {
             HasStackTrace = false;
+        }
+
+        internal MondRuntimeException(string message, Exception innerException, bool hasStackTrace)
+            : base(message, innerException)
+        {
+            HasStackTrace = hasStackTrace;
         }
     }
 }

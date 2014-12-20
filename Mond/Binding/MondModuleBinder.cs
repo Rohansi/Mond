@@ -58,13 +58,14 @@ namespace Mond.Binding
         private static MondValue CopyToObject(Dictionary<string, MondFunction> functions, MondState state)
         {
             var obj = new MondValue(state);
-            obj.Prototype = ValuePrototype.Value;
+            obj.Prototype = MondValue.Null;
 
             foreach (var func in functions)
             {
                 obj[func.Key] = func.Value;
             }
 
+            obj.Prototype = ValuePrototype.Value;
             return obj;
         }
 

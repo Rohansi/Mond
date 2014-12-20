@@ -54,7 +54,7 @@ namespace Mond.Repl
             if (state[cacheObjectName].Type != MondValueType.Object)
             {
                 cacheObject = new MondValue(state);
-                cacheObject.Prototype = null;
+                cacheObject.Prototype = MondValue.Null;
                 state[cacheObjectName] = cacheObject;
             }
             else
@@ -69,7 +69,7 @@ namespace Mond.Repl
 
             // create a new object to store the exports
             var exports = new MondValue(state);
-            exports.Prototype = null;
+            exports.Prototype = MondValue.Null;
 
             // instantly cache it so we can have circular dependencies
             cacheObject[fileName] = exports;

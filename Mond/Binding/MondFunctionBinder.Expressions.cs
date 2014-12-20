@@ -239,12 +239,12 @@ namespace Mond.Binding
         /// </summary>
         private static Expression Throw(string message)
         {
-            var constructor = typeof(MondRuntimeException).GetConstructor(new[] { typeof(string), typeof(bool) });
+            var constructor = typeof(MondRuntimeException).GetConstructor(new[] { typeof(string) });
 
             if (constructor == null)
                 throw new MondBindingException("Could not find MondRuntimeException constructor");
 
-            return Expression.Throw(Expression.New(constructor, Expression.Constant(message), Expression.Constant(false)));
+            return Expression.Throw(Expression.New(constructor, Expression.Constant(message)));
         }
     }
 #endif

@@ -177,7 +177,7 @@ namespace Mond.VirtualMachine.Prototypes
                 return instStr.Substring((int)arguments[0]);
 
             if (arguments[1].Type != MondValueType.Number)
-                throw new MondRuntimeException("Argument 2 in String.substring must be of type number");
+                throw new MondRuntimeException("String.substring: argument 2 must be of type number");
 
             var length = (int)arguments[1];
             if (startIndex + length >= instStr.Length)
@@ -222,11 +222,11 @@ namespace Mond.VirtualMachine.Prototypes
 
             var values = arguments.Select<MondValue, object>(x =>
             {
-                //System.String.Format has certain format specifiers
-                //that are valid for integers but not floats
-                //(ex. String.Format( "{0:x2}", 1.23f ); throws FormatException
-                //So we treat all whole numbers as integers, everything else
-                //remains unchanged.
+                // System.String.Format has certain format specifiers
+                // that are valid for integers but not floats
+                // (ex. String.Format( "{0:x2}", 1.23f ); throws FormatException
+                // So we treat all whole numbers as integers, everything else
+                // remains unchanged.
                 if (x.Type == MondValueType.Number)
                 {
                     if (x % 1.0 == 0.0)
@@ -290,7 +290,7 @@ namespace Mond.VirtualMachine.Prototypes
                     continue;
 
                 if (arguments[i].Type != requiredTypes[i])
-                    throw new MondRuntimeException("String.{0}: argument {1} must be of type {2}", method, i + 1, requiredTypes[i]);
+                    throw new MondRuntimeException("String.{0}: argument {1} must be of type {2}", method, i + 1, requiredTypes[i].GetName());
             }
         }
     }

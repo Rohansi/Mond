@@ -174,7 +174,7 @@ namespace Mond.VirtualMachine.Prototypes
                     continue;
 
                 if (arguments[i].Type != requiredTypes[i])
-                    throw new MondRuntimeException("Object.{0}: argument {1} must be of type {2}", method, i + 1, requiredTypes[i]);
+                    throw new MondRuntimeException("Object.{0}: argument {1} must be of type {2}", method, i + 1, requiredTypes[i].GetName());
             }
         }
     }
