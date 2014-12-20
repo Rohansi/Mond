@@ -117,6 +117,14 @@ namespace Mond.Tests.Expressions
             ");
 
             Assert.True(result == "done");
+
+            Assert.Throws<MondRuntimeException>(() => Script.Run(@"
+                var test = fun () {
+                    return test();
+                };
+
+                return test();
+            "));
         }
 
         [Test]

@@ -80,8 +80,8 @@ namespace Mond.VirtualMachine
             var program = functionAddress.Program;
             var code = program.Bytecode;
 
-            var initialCallDepth = _callStackSize - 1;
-            var initialLocalDepth = _localStackSize;
+            var initialCallDepth = _callStackSize - 1; // "- 1" to not include values pushed by Call()
+            var initialLocalDepth = _localStackSize - 1;
             var initialEvalDepth = _evalStackSize;
 
             var ip = functionAddress.Address;
@@ -784,33 +784,57 @@ namespace Mond.VirtualMachine
             {
                 var errorBuilder = new StringBuilder();
 
-                errorBuilder.AppendLine(e.Message.Trim());
+                var message = e.Message.Trim();
+
+                if (e is IndexOutOfRangeException)
+                {
+                    if (_callStackSize >= CallStackCapacity || _localStackSize >= CallStackCapacity || _evalStackSize >= EvalStackCapacity)
+                    {
+                        message = RuntimeError.StackOverflow;
+                    }
+                    else if (_callStackSize <= 0 || _localStackSize <= 0 || _evalStackSize <= 0)
+                    {
+                        message = RuntimeError.StackEmpty;
+                    }
+                }
+
+                errorBuilder.AppendLine(message);
 
                 var runtimeException = e as MondRuntimeException;
                 if (runtimeException != null && runtimeException.HasStackTrace)
+                {
                     errorBuilder.AppendLine("[... native ...]");
+                }
                 else
+                {
                     errorBuilder.AppendLine();
+                }
 
                 errorBuilder.AppendLine(GetAddressDebugInfo(program, errorIp));
 
-                while (_callStackSize > initialCallDepth + 1)
+                // generate stack trace and reset stacks
+                for (var i = Math.Min(_callStackSize - 1, CallStackCapacity - 1); i > initialCallDepth + 1; i--, _callStackSize--)
                 {
-                    var returnAddress = PopCall();
-
+                    var returnAddress = _callStack[i];
                     errorBuilder.AppendLine(GetAddressDebugInfo(returnAddress.Program, returnAddress.Address));
                 }
 
-                PopCall();
-
-                while (_localStackSize > initialLocalDepth)
+                _callStackSize--;
+                for (var i = _callStackSize; i < CallStackCapacity; i++)
                 {
-                    PopLocal();
+                    _callStack[i] = new ReturnAddress(null, 0, null);
                 }
 
-                while (_evalStackSize > initialEvalDepth)
+                _localStackSize = initialLocalDepth;
+                for (var i = _localStackSize; i < CallStackCapacity; i++)
                 {
-                    Pop();
+                    _localStack[i] = null;
+                }
+
+                _evalStackSize = initialEvalDepth;
+                for (var i = _evalStackSize; i < EvalStackCapacity; i++)
+                {
+                    _evalStack[i] = null;
                 }
 
                 throw new MondRuntimeException(errorBuilder.ToString(), e, true);
