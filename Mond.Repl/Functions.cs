@@ -46,13 +46,25 @@ namespace Mond.Repl
         [MondFunction("require")]
         public static MondValue Require(MondState state, string fileName)
         {
+            const string cacheObjectName = "__modules";
+
+            MondValue cacheObject;
+
             // make sure we have somewhere to cache modules
-            if (state["__modules"].Type != MondValueType.Object)
-                state["__modules"] = new MondValue(state);
+            if (state[cacheObjectName].Type != MondValueType.Object)
+            {
+                cacheObject = new MondValue(state);
+                cacheObject.Prototype = null;
+                state[cacheObjectName] = cacheObject;
+            }
+            else
+            {
+                cacheObject = state[cacheObjectName];
+            }
 
             // return cached module if it exists
-            var cachedExports = state["__modules"][fileName];
-            if (cachedExports)
+            var cachedExports = cacheObject[fileName];
+            if (cachedExports.Type == MondValueType.Object)
                 return cachedExports;
 
             // create a new object to store the exports
@@ -60,32 +72,41 @@ namespace Mond.Repl
             exports.Prototype = null;
 
             // instantly cache it so we can have circular dependencies
-            state["__modules"][fileName] = exports;
+            cacheObject[fileName] = exports;
 
-            // wrap the module script in a function so we can pass out exports object to it
-            var moduleSource = File.ReadAllText(fileName);
-            var source = Definitions + "return fun Module(exports) {" + moduleSource + "return exports; };";
-
-            var program = MondProgram.Compile(source, fileName);
-            var initializer = state.Load(program);
-
-            var result = state.Call(initializer, exports);
-
-            if (result.Type != MondValueType.Object)
-                throw new MondRuntimeException("Modules must return an Object");
-
-            if (!ReferenceEquals(exports, result))
+            try
             {
-                // module returned a different object, merge with ours
-                exports.Prototype = result.Prototype;
+                // wrap the module script in a function so we can pass out exports object to it
+                var moduleSource = File.ReadAllText(fileName);
+                var source = Definitions + "return fun Module(exports) {" + moduleSource + "return exports; };";
 
-                foreach (var kv in result.RawEnumerate())
+                var program = MondProgram.Compile(source, fileName);
+                var initializer = state.Load(program);
+
+                var result = state.Call(initializer, exports);
+
+                if (result.Type != MondValueType.Object)
+                    throw new MondRuntimeException("Modules must return an Object");
+
+                if (!ReferenceEquals(exports, result))
                 {
-                    var key = kv["key"];
-                    var value = kv["value"];
+                    // module returned a different object, merge with ours
+                    exports.Prototype = result.Prototype;
 
-                    exports[key] = value;
+                    foreach (var kv in result.RawEnumerate())
+                    {
+                        var key = kv["key"];
+                        var value = kv["value"];
+
+                        exports[key] = value;
+                    }
                 }
+            }
+            catch
+            {
+                // if something goes wrong, remove the entry from the cache
+                cacheObject[fileName] = MondValue.Undefined;
+                throw;
             }
 
             return exports;
