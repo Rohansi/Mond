@@ -230,6 +230,14 @@ namespace Mond.Tests.Expressions
 
             Assert.True(result == 4, "closure in loop");
 
+            result = Script.Run(@"
+                foreach (var i in []) { }
+                foreach (var i in []) { }
+                return 1;
+            ");
+
+            Assert.True(result == 1, "two foreach in same scope with same ident");
+
             Assert.Throws<MondCompilerException>(() => Script.Run(@"
                 var i;
                 foreach (var i in []) { }

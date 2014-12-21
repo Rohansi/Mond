@@ -32,11 +32,6 @@ namespace Mond.Compiler.Expressions.Statements
 
             var enumerator = context.DefineInternal("enumerator", true);
 
-            if (!context.DefineIdentifier(Identifier))
-                throw new MondCompilerException(FileName, Line, CompilerError.IdentifierAlreadyDefined, Identifier);
-
-            var identifier = context.Identifier(Identifier);
-
             // set enumerator
             stack += Expression.Compile(context);
             stack += context.LoadField(context.String("getEnumerator"));
@@ -48,6 +43,12 @@ namespace Mond.Compiler.Expressions.Statements
             // loop body
             loopContext.PushScope();
             loopContext.PushLoop(containsFunction.Value ? cont : start, containsFunction.Value ? brk : end);
+
+            // create the loop variable outside of the loop context (but inside of its scope!)
+            if (!context.DefineIdentifier(Identifier))
+                throw new MondCompilerException(FileName, Line, CompilerError.IdentifierAlreadyDefined, Identifier);
+
+            var identifier = context.Identifier(Identifier);
 
             stack += loopContext.Bind(start); // continue (without function)
 

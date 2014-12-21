@@ -132,8 +132,8 @@ namespace Mond.Compiler.Expressions.Statements
             stack += context.Load(context.Number(-1));
             stack += context.Store(State);
 
-            // set enumerator.current to null
-            stack += context.LoadNull();
+            // set enumerator.current to undefined
+            stack += context.LoadUndefined();
             stack += context.Load(Enumerable);
             stack += context.StoreField(context.String("current"));
 
