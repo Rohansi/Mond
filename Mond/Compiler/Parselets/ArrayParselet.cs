@@ -30,6 +30,10 @@ namespace Mond.Compiler.Parselets
 
                     parser.Take(TokenType.Comma);
 
+                    // allow trailing comma
+                    if (parser.Match(TokenType.RightSquare))
+                        break;
+
                     var value = parser.ParseExpession();
                     values.Add(value);
                 }

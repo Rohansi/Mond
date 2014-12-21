@@ -17,7 +17,11 @@ namespace Mond.Tests.Expressions
                 return { a, b };
             ";
 
-            var sources = new[] { source1, source2 };
+            const string source3 = @"
+                return { a: 123, b: 456, };
+            ";
+
+            var sources = new[] { source1, source2, source3 };
 
             foreach (var source in sources)
             {

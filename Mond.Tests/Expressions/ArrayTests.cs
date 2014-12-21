@@ -28,6 +28,18 @@ namespace Mond.Tests.Expressions
 
             Assert.AreEqual(array.Type, MondValueType.Array);
             Assert.True(array.ArrayValue.SequenceEqual(expected));
+
+            array = Script.Run(@"
+                return [ 1, 2, 3, ];
+            ");
+
+            expected = new MondValue[]
+            {
+                1, 2, 3
+            };
+
+            Assert.AreEqual(array.Type, MondValueType.Array);
+            Assert.True(array.ArrayValue.SequenceEqual(expected));
         }
 
         [Test]
