@@ -813,28 +813,28 @@ namespace Mond.VirtualMachine
                 errorBuilder.AppendLine(GetAddressDebugInfo(program, errorIp));
 
                 // generate stack trace and reset stacks
-                for (var i = Math.Min(_callStackSize - 1, CallStackCapacity - 1); i > initialCallDepth + 1; i--, _callStackSize--)
+                for (var i = Math.Min(_callStackSize - 1, CallStackCapacity - 1); i > initialCallDepth; i--)
                 {
                     var returnAddress = _callStack[i];
                     errorBuilder.AppendLine(GetAddressDebugInfo(returnAddress.Program, returnAddress.Address));
                 }
 
-                _callStackSize--;
+                _callStackSize = initialCallDepth;
                 for (var i = _callStackSize; i < CallStackCapacity; i++)
                 {
-                    _callStack[i] = new ReturnAddress(null, 0, null);
+                    _callStack[i] = default(ReturnAddress);
                 }
 
                 _localStackSize = initialLocalDepth;
                 for (var i = _localStackSize; i < CallStackCapacity; i++)
                 {
-                    _localStack[i] = null;
+                    _localStack[i] = default(Frame);
                 }
 
                 _evalStackSize = initialEvalDepth;
                 for (var i = _evalStackSize; i < EvalStackCapacity; i++)
                 {
-                    _evalStack[i] = null;
+                    _evalStack[i] = default(MondValue);
                 }
 
                 throw new MondRuntimeException(errorBuilder.ToString(), e, true);
