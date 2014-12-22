@@ -237,9 +237,11 @@ namespace Mond
         /// <summary>
         /// Gets the prototype object for this value.
         /// 
-        /// Sets the prototype object for this object. Can either be MondValueType.Object,
-        /// MondValue.Null, MondValue.Undefined or null. If set to MondValue.Undefined or null,
-        /// the default prototype will be used.
+        /// <para>
+        /// Sets the prototype object for this object. If set to MondValue.Undefined
+        /// or null, the default prototype will be used. If set to MondValue.Null,
+        /// ValuePrototype will be used.
+        /// </para>
         /// </summary>
         public MondValue Prototype
         {
@@ -273,6 +275,8 @@ namespace Mond
 
                 if (value == Undefined)
                     value = null;
+                else if (value == Null)
+                    value = ValuePrototype.Value;
 
                 if (value != null && value.Type != MondValueType.Object && value.Type != MondValueType.Null)
                     throw new MondRuntimeException("Prototypes must be an object or null");
@@ -311,6 +315,11 @@ namespace Mond
                 throw new MondRuntimeException("Attempt to lock non-object");
 
             ObjectValue.Locked = true;
+        }
+
+        public bool IsLocked
+        {
+            get { return Type == MondValueType.Object && ObjectValue.Locked; }
         }
 
         public bool Contains(MondValue search)

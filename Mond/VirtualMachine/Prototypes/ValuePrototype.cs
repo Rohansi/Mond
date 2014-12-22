@@ -10,7 +10,9 @@
         static ValuePrototype()
         {
             Value = new MondValue(MondValueType.Object);
-            Value.Prototype = MondValue.Null; // required to break the chain
+
+            // we dont use MondValue.Prototype here because this should not have a prototype
+            Value.ObjectValue.Prototype = MondValue.Undefined;
 
             Value["getType"] = new MondInstanceFunction(GetType);
             Value["toString"] = new MondInstanceFunction(ToString);

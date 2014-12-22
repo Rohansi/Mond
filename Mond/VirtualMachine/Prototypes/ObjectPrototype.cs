@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace Mond.VirtualMachine.Prototypes
@@ -25,6 +24,7 @@ namespace Mond.VirtualMachine.Prototypes
 
             Value["setPrototype"] = new MondInstanceFunction(SetPrototype);
             Value["lock"] = new MondInstanceFunction(Lock);
+            Value["setPrototypeAndLock"] = new MondInstanceFunction(SetPrototypeAndLock);
 
             Value.Lock();
         }
@@ -146,7 +146,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// setPrototype(value: any)
+        /// setPrototype(value: any) : object
         /// </summary>
         private static MondValue SetPrototype(MondState state, MondValue instance, params MondValue[] arguments)
         {
@@ -169,6 +169,19 @@ namespace Mond.VirtualMachine.Prototypes
             Check("lock", instance.Type, arguments);
 
             instance.Lock();
+            return instance;
+        }
+
+        /// <summary>
+        /// setPrototypeAndLock(value: any): object
+        /// </summary>
+        private static MondValue SetPrototypeAndLock(MondState state, MondValue instance, params MondValue[] arguments)
+        {
+            Check("setPrototypeAndLock", instance.Type, arguments, MondValueType.Undefined);
+
+            SetPrototype(state, instance, arguments);
+            Lock(state, instance, arguments);
+
             return instance;
         }
 

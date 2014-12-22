@@ -91,8 +91,6 @@ namespace Mond.Repl
                 if (!ReferenceEquals(exports, result))
                 {
                     // module returned a different object, merge with ours
-                    exports.Prototype = result.Prototype;
-
                     foreach (var kv in result.RawEnumerate())
                     {
                         var key = kv["key"];
@@ -100,6 +98,11 @@ namespace Mond.Repl
 
                         exports[key] = value;
                     }
+
+                    exports.Prototype = result.Prototype;
+                    
+                    if (result.IsLocked)
+                        exports.Lock();
                 }
             }
             catch
