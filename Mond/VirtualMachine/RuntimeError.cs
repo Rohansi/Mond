@@ -7,9 +7,11 @@
 
         public const string IndexOutOfBounds = "Index out of bounds";
 
-        public const string CantCastTo = "{0} cannot be casted to a {1}";
+        public const string FailedCastObjectToNumber = "Cannot cast object to number, __number must be implemented";
 
         public const string CantCreateField = "Fields cannot be created on type {0}";
+
+        public const string ObjectIsLocked = "Object is locked and cannot be modified";
 
         public const string CircularPrototype = "Circular prototype definition";
 

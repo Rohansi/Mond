@@ -186,9 +186,10 @@ namespace Mond
 
                 if (Type == MondValueType.Object && ObjectValue.Values.ContainsKey(index))
                 {
-                    if (!ObjectValue.Locked)
-                        ObjectValue.Values[index] = value;
+                    if (ObjectValue.Locked)
+                        throw new MondRuntimeException(RuntimeError.ObjectIsLocked);
 
+                    ObjectValue.Values[index] = value;
                     return;
                 }
 
@@ -223,7 +224,7 @@ namespace Mond
                     throw new MondRuntimeException(RuntimeError.CantCreateField, Type.GetName());
 
                 if (ObjectValue.Locked)
-                    return;
+                    throw new MondRuntimeException(RuntimeError.ObjectIsLocked);
 
                 MondValue result;
                 if (TryDispatch("__set", out result, this, index, value))
@@ -266,6 +267,9 @@ namespace Mond
             {
                 if (Type != MondValueType.Object)
                     throw new MondRuntimeException("Prototypes can only be set on objects");
+
+                if (ObjectValue.Locked)
+                    throw new MondRuntimeException(RuntimeError.ObjectIsLocked);
 
                 if (value == Undefined)
                     value = null;

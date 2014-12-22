@@ -24,11 +24,12 @@ namespace Mond.VirtualMachine.Prototypes
             Value["getEnumerator"] = new MondInstanceFunction(GetEnumerator);
 
             Value["setPrototype"] = new MondInstanceFunction(SetPrototype);
+            Value["lock"] = new MondInstanceFunction(Lock);
 
             Value.Lock();
         }
 
-        private const string LockedError = "Object.{0}: object is locked";
+        private const string LockedError = "Object.{0}: " + RuntimeError.ObjectIsLocked;
 
         /// <summary>
         /// add(key, value): object
@@ -157,6 +158,17 @@ namespace Mond.VirtualMachine.Prototypes
 
             instance.Prototype = obj;
 
+            return instance;
+        }
+
+        /// <summary>
+        /// lock(): object
+        /// </summary>
+        private static MondValue Lock(MondState state, MondValue instance, params MondValue[] arguments)
+        {
+            Check("lock", instance.Type, arguments);
+
+            instance.Lock();
             return instance;
         }
 

@@ -380,10 +380,15 @@ namespace Mond.Tests
             prototype["testValue"] = "hello";
 
             Assert.True(obj["testValue"] == "hello");
+            Assert.True(obj["containsKey"].Type == MondValueType.Function);
 
-            obj.Prototype = MondValue.Null; // override default
+            obj.Prototype = MondValue.Null; // no prototype
 
-            Assert.False(obj["testValue"] == "hello");
+            Assert.True(obj["testValue"] == MondValue.Undefined);
+            Assert.True(obj["containsKey"] == MondValue.Undefined);
+
+            obj.Lock();
+            Assert.Throws<MondRuntimeException>(() => obj.Prototype = null, "modify locked object prototype");
         }
 
         [Test]
@@ -434,16 +439,13 @@ namespace Mond.Tests
             Assert.True(prototype["getType"].Type == MondValueType.Function, "set wrong field on locked prototype");
             Assert.True(obj["getType"] == 123, "set on locked prototype");
 
-            prototype["getType"] = 123;
-
-            Assert.True(prototype["getType"].Type == MondValueType.Function, "set on locked object");
+            Assert.Throws<MondRuntimeException>(() => prototype["getType"] = 123, "set on locked object");
 
             Assert.True(obj["test"] == MondValue.Undefined);
 
             obj.Lock();
-            obj["test"] = 123;
 
-            Assert.True(obj["test"] == MondValue.Undefined, "create on locked object");
+            Assert.Throws<MondRuntimeException>(() => obj["test"] = 123, "create on locked object");
         }
 
         [Test]
