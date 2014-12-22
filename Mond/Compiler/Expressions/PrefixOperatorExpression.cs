@@ -16,8 +16,6 @@ namespace Mond.Compiler.Expressions
 
         public override int Compile(FunctionContext context)
         {
-            context.Line(FileName, Line);
-
             var stack = 0;
             var isAssignment = false;
             var needResult = !(Parent is IBlockExpression);
@@ -27,6 +25,8 @@ namespace Mond.Compiler.Expressions
                 case TokenType.Increment:
                     stack += context.Load(context.Number(1));
                     stack += Right.Compile(context);
+
+                    context.Line(FileName, Line); // debug info
                     stack += context.BinaryOperation(TokenType.Add);
                     isAssignment = true;
                     break;
@@ -34,6 +34,8 @@ namespace Mond.Compiler.Expressions
                 case TokenType.Decrement:
                     stack += context.Load(context.Number(1));
                     stack += Right.Compile(context);
+
+                    context.Line(FileName, Line); // debug info
                     stack += context.BinaryOperation(TokenType.Subtract);
                     isAssignment = true;
                     break;
@@ -42,6 +44,8 @@ namespace Mond.Compiler.Expressions
                 case TokenType.Not:
                 case TokenType.BitNot:
                     stack += Right.Compile(context);
+
+                    context.Line(FileName, Line); // debug info
                     stack += context.UnaryOperation(Operation);
                     break;
 

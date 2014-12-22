@@ -19,8 +19,6 @@ namespace Mond.Compiler.Expressions
 
         public override int Compile(FunctionContext context)
         {
-            context.Line(FileName, Line);
-
             var stack = 0;
             
             TokenType assignOperation;
@@ -39,6 +37,8 @@ namespace Mond.Compiler.Expressions
                 if (isAssignOperation)
                 {
                     stack += Left.Compile(context);
+
+                    context.Line(FileName, Line); // debug info
                     stack += context.BinaryOperation(assignOperation);
                 }
 
@@ -79,6 +79,8 @@ namespace Mond.Compiler.Expressions
 
             stack += Right.Compile(context);
             stack += Left.Compile(context);
+
+            context.Line(FileName, Line); // debug info
             stack += context.BinaryOperation(Operation);
 
             CheckStack(stack, 1);

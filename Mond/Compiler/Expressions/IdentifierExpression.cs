@@ -12,13 +12,13 @@
 
         public override int Compile(FunctionContext context)
         {
-            context.Line(FileName, Line);
-
             var stack = 0;
             var identifier = context.Identifier(Name);
 
             if (!context.Compiler.Options.UseImplicitGlobals && identifier == null)
                 throw new MondCompilerException(FileName, Line, CompilerError.UndefinedIdentifier, Name);
+
+            context.Line(FileName, Line); // debug info
 
             if (identifier == null)
             {
@@ -45,6 +45,8 @@
             if (identifier == null)
             {
                 stack += context.LoadGlobal();
+
+                context.Line(FileName, Line); // debug info
                 stack += context.StoreField(context.String(Name));
             }
             else
@@ -52,6 +54,7 @@
                 if (identifier.IsReadOnly)
                     throw new MondCompilerException(FileName, Line, CompilerError.CantModifyReadonlyVar, Name);
 
+                context.Line(FileName, Line); // debug info
                 stack += context.Store(identifier);
             }
 

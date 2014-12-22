@@ -14,11 +14,11 @@
 
         public override int Compile(FunctionContext context)
         {
-            context.Line(FileName, Line);
-
             var stack = 0;
 
             stack += Left.Compile(context);
+
+            context.Line(FileName, Line); // debug info
             stack += context.LoadField(context.String(Name));
 
             return stack;
@@ -29,6 +29,8 @@
             var stack = 0;
 
             stack += Left.Compile(context);
+
+            context.Line(FileName, Line); // debug info
             stack += context.StoreField(context.String(Name));
 
             return stack;

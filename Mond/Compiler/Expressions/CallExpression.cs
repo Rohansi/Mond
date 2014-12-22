@@ -18,11 +18,11 @@ namespace Mond.Compiler.Expressions
 
         public override int Compile(FunctionContext context)
         {
-            context.Line(FileName, Line);
-
             var stack = Arguments.Sum(argument => argument.Compile(context));
 
             stack += Method.Compile(context);
+
+            context.Line(FileName, Line); // debug info
             stack += context.Call(Arguments.Count, GetUnpackIndices());
 
             CheckStack(stack, 1);
@@ -34,6 +34,8 @@ namespace Mond.Compiler.Expressions
             context.Line(FileName, Line);
 
             var stack = Arguments.Sum(argument => argument.Compile(context));
+
+            context.Line(FileName, Line); // debug info
             stack += context.TailCall(Arguments.Count, context.Label, GetUnpackIndices());
 
             CheckStack(stack, 0);

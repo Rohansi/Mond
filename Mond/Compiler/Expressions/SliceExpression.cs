@@ -18,8 +18,6 @@
 
         public override int Compile(FunctionContext context)
         {
-            context.Line(FileName, Line);
-
             var stack = 0;
 
             stack += Left.Compile(context);
@@ -39,6 +37,7 @@
             else
                 stack += context.LoadUndefined();
 
+            context.Line(FileName, Line); // debug info
             stack += context.Slice();
 
             CheckStack(stack, 1);

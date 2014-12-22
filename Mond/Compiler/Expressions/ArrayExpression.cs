@@ -16,9 +16,9 @@ namespace Mond.Compiler.Expressions
 
         public override int Compile(FunctionContext context)
         {
-            context.Line(FileName, Line);
-
             var stack = Values.Sum(value => value.Compile(context));
+
+            context.Line(FileName, Line); // debug info
             stack += context.NewArray(Values.Count);
 
             CheckStack(stack, 1);

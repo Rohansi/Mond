@@ -16,8 +16,6 @@ namespace Mond.Compiler.Expressions
 
         public override int Compile(FunctionContext context)
         {
-            context.Line(FileName, Line);
-
             var storable = Left as IStorableExpression;
             if (storable == null)
                 throw new MondCompilerException(FileName, Line, CompilerError.LeftSideMustBeStorable);
@@ -26,19 +24,27 @@ namespace Mond.Compiler.Expressions
             var needResult = !(Parent is IBlockExpression);
 
             if (needResult)
+            {
                 stack += Left.Compile(context);
+                stack += context.Dup();
+                stack += context.Load(context.Number(1));
+                stack += context.Swap();
+            }
+            else
+            {
+                stack += context.Load(context.Number(1));
+                stack += Left.Compile(context);
+            }
+
+            context.Line(FileName, Line); // debug info
 
             switch (Operation)
             {
                 case TokenType.Increment:
-                    stack += context.Load(context.Number(1));
-                    stack += Left.Compile(context);
                     stack += context.BinaryOperation(TokenType.Add);
                     break;
 
                 case TokenType.Decrement:
-                    stack += context.Load(context.Number(1));
-                    stack += Left.Compile(context);
                     stack += context.BinaryOperation(TokenType.Subtract);
                     break;
 

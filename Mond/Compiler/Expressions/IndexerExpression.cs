@@ -14,12 +14,12 @@
 
         public override int Compile(FunctionContext context)
         {
-            context.Line(FileName, Line);
-
             var stack = 0;
 
             stack += Left.Compile(context);
             stack += Index.Compile(context);
+
+            context.Line(FileName, Line); // debug info
             stack += context.LoadArray();
 
             CheckStack(stack, 1);
@@ -32,6 +32,8 @@
 
             stack += Left.Compile(context);
             stack += Index.Compile(context);
+
+            context.Line(FileName, Line); // debug info
             stack += context.StoreArray();
 
             return stack;
