@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Mond.Binding;
 using NUnit.Framework;
 
@@ -18,6 +19,7 @@ namespace Mond.Tests.Binding
             _state["ArgumentTypes"] = MondFunctionBinder.Bind(null, "ArgumentTypes", typeof(FunctionTests).GetMethod("ArgumentTypes"));
             _state["Add"] = MondFunctionBinder.Bind(null, "Add", typeof(FunctionTests).GetMethod("Add"));
             _state["Concat"] = MondFunctionBinder.Bind(null, "Concat", typeof(FunctionTests).GetMethod("Concat"));
+            _state["Greet"] = MondFunctionBinder.Bind(null, "Greet", typeof(FunctionTests).GetMethod("Greet"));
         }
 
         [Test]
@@ -116,6 +118,33 @@ namespace Mond.Tests.Binding
             ") == "hello world!");
         }
 
+        [Test]
+        public void ClassArgument()
+        {
+            var person = new ClassTests.Person(new MondValue(MondValueType.Object), "Rohan");
+
+            var personValue = new MondValue(_state);
+            personValue.UserData = person;
+
+            _state["rohan"] = personValue;
+
+            Assert.True(_state.Run(@"
+                return global.Greet(global.rohan);
+            ") == "hello Rohan!");
+
+            personValue.UserData = "something";
+
+            Assert.Throws<MondRuntimeException>(() => _state.Run(@"
+                global.Greet(global.rohan);
+            "));
+
+            personValue.UserData = null;
+
+            Assert.Throws<MondRuntimeException>(() => _state.Run(@"
+                global.Greet(global.rohan);
+            "));
+        }
+
         // TODO: need to test return types
 
         public static MondValue ArgumentTypes(
@@ -149,6 +178,11 @@ namespace Mond.Tests.Binding
         public static string Concat(string first, params MondValue[] values)
         {
             return first + string.Concat(values.Select(v => (string)v));
+        }
+
+        public static string Greet(ClassTests.Person person)
+        {
+            return person.GenerateGreeting();
         }
     }
 }

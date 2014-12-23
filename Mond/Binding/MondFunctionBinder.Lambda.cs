@@ -11,7 +11,7 @@ namespace Mond.Binding
         {
             var errorPrefix = GenerateErrorPrefix(moduleName, methodName);
             int requiredArgsLength;
-            var argumentTypes = GetArgumentInfo(method, false, out requiredArgsLength);
+            var argumentTypes = GetArgumentInfo(errorPrefix, method, false, out requiredArgsLength);
             var hasParams = argumentTypes.Any(a => a.SpecialType == SpecialArgumentType.Params);
             var returnConversion = MakeReturnConversion(method.ReturnType);
 
@@ -23,7 +23,7 @@ namespace Mond.Binding
         {
             var errorPrefix = GenerateErrorPrefix(moduleName, methodName);
             int requiredArgsLength;
-            var argumentTypes = GetArgumentInfo(method, true, out requiredArgsLength);
+            var argumentTypes = GetArgumentInfo(errorPrefix, method, true, out requiredArgsLength);
             var hasParams = argumentTypes.Any(a => a.SpecialType == SpecialArgumentType.Params);
             var returnConversion = MakeReturnConversion(method.ReturnType);
 
@@ -39,7 +39,7 @@ namespace Mond.Binding
         {
             var errorPrefix = GenerateErrorPrefix(moduleName, "#ctor");
             int requiredArgsLength;
-            var argumentTypes = GetArgumentInfo(method, true, out requiredArgsLength);
+            var argumentTypes = GetArgumentInfo(errorPrefix, method, true, out requiredArgsLength);
             var hasParams = argumentTypes.Any(a => a.SpecialType == SpecialArgumentType.Params);
 
             return (state, instance, args) =>
@@ -70,7 +70,7 @@ namespace Mond.Binding
                     var types = argType.MondTypes;
 
                     if (types[0] != MondValueType.Undefined && !types.Contains(value.Type))
-                        throw new MondRuntimeException(GenerateTypeError(errorPrefix, argType.Index, types[0].GetName()));
+                        throw new MondRuntimeException(GenerateTypeError(errorPrefix, argType.Index, argType.TypeName));
 
                     result[i] = argType.Conversion(value);
                 }
@@ -168,9 +168,11 @@ namespace Mond.Binding
 
             private readonly FunctionArgument _argument;
 
+            private Type Type { get { return _argument.Type; } }
+
             public int Index { get { return _argument.Index; } }
 
-            public Type Type { get { return _argument.Type; } }
+            public string TypeName { get; private set; }
 
             public MondValueType[] MondTypes { get; private set; }
 
@@ -178,7 +180,7 @@ namespace Mond.Binding
 
             public SpecialArgumentType SpecialType { get; private set; }
 
-            public ArgumentInfo(FunctionArgument argument)
+            public ArgumentInfo(string errorPrefix, FunctionArgument argument)
             {
                 _argument = argument;
 
@@ -189,6 +191,7 @@ namespace Mond.Binding
                 if (Index >= 0)
                 {
                     MondValueType[] mondTypes;
+                    MondClassAttribute mondClass;
 
                     if (Type == typeof(MondValue))
                     {
@@ -198,12 +201,22 @@ namespace Mond.Binding
                     else if (TypeCheckMap.TryGetValue(Type, out mondTypes))
                     {
                         MondTypes = mondTypes;
+                        TypeName = mondTypes[0].GetName();
                         Conversion = MakeArgumentConversion(Type);
                     }
-                    else if (Type.Attribute<MondClassAttribute>() != null)
+                    else if ((mondClass = Type.Attribute<MondClassAttribute>()) != null)
                     {
                         MondTypes = ObjectTypes;
-                        Conversion = v => v.UserData;
+                        TypeName = mondClass.Name ?? Type.Name;
+
+                        Conversion = v =>
+                        {
+                            var userData = v.UserData;
+                            if (!Type.IsInstanceOfType(userData))
+                                throw new MondRuntimeException(GenerateTypeError(errorPrefix, Index, TypeName));
+
+                            return userData;
+                        };
                     }
                     else
                     {
@@ -232,9 +245,9 @@ namespace Mond.Binding
             }
         }
 
-        private static ArgumentInfo[] GetArgumentInfo(MethodBase method, bool instanceFunction, out int requiredArgsLength)
+        private static ArgumentInfo[] GetArgumentInfo(string errorPrefix, MethodBase method, bool instanceFunction, out int requiredArgsLength)
         {
-            var arguments = GetArguments(method, instanceFunction).Select(a => new ArgumentInfo(a)).ToArray();
+            var arguments = GetArguments(method, instanceFunction).Select(a => new ArgumentInfo(errorPrefix, a)).ToArray();
 
             if (arguments.Length == 0)
                 requiredArgsLength = 0;
