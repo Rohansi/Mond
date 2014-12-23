@@ -13,18 +13,18 @@ namespace Mond.Binding
         {
             TypeCheckMap = new Dictionary<Type, MondValueType[]>
             {
-                { typeof(double),       new [] { MondValueType.Number } },
-                { typeof(float),        new [] { MondValueType.Number } },
-                { typeof(int),          new [] { MondValueType.Number } },
-                { typeof(uint),         new [] { MondValueType.Number } },
-                { typeof(short),        new [] { MondValueType.Number } },
-                { typeof(ushort),       new [] { MondValueType.Number } },
-                { typeof(sbyte),        new [] { MondValueType.Number } },
-                { typeof(byte),         new [] { MondValueType.Number } },
+                { typeof(double),       new [] { MondValueType.Number, MondValueType.Object } },
+                { typeof(float),        new [] { MondValueType.Number, MondValueType.Object } },
+                { typeof(int),          new [] { MondValueType.Number, MondValueType.Object } },
+                { typeof(uint),         new [] { MondValueType.Number, MondValueType.Object } },
+                { typeof(short),        new [] { MondValueType.Number, MondValueType.Object } },
+                { typeof(ushort),       new [] { MondValueType.Number, MondValueType.Object } },
+                { typeof(sbyte),        new [] { MondValueType.Number, MondValueType.Object } },
+                { typeof(byte),         new [] { MondValueType.Number, MondValueType.Object } },
 
-                { typeof(string),       new [] { MondValueType.String } },
+                { typeof(string),       new [] { MondValueType.String, MondValueType.Object } },
 
-                { typeof(bool),         new [] { MondValueType.True, MondValueType.False } }
+                { typeof(bool),         new [] { MondValueType.True, MondValueType.False, MondValueType.Object } }
             };
 
             // types with a direct conversion to/from MondValue
