@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Mond.Binding;
 using NUnit.Framework;
@@ -15,11 +15,23 @@ namespace Mond.Tests.Binding
         {
             _state = new MondState();
 
-            // TODO: need a better function binder
-            _state["ArgumentTypes"] = MondFunctionBinder.Bind(null, "ArgumentTypes", typeof(FunctionTests).GetMethod("ArgumentTypes"));
-            _state["Add"] = MondFunctionBinder.Bind(null, "Add", typeof(FunctionTests).GetMethod("Add"));
-            _state["Concat"] = MondFunctionBinder.Bind(null, "Concat", typeof(FunctionTests).GetMethod("Concat"));
-            _state["Greet"] = MondFunctionBinder.Bind(null, "Greet", typeof(FunctionTests).GetMethod("Greet"));
+            var functions = new List<string>
+            {
+                "ArgumentTypes",
+
+                "ReturnDouble", "ReturnFloat",
+                "ReturnInt", "ReturnUInt",
+                "ReturnShort", "ReturnUShort",
+                "ReturnSByte", "ReturnByte",
+                "ReturnString", "ReturnBool",
+
+                "Add", "Concat", "Greet"
+            };
+
+            foreach (var func in functions)
+            {
+                _state[func] = MondFunctionBinder.Bind(null, func, typeof(FunctionTests).GetMethod(func));
+            }
         }
 
         [Test]
@@ -39,6 +51,35 @@ namespace Mond.Tests.Binding
             Assert.True(result["h"] == 8);
             Assert.True(result["i"] == "9");
             Assert.True(result["j"] == true);
+        }
+
+        [Test]
+        public void ReturnTypes()
+        {
+            var types = new List<string>
+            {
+                "Double", "Float",
+                "Int", "UInt",
+                "Short", "UShort",
+                "SByte", "Byte",
+                "String", "Bool"
+            };
+
+            var results = new List<MondValue>
+            {
+                double.MaxValue, float.MaxValue,
+                int.MaxValue, uint.MaxValue,
+                short.MaxValue, ushort.MaxValue,
+                sbyte.MaxValue, byte.MaxValue,
+                "a string", true
+            };
+
+            for (var i = 0; i < types.Count; i++)
+            {
+                Assert.True(_state.Run(string.Format(@"
+                    return global.Return{0}();
+                ", types[i])) == results[i], types[i]);
+            }
         }
 
         [Test]
@@ -145,8 +186,6 @@ namespace Mond.Tests.Binding
             "));
         }
 
-        // TODO: need to test return types
-
         public static MondValue ArgumentTypes(
             double  a,  float   b,
             int     c,  uint    d,
@@ -169,6 +208,60 @@ namespace Mond.Tests.Binding
 
             return result;
         }
+
+        #region Return Types
+
+        public static double ReturnDouble()
+        {
+            return double.MaxValue;
+        }
+
+        public static float ReturnFloat()
+        {
+            return float.MaxValue;
+        }
+
+        public static int ReturnInt()
+        {
+            return int.MaxValue;
+        }
+
+        public static uint ReturnUInt()
+        {
+            return uint.MaxValue;
+        }
+
+        public static short ReturnShort()
+        {
+            return short.MaxValue;
+        }
+
+        public static ushort ReturnUShort()
+        {
+            return ushort.MaxValue;
+        }
+
+        public static sbyte ReturnSByte()
+        {
+            return sbyte.MaxValue;
+        }
+
+        public static byte ReturnByte()
+        {
+            return byte.MaxValue;
+        }
+
+        public static string ReturnString()
+        {
+            return "a string";
+        }
+
+        public static bool ReturnBool()
+        {
+            return true;
+        }
+
+        #endregion
 
         public static void Add(MondValue a, MondState state, MondValue b)
         {
