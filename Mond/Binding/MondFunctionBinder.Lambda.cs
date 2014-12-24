@@ -1,142 +1,190 @@
-﻿using System;
+﻿#if NO_EXPRESSIONS
+
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
 namespace Mond.Binding
 {
-#if NO_EXPRESSIONS
     public static partial class MondFunctionBinder
     {
-        private static MondFunction BindImpl(string moduleName, string methodName, MethodInfo method)
+        private static MondFunction BindImpl(string moduleName, MethodTable method, string nameOverride = null)
         {
-            var errorPrefix = GenerateErrorPrefix(moduleName, methodName);
-            int requiredArgsLength;
-            var argumentTypes = GetArgumentInfo(errorPrefix, method, false, out requiredArgsLength);
-            var hasParams = argumentTypes.Any(a => a.SpecialType == SpecialArgumentType.Params);
-            var returnConversion = MakeReturnConversion(method.ReturnType);
+            var errorPrefix = BindingError.ErrorPrefix(moduleName, nameOverride ?? method.Name);
 
             return (state, args) =>
-                returnConversion(method.Invoke(null, BuildArgumentArray(errorPrefix, argumentTypes, requiredArgsLength, hasParams, state, null, args)));
-        }
-
-        private static MondInstanceFunction BindInstanceImpl(string moduleName, string methodName, MethodInfo method)
-        {
-            var errorPrefix = GenerateErrorPrefix(moduleName, methodName);
-            int requiredArgsLength;
-            var argumentTypes = GetArgumentInfo(errorPrefix, method, true, out requiredArgsLength);
-            var hasParams = argumentTypes.Any(a => a.SpecialType == SpecialArgumentType.Params);
-            var returnConversion = MakeReturnConversion(method.ReturnType);
-
-            return (state, instance, args) =>
             {
-                var classInstance = instance.UserData;
-                var parameters = BuildArgumentArray(errorPrefix, argumentTypes, requiredArgsLength, hasParams, state, instance, args);
-                return returnConversion(method.Invoke(classInstance, parameters));
+                MethodBase function;
+                Func<object, MondValue> returnConversion;
+                var parameters = BuildParameterArray(errorPrefix, method, state, null, args, out function, out returnConversion);
+
+                return returnConversion(function.Invoke(null, parameters));
             };
         }
 
-        private static MondConstructor BindConstructorImpl(string moduleName, ConstructorInfo method)
+        private static MondInstanceFunction BindInstanceImpl(string moduleName, MethodTable method, string nameOverride = null)
         {
-            var errorPrefix = GenerateErrorPrefix(moduleName, "#ctor");
-            int requiredArgsLength;
-            var argumentTypes = GetArgumentInfo(errorPrefix, method, true, out requiredArgsLength);
-            var hasParams = argumentTypes.Any(a => a.SpecialType == SpecialArgumentType.Params);
+            var errorPrefix = BindingError.ErrorPrefix(moduleName, nameOverride ?? method.Name);
 
             return (state, instance, args) =>
-                method.Invoke(BuildArgumentArray(errorPrefix, argumentTypes, requiredArgsLength, hasParams, state, instance, args));
+            {
+                MethodBase function;
+                Func<object, MondValue> returnConversion;
+                var parameters = BuildParameterArray(errorPrefix, method, state, instance, args, out function, out returnConversion);
+
+                var classInstance = instance.UserData;
+                return returnConversion(function.Invoke(classInstance, parameters));
+            };
         }
 
-        private static object[] BuildArgumentArray(
+        private static MondConstructor BindConstructorImpl(string moduleName, MethodTable method)
+        {
+            var errorPrefix = BindingError.ErrorPrefix(moduleName, "#ctor");
+            
+            return (state, instance, args) =>
+            {
+                MethodBase constructor;
+                Func<object, MondValue> returnConversion;
+                var parameters = BuildParameterArray(errorPrefix, method, state, instance, args, out constructor, out returnConversion);
+
+                return ((ConstructorInfo)constructor).Invoke(parameters);
+            };
+        }
+
+        private static object[] BuildParameterArray(
             string errorPrefix,
-            ArgumentInfo[] argumentTypes,
-            int requiredArgsLength,
-            bool hasParams,
+            MethodTable methodTable,
             MondState state,
             MondValue instance,
-            MondValue[] args)
+            MondValue[] args,
+            out MethodBase methodBase,
+            out Func<object, MondValue> returnConversion)
         {
-            if ((hasParams && args.Length < requiredArgsLength) || (!hasParams && args.Length != requiredArgsLength))
-                throw new MondRuntimeException(GenerateArgumentLengthError(errorPrefix, requiredArgsLength));
+            Method method = null;
 
-            var result = new object[argumentTypes.Length];
+            if (args.Length < methodTable.Methods.Count)
+                method = FindMatch(methodTable.Methods[args.Length], args);
 
-            for (var i = 0; i < result.Length; i++)
+            if (method == null)
+                method = FindMatch(methodTable.ParamsMethods, args);
+
+            if (method != null)
             {
-                var argType = argumentTypes[i];
+                methodBase = method.Info;
+                returnConversion = method.ReturnConversion;
 
-                if (argType.Index >= 0)
+                var parameters = method.Parameters;
+                var result = new object[parameters.Count];
+
+                var j = 0;
+                for (var i = 0; i < result.Length; i++)
                 {
-                    var value = args[argType.Index];
-                    var types = argType.MondTypes;
+                    var param = parameters[i];
 
-                    if (types[0] != MondValueType.Undefined && !types.Contains(value.Type))
-                        throw new MondRuntimeException(GenerateTypeError(errorPrefix, argType.Index, argType.TypeName));
-
-                    result[i] = argType.Conversion(value);
-                }
-                else
-                {
-                    switch (argType.SpecialType)
+                    switch (param.Type)
                     {
-                        case SpecialArgumentType.State:
-                            result[i] = state;
+                        case ParameterType.Value:
+                            if (j < args.Length)
+                                result[i] = param.Conversion(args[j++]);
+                            else
+                                result[i] = param.Info.DefaultValue;
                             break;
 
-                        case SpecialArgumentType.Instance:
+                        case ParameterType.Params:
+                            result[i] = Slice(args, method.MondParameterCount);
+                            break;
+
+                        case ParameterType.Instance:
                             result[i] = instance;
                             break;
 
-                        case SpecialArgumentType.Params:
-                            result[i] = Slice(args, requiredArgsLength);
+                        case ParameterType.State:
+                            result[i] = state;
                             break;
 
                         default:
                             throw new NotSupportedException();
                     }
                 }
+
+                return result;
             }
 
-            return result;
+            throw new MondBindingException(ParameterTypeError(errorPrefix, methodTable));
         }
 
-        private static Func<MondValue, object> MakeArgumentConversion(Type argumentType)
+        private static Method FindMatch(List<Method> methods, MondValue[] args)
         {
-            if (argumentType == typeof(string))
+            for (var i = 0; i < methods.Count; i++)
+            {
+                var method = methods[i];
+                var parameters = method.ValueParameters;
+
+                if (method.RequiredMondParameterCount == 0 && (args.Length == 0 || method.HasParams))
+                    return methods[i];
+
+                for (var j = 0; j < parameters.Count; j++)
+                {
+                    var param = parameters[j];
+
+                    if (!(param.IsOptional && j >= args.Length) && param.MondTypes[0] != MondValueType.Undefined)
+                    {
+                        var arg = args[j];
+
+                        if (!param.MondTypes.Contains(arg.Type))
+                            break;
+
+                        if (param.UserDataType != null && !param.UserDataType.IsInstanceOfType(arg.UserData))
+                            break;
+                    }
+
+                    if (j == parameters.Count - 1)
+                        return method;
+                }
+            }
+
+            return null;
+        }
+
+        internal static Func<MondValue, object> MakeParameterConversion(Type parameterType)
+        {
+            if (parameterType == typeof(string))
                 return v => (string)v;
 
-            if (argumentType == typeof(bool))
+            if (parameterType == typeof(bool))
                 return v => (bool)v;
 
-            if (argumentType == typeof(double))
+            if (parameterType == typeof(double))
                 return v => (double)v;
 
             // cant use the Convert class for the rest of these...
 
-            if (argumentType == typeof(float))
+            if (parameterType == typeof(float))
                 return v => (float)v;
 
-            if (argumentType == typeof(int))
+            if (parameterType == typeof(int))
                 return v => (int)v;
 
-            if (argumentType == typeof(uint))
+            if (parameterType == typeof(uint))
                 return v => (uint)v;
 
-            if (argumentType == typeof(short))
+            if (parameterType == typeof(short))
                 return v => (short)v;
 
-            if (argumentType == typeof(ushort))
+            if (parameterType == typeof(ushort))
                 return v => (ushort)v;
 
-            if (argumentType == typeof(sbyte))
+            if (parameterType == typeof(sbyte))
                 return v => (sbyte)v;
 
-            if (argumentType == typeof(byte))
+            if (parameterType == typeof(byte))
                 return v => (byte)v;
 
-            throw new MondBindingException(BindingError.UnsupportedType, argumentType);
+            return null;
         }
 
-        private static Func<object, MondValue> MakeReturnConversion(Type returnType)
+        internal static Func<object, MondValue> MakeReturnConversion(Type returnType)
         {
             if (returnType == typeof(void))
                 return o => MondValue.Undefined;
@@ -155,108 +203,6 @@ namespace Mond.Binding
 
             throw new MondBindingException(BindingError.UnsupportedReturnType, returnType);
         }
-
-        private enum SpecialArgumentType
-        {
-            None, State, Instance, Params
-        }
-
-        private class ArgumentInfo
-        {
-            private static readonly MondValueType[] AnyTypes = { MondValueType.Undefined };
-            private static readonly MondValueType[] ObjectTypes = { MondValueType.Object };
-
-            private readonly FunctionArgument _argument;
-
-            private Type Type { get { return _argument.Type; } }
-
-            public int Index { get { return _argument.Index; } }
-
-            public string TypeName { get; private set; }
-
-            public MondValueType[] MondTypes { get; private set; }
-
-            public Func<MondValue, object> Conversion { get; private set; }
-
-            public SpecialArgumentType SpecialType { get; private set; }
-
-            public ArgumentInfo(string errorPrefix, FunctionArgument argument)
-            {
-                _argument = argument;
-
-                MondTypes = null;
-                Conversion = null;
-                SpecialType = SpecialArgumentType.None;
-
-                if (Index >= 0)
-                {
-                    MondValueType[] mondTypes;
-                    MondClassAttribute mondClass;
-
-                    if (Type == typeof(MondValue))
-                    {
-                        MondTypes = AnyTypes;
-                        Conversion = v => v;
-                    }
-                    else if (TypeCheckMap.TryGetValue(Type, out mondTypes))
-                    {
-                        MondTypes = mondTypes;
-                        TypeName = mondTypes[0].GetName();
-                        Conversion = MakeArgumentConversion(Type);
-                    }
-                    else if ((mondClass = Type.Attribute<MondClassAttribute>()) != null)
-                    {
-                        MondTypes = ObjectTypes;
-                        TypeName = mondClass.Name ?? Type.Name;
-
-                        Conversion = v =>
-                        {
-                            var userData = v.UserData;
-                            if (!Type.IsInstanceOfType(userData))
-                                throw new MondRuntimeException(GenerateTypeError(errorPrefix, Index, TypeName));
-
-                            return userData;
-                        };
-                    }
-                    else
-                    {
-                        throw new MondBindingException(BindingError.UnsupportedType, Type);
-                    }
-                }
-                else
-                {
-                    if (Type == typeof(MondState))
-                    {
-                        SpecialType = SpecialArgumentType.State;
-                    }
-                    else if (Type == typeof(MondValue))
-                    {
-                        SpecialType = SpecialArgumentType.Instance;
-                    }
-                    else if (Type == typeof(MondValue[]))
-                    {
-                        SpecialType = SpecialArgumentType.Params;
-                    }
-                    else
-                    {
-                        throw new NotSupportedException();
-                    }
-                }
-            }
-        }
-
-        private static ArgumentInfo[] GetArgumentInfo(string errorPrefix, MethodBase method, bool instanceFunction, out int requiredArgsLength)
-        {
-            var arguments = GetArguments(method, instanceFunction).Select(a => new ArgumentInfo(errorPrefix, a)).ToArray();
-
-            if (arguments.Length == 0)
-                requiredArgsLength = 0;
-            else
-                requiredArgsLength = arguments.Max(a => a.Index) + 1;
-
-            return arguments;
-        }
     }
-#endif
 }
-
+#endif

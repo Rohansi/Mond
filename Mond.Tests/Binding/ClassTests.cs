@@ -83,13 +83,13 @@ namespace Mond.Tests.Binding
 
             Assert.Throws<MondBindingException>(() => MondClassBinder.Bind<NoConstructor>());
 
-            Assert.Throws<MondBindingException>(() => MondClassBinder.Bind<MultipleConstructors>());
+            Assert.DoesNotThrow(() => MondClassBinder.Bind<MultipleConstructors>());
         }
 
         [Test]
         public void Duplicates()
         {
-            Assert.Throws<MondBindingException>(() => MondClassBinder.Bind<TestDuplicate>());
+            Assert.DoesNotThrow(() => MondClassBinder.Bind<TestDuplicate>());
         }
 
         [MondClass]
@@ -169,6 +169,12 @@ namespace Mond.Tests.Binding
         [MondClass]
         public class TestDuplicate
         {
+            [MondConstructor]
+            public TestDuplicate()
+            {
+                
+            }
+
             [MondFunction]
             public void Method()
             {

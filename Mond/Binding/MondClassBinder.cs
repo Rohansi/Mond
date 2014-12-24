@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Mond.VirtualMachine.Prototypes;
 
@@ -93,69 +94,38 @@ namespace Mond.Binding
 
             var className = classAttrib.Name ?? type.Name;
 
-            MondConstructor constructor = null;
             var functions = new Dictionary<string, MondInstanceFunction>();
 
-            foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Instance))
+            var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Instance);
+            foreach (var method in MondFunctionBinder.BindInstance(className, methods, type))
             {
-                var functionAttrib = method.Attribute<MondFunctionAttribute>();
-
-                if (functionAttrib == null)
-                    continue;
-
-                var name = functionAttrib.Name ?? method.Name;
+                var name = method.Item1;
 
                 if (functions.ContainsKey(name))
                     throw new MondBindingException(BindingError.DuplicateDefinition, name);
 
-                functions[name] = MondFunctionBinder.BindInstance(className, name, method, type);
+                functions[name] = method.Item2;
             }
 
-            foreach (var property in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            foreach (var property in properties.PropertyMethods())
             {
-                var functionAttrib = property.Attribute<MondFunctionAttribute>();
+                var name = property.Item1;
 
-                if (functionAttrib == null)
-                    continue;
+                if (functions.ContainsKey(name))
+                    throw new MondBindingException(BindingError.DuplicateDefinition, name);
 
-                var name = functionAttrib.Name ?? property.Name;
+                var propertyArray = new[] { property.Item2 };
 
-                var getMethod = property.GetGetMethod();
-                var setMethod = property.GetSetMethod();
+                var propertyBinding = MondFunctionBinder.BindInstance(className, propertyArray, type, MondFunctionBinder.MethodType.Property, name)
+                    .FirstOrDefault();
 
-                if (getMethod != null && getMethod.IsPublic)
-                {
-                    var getMethodName = "get" + name;
-
-                    if (functions.ContainsKey(getMethodName))
-                        throw new MondBindingException(BindingError.DuplicateDefinition, getMethodName);
-
-                    functions[getMethodName] = MondFunctionBinder.BindInstance(className, name, getMethod, type);
-                }
-
-                if (setMethod != null && setMethod.IsPublic)
-                {
-                    var setMethodName = "set" + name;
-
-                    if (functions.ContainsKey(setMethodName))
-                        throw new MondBindingException(BindingError.DuplicateDefinition, setMethodName);
-
-                    functions[setMethodName] = MondFunctionBinder.BindInstance(className, name, setMethod, type);
-                }
+                if (propertyBinding != null)
+                    functions[name] = propertyBinding.Item2;
             }
 
-            foreach (var ctor in type.GetConstructors(BindingFlags.Public | BindingFlags.Instance))
-            {
-                var constructorAttrib = ctor.Attribute<MondConstructorAttribute>();
-
-                if (constructorAttrib == null)
-                    continue;
-
-                if (constructor != null)
-                    throw new MondBindingException(BindingError.TooManyConstructors);
-
-                constructor = MondFunctionBinder.BindConstructor(className, ctor);
-            }
+            var constructors = type.GetConstructors(BindingFlags.Public | BindingFlags.Instance);
+            var constructor = MondFunctionBinder.BindConstructor(className, constructors);
 
             if (constructor == null)
                 throw new MondBindingException(BindingError.NotEnoughConstructors);

@@ -11,5 +11,20 @@
 
         public const string TooManyConstructors = "Classes cannot have multiple Mond constructors";
         public const string NotEnoughConstructors = "Classes must have one Mond constructor";
+
+        public static string ErrorPrefix(string moduleName, string methodName)
+        {
+            return string.Format("{0}{1}{2}: ", moduleName ?? "", string.IsNullOrEmpty(moduleName) ? "" : ".", methodName);
+        }
+
+        public static string ArgumentLengthError(string prefix, int requiredArgumentCount)
+        {
+            return string.Format("{0}must be called with {1} argument{2}", prefix, requiredArgumentCount, requiredArgumentCount != 1 ? "s" : "");
+        }
+
+        public static string TypeError(string prefix, int argumentIndex, string expectedType)
+        {
+            return string.Format("{0}argument {1} must be of type {2}", prefix, argumentIndex + 1, expectedType);
+        }
     }
 }

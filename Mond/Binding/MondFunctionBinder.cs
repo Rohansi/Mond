@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace Mond.Binding
@@ -8,50 +10,93 @@ namespace Mond.Binding
     public static partial class MondFunctionBinder
     {
         /// <summary>
-        /// Generates a MondFunction binding for the given method.
+        /// Generates a MondFunction binding for the given function.
         /// </summary>
-        public static MondFunction Bind(string moduleName, string methodName, MethodInfo method)
+        public static MondFunction Bind(string moduleName, MethodInfo method, string nameOverride = null)
         {
-            if (!method.IsStatic)
-                throw new MondBindingException("Bind only supports static methods");
-
-#if !NO_EXPRESSIONS
-            return BindImpl<MondFunction, MondValue>(moduleName, methodName, method, false, (p, a, r) => BindFunctionCall(method, null, false, p, a, r));
-#else
-            return BindImpl(moduleName, methodName, method);
-#endif
+            return BindStatic(moduleName, new[] { method }, nameOverride: nameOverride).Single().Item2;
         }
 
         /// <summary>
-        /// Generates a MondInstanceFunction binding for the given method.
+        /// Generates a MondFunction binding for the given functions.
         /// </summary>
-        internal static MondInstanceFunction BindInstance(string className, string methodName, MethodInfo method, Type type = null)
+        public static MondFunction Bind(string moduleName, ICollection<MethodInfo> methods, string nameOverride = null)
+        {
+            return BindStatic(moduleName, methods, nameOverride: nameOverride).Single().Item2;
+        }
+
+        /// <summary>
+        /// Generates MondFunction bindings for the given methods.
+        /// </summary>
+        internal static IEnumerable<Tuple<string, MondFunction>> BindStatic(
+            string moduleName,
+            ICollection<MethodInfo> methods,
+            MethodType methodType = MethodType.Normal,
+            string nameOverride = null)
+        {
+            if (methods.Any(m => !m.IsStatic))
+                throw new MondBindingException("BindStatic only supports static methods");
+
+            var methodTables = BuildMethodTables(methods, methodType, nameOverride);
+
+            foreach (var table in methodTables)
+            {
+#if !NO_EXPRESSIONS
+                BindCallFactory callFactory = (m, p, a, r) => BindFunctionCall(m, null, false, p, a, r);
+                yield return Tuple.Create(table.Name, BindImpl<MondFunction, MondValue>(moduleName, table, false, callFactory));
+#else
+                yield return Tuple.Create(table.Name, BindImpl(moduleName, table, nameOverride));
+#endif
+            }
+        }
+
+        /// <summary>
+        /// Generates MondInstanceFunction bindings for the given methods.
+        /// </summary>
+        internal static IEnumerable<Tuple<string, MondInstanceFunction>> BindInstance(
+            string className,
+            ICollection<MethodInfo> methods,
+            Type type = null,
+            MethodType methodType = MethodType.Normal,
+            string nameOverride = null)
         {
             if (className == null)
                 throw new ArgumentNullException("className");
 
-            if (type == null && !method.IsStatic)
+            if (type == null && methods.Any(m => !m.IsStatic))
                 throw new MondBindingException("BindInstance requires a type for non-static methods");
 
+            var methodTables = BuildMethodTables(methods, methodType, nameOverride);
+
+            foreach (var table in methodTables)
+            {
 #if !NO_EXPRESSIONS
-            return BindImpl<MondInstanceFunction, MondValue>(className, methodName, method, true, (p, a, r) => BindFunctionCall(method, type, true, p, a, r));
+                BindCallFactory callFactory = (m, p, a, r) => BindFunctionCall(m, type, true, p, a, r);
+                yield return Tuple.Create(table.Name, BindImpl<MondInstanceFunction, MondValue>(className, table, true, callFactory));
 #else
-            return BindInstanceImpl(className, methodName, method);
+                yield return Tuple.Create(table.Name, BindInstanceImpl(className, table, nameOverride));
 #endif
+            }
         }
 
         /// <summary>
-        /// Generates a MondConstructor binding for the given constructor.
+        /// Generates a MondConstructor binding for the given constructors.
         /// </summary>
-        internal static MondConstructor BindConstructor(string className, ConstructorInfo constructor)
+        internal static MondConstructor BindConstructor(string className, ICollection<ConstructorInfo> constructors)
         {
             if (className == null)
                 throw new ArgumentNullException("className");
 
+            var methodTable = BuildMethodTables(constructors, MethodType.Constructor).FirstOrDefault();
+
+            if (methodTable == null || (methodTable.Methods.Count == 0 && methodTable.ParamsMethods.Count == 0))
+                return null;
+
 #if !NO_EXPRESSIONS
-            return BindImpl<MondConstructor, object>(className, "#ctor", constructor, true, (p, a, r) => BindConstructorCall(constructor, a, r));
+            BindCallFactory callFactory = (m, p, a, r) => BindConstructorCall(m, a, r);
+            return BindImpl<MondConstructor, object>(className, methodTable, true, callFactory);
 #else
-            return BindConstructorImpl(className, constructor);
+            return BindConstructorImpl(className, methodTable);
 #endif
         }
     }

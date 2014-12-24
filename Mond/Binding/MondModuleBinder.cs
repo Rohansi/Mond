@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Reflection;
 using Mond.VirtualMachine.Prototypes;
 
@@ -86,52 +87,32 @@ namespace Mond.Binding
 
             var result = new Dictionary<string, MondFunction>();
 
-            foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Static))
+            var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Static);
+            foreach (var method in MondFunctionBinder.BindStatic(moduleName, methods))
             {
-                var functionAttrib = method.Attribute<MondFunctionAttribute>();
-
-                if (functionAttrib == null)
-                    continue;
-
-                var name = functionAttrib.Name ?? method.Name;
+                var name = method.Item1;
 
                 if (result.ContainsKey(name))
                     throw new MondBindingException(BindingError.DuplicateDefinition, name);
 
-                result[name] = MondFunctionBinder.Bind(moduleName, name, method);
+                result[name] = method.Item2;
             }
 
-            foreach (var property in type.GetProperties(BindingFlags.Public | BindingFlags.Static))
+            var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Static);
+            foreach (var property in properties.PropertyMethods())
             {
-                var functionAttrib = property.Attribute<MondFunctionAttribute>();
+                var name = property.Item1;
 
-                if (functionAttrib == null)
-                    continue;
+                if (result.ContainsKey(name))
+                    throw new MondBindingException(BindingError.DuplicateDefinition, name);
 
-                var name = functionAttrib.Name ?? property.Name;
+                var propertyArray = new[] { property.Item2 };
 
-                var getMethod = property.GetGetMethod();
-                var setMethod = property.GetSetMethod();
+                var propertyBinding = MondFunctionBinder.BindStatic(moduleName, propertyArray, MondFunctionBinder.MethodType.Property, name)
+                    .FirstOrDefault();
 
-                if (getMethod != null && getMethod.IsPublic)
-                {
-                    var getMethodName = "get" + name;
-
-                    if (result.ContainsKey(getMethodName))
-                        throw new MondBindingException(BindingError.DuplicateDefinition, getMethodName);
-
-                    result[getMethodName] = MondFunctionBinder.Bind(moduleName, name, getMethod);
-                }
-
-                if (setMethod != null && setMethod.IsPublic)
-                {
-                    var setMethodName = "set" + name;
-
-                    if (result.ContainsKey(setMethodName))
-                        throw new MondBindingException(BindingError.DuplicateDefinition, setMethodName);
-
-                    result[setMethodName] = MondFunctionBinder.Bind(moduleName, name, setMethod);
-                }
+                if (propertyBinding != null)
+                    result[name] = propertyBinding.Item2;
             }
 
             binding = new ModuleBinding(result);

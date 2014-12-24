@@ -5,22 +5,24 @@ namespace Mond.Binding
 {
     public static partial class MondFunctionBinder
     {
-        private static readonly Dictionary<Type, MondValueType[]> TypeCheckMap;
-        private static readonly HashSet<Type> BasicTypes;
-        private static readonly HashSet<Type> NumberTypes;
+        internal static readonly Dictionary<Type, MondValueType[]> TypeCheckMap;
+        internal static readonly HashSet<Type> BasicTypes;
+        internal static readonly HashSet<Type> NumberTypes;
 
         static MondFunctionBinder()
         {
+            var numberTypeArray = new [] { MondValueType.Number, MondValueType.Object };
+
             TypeCheckMap = new Dictionary<Type, MondValueType[]>
             {
-                { typeof(double),       new [] { MondValueType.Number, MondValueType.Object } },
-                { typeof(float),        new [] { MondValueType.Number, MondValueType.Object } },
-                { typeof(int),          new [] { MondValueType.Number, MondValueType.Object } },
-                { typeof(uint),         new [] { MondValueType.Number, MondValueType.Object } },
-                { typeof(short),        new [] { MondValueType.Number, MondValueType.Object } },
-                { typeof(ushort),       new [] { MondValueType.Number, MondValueType.Object } },
-                { typeof(sbyte),        new [] { MondValueType.Number, MondValueType.Object } },
-                { typeof(byte),         new [] { MondValueType.Number, MondValueType.Object } },
+                { typeof(double),       numberTypeArray },
+                { typeof(float),        numberTypeArray },
+                { typeof(int),          numberTypeArray },
+                { typeof(uint),         numberTypeArray },
+                { typeof(short),        numberTypeArray },
+                { typeof(ushort),       numberTypeArray },
+                { typeof(sbyte),        numberTypeArray },
+                { typeof(byte),         numberTypeArray },
 
                 { typeof(string),       new [] { MondValueType.String, MondValueType.Object } },
 

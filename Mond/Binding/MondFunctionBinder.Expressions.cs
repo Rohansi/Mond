@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if !NO_EXPRESSIONS
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -6,17 +8,23 @@ using System.Reflection;
 
 namespace Mond.Binding
 {
-#if !NO_EXPRESSIONS
     public static partial class MondFunctionBinder
     {
-        private static TFunc BindImpl<TFunc, TReturn>(string moduleName, string methodName, MethodBase method, bool instanceFunction, BindCallFactory callFactory)
+        /// <summary>
+        /// Creates the function call needed for a function binding.
+        /// </summary>
+        private delegate Expression BindCallFactory(
+            Method method,
+            List<ParameterExpression> parameters,
+            List<Expression> arguments,
+            LabelTarget returnLabel);
+
+        private static TFunc BindImpl<TFunc, TReturn>(
+            string moduleName,
+            MethodTable methodTable,
+            bool instanceFunction,
+            BindCallFactory callFactory)
         {
-            // TODO: clean up everything below this line
-
-            var arguments = GetArguments(method, instanceFunction).ToArray();
-
-            var errorPrefix = GenerateErrorPrefix(moduleName, methodName);
-
             var parameters = new List<ParameterExpression>
             {
                 Expression.Parameter(typeof(MondState), "state"),
@@ -28,224 +36,233 @@ namespace Mond.Binding
 
             var argumentsParam = parameters[instanceFunction ? 2 : 1];
 
-            Func<int, Expression> argumentIndex = i => Expression.ArrayIndex(argumentsParam, Expression.Constant(i));
-
             var statements = new List<Expression>();
             var returnLabel = Expression.Label(typeof(TReturn));
 
-            // use a different length check if using params MondValue[]
-            var hasParams = arguments.Any(a => a.Index < 0 && a.Type == typeof(MondValue[]));
+            var argumentsLength = Expression.PropertyOrField(argumentsParam, "Length");
 
-            // argument count check
-            var argLength = Expression.Condition(Expression.Equal(argumentsParam, Expression.Constant(null)), Expression.Constant(0), Expression.PropertyOrField(argumentsParam, "Length"));
-            var requiredArgLength = arguments.Count(a => a.Index >= 0);
-            var argLengthError = GenerateArgumentLengthError(errorPrefix, requiredArgLength);
-
-            Expression lengthCondition;
-            if (hasParams)
-                lengthCondition = Expression.LessThan(argLength, Expression.Constant(requiredArgLength));
-            else
-                lengthCondition = Expression.NotEqual(argLength, Expression.Constant(requiredArgLength));
-
-            statements.Add(Expression.IfThen(lengthCondition, Throw(argLengthError)));
-
-            // argument type checks
-            for (var i = 0; i < arguments.Length; i++)
+            for (var i = 0; i < methodTable.Methods.Count; i++)
             {
-                var arg = arguments[i];
+                var dispatches = BuildDispatchExpression(methodTable.Methods[i], i, parameters, instanceFunction, returnLabel, callFactory);
 
-                // TODO: attribute to verify type of UserData
-
-                if (arg.Index < 0 || arg.Type == typeof(MondValue))
+                if (dispatches.Count == 0)
                     continue;
 
-                statements.Add(TypeCheck(errorPrefix, arg.Index, argumentIndex(arg.Index), arg.Type));
+                var requiredArgCount = Expression.Constant(i);
+                var argLengthEqual = Expression.Equal(argumentsLength, requiredArgCount);
+                var argBranch = Expression.IfThen(argLengthEqual, Expression.Block(dispatches));
+
+                statements.Add(argBranch);
             }
 
-            // call
-            var callArgs = new List<Expression>();
-
-            foreach (var arg in arguments)
+            foreach (var group in methodTable.ParamsMethods.GroupBy(p => p.RequiredMondParameterCount))
             {
-                if (arg.Type == typeof(MondState))
-                {
-                    callArgs.Add(parameters[0]);
-                    continue;
-                }
+                var dispatches = BuildDispatchExpression(group, int.MaxValue, parameters, instanceFunction, returnLabel, callFactory);
+                var requiredArgCount = Expression.Constant(group.Key);
+                var argLengthAtLeast = Expression.GreaterThanOrEqual(argumentsLength, requiredArgCount);
+                var argBranch = Expression.IfThen(argLengthAtLeast, Expression.Block(dispatches));
 
-                if (arg.Type == typeof(MondValue))
-                {
-                    if (instanceFunction && arg.Info.Attribute<MondInstanceAttribute>() != null)
-                    {
-                        callArgs.Add(parameters[1]);
-                    }
-                    else
-                    {
-                        callArgs.Add(argumentIndex(arg.Index));
-                    }
-
-                    continue;
-                }
-
-                if (arg.Index < 0 && arg.Type == typeof(MondValue[])) // params MondValue[]
-                {
-                    var sliceMethod = typeof(MondFunctionBinder).GetMethod("Slice", BindingFlags.NonPublic | BindingFlags.Static);
-                    callArgs.Add(Expression.Call(sliceMethod, argumentsParam, Expression.Constant(requiredArgLength)));
-                    continue;
-                }
-
-                callArgs.Add(ConvertArgument(argumentIndex(arg.Index), arg.Type));
+                statements.Add(argBranch);
             }
 
-            statements.Add(callFactory(parameters, callArgs, returnLabel));
+            var errorPrefix = BindingError.ErrorPrefix(moduleName, methodTable.Name);
+            statements.Add(ThrowParameterTypeError(errorPrefix, methodTable));
 
-            // end / default return
-            statements.Add(Expression.Label(returnLabel, Expression.Constant(MondValue.Undefined)));
+            statements.Add(Expression.Label(returnLabel, Expression.Default(typeof(TReturn))));
 
             var block = Expression.Block(statements);
             return Expression.Lambda<TFunc>(block, parameters).Compile();
         }
 
-        /// <summary>
-        /// Creates the function call and return statements needed for a function binding.
-        /// </summary>
-        private delegate Expression BindCallFactory(List<ParameterExpression> parameters, List<Expression> arguments, LabelTarget returnLabel);
-
-        /// <summary>
-        /// Creates the function call and return statements for normal function calls. Should be used through BindCallFactory.
-        /// </summary>
-        private static Expression BindFunctionCall(MethodInfo method, Type instanceType, bool instanceFunction, List<ParameterExpression> parameters, IEnumerable<Expression> arguments, LabelTarget returnLabel)
+        private static List<Expression> BuildDispatchExpression(
+            IEnumerable<Method> methods,
+            int checkedArguments,
+            List<ParameterExpression> parameters,
+            bool instanceFunction,
+            LabelTarget returnLabel,
+            BindCallFactory callFactory)
         {
-            var returnType = method.ReturnType;
+            var stateParam = parameters[0];
+            var argumentsParam = parameters[instanceFunction ? 2 : 1];
+            var instanceParam = parameters[instanceFunction ? 1 : 0];
 
-            Expression callExpr;
+            Func<int, Expression> argumentIndex = i =>
+                Expression.ArrayIndex(argumentsParam, Expression.Constant(i));
 
-            if (instanceFunction && instanceType != null)
+            var result = new List<Expression>();
+
+            foreach (var method in methods)
             {
-                // instance functions store the instance in UserData
-                var userData = Expression.Convert(Expression.PropertyOrField(parameters[1], "UserData"), instanceType);
-                callExpr = Expression.Call(userData, method, arguments);
+                Expression typeCondition = Expression.Constant(true);
+
+                if (checkedArguments > 0 && method.ValueParameters.Count > 0)
+                {
+                    typeCondition = method.ValueParameters
+                        .Take(checkedArguments)
+                        .Select((p, i) => TypeCheck(argumentIndex(i), p))
+                        .Aggregate(Expression.And);
+                }
+
+                var arguments = new List<Expression>();
+
+                var j = 0;
+                foreach (var param in method.Parameters)
+                {
+                    switch (param.Type)
+                    {
+                        case ParameterType.Value:
+                            if (j < checkedArguments)
+                                arguments.Add(param.Conversion(argumentIndex(j++)));
+                            else
+                                arguments.Add(Expression.Constant(param.Info.DefaultValue));
+                            break;
+
+                        case ParameterType.Params:
+                            var sliceMethod = typeof(MondFunctionBinder).GetMethod("Slice", BindingFlags.NonPublic | BindingFlags.Static);
+                            arguments.Add(Expression.Call(sliceMethod, argumentsParam, Expression.Constant(method.RequiredMondParameterCount)));
+                            break;
+
+                        case ParameterType.Instance:
+                            arguments.Add(instanceParam);
+                            break;
+
+                        case ParameterType.State:
+                            arguments.Add(stateParam);
+                            break;
+
+                        default:
+                            throw new NotSupportedException();
+                    }
+                }
+
+                var callExpression = callFactory(method, parameters, arguments, returnLabel);
+
+                result.Add(Expression.IfThen(typeCondition, callExpression));
             }
-            else
-            {
-                callExpr = Expression.Call(method, arguments);
-            }
 
-            if (returnType != typeof(void))
-            {
-                var variables = new List<ParameterExpression>();
-                var expressions = new List<Expression>();
-                Expression result;
-
-                if (returnType == typeof(MondValue))
-                {
-                    result = callExpr;
-                }
-                else if (BasicTypes.Contains(returnType))
-                {
-                    result = Expression.Convert(callExpr, typeof(MondValue));
-                }
-                else if (NumberTypes.Contains(returnType))
-                {
-                    result = Expression.Convert(Expression.Convert(callExpr, typeof(double)), typeof(MondValue));
-                }
-                else
-                {
-                    throw new MondBindingException(BindingError.UnsupportedReturnType, returnType);
-                }
-
-                expressions.Add(Expression.Return(returnLabel, result));
-
-                callExpr = Expression.Block(variables, expressions);
-            }
-
-            return callExpr;
+            return result;
         }
 
         /// <summary>
-        /// Creates the function call and return statements for a constructor function. Should be used through BindCallFactory.
+        /// Creates an expression that checks an argument against its expected type.
         /// </summary>
-        private static Expression BindConstructorCall(ConstructorInfo constructor, IEnumerable<Expression> arguments, LabelTarget returnLabel)
+        private static Expression TypeCheck(Expression argument, Parameter parameter)
         {
-            return Expression.Return(returnLabel, Expression.New(constructor, arguments));
+            var types = parameter.MondTypes;
+            var argumentType = Expression.PropertyOrField(argument, "Type");
+
+            if (types.Length == 0 || types[0] == MondValueType.Undefined)
+                return Expression.Constant(true);
+
+            if (types[0] == MondValueType.Object && parameter.UserDataType != null)
+            {
+                var isObject = Expression.Equal(argumentType, Expression.Constant(MondValueType.Object));
+                var userData = Expression.PropertyOrField(argument, "UserData");
+                var isCorrectType = Expression.TypeIs(userData, parameter.UserDataType);
+                return Expression.And(isObject, isCorrectType);
+            }
+
+            return types
+                .Select(t => Expression.Equal(argumentType, Expression.Constant(t)))
+                .Aggregate(Expression.Or);
         }
 
-        /// <summary>
-        /// Creates a type check statement for the given argument.
-        /// </summary>
-        private static Expression TypeCheck(string errorPrefix, int index, Expression argument, Type type)
-        {
-            string expectedTypeName;
-            Expression condition;
-
-            MondValueType[] mondTypes;
-            MondClassAttribute mondClass;
-
-            if (TypeCheckMap.TryGetValue(type, out mondTypes))
-            {
-                expectedTypeName = mondTypes[0].GetName();
-
-                condition = Expression.NotEqual(Expression.PropertyOrField(argument, "Type"), Expression.Constant(mondTypes[0]));
-
-                for (var i = 1; i < mondTypes.Length; i++)
-                {
-                    condition = Expression.AndAlso(condition, Expression.NotEqual(Expression.PropertyOrField(argument, "Type"), Expression.Constant(mondTypes[i])));
-                }
-            }
-            else if ((mondClass = type.Attribute<MondClassAttribute>()) != null)
-            {
-                expectedTypeName = mondClass.Name ?? type.Name;
-
-                var argIsNotObject = Expression.NotEqual(Expression.PropertyOrField(argument, "Type"), Expression.Constant(MondValueType.Object));
-                var argIsWrongClass = Expression.Not(Expression.TypeIs(Expression.PropertyOrField(argument, "UserData"), type));
-                condition = Expression.OrElse(argIsNotObject, argIsWrongClass);
-            }
-            else
-            {
-                throw new MondBindingException(BindingError.UnsupportedType, type);
-            }
-
-            var error = GenerateTypeError(errorPrefix, index, expectedTypeName);
-            return Expression.IfThen(condition, Throw(error));
-        }
-
-        /// <summary>
-        /// Creates an expression that converts an argument from MondValue into the target type.
-        /// </summary>
-        private static Expression ConvertArgument(Expression argument, Type type)
-        {
-            if (BasicTypes.Contains(type))
-            {
-                argument = Expression.Convert(argument, type);
-            }
-            else if (NumberTypes.Contains(type))
-            {
-                argument = Expression.Convert(Expression.Convert(argument, typeof(double)), type);
-            }
-            else if (type.Attribute<MondClassAttribute>() != null)
-            {
-                argument = Expression.Convert(Expression.PropertyOrField(argument, "UserData"), type);
-            }
-            else
-            {
-                throw new MondBindingException(BindingError.UnsupportedType, type);
-            }
-
-            return argument;
-        }
-
-        /// <summary>
-        /// Creates a statement that throws a MondRuntimeException.
-        /// </summary>
-        private static Expression Throw(string message)
+        private static Expression ThrowParameterTypeError(string errorPrefix, MethodTable methodTable)
         {
             var constructor = typeof(MondRuntimeException).GetConstructor(new[] { typeof(string) });
-
             if (constructor == null)
                 throw new MondBindingException("Could not find MondRuntimeException constructor");
 
-            return Expression.Throw(Expression.New(constructor, Expression.Constant(message)));
+            var parameterTypeError = typeof(MondFunctionBinder).GetMethod("ParameterTypeError", BindingFlags.NonPublic | BindingFlags.Static);
+            var errorString = Expression.Call(parameterTypeError, Expression.Constant(errorPrefix), Expression.Constant(methodTable));
+
+            return Expression.Throw(Expression.New(constructor, errorString));
+        }
+
+        /// <summary>
+        /// Creates the function call for normal function calls. Should be used through BindCallFactory.
+        /// </summary>
+        private static Expression BindFunctionCall(
+            Method method,
+            Type instanceType,
+            bool instanceFunction,
+            List<ParameterExpression> parameters,
+            IEnumerable<Expression> arguments,
+            LabelTarget returnLabel)
+        {
+            var returnType = ((MethodInfo)method.Info).ReturnType;
+
+            Expression callExpr;
+
+            if (instanceFunction)
+            {
+                // instance functions store the instance in UserData
+                var userData = Expression.Convert(Expression.PropertyOrField(parameters[1], "UserData"), instanceType);
+                callExpr = Expression.Call(userData, (MethodInfo)method.Info, arguments);
+            }
+            else
+            {
+                callExpr = Expression.Call((MethodInfo)method.Info, arguments);
+            }
+
+            var expressions = new List<Expression>();
+
+            if (returnType != typeof(void))
+            {
+                expressions.Add(Expression.Return(returnLabel, method.ReturnConversion(callExpr)));
+            }
+            else
+            {
+                expressions.Add(callExpr);
+                expressions.Add(Expression.Return(returnLabel, Expression.Constant(MondValue.Undefined)));
+            }
+
+            return  Expression.Block(expressions);
+        }
+
+        /// <summary>
+        /// Creates the function call for a constructor function. Should be used through BindCallFactory.
+        /// </summary>
+        private static Expression BindConstructorCall(Method method, IEnumerable<Expression> arguments, LabelTarget returnLabel)
+        {
+            var constructor = (ConstructorInfo)method.Info;
+            return Expression.Return(returnLabel, Expression.New(constructor, arguments));
+        }
+
+        // MondValue -> T
+        internal static Func<Expression, Expression> MakeParameterConversion(Type parameterType)
+        {
+            if (BasicTypes.Contains(parameterType))
+                return e => Expression.Convert(e, parameterType);
+
+            if (NumberTypes.Contains(parameterType))
+                return e => Expression.Convert(Expression.Convert(e, typeof(double)), parameterType);
+
+            return null;
+        }
+
+        // T -> MondValue
+        internal static Func<Expression, Expression> MakeReturnConversion(Type returnType)
+        {
+            if (returnType == typeof(void))
+            {
+                return v =>
+                {
+                    throw new MondBindingException("Expression binder should not use void return conversion");
+                };
+            }
+
+            if (returnType == typeof(MondValue))
+                return v => v;
+
+            if (BasicTypes.Contains(returnType))
+                return v => Expression.Convert(v, typeof(MondValue));
+
+            if (NumberTypes.Contains(returnType))
+                return v => Expression.Convert(Expression.Convert(v, typeof(double)), typeof(MondValue));
+
+            throw new MondBindingException(BindingError.UnsupportedReturnType, returnType);
         }
     }
-#endif
 }
+#endif

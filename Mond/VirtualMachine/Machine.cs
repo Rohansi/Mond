@@ -74,7 +74,7 @@ namespace Mond.VirtualMachine
             return Run();
         }
 
-        public MondValue Run()
+        private MondValue Run()
         {
             var functionAddress = PeekCall();
             var program = functionAddress.Program;

@@ -1,59 +1,135 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
+using System.Text;
 
 namespace Mond.Binding
 {
     public static partial class MondFunctionBinder
     {
-        private static string GenerateErrorPrefix(string moduleName, string methodName)
+        #region MethodTables
+
+        internal enum MethodType
         {
-            return string.Format("{0}{1}{2}: ", moduleName ?? "", string.IsNullOrEmpty(moduleName) ? "" : ".", methodName);
+            Normal, Property, Constructor
         }
 
-        private static string GenerateArgumentLengthError(string prefix, int requiredArgumentCount)
+        internal static List<MethodTable> BuildMethodTables(IEnumerable<MethodBase> source, MethodType methodType, string nameOverride = null)
         {
-            return string.Format("{0}must be called with {1} argument{2}", prefix, requiredArgumentCount, requiredArgumentCount != 1 ? "s" : "");
-        }
-
-        private static string GenerateTypeError(string prefix, int argumentIndex, string expectedType)
-        {
-            return string.Format("{0}argument {1} must be of type {2}", prefix, argumentIndex + 1, expectedType);
-        }
-
-        private class FunctionArgument
-        {
-            public readonly int Index;
-            public readonly ParameterInfo Info;
-
-            public Type Type { get { return Info.ParameterType; } }
-
-            public FunctionArgument(int index, ParameterInfo info)
+            switch (methodType)
             {
-                Index = index;
-                Info = info;
+                case MethodType.Normal:
+                    {
+                        return source
+                            .Select(m => new { Method = m, FunctionAttribute = m.Attribute<MondFunctionAttribute>() })
+                            .Where(m => m.FunctionAttribute != null)
+                            .GroupBy(m => nameOverride ?? m.FunctionAttribute.Name ?? m.Method.Name)
+                            .Select(g => BuildMethodTable(g.Select(m => new Method(g.Key, m.Method))))
+                            .ToList();
+                    }
+
+                case MethodType.Property:
+                    {
+                        if (string.IsNullOrEmpty(nameOverride))
+                            throw new ArgumentNullException("nameOverride");
+
+                        return new List<MethodTable>
+                        {
+                            BuildMethodTable(source.Select(m => new Method(nameOverride, m)))
+                        };
+                    }
+
+                case MethodType.Constructor:
+                    {
+                        var methods = source
+                            .Where(m => m.Attribute<MondConstructorAttribute>() != null)
+                            .ToList();
+
+                        return new List<MethodTable>
+                        {
+                            BuildMethodTable(methods.Select(m => new Method("#ctor", m)))
+                        };
+                    }
+
+                default:
+                    throw new NotSupportedException();
             }
         }
 
-        private static IEnumerable<FunctionArgument> GetArguments(MethodBase method, bool instanceFunction)
+        private static MethodTable BuildMethodTable(IEnumerable<Method> source)
         {
-            var parameters = method.GetParameters();
-            var index = 0;
+            string name = null;
+            var methods = new List<List<Method>>();
+            var paramsMethods = new List<Method>();
 
-            for (var i = 0; i < parameters.Length; i++)
+            foreach (var method in source)
             {
-                var p = parameters[i];
+                if (name == null)
+                {
+                    name = method.Name;
+                }
 
-                var skip = (p.ParameterType == typeof(MondState)) ||
-                           (instanceFunction && p.ParameterType == typeof(MondValue) && p.Attribute<MondInstanceAttribute>() != null) ||
-                           (i == parameters.Length - 1 && p.ParameterType == typeof(MondValue[]) && p.Attribute<ParamArrayAttribute>() != null);
+                if (method.HasParams)
+                {
+                    paramsMethods.Add(method);
+                }
 
-                yield return new FunctionArgument(skip ? -1 : index, p);
+                for (var i = method.RequiredMondParameterCount; i <= method.MondParameterCount; i++)
+                {
+                    while (methods.Count <= i)
+                    {
+                        methods.Add(new List<Method>());
+                    }
 
-                if (!skip)
-                    index++;
+                    methods[i].Add(method);
+                }
+            }
+
+            for (var i = 0; i < methods.Count; i++)
+            {
+                methods[i].Sort();
+                methods[i] = methods[i].Distinct(new MethodParameterEqualityComparer(i)).ToList();
+            }
+
+            paramsMethods.Sort();
+
+            return new MethodTable(name, methods, paramsMethods);
+        }
+
+        private class MethodParameterEqualityComparer : IEqualityComparer<Method>
+        {
+            private readonly int _length;
+
+            public MethodParameterEqualityComparer(int length)
+            {
+                _length = length;
+            }
+
+            public bool Equals(Method x, Method y)
+            {
+                var xParams = x.Parameters.Where(p => p.Type == ParameterType.Value || p.Type == ParameterType.Params).ToList();
+                var yParams = y.Parameters.Where(p => p.Type == ParameterType.Value || p.Type == ParameterType.Params).ToList();
+
+                for (var i = 0; i < _length; i++)
+                {
+                    if (xParams[i].Info.ParameterType != yParams[i].Info.ParameterType ||
+                        xParams[i].IsOptional != yParams[i].IsOptional)
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            public int GetHashCode(Method obj)
+            {
+                return 0; // TODO?
             }
         }
+
+        #endregion
 
         internal static MondValue[] Slice(MondValue[] values, int index)
         {
@@ -66,6 +142,27 @@ namespace Mond.Binding
             }
 
             return result;
+        }
+
+        internal static string ParameterTypeError(string prefix, MethodTable methodTable)
+        {
+            var sb = new StringBuilder();
+
+            sb.Append(prefix);
+            sb.AppendLine("argument types do not match any available functions");
+
+            var methods = methodTable.Methods
+                .SelectMany(l => l)
+                .Concat(methodTable.ParamsMethods)
+                .Distinct();
+
+            foreach (var method in methods)
+            {
+                sb.Append("- ");
+                sb.AppendLine(method.ToString());
+            }
+
+            return sb.ToString();
         }
     }
 }

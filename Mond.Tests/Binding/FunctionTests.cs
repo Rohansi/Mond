@@ -24,13 +24,14 @@ namespace Mond.Tests.Binding
                 "ReturnShort", "ReturnUShort",
                 "ReturnSByte", "ReturnByte",
                 "ReturnString", "ReturnBool",
+                "ReturnVoid",
 
                 "Add", "Concat", "Greet"
             };
 
             foreach (var func in functions)
             {
-                _state[func] = MondFunctionBinder.Bind(null, func, typeof(FunctionTests).GetMethod(func));
+                _state[func] = MondFunctionBinder.Bind(null, typeof(FunctionTests).GetMethod(func));
             }
         }
 
@@ -62,7 +63,8 @@ namespace Mond.Tests.Binding
                 "Int", "UInt",
                 "Short", "UShort",
                 "SByte", "Byte",
-                "String", "Bool"
+                "String", "Bool",
+                "Void"
             };
 
             var results = new List<MondValue>
@@ -71,7 +73,7 @@ namespace Mond.Tests.Binding
                 int.MaxValue, uint.MaxValue,
                 short.MaxValue, ushort.MaxValue,
                 sbyte.MaxValue, byte.MaxValue,
-                "a string", true
+                "a string", true, MondValue.Undefined
             };
 
             for (var i = 0; i < types.Count; i++)
@@ -186,6 +188,7 @@ namespace Mond.Tests.Binding
             "));
         }
 
+        [MondFunction]
         public static MondValue ArgumentTypes(
             double  a,  float   b,
             int     c,  uint    d,
@@ -211,68 +214,87 @@ namespace Mond.Tests.Binding
 
         #region Return Types
 
+        [MondFunction]
         public static double ReturnDouble()
         {
             return double.MaxValue;
         }
 
+        [MondFunction]
         public static float ReturnFloat()
         {
             return float.MaxValue;
         }
 
+        [MondFunction]
         public static int ReturnInt()
         {
             return int.MaxValue;
         }
 
+        [MondFunction]
         public static uint ReturnUInt()
         {
             return uint.MaxValue;
         }
 
+        [MondFunction]
         public static short ReturnShort()
         {
             return short.MaxValue;
         }
 
+        [MondFunction]
         public static ushort ReturnUShort()
         {
             return ushort.MaxValue;
         }
 
+        [MondFunction]
         public static sbyte ReturnSByte()
         {
             return sbyte.MaxValue;
         }
 
+        [MondFunction]
         public static byte ReturnByte()
         {
             return byte.MaxValue;
         }
 
+        [MondFunction]
         public static string ReturnString()
         {
             return "a string";
         }
 
+        [MondFunction]
         public static bool ReturnBool()
         {
             return true;
         }
 
+        [MondFunction]
+        public static void ReturnVoid()
+        {
+
+        }
+
         #endregion
 
+        [MondFunction]
         public static void Add(MondValue a, MondState state, MondValue b)
         {
             state["result"] = a + b;
         }
 
+        [MondFunction]
         public static string Concat(string first, params MondValue[] values)
         {
             return first + string.Concat(values.Select(v => (string)v));
         }
 
+        [MondFunction]
         public static string Greet(ClassTests.Person person)
         {
             return person.GenerateGreeting();

@@ -64,7 +64,7 @@ namespace Mond.Tests.Binding
         [Test]
         public void Duplicates()
         {
-            Assert.Throws<MondBindingException>(() => MondModuleBinder.Bind<TestDuplicate>());
+            Assert.DoesNotThrow(() => MondModuleBinder.Bind<TestDuplicate>());
         }
 
         [MondModule]

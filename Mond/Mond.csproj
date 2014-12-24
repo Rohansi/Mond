@@ -20,7 +20,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
@@ -46,6 +46,7 @@
   <ItemGroup>
     <Compile Include="Binding\BindingError.cs" />
     <Compile Include="Binding\BindingUtil.cs" />
+    <Compile Include="Binding\MethodTable.cs" />
     <Compile Include="Binding\MondBindingException.cs" />
     <Compile Include="Binding\MondClassAttribute.cs" />
     <Compile Include="Binding\MondClassBinder.cs" />
