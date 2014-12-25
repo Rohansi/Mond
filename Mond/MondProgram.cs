@@ -13,7 +13,7 @@ namespace Mond
     public sealed class MondProgram
     {
         private const uint MagicId = 0xFA57C0DE;
-        private const byte FormatVersion = 1;
+        private const byte FormatVersion = 2;
 
         internal readonly byte[] Bytecode;
         internal readonly List<MondValue> Numbers;
@@ -81,6 +81,7 @@ namespace Mond
                         writer.Write(line.Address);
                         writer.Write(line.FileName);
                         writer.Write(line.LineNumber);
+                        writer.Write(line.ColumnNumber);
                     }
                 }
 
@@ -121,11 +122,11 @@ namespace Mond
             using (var reader = new BinaryReader(stream, Encoding.UTF8, true))
             {
                 if (reader.ReadUInt32() != MagicId)
-                    throw new NotSupportedException("Input is not valid.");
+                    throw new NotSupportedException("Stream data is not valid Mond bytecode.");
 
                 byte version;
                 if ((version = reader.ReadByte()) != FormatVersion)
-                    throw new NotSupportedException(string.Format("Wrong version. Expected 0x{0:X2}, got 0x{1:X2}.", FormatVersion, version));
+                    throw new NotSupportedException(string.Format("Wrong bytecode version. Expected 0x{0:X2} or lower, got 0x{1:X2}.", FormatVersion, version));
 
                 var hasDebugInfo = reader.ReadBoolean();
 
@@ -159,14 +160,20 @@ namespace Mond
                     }
 
                     var lineCount = reader.ReadInt32();
-                    var lines = new List<DebugInfo.Line>(lineCount);
+                    var lines = new List<DebugInfo.Position>(lineCount);
 
                     for (var i = 0; i < lineCount; ++i)
                     {
                         var address = reader.ReadInt32();
                         var fileName = reader.ReadInt32();
                         var lineNumber = reader.ReadInt32();
-                        var line = new DebugInfo.Line(address, fileName, lineNumber);
+                        var columnNumber = -1;
+
+                        //For backwards compatibility with version 1.
+                        if (version >= FormatVersion)
+                            columnNumber = reader.ReadInt32();
+
+                        var line = new DebugInfo.Position(address, fileName, lineNumber, columnNumber);
                         lines.Add(line);
                     }
 

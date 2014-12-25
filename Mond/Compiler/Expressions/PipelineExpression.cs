@@ -8,7 +8,7 @@ namespace Mond.Compiler.Expressions
         public Expression Right { get; private set; }
 
         public PipelineExpression(Token token, Expression left, Expression right)
-            : base(token.FileName, token.Line)
+            : base(token.FileName, token.Line, token.Column)
         {
             Left = left;
             Right = right;
@@ -18,9 +18,9 @@ namespace Mond.Compiler.Expressions
         {
             var callExpression = Right as CallExpression;
             if (callExpression == null)
-                throw new MondCompilerException(FileName, Line, CompilerError.PipelineNeedsCall);
+                throw new MondCompilerException(FileName, Line, Column, CompilerError.PipelineNeedsCall);
 
-            var token = new Token(callExpression.FileName, callExpression.Line, TokenType.LeftParen, null);
+            var token = new Token(callExpression.FileName, callExpression.Line, callExpression.Column, TokenType.LeftParen, null);
             var transformedArgs = Enumerable.Repeat(Left, 1).Concat(callExpression.Arguments).ToList();
             var transformedCall = new CallExpression(token, callExpression.Method, transformedArgs);
 

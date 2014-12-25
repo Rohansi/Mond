@@ -26,7 +26,7 @@ namespace Mond.Compiler.Parselets.Statements
                                parser.Match(TokenType.RightSquare) ||
                                parser.Match(TokenType.Pipeline);
 
-            var value = missingValue ? new UndefinedExpression(token) : parser.ParseExpession();
+            var value = missingValue ? new UndefinedExpression(token) : parser.ParseExpression();
             return new YieldExpression(token, value);
         }
     }

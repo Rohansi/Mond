@@ -899,18 +899,18 @@ namespace Mond.VirtualMachine
             if (program.DebugInfo != null)
             {
                 var func = program.DebugInfo.FindFunction(address);
-                var line = program.DebugInfo.FindLine(address);
+                var position = program.DebugInfo.FindPosition(address);
 
-                if (func.HasValue && line.HasValue)
+                if (func.HasValue && position.HasValue)
                 {
                     var prefix = "";
                     var funcName = program.Strings[func.Value.Name];
-                    var fileName = program.Strings[line.Value.FileName];
+                    var fileName = program.Strings[position.Value.FileName];
 
                     if (!string.IsNullOrEmpty(funcName))
                         prefix = string.Format("at {0} ", funcName);
 
-                    return string.Format("{0}in {1}: line {2}", prefix, fileName, line.Value.LineNumber);
+                    return string.Format("{0}in {1}: line {2}, column: {3}", prefix, fileName, position.Value.LineNumber, position.Value.ColumnNumber);
                 }
             }
 

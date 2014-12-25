@@ -31,13 +31,13 @@ namespace Mond.Compiler.Parselets
                 else
                 {
                     var errorToken = parser.Take();
-                    throw new MondCompilerException(errorToken.FileName, errorToken.Line, CompilerError.ExpectedButFound2, TokenType.Identifier, TokenType.String, errorToken);
+                    throw new MondCompilerException(errorToken.FileName, errorToken.Line, errorToken.Column, CompilerError.ExpectedButFound2, TokenType.Identifier, TokenType.String, errorToken);
                 }
 
                 if (value == null)
                 {
                     parser.Take(TokenType.Colon);
-                    value = parser.ParseExpession();
+                    value = parser.ParseExpression();
                 }
 
                 values.Add(new KeyValuePair<string, Expression>(key, value));

@@ -10,7 +10,7 @@ namespace Mond.Compiler.Expressions
         public Expression Right { get; private set; }
 
         public BinaryOperatorExpression(Token token, Expression left, Expression right)
-            : base(token.FileName, token.Line)
+            : base(token.FileName, token.Line, token.Column)
         {
             Operation = token.Type;
             Left = left;
@@ -28,7 +28,7 @@ namespace Mond.Compiler.Expressions
             {
                 var storable = Left as IStorableExpression;
                 if (storable == null)
-                    throw new MondCompilerException(FileName, Line, CompilerError.LeftSideMustBeStorable);
+                    throw new MondCompilerException(FileName, Line, Column, CompilerError.LeftSideMustBeStorable);
 
                 var needResult = !(Parent is IBlockExpression);
 
@@ -38,7 +38,7 @@ namespace Mond.Compiler.Expressions
                 {
                     stack += Left.Compile(context);
 
-                    context.Line(FileName, Line); // debug info
+                    context.Position(FileName, Line, Column); // debug info
                     stack += context.BinaryOperation(assignOperation);
                 }
 
@@ -80,7 +80,7 @@ namespace Mond.Compiler.Expressions
             stack += Right.Compile(context);
             stack += Left.Compile(context);
 
-            context.Line(FileName, Line); // debug info
+            context.Position(FileName, Line, Column); // debug info
             stack += context.BinaryOperation(Operation);
 
             CheckStack(stack, 1);
@@ -101,7 +101,7 @@ namespace Mond.Compiler.Expressions
                 if (leftNum != null && rightNum != null)
                 {
                     var result = simplifyOp(leftNum.Value, rightNum.Value);
-                    var token = new Token(FileName, Line, TokenType.Number, null);
+                    var token = new Token(FileName, Line, Column, TokenType.Number, null);
                     return new NumberExpression(token, result);
                 }
             }
@@ -114,7 +114,7 @@ namespace Mond.Compiler.Expressions
                 if (leftStr != null && rightStr != null)
                 {
                     var result = leftStr.Value + rightStr.Value;
-                    var token = new Token(FileName, Line, TokenType.String, null);
+                    var token = new Token(FileName, Line, Column, TokenType.String, null);
                     return new StringExpression(token, result);
                 }
             }

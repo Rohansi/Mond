@@ -3,7 +3,7 @@
     class EmptyExpression : Expression
     {
         public EmptyExpression(Token token)
-            : base(token.FileName, token.Line)
+            : base(token.FileName, token.Line, token.Column)
         {
             
         }

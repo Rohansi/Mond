@@ -3,18 +3,18 @@
     class ContinueExpression : Expression, IStatementExpression
     {
         public ContinueExpression(Token token)
-            : base(token.FileName, token.Line)
+            : base(token.FileName, token.Line, token.Column)
         {
             
         }
 
         public override int Compile(FunctionContext context)
         {
-            context.Line(FileName, Line);
+            context.Position(FileName, Line, Column);
 
             var target = context.ContinueLabel();
             if (target == null)
-                throw new MondCompilerException(FileName, Line, CompilerError.UnresolvedJump);
+                throw new MondCompilerException(FileName, Line, Column, CompilerError.UnresolvedJump);
 
             return context.Jump(target);
         }

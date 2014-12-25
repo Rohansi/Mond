@@ -22,7 +22,7 @@ namespace Mond.Compiler.Expressions.Statements
         public Branch Else { get; private set; }
 
         public IfExpression(Token token, List<Branch> branches, Branch elseBranch)
-            : base(token.FileName, token.Line)
+            : base(token.FileName, token.Line, token.Column)
         {
             Branches = branches.AsReadOnly();
             Else = elseBranch;
@@ -30,7 +30,7 @@ namespace Mond.Compiler.Expressions.Statements
 
         public override int Compile(FunctionContext context)
         {
-            context.Line(FileName, Line);
+            context.Position(FileName, Line, Column);
 
             var stack = 0;
             var branchLabels = new List<LabelOperand>(Branches.Count);

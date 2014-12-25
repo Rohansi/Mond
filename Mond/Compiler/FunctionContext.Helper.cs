@@ -13,12 +13,12 @@ namespace Mond.Compiler
             Emit(new Instruction(InstructionType.Function, String(name)));
         }
 
-        public void Line(string fileName, int line)
+        public void Position(string fileName, int line, int column)
         {
             if (!Compiler.Options.GenerateDebugInfo)
                 return;
 
-            Emit(new Instruction(InstructionType.Line, String(fileName ?? "<unknown>"), new ImmediateOperand(line)));
+            Emit(new Instruction(InstructionType.Position, String(fileName ?? "<unknown>"), new ImmediateOperand(line), new ImmediateOperand(column)));
         }
 
         public int Bind(LabelOperand label)

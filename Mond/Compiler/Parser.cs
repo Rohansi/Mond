@@ -20,7 +20,7 @@ namespace Mond.Compiler
         /// <summary>
         /// Parse an expression into an expression tree. You can think of expressions as sub-statements.
         /// </summary>
-        public Expression ParseExpession(int precendence = 0)
+        public Expression ParseExpression(int precendence = 0)
         {
             var token = Take();
 
@@ -28,7 +28,7 @@ namespace Mond.Compiler
             _prefixParselets.TryGetValue(token.Type, out prefixParselet);
 
             if (prefixParselet == null)
-                throw new MondCompilerException(token.FileName, token.Line, CompilerError.ExpectedButFound, "Expression", token);
+                throw new MondCompilerException(token.FileName, token.Line, token.Column, CompilerError.ExpectedButFound, "Expression", token);
 
             var left = prefixParselet.Parse(this, token);
 
@@ -62,7 +62,7 @@ namespace Mond.Compiler
 
             if (statementParselet == null)
             {
-                result = ParseExpession();
+                result = ParseExpression();
 
                 if (takeTrailingSemicolon)
                     Take(TokenType.Semicolon);
@@ -149,7 +149,7 @@ namespace Mond.Compiler
             var token = Take();
 
             if (token.Type != type)
-                throw new MondCompilerException(token.FileName, token.Line, CompilerError.ExpectedButFound, type, token);
+                throw new MondCompilerException(token.FileName, token.Line, token.Column, CompilerError.ExpectedButFound, type, token);
 
             return token;
         }

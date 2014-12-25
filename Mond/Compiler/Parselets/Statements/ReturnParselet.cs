@@ -11,7 +11,7 @@ namespace Mond.Compiler.Parselets.Statements
 
             Expression value = null;
             if (!parser.Match(TokenType.Semicolon))
-                value = parser.ParseExpession();
+                value = parser.ParseExpression();
 
             return new ReturnExpression(token, value);
         }

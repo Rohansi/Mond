@@ -17,7 +17,7 @@ namespace Mond.Compiler.Parselets
 
         public Expression Parse(Parser parser, Expression left, Token token)
         {
-            var right = parser.ParseExpession(Precedence - (_isRight ? 1 : 0));
+            var right = parser.ParseExpression(Precedence - (_isRight ? 1 : 0));
             return new BinaryOperatorExpression(token, left, right);
         }
     }

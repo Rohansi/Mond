@@ -6,7 +6,7 @@
         public string Name { get; private set; }
 
         public FieldExpression(Token token, Expression left)
-            : base(token.FileName, token.Line)
+            : base(token.FileName, token.Line, token.Column)
         {
             Left = left;
             Name = token.Contents;
@@ -18,7 +18,7 @@
 
             stack += Left.Compile(context);
 
-            context.Line(FileName, Line); // debug info
+            context.Position(FileName, Line, Column); // debug info
             stack += context.LoadField(context.String(Name));
 
             return stack;
@@ -30,7 +30,7 @@
 
             stack += Left.Compile(context);
 
-            context.Line(FileName, Line); // debug info
+            context.Position(FileName, Line, Column); // debug info
             stack += context.StoreField(context.String(Name));
 
             return stack;

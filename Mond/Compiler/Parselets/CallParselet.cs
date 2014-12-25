@@ -15,7 +15,7 @@ namespace Mond.Compiler.Parselets
             {
                 do
                 {
-                    args.Add(parser.ParseExpession());
+                    args.Add(parser.ParseExpression());
                 } while (parser.MatchAndTake(TokenType.Comma));
 
                 parser.Take(TokenType.RightParen);

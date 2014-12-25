@@ -8,7 +8,7 @@ namespace Mond.Compiler.Expressions
         public Expression Left { get; private set; }
 
         public PostfixOperatorExpression(Token token, Expression left)
-            : base(token.FileName, token.Line)
+            : base(token.FileName, token.Line, token.Column)
         {
             Operation = token.Type;
             Left = left;
@@ -18,7 +18,7 @@ namespace Mond.Compiler.Expressions
         {
             var storable = Left as IStorableExpression;
             if (storable == null)
-                throw new MondCompilerException(FileName, Line, CompilerError.LeftSideMustBeStorable);
+                throw new MondCompilerException(FileName, Line, Column, CompilerError.LeftSideMustBeStorable);
 
             var stack = 0;
             var needResult = !(Parent is IBlockExpression);
@@ -36,7 +36,7 @@ namespace Mond.Compiler.Expressions
                 stack += Left.Compile(context);
             }
 
-            context.Line(FileName, Line); // debug info
+            context.Position(FileName, Line, Column); // debug info
 
             switch (Operation)
             {

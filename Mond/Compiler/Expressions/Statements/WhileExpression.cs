@@ -8,7 +8,7 @@ namespace Mond.Compiler.Expressions.Statements
         public BlockExpression Block { get; private set; }
 
         public WhileExpression(Token token, Expression condition, BlockExpression block)
-            : base(token.FileName, token.Line)
+            : base(token.FileName, token.Line, token.Column)
         {
             Condition = condition;
             Block = block;
@@ -16,7 +16,7 @@ namespace Mond.Compiler.Expressions.Statements
 
         public override int Compile(FunctionContext context)
         {
-            context.Line(FileName, Line);
+            context.Position(FileName, Line, Column);
 
             var stack = 0;
             var start = context.MakeLabel("whileStart");

@@ -16,7 +16,7 @@ namespace Mond.Compiler.Expressions.Statements
             var enumerable = context.DefineInternal("enumerable");
 
             var stack = 0;
-            var bodyToken = new Token(FileName, Line, TokenType.Fun, null);
+            var bodyToken = new Token(FileName, Line, Column, TokenType.Fun, null);
             var body = new SequenceBodyExpression(bodyToken, null, Block, "moveNext", state, enumerable);
             var seqContext = new SequenceContext(context.Compiler, "moveNext", body, context);
 

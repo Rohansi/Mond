@@ -7,7 +7,7 @@
         public Expression IfFalse { get; private set; }
 
         public TernaryExpression(Token token, Expression condition, Expression ifTrue, Expression ifFalse)
-            : base(token.FileName, token.Line)
+            : base(token.FileName, token.Line, token.Column)
         {
             Condition = condition;
             IfTrue = ifTrue;
@@ -16,7 +16,7 @@
 
         public override int Compile(FunctionContext context)
         {
-            context.Line(FileName, Line);
+            context.Position(FileName, Line, Column);
 
             var stack = 0;
             var falseLabel = context.MakeLabel("ternaryFalse");

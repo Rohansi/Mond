@@ -97,15 +97,19 @@
     {
         public readonly string FileName;
         public readonly int Line;
+        public readonly int Column;
         public readonly TokenType Type;
         public readonly string Contents;
+        public readonly object Tag;
 
-        public Token(string fileName, int line, TokenType type, string contents)
+        public Token(string fileName, int line, int column, TokenType type, string contents, object tag = null)
         {
             FileName = fileName;
             Line = line;
+            Column = column;
             Type = type;
             Contents = contents;
+            Tag = tag;
         }
 
         public override string ToString()

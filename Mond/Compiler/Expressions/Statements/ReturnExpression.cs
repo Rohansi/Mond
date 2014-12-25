@@ -5,17 +5,17 @@
         public Expression Value { get; private set; }
 
         public ReturnExpression(Token token, Expression value)
-            : base(token.FileName, token.Line)
+            : base(token.FileName, token.Line, token.Column)
         {
             Value = value;
         }
 
         public override int Compile(FunctionContext context)
         {
-            context.Line(FileName, Line);
+            context.Position(FileName, Line, Column);
             
             if (context is SequenceBodyContext)
-                throw new MondCompilerException(FileName, Line, CompilerError.ReturnInSeq);
+                throw new MondCompilerException(FileName, Line, Column, CompilerError.ReturnInSeq);
 
             var stack = 0;
 

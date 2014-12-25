@@ -10,7 +10,7 @@ namespace Mond.Compiler.Expressions.Statements
         public BlockExpression Block { get; private set; }
 
         public ForeachExpression(Token token, string identifier, Expression expression, BlockExpression block)
-            : base(token.FileName, token.Line)
+            : base(token.FileName, token.Line, token.Column)
         {
             Identifier = identifier;
             Expression = expression;
@@ -19,7 +19,7 @@ namespace Mond.Compiler.Expressions.Statements
 
         public override int Compile(FunctionContext context)
         {
-            context.Line(FileName, Line);
+            context.Position(FileName, Line, Column);
 
             var stack = 0;
             var start = context.MakeLabel("foreachStart");
@@ -46,7 +46,7 @@ namespace Mond.Compiler.Expressions.Statements
 
             // create the loop variable outside of the loop context (but inside of its scope!)
             if (!context.DefineIdentifier(Identifier))
-                throw new MondCompilerException(FileName, Line, CompilerError.IdentifierAlreadyDefined, Identifier);
+                throw new MondCompilerException(FileName, Line, Column, CompilerError.IdentifierAlreadyDefined, Identifier);
 
             var identifier = context.Identifier(Identifier);
 

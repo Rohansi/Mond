@@ -6,7 +6,7 @@
         public Expression Index { get; private set; }
 
         public IndexerExpression(Token token, Expression left, Expression index)
-            : base(token.FileName, token.Line)
+            : base(token.FileName, token.Line, token.Column)
         {
             Left = left;
             Index = index;
@@ -19,7 +19,7 @@
             stack += Left.Compile(context);
             stack += Index.Compile(context);
 
-            context.Line(FileName, Line); // debug info
+            context.Position(FileName, Line, Column); // debug info
             stack += context.LoadArray();
 
             CheckStack(stack, 1);
@@ -33,7 +33,7 @@
             stack += Left.Compile(context);
             stack += Index.Compile(context);
 
-            context.Line(FileName, Line); // debug info
+            context.Position(FileName, Line, Column); // debug info
             stack += context.StoreArray();
 
             return stack;

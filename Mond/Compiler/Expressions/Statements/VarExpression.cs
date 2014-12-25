@@ -22,7 +22,7 @@ namespace Mond.Compiler.Expressions.Statements
         public bool IsReadOnly { get; private set; }
 
         public VarExpression(Token token, List<Declaration> declarations, bool isReadOnly = false)
-            : base(token.FileName, token.Line)
+            : base(token.FileName, token.Line, token.Column)
         {
             Declarations = declarations.AsReadOnly();
             IsReadOnly = isReadOnly;
@@ -30,7 +30,7 @@ namespace Mond.Compiler.Expressions.Statements
 
         public override int Compile(FunctionContext context)
         {
-            context.Line(FileName, Line);
+            context.Position(FileName, Line, Column);
 
             var stack = 0;
             var shouldBeGlobal = context.ArgIndex == 0 && context.Compiler.Options.MakeRootDeclarationsGlobal;
@@ -42,7 +42,7 @@ namespace Mond.Compiler.Expressions.Statements
                 if (!shouldBeGlobal)
                 {
                     if (!context.DefineIdentifier(name, IsReadOnly))
-                        throw new MondCompilerException(FileName, Line, CompilerError.IdentifierAlreadyDefined, name);
+                        throw new MondCompilerException(FileName, Line, Column, CompilerError.IdentifierAlreadyDefined, name);
                 }
 
                 if (declaration.Initializer == null)

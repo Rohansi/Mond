@@ -6,7 +6,7 @@ namespace Mond.Compiler.Parselets
     {
         public Expression Parse(Parser parser, Token token)
         {
-            var right = parser.ParseExpession();
+            var right = parser.ParseExpression();
             return new UnpackExpression(token, right);
         }
     }

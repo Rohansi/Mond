@@ -5,14 +5,14 @@
         public bool Value { get; private set; }
 
         public BoolExpression(Token token, bool value)
-            : base(token.FileName, token.Line)
+            : base(token.FileName, token.Line, token.Column)
         {
             Value = value;
         }
 
         public override int Compile(FunctionContext context)
         {
-            context.Line(FileName, Line);
+            context.Position(FileName, Line, Column);
 
             if (Value)
                 context.LoadTrue();

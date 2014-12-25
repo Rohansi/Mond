@@ -8,7 +8,7 @@ namespace Mond.Compiler.Parselets
 
         public Expression Parse(Parser parser, Expression left, Token token)
         {
-            var right = parser.ParseExpession(Precedence);
+            var right = parser.ParseExpression(Precedence);
             return new PipelineExpression(token, left, right);
         }
     }

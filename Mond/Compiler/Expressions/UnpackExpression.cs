@@ -5,7 +5,7 @@
         public Expression Right { get; private set; }
 
         public UnpackExpression(Token token, Expression right)
-            : base(token.FileName, token.Line)
+            : base(token.FileName, token.Line, token.Column)
         {
             Right = right;
         }
@@ -14,7 +14,7 @@
         {
             var parentCall = Parent as CallExpression;
             if (parentCall == null || parentCall.Method == this)
-                throw new MondCompilerException(FileName, Line, CompilerError.UnpackMustBeInCall);
+                throw new MondCompilerException(FileName, Line, Column, CompilerError.UnpackMustBeInCall);
 
             return Right.Compile(context);
         }

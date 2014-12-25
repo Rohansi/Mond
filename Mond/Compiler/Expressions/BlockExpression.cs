@@ -9,7 +9,7 @@ namespace Mond.Compiler.Expressions
         public ReadOnlyCollection<Expression> Statements { get; private set; }
 
         public BlockExpression(Token token, IList<Expression> statements)
-            : base(token.FileName, token.Line)
+            : base(token.FileName, token.Line, token.Column)
         {
             var exprWithFile = statements.FirstOrDefault(e => e.FileName != null);
             if (exprWithFile != null)
@@ -19,7 +19,7 @@ namespace Mond.Compiler.Expressions
         }
 
         public BlockExpression(IList<Expression> statements)
-            : this(new Token(null, -1, TokenType.Eof, null), statements)
+            : this(new Token(null, -1, -1, TokenType.Eof, null), statements)
         {
             
         }

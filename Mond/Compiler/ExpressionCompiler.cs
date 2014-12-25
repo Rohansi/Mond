@@ -40,7 +40,7 @@ namespace Mond.Compiler
             RegisterFunction(context);
 
             context.Function(context.FullName);
-            context.Line(expression.FileName, 1);
+            context.Position(expression.FileName, 1, 1);
 
             context.Enter();
             expression.Compile(context);
@@ -110,22 +110,26 @@ namespace Mond.Compiler
 
             var prevFileName = -1;
             var prevLineNumber = -1;
+            var prevColumnNumber = -1;
 
             var lines = AllInstructions()
-                 .Where(i => i.Type == InstructionType.Line)
+                 .Where(i => i.Type == InstructionType.Position)
                  .Select(i =>
                  {
                      var fileName = ((ConstantOperand<string>)i.Operands[0]).Id;
                      var line = ((ImmediateOperand)i.Operands[1]).Value;
-                     return new DebugInfo.Line(i.Offset, fileName, line);
+                     var column = ((ImmediateOperand)i.Operands[2]).Value;
+
+                     return new DebugInfo.Position(i.Offset, fileName, line, column);
                  })
                  .Where(l =>
                  {
-                     if (l.FileName == prevFileName && l.LineNumber == prevLineNumber)
+                     if (l.FileName == prevFileName && l.LineNumber == prevLineNumber && l.ColumnNumber == prevColumnNumber)
                          return false;
 
                      prevFileName = l.FileName;
                      prevLineNumber = l.LineNumber;
+                     prevColumnNumber = l.ColumnNumber;
 
                      return true;
                  })

@@ -8,7 +8,7 @@ namespace Mond.Compiler
     enum InstructionType : byte
     {
         Function,                           // debug info
-        Line,                               // debug info
+        Position,                           // debug info
         Label,                              // label binding
 
         Dup, Drop, Swap,                    // duplicate, drop, swap
@@ -82,7 +82,7 @@ namespace Mond.Compiler
             {
                 if (Type == InstructionType.Label ||
                     Type == InstructionType.Function ||
-                    Type == InstructionType.Line)
+                    Type == InstructionType.Position)
                 {
                     return 0;
                 }
@@ -93,7 +93,7 @@ namespace Mond.Compiler
 
         public void Print()
         {
-            if (Type == InstructionType.Function || Type == InstructionType.Line)
+            if (Type == InstructionType.Function || Type == InstructionType.Position)
                 return;
 
             if (Type == InstructionType.Label)
@@ -115,7 +115,7 @@ namespace Mond.Compiler
         {
             if (Type == InstructionType.Label ||
                 Type == InstructionType.Function ||
-                Type == InstructionType.Line)
+                Type == InstructionType.Position)
             {
                 return;
             }

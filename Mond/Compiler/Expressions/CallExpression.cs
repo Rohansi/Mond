@@ -10,7 +10,7 @@ namespace Mond.Compiler.Expressions
         public ReadOnlyCollection<Expression> Arguments { get; private set; }
 
         public CallExpression(Token token, Expression method, List<Expression> arguments)
-            : base(token.FileName, token.Line)
+            : base(token.FileName, token.Line, token.Column)
         {
             Method = method;
             Arguments = arguments.AsReadOnly();
@@ -22,7 +22,7 @@ namespace Mond.Compiler.Expressions
 
             stack += Method.Compile(context);
 
-            context.Line(FileName, Line); // debug info
+            context.Position(FileName, Line, Column); // debug info
             stack += context.Call(Arguments.Count, GetUnpackIndices());
 
             CheckStack(stack, 1);
@@ -31,11 +31,11 @@ namespace Mond.Compiler.Expressions
 
         public int CompileTailCall(FunctionContext context)
         {
-            context.Line(FileName, Line);
+            context.Position(FileName, Line, Column);
 
             var stack = Arguments.Sum(argument => argument.Compile(context));
 
-            context.Line(FileName, Line); // debug info
+            context.Position(FileName, Line, Column); // debug info
             stack += context.TailCall(Arguments.Count, context.Label, GetUnpackIndices());
 
             CheckStack(stack, 0);
@@ -52,7 +52,7 @@ namespace Mond.Compiler.Expressions
                 .ToList();
 
             if (unpackIndices.Count < byte.MinValue || unpackIndices.Count > byte.MaxValue)
-                throw new MondCompilerException(FileName, Line, CompilerError.TooManyUnpacks);
+                throw new MondCompilerException(FileName, Line, Column, CompilerError.TooManyUnpacks);
 
             return unpackIndices;
         }
