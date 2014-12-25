@@ -910,7 +910,7 @@ namespace Mond.VirtualMachine
                     if (!string.IsNullOrEmpty(funcName))
                         prefix = string.Format("at {0} ", funcName);
 
-                    return string.Format("{0}in {1}: line {2}, column: {3}", prefix, fileName, position.Value.LineNumber, position.Value.ColumnNumber);
+                    return string.Format("{0}in {1}: line {2}:{3}", prefix, fileName, position.Value.LineNumber, position.Value.ColumnNumber);
                 }
             }
 

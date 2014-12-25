@@ -65,7 +65,7 @@ namespace Mond.VirtualMachine
 
         public Position? FindPosition(int address)
         {
-            var idx = Search(_lines, new Position(address, 0, 0, 0), LineAddressComparer);
+            var idx = Search(_lines, new Position(address, 0, 0, 0), PositionAddressComparer);
             Position? result = null;
 
             if (idx >= 0 && idx < _lines.Count)
@@ -87,7 +87,7 @@ namespace Mond.VirtualMachine
         private static readonly GenericComparer<Function> FunctionAddressComparer =
             new GenericComparer<Function>((x, y) => x.Address - y.Address);
 
-        private static readonly GenericComparer<Position> LineAddressComparer =
+        private static readonly GenericComparer<Position> PositionAddressComparer =
             new GenericComparer<Position>((x, y) => x.Address - y.Address);
     }
 }

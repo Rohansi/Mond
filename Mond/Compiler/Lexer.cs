@@ -199,6 +199,8 @@ namespace Mond.Compiler
                             start = _positions.Peek();
                             throw new MondCompilerException(_fileName, start.Line, start.Column, CompilerError.InvalidEscapeSequence, ch);
                     }
+
+                    _positions.Pop();
                 }
 
                 var stringContents = stringContentsBuilder.ToString();
@@ -320,6 +322,7 @@ namespace Mond.Compiler
             if (TakeIfNext("/*"))
             {
                 var depth = 1;
+                MarkPosition();
 
                 while (!AtEof && depth > 0)
                 {
@@ -345,6 +348,8 @@ namespace Mond.Compiler
                     var lastPosition = _positions.Peek();
                     throw new MondCompilerException(_fileName, lastPosition.Line, lastPosition.Column, CompilerError.UnexpectedEofComment);
                 }
+
+                _positions.Pop();
 
                 return true;
             }
