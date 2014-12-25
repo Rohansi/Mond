@@ -100,7 +100,7 @@ namespace Mond.Binding
                     typeCondition = method.ValueParameters
                         .Take(checkedArguments)
                         .Select((p, i) => TypeCheck(argumentIndex(i), p))
-                        .Aggregate(Expression.And);
+                        .Aggregate(Expression.AndAlso);
                 }
 
                 var arguments = new List<Expression>();
@@ -159,12 +159,12 @@ namespace Mond.Binding
                 var isObject = Expression.Equal(argumentType, Expression.Constant(MondValueType.Object));
                 var userData = Expression.PropertyOrField(argument, "UserData");
                 var isCorrectType = Expression.TypeIs(userData, parameter.UserDataType);
-                return Expression.And(isObject, isCorrectType);
+                return Expression.AndAlso(isObject, isCorrectType);
             }
 
             return types
                 .Select(t => Expression.Equal(argumentType, Expression.Constant(t)))
-                .Aggregate(Expression.Or);
+                .Aggregate(Expression.OrElse);
         }
 
         private static Expression ThrowParameterTypeError(string errorPrefix, MethodTable methodTable)
