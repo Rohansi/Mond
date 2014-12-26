@@ -8,9 +8,9 @@ namespace Mond.Compiler.Parselets
 
         public Expression Parse(Parser parser, Expression left, Token token)
         {
-            var trueExpr = parser.ParseExpession();
+            var trueExpr = parser.ParseExpression();
             parser.Take(TokenType.Colon);
-            var falseExpr = parser.ParseExpession();
+            var falseExpr = parser.ParseExpression();
 
             return new TernaryExpression(token, left, trueExpr, falseExpr);
         }

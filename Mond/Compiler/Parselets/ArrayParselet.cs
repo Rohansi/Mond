@@ -12,7 +12,7 @@ namespace Mond.Compiler.Parselets
 
             if (!parser.MatchAndTake(TokenType.RightSquare))
             {
-                var firstExpression = parser.ParseExpession();
+                var firstExpression = parser.ParseExpression();
 
                 if (parser.MatchAndTake(TokenType.Colon))
                 {
@@ -34,7 +34,7 @@ namespace Mond.Compiler.Parselets
                     if (parser.Match(TokenType.RightSquare))
                         break;
 
-                    var value = parser.ParseExpession();
+                    var value = parser.ParseExpression();
                     values.Add(value);
                 }
 
@@ -61,13 +61,13 @@ namespace Mond.Compiler.Parselets
 
                     parser.Take(TokenType.In);
 
-                    var list = parser.ParseExpession();
+                    var list = parser.ParseExpression();
 
                     curr = new ListPart(token, identifier, list);
                 }
                 else
                 {
-                    var filter = parser.ParseExpession();
+                    var filter = parser.ParseExpression();
                     curr = new FilterPart(token, filter);
                 }
 

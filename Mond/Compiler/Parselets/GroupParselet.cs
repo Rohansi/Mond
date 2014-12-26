@@ -17,7 +17,7 @@ namespace Mond.Compiler.Parselets
                 return ParseLambdaExpression(parser, token);
             }
 
-            var expression = parser.ParseExpession();
+            var expression = parser.ParseExpression();
             parser.Take(TokenType.RightParen);
             return expression;
         }

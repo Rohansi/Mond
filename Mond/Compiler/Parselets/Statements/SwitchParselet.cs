@@ -12,7 +12,7 @@ namespace Mond.Compiler.Parselets.Statements
 
             parser.Take(TokenType.LeftParen);
 
-            var expression = parser.ParseExpession();
+            var expression = parser.ParseExpression();
 
             parser.Take(TokenType.RightParen);
             parser.Take(TokenType.LeftBrace);
@@ -26,7 +26,7 @@ namespace Mond.Compiler.Parselets.Statements
 
                 while (parser.MatchAndTake(TokenType.Case))
                 {
-                    var condition = parser.ParseExpession();
+                    var condition = parser.ParseExpression();
                     conditions.Add(condition);
 
                     parser.Take(TokenType.Colon);
@@ -50,7 +50,7 @@ namespace Mond.Compiler.Parselets.Statements
                 }
 
                 var errorToken = parser.Peek();
-                throw new MondCompilerException(errorToken.FileName, errorToken.Line, CompilerError.ExpectedButFound2, TokenType.Case, TokenType.Default, errorToken);
+                throw new MondCompilerException(errorToken.FileName, errorToken.Line, errorToken.Column, CompilerError.ExpectedButFound2, TokenType.Case, TokenType.Default, errorToken);
             }
 
             parser.Take(TokenType.RightBrace);

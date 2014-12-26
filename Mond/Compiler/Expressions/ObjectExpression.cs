@@ -9,14 +9,14 @@ namespace Mond.Compiler.Expressions
         public ReadOnlyCollection<KeyValuePair<string, Expression>> Values { get; private set; }
          
         public ObjectExpression(Token token, List<KeyValuePair<string, Expression>> values)
-            : base(token.FileName, token.Line)
+            : base(token.FileName, token.Line, token.Column)
         {
             Values = values.AsReadOnly();
         }
 
         public override int Compile(FunctionContext context)
         {
-            context.Line(FileName, Line);
+            context.Position(FileName, Line, Column);
 
             var stack = 0;
 

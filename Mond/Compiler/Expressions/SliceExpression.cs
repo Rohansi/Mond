@@ -8,7 +8,7 @@
         public Expression Step { get; private set; }
 
         public SliceExpression(Token token, Expression left, Expression start, Expression end, Expression step)
-            : base(token.FileName, token.Line)
+            : base(token.FileName, token.Line, token.Column)
         {
             Left = left;
             Start = start;
@@ -37,7 +37,7 @@
             else
                 stack += context.LoadUndefined();
 
-            context.Line(FileName, Line); // debug info
+            context.Position(FileName, Line, Column); // debug info
             stack += context.Slice();
 
             CheckStack(stack, 1);

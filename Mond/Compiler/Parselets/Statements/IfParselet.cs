@@ -24,7 +24,7 @@ namespace Mond.Compiler.Parselets.Statements
                 {
                     parser.Take(TokenType.LeftParen);
 
-                    condition = parser.ParseExpession();
+                    condition = parser.ParseExpression();
 
                     parser.Take(TokenType.RightParen);
                 }

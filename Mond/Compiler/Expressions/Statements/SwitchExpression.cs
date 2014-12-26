@@ -24,7 +24,7 @@ namespace Mond.Compiler.Expressions.Statements
         public BlockExpression DefaultBlock { get; private set; }
 
         public SwitchExpression(Token token, Expression expression, List<Branch> branches, BlockExpression defaultBlock)
-            : base(token.FileName, token.Line)
+            : base(token.FileName, token.Line, token.Column)
         {
             Expression = expression;
             Branches = branches.AsReadOnly();
@@ -33,7 +33,7 @@ namespace Mond.Compiler.Expressions.Statements
 
         public override int Compile(FunctionContext context)
         {
-            context.Line(FileName, Line);
+            context.Position(FileName, Line, Column);
 
             var stack = 0;
             var caseLabels = new List<LabelOperand>(Branches.Count);
@@ -199,10 +199,10 @@ namespace Mond.Compiler.Expressions.Statements
                 {
                     var constantExpression = condition as IConstantExpression;
                     if (constantExpression == null)
-                        throw new MondCompilerException(condition.FileName, condition.Line, CompilerError.ExpectedConstant);
+                        throw new MondCompilerException(condition.FileName, condition.Line, condition.Column, CompilerError.ExpectedConstant);
 
                     if (!branchConditions.Add(constantExpression.GetValue()))
-                        throw new MondCompilerException(condition.FileName, condition.Line, CompilerError.DuplicateCase);
+                        throw new MondCompilerException(condition.FileName, condition.Line, condition.Column, CompilerError.DuplicateCase);
 
                     yield return new JumpEntry(condition, labels[i]);
                 }

@@ -13,7 +13,7 @@ namespace Mond.Compiler.Parselets
 
         public Expression Parse(Parser parser, Token token)
         {
-            var right = parser.ParseExpession(_precedence);
+            var right = parser.ParseExpression(_precedence);
             return new PrefixOperatorExpression(token, right);
         }
     }

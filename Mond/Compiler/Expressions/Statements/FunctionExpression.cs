@@ -13,7 +13,7 @@ namespace Mond.Compiler.Expressions.Statements
         public string DebugName { get; private set; }
 
         public FunctionExpression(Token token, string name, List<string> arguments, string otherArgs, BlockExpression block, string debugName = null)
-            : base(token.FileName, token.Line)
+            : base(token.FileName, token.Line, token.Column)
         {
             Name = name;
             Arguments = arguments.AsReadOnly();
@@ -46,14 +46,14 @@ namespace Mond.Compiler.Expressions.Statements
             var shouldBeGlobal = context.ArgIndex == 0 && context.Compiler.Options.MakeRootDeclarationsGlobal;
 
             if (Name == null && isStatement)
-                throw new MondCompilerException(FileName, Line, CompilerError.FunctionNeverUsed);
+                throw new MondCompilerException(FileName, Line, Column, CompilerError.FunctionNeverUsed);
 
             IdentifierOperand identifier = null;
 
             if (Name != null && !shouldBeGlobal)
             {
                 if (!context.DefineIdentifier(Name, true))
-                    throw new MondCompilerException(FileName, Line, CompilerError.IdentifierAlreadyDefined, Name);
+                    throw new MondCompilerException(FileName, Line, Column, CompilerError.IdentifierAlreadyDefined, Name);
 
                 identifier = context.Identifier(Name);
             }
@@ -61,7 +61,7 @@ namespace Mond.Compiler.Expressions.Statements
             // compile body
             var functionContext = context.MakeFunction(Name ?? DebugName);
             functionContext.Function(functionContext.FullName);
-            functionContext.Line(FileName, Line);
+            functionContext.Position(FileName, Line, Column);
             functionContext.PushScope();
 
             for (var i = 0; i < Arguments.Count; i++)
@@ -69,11 +69,11 @@ namespace Mond.Compiler.Expressions.Statements
                 var name = Arguments[i];
 
                 if (!functionContext.DefineArgument(i, name))
-                    throw new MondCompilerException(FileName, Line, CompilerError.IdentifierAlreadyDefined, name);
+                    throw new MondCompilerException(FileName, Line, Column, CompilerError.IdentifierAlreadyDefined, name);
             }
 
             if (OtherArguments != null && !functionContext.DefineArgument(Arguments.Count, OtherArguments))
-                throw new MondCompilerException(FileName, Line, CompilerError.IdentifierAlreadyDefined, OtherArguments);
+                throw new MondCompilerException(FileName, Line, Column, CompilerError.IdentifierAlreadyDefined, OtherArguments);
 
             CompileBody(functionContext);
             functionContext.PopScope();

@@ -5,14 +5,14 @@
         public string Value { get; private set; }
 
         public StringExpression(Token token, string value)
-            : base(token.FileName, token.Line)
+            : base(token.FileName, token.Line, token.Column)
         {
             Value = value;
         }
 
         public override int Compile(FunctionContext context)
         {
-            context.Line(FileName, Line);
+            context.Position(FileName, Line, Column);
 
             return context.Load(context.String(Value));
         }

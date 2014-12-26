@@ -17,34 +17,36 @@ namespace Mond.VirtualMachine
             }
         }
 
-        public struct Line
+        public struct Position
         {
             public readonly int Address;
             public readonly int FileName;
             public readonly int LineNumber;
+            public readonly int ColumnNumber;
 
-            public Line(int address, int fileName, int lineNumber)
+            public Position(int address, int fileName, int lineNumber, int columnNumber)
             {
                 Address = address;
                 FileName = fileName;
                 LineNumber = lineNumber;
+                ColumnNumber = columnNumber;
             }
         }
 
         private readonly List<Function> _functions;
-        private readonly List<Line> _lines;
+        private readonly List<Position> _lines;
 
         internal ReadOnlyCollection<Function> Functions
         {
             get { return _functions.AsReadOnly(); }
         }
 
-        internal ReadOnlyCollection<Line> Lines
+        internal ReadOnlyCollection<Position> Lines
         {
             get { return _lines.AsReadOnly(); }
         }
 
-        public DebugInfo(List<Function> functions, List<Line> lines)
+        public DebugInfo(List<Function> functions, List<Position> lines)
         {
             _functions = functions;
             _lines = lines;
@@ -61,10 +63,10 @@ namespace Mond.VirtualMachine
             return result;
         }
 
-        public Line? FindLine(int address)
+        public Position? FindPosition(int address)
         {
-            var idx = Search(_lines, new Line(address, 0, 0), LineAddressComparer);
-            Line? result = null;
+            var idx = Search(_lines, new Position(address, 0, 0, 0), PositionAddressComparer);
+            Position? result = null;
 
             if (idx >= 0 && idx < _lines.Count)
                 result = _lines[idx];
@@ -85,7 +87,7 @@ namespace Mond.VirtualMachine
         private static readonly GenericComparer<Function> FunctionAddressComparer =
             new GenericComparer<Function>((x, y) => x.Address - y.Address);
 
-        private static readonly GenericComparer<Line> LineAddressComparer =
-            new GenericComparer<Line>((x, y) => x.Address - y.Address);
+        private static readonly GenericComparer<Position> PositionAddressComparer =
+            new GenericComparer<Position>((x, y) => x.Address - y.Address);
     }
 }

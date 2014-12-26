@@ -10,7 +10,7 @@ namespace Mond.Compiler.Expressions
         private readonly Token _token;
 
         public ListComprehensionExpression(Token token, BlockExpression body)
-            : base(token.FileName, token.Line)
+            : base(token.FileName, token.Line, token.Column)
         {
             Body = body;
             _token = token;

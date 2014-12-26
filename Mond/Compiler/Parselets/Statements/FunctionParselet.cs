@@ -51,7 +51,7 @@ namespace Mond.Compiler.Parselets.Statements
             {
                 body = new BlockExpression(new List<Expression>
                 {
-                    new ReturnExpression(token, parser.ParseExpession())
+                    new ReturnExpression(token, parser.ParseExpression())
                 });
             }
             else
@@ -81,7 +81,7 @@ namespace Mond.Compiler.Parselets.Statements
 
             return new BlockExpression(new List<Expression>
             {
-                new ReturnExpression(token, parser.ParseExpession())
+                new ReturnExpression(token, parser.ParseExpression())
             });
         }
     }

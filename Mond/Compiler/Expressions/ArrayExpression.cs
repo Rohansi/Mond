@@ -9,7 +9,7 @@ namespace Mond.Compiler.Expressions
         public ReadOnlyCollection<Expression> Values { get; private set; }
          
         public ArrayExpression(Token token, List<Expression> values)
-            : base(token.FileName, token.Line)
+            : base(token.FileName, token.Line, token.Column)
         {
             Values = values.AsReadOnly();
         }
@@ -18,7 +18,7 @@ namespace Mond.Compiler.Expressions
         {
             var stack = Values.Sum(value => value.Compile(context));
 
-            context.Line(FileName, Line); // debug info
+            context.Position(FileName, Line, Column); // debug info
             stack += context.NewArray(Values.Count);
 
             CheckStack(stack, 1);

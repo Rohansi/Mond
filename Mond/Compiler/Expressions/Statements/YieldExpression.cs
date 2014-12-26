@@ -5,18 +5,18 @@
         public Expression Value { get; private set; }
 
         public YieldExpression(Token token, Expression value)
-            : base(token.FileName, token.Line)
+            : base(token.FileName, token.Line, token.Column)
         {
             Value = value;
         }
 
         public override int Compile(FunctionContext context)
         {
-            context.Line(FileName, Line);
+            context.Position(FileName, Line, Column);
 
             var sequenceContext = context.Root as SequenceBodyContext;
             if (sequenceContext == null)
-                throw new MondCompilerException(FileName, Line, CompilerError.YieldInFun);
+                throw new MondCompilerException(FileName, Line, Column, CompilerError.YieldInFun);
 
             var state = sequenceContext.SequenceBody.State;
             var enumerable = sequenceContext.SequenceBody.Enumerable;
@@ -50,7 +50,7 @@
                 }
 
                 // TODO: allow more cases? can't yield with stuff on the stack
-                throw new MondCompilerException(FileName, Line, CompilerError.YieldNotInAssign);
+                throw new MondCompilerException(FileName, Line, Column, CompilerError.YieldNotInAssign);
             }
 
             CheckStack(stack, 0);

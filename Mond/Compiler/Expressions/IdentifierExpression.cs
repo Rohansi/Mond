@@ -5,7 +5,7 @@
         public string Name { get; private set; }
 
         public IdentifierExpression(Token token)
-            : base(token.FileName, token.Line)
+            : base(token.FileName, token.Line, token.Column)
         {
             Name = token.Contents;
         }
@@ -16,9 +16,9 @@
             var identifier = context.Identifier(Name);
 
             if (!context.Compiler.Options.UseImplicitGlobals && identifier == null)
-                throw new MondCompilerException(FileName, Line, CompilerError.UndefinedIdentifier, Name);
+                throw new MondCompilerException(FileName, Line, Column, CompilerError.UndefinedIdentifier, Name);
 
-            context.Line(FileName, Line); // debug info
+            context.Position(FileName, Line, Column); // debug info
 
             if (identifier == null)
             {
@@ -40,21 +40,21 @@
             var identifier = context.Identifier(Name);
 
             if (!context.Compiler.Options.UseImplicitGlobals && identifier == null)
-                throw new MondCompilerException(FileName, Line, CompilerError.UndefinedIdentifier, Name);
+                throw new MondCompilerException(FileName, Line, Column, CompilerError.UndefinedIdentifier, Name);
 
             if (identifier == null)
             {
                 stack += context.LoadGlobal();
 
-                context.Line(FileName, Line); // debug info
+                context.Position(FileName, Line, Column); // debug info
                 stack += context.StoreField(context.String(Name));
             }
             else
             {
                 if (identifier.IsReadOnly)
-                    throw new MondCompilerException(FileName, Line, CompilerError.CantModifyReadonlyVar, Name);
+                    throw new MondCompilerException(FileName, Line, Column, CompilerError.CantModifyReadonlyVar, Name);
 
-                context.Line(FileName, Line); // debug info
+                context.Position(FileName, Line, Column); // debug info
                 stack += context.Store(identifier);
             }
 

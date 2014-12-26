@@ -26,7 +26,7 @@ namespace Mond.Compiler.Parselets.Statements
 
                 if (parser.MatchAndTake(TokenType.Assign))
                 {
-                    initializer = parser.ParseExpession();
+                    initializer = parser.ParseExpression();
                 }
 
                 var declaration = new VarExpression.Declaration(identifier.Contents, initializer);

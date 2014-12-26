@@ -18,7 +18,7 @@ namespace Mond.Compiler.Parselets.Statements
                 var initializerExpr = parser.ParseStatement(false);
 
                 if (initializerExpr is IStatementExpression && !(initializerExpr is VarExpression))
-                    throw new MondCompilerException(token.FileName, token.Line, CompilerError.BadForLoopInitializer);
+                    throw new MondCompilerException(token.FileName, token.Line, token.Column, CompilerError.BadForLoopInitializer);
 
                 initializer = new BlockExpression(new List<Expression>()
                 {
@@ -30,7 +30,7 @@ namespace Mond.Compiler.Parselets.Statements
 
             Expression condition = null;
             if (!parser.Match(TokenType.Semicolon))
-                condition = parser.ParseExpession();
+                condition = parser.ParseExpression();
 
             parser.Take(TokenType.Semicolon);
 

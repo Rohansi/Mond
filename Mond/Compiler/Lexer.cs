@@ -2,13 +2,27 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Text;
 using System.Linq;
+using System.Text;
+using Mond.Compiler.Parselets;
 
 namespace Mond.Compiler
 {
     partial class Lexer : IEnumerable<Token>
     {
+        private struct Position
+        {
+            public readonly int Line;
+            public readonly int Column;
+
+            public Position(int line, int column)
+                : this()
+            {
+                Line = line;
+                Column = column;
+            }
+        }
+
         private readonly string _fileName;
         private readonly IEnumerable<char> _sourceEnumerable;
 
@@ -18,12 +32,16 @@ namespace Mond.Compiler
 
         private int _index;
         private int _currentLine;
-        private int _startLine;
+        private int _currentColumn;
+        private Stack<Position> _positions;
+
+        public bool AtEof { get { return _index >= _length; } }
 
         public Lexer(IEnumerable<char> source, string fileName = null)
         {
             _fileName = fileName;
             _sourceEnumerable = source;
+            _positions = new Stack<Position>();
         }
 
         public IEnumerator<Token> GetEnumerator()
@@ -34,18 +52,17 @@ namespace Mond.Compiler
 
             _index = 0;
             _currentLine = 1;
+            _currentColumn = 1;
 
-            while (_index < _length)
+            while (!AtEof)
             {
                 SkipWhiteSpace();
 
                 if (SkipComments())
                     continue;
 
-                if (_index >= _length)
+                if (AtEof)
                     break;
-
-                _startLine = _currentLine;
 
                 var ch = PeekChar();
                 Token token;
@@ -55,14 +72,14 @@ namespace Mond.Compiler
                     !TryLexWord(ch, out token) &&
                     !TryLexNumber(ch, out token))
                 {
-                    throw new MondCompilerException(_fileName, _currentLine, CompilerError.UnexpectedCharacter, ch);
+                    throw new MondCompilerException(_fileName, _currentLine, _currentColumn, CompilerError.UnexpectedCharacter, ch);
                 }
 
                 yield return token;
             }
 
             while (true)
-                yield return new Token(_fileName, _currentLine, TokenType.Eof, null);
+                yield return new Token(_fileName, _currentLine, _currentColumn, TokenType.Eof, null);
         }
 
         private bool TryLexOperator(char ch, out Token token)
@@ -70,13 +87,17 @@ namespace Mond.Compiler
             var opList = _operators.Lookup(ch);
             if (opList != null)
             {
+                MarkPosition();
                 var op = opList.FirstOrDefault(o => TakeIfNext(o.Item1));
 
                 if (op != null)
                 {
-                    token = new Token(_fileName, _currentLine, op.Item2, op.Item1);
+                    var start = _positions.Pop();
+                    token = new Token(_fileName, start.Line, start.Column, op.Item2, op.Item1);
                     return true;
                 }
+
+                _positions.Pop();
             }
 
             token = null;
@@ -87,15 +108,20 @@ namespace Mond.Compiler
         {
             if (ch == '\"' || ch == '\'')
             {
+                MarkPosition();
                 TakeChar();
 
+                Position start;
                 var stringTerminator = ch;
                 var stringContentsBuilder = new StringBuilder();
 
                 while (true)
                 {
-                    if (_index >= _length)
-                        throw new MondCompilerException(_fileName, _startLine, CompilerError.UnterminatedString);
+                    if (AtEof)
+                    {
+                        start = _positions.Peek();
+                        throw new MondCompilerException(_fileName, start.Line, start.Column, CompilerError.UnterminatedString);
+                    }
 
                     ch = TakeChar();
 
@@ -108,10 +134,14 @@ namespace Mond.Compiler
                         continue;
                     }
 
+                    MarkPosition();
                     ch = TakeChar();
 
-                    if (_index >= _length)
-                        throw new MondCompilerException(_fileName, _currentLine, CompilerError.UnexpectedEofString);
+                    if (AtEof)
+                    {
+                        start = _positions.Peek();
+                        throw new MondCompilerException(_fileName, start.Line, start.Column, CompilerError.UnexpectedEofString);
+                    }
 
                     switch (ch)
                     {
@@ -157,18 +187,25 @@ namespace Mond.Compiler
                             short hexValue;
 
                             if (!short.TryParse(hex, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out hexValue))
-                                throw new MondCompilerException(_fileName, _currentLine, CompilerError.InvalidEscapeSequence, ch + hex);
+                            {
+                                start = _positions.Peek();
+                                throw new MondCompilerException(_fileName, start.Line, start.Column, CompilerError.InvalidEscapeSequence, ch + hex);
+                            }
 
                             stringContentsBuilder.Append((char)hexValue);
                             break;
 
                         default:
-                            throw new MondCompilerException(_fileName, _currentLine, CompilerError.InvalidEscapeSequence, ch);
+                            start = _positions.Peek();
+                            throw new MondCompilerException(_fileName, start.Line, start.Column, CompilerError.InvalidEscapeSequence, ch);
                     }
+
+                    _positions.Pop();
                 }
 
                 var stringContents = stringContentsBuilder.ToString();
-                token = new Token(_fileName, _currentLine, TokenType.String, stringContents);
+                start = _positions.Pop();
+                token = new Token(_fileName, start.Line, start.Column, TokenType.String, stringContents);
                 return true;
             }
 
@@ -180,11 +217,13 @@ namespace Mond.Compiler
         {
             if (char.IsLetter(ch) || ch == '_')
             {
+                MarkPosition();
                 var wordContents = TakeWhile(c => char.IsLetterOrDigit(c) || c == '_');
                 TokenType keywordType;
                 var isKeyword = _keywords.TryGetValue(wordContents, out keywordType);
 
-                token = new Token(_fileName, _currentLine, isKeyword ? keywordType : TokenType.Identifier, wordContents);
+                var start = _positions.Pop();
+                token = new Token(_fileName, start.Line, start.Column, isKeyword ? keywordType : TokenType.Identifier, wordContents);
                 return true;
             }
 
@@ -196,6 +235,7 @@ namespace Mond.Compiler
         {
             if (char.IsDigit(ch))
             {
+                MarkPosition();
                 var format = NumberFormat.Decimal;
                 var hasDecimal = false;
                 var hasExp = false;
@@ -256,11 +296,8 @@ namespace Mond.Compiler
                     return isDigit(c);
                 });
 
-                double number;
-                if (!TryParseNumber(numberContents, format, out number))
-                    throw new MondCompilerException(_fileName, _currentLine, CompilerError.InvalidNumber, format.ToString().ToLower(), numberContents);
-
-                token =  new Token(_fileName, _currentLine, TokenType.Number, number.ToString("G", CultureInfo.InvariantCulture));
+                var start = _positions.Pop();
+                token =  new Token(_fileName, start.Line, start.Column, TokenType.Number, numberContents, format);
                 return true;
             }
 
@@ -273,7 +310,7 @@ namespace Mond.Compiler
             // single line comment
             if (TakeIfNext("//"))
             {
-                while (_index < _length && !IsNext("\n"))
+                while (!AtEof && !IsNext("\n"))
                 {
                     TakeChar();
                 }
@@ -285,23 +322,34 @@ namespace Mond.Compiler
             if (TakeIfNext("/*"))
             {
                 var depth = 1;
+                MarkPosition();
 
-                while (_index < _length && depth > 0)
+                while (!AtEof && depth > 0)
                 {
                     if (TakeIfNext("/*"))
                     {
+                        MarkPosition();
                         depth++;
                         continue;
                     }
 
                     if (TakeIfNext("*/"))
                     {
+                        _positions.Pop();
                         depth--;
                         continue;
                     }
 
                     TakeChar();
                 }
+
+                if (AtEof && depth > 0)
+                {
+                    var lastPosition = _positions.Peek();
+                    throw new MondCompilerException(_fileName, lastPosition.Line, lastPosition.Column, CompilerError.UnexpectedEofComment);
+                }
+
+                _positions.Pop();
 
                 return true;
             }
@@ -311,7 +359,7 @@ namespace Mond.Compiler
 
         private void SkipWhiteSpace()
         {
-            while (_index < _length)
+            while (!AtEof)
             {
                 var ch = PeekChar();
 
@@ -345,7 +393,7 @@ namespace Mond.Compiler
         {
             var sb = new StringBuilder();
 
-            while (_index < _length)
+            while (!AtEof)
             {
                 var ch = PeekChar();
 
@@ -361,13 +409,19 @@ namespace Mond.Compiler
         public char TakeChar()
         {
             PeekChar();
+            PeekChar(1);
 
             var result = _read[0];
             _read.RemoveAt(0);
-            _index++;
+
+            if (result == '\r' && _read[0] != '\n')
+                throw new MondCompilerException(_fileName, _currentLine, _currentColumn, CompilerError.CrMustBeFollowedByLf);
 
             if (result == '\n')
-                _currentLine++;
+                AdvanceLine();
+
+            _index++;
+            _currentColumn++;
 
             return result;
         }
@@ -389,67 +443,21 @@ namespace Mond.Compiler
             return _read[distance];
         }
 
+        private void AdvanceLine()
+        {
+            _currentLine++;
+            _currentColumn = 0;
+        }
+
+        private void MarkPosition()
+        {
+            var position = new Position(_currentLine, _currentColumn);
+            _positions.Push(position);
+        }
+
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
-        }
-
-        enum NumberFormat
-        {
-            Decimal, Hexadecimal, Binary
-        }
-
-        private bool TryParseNumber(string value, NumberFormat format, out double result)
-        {
-            int integralNumber;
-
-            switch (format)
-            {
-                case NumberFormat.Decimal:
-                    double floatNumber;
-                    if (double.TryParse(value, NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent, CultureInfo.InvariantCulture, out floatNumber))
-                    {
-                        result = floatNumber;
-                        return true;
-                    }
-                    break;
-
-                case NumberFormat.Hexadecimal:
-                    if (TryParseBase(value, 16, out integralNumber))
-                    {
-                        result = integralNumber;
-                        return true;
-                    }
-                    break;
-
-                case NumberFormat.Binary:
-                    if (TryParseBase(value, 2, out integralNumber))
-                    {
-                        result = integralNumber;
-                        return true;
-                    }
-                    break;
-
-                default:
-                    throw new MondCompilerException(_fileName, _currentLine, "Unsupported NumberFormat");
-            }
-
-            result = 0;
-            return false;
-        }
-
-        private static bool TryParseBase(string value, int fromBase, out int result)
-        {
-            try
-            {
-                result = Convert.ToInt32(value, fromBase);
-                return true;
-            }
-            catch
-            {
-                result = 0;
-                return false;
-            }
         }
     }
 }

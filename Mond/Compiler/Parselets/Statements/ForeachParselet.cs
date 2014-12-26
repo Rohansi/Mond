@@ -16,7 +16,7 @@ namespace Mond.Compiler.Parselets.Statements
 
             parser.Take(TokenType.In);
 
-            var expression = parser.ParseExpession();
+            var expression = parser.ParseExpression();
 
             parser.Take(TokenType.RightParen);
 

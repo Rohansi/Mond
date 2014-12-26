@@ -11,7 +11,7 @@ namespace Mond.Compiler.Parselets
             if (parser.Match(TokenType.Colon))
                 return ParseSlice(parser, left, token);
 
-            var index = parser.ParseExpession();
+            var index = parser.ParseExpression();
 
             if (parser.Match(TokenType.Colon))
                 return ParseSlice(parser, left, token, index);
@@ -31,7 +31,7 @@ namespace Mond.Compiler.Parselets
 
             if (!parser.Match(TokenType.Colon))
             {
-                end = parser.ParseExpession();
+                end = parser.ParseExpression();
 
                 if (parser.MatchAndTake(TokenType.RightSquare))
                     return new SliceExpression(token, left, start, end, null);
@@ -39,7 +39,7 @@ namespace Mond.Compiler.Parselets
 
             parser.Take(TokenType.Colon);
 
-            var step = parser.ParseExpession();
+            var step = parser.ParseExpression();
 
             parser.Take(TokenType.RightSquare);
 
