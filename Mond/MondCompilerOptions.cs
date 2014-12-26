@@ -17,11 +17,18 @@
         /// </summary>
         public bool UseImplicitGlobals { get; set; }
 
+        /// <summary>
+        /// Controls the starting line number for scripts. This should only be used when
+        /// injecting code into scripts as it allows you to correct the line numbers.
+        /// </summary>
+        public int FirstLineNumber { get; set; }
+
         public MondCompilerOptions()
         {
             GenerateDebugInfo = true;
             MakeRootDeclarationsGlobal = false;
             UseImplicitGlobals = false;
+            FirstLineNumber = 1;
         }
     }
 }

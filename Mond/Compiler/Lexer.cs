@@ -23,6 +23,7 @@ namespace Mond.Compiler
             }
         }
 
+        private readonly MondCompilerOptions _options;
         private readonly string _fileName;
         private readonly IEnumerable<char> _sourceEnumerable;
 
@@ -37,8 +38,9 @@ namespace Mond.Compiler
 
         public bool AtEof { get { return _index >= _length; } }
 
-        public Lexer(IEnumerable<char> source, string fileName = null)
+        public Lexer(IEnumerable<char> source, string fileName = null, MondCompilerOptions options = null)
         {
+            _options = options;
             _fileName = fileName;
             _sourceEnumerable = source;
             _positions = new Stack<Position>();
@@ -51,7 +53,7 @@ namespace Mond.Compiler
             _read = new List<char>(16);
 
             _index = 0;
-            _currentLine = 1;
+            _currentLine = _options == null ? 1 : _options.FirstLineNumber;
             _currentColumn = 1;
 
             while (!AtEof)

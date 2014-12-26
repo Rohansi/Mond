@@ -54,7 +54,12 @@ namespace Mond.Repl
 
             try
             {
-                var program = MondProgram.Compile(Functions.Definitions + source, Path.GetFileName(fileName));
+                var options = new MondCompilerOptions
+                {
+                    FirstLineNumber = 0
+                };
+
+                var program = MondProgram.Compile(Functions.Definitions + source, Path.GetFileName(fileName), options);
                 var result = state.Load(program);
 
                 if (result == MondValue.Undefined)

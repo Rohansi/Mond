@@ -32,7 +32,7 @@ namespace Mond.Repl
                 return;
             }
 
-            Definitions = "const " + string.Join(",", _values.Select(v => string.Format("{0}=global.{0}", v.Key))) + ";";
+            Definitions = "const " + string.Join(",", _values.Select(v => string.Format("{0}=global.{0}", v.Key))) + ";\n";
         }
 
         public static void Register(MondState state)
@@ -78,9 +78,14 @@ namespace Mond.Repl
             {
                 // wrap the module script in a function so we can pass out exports object to it
                 var moduleSource = File.ReadAllText(fileName);
-                var source = Definitions + "return fun Module(exports) {" + moduleSource + "return exports; };";
+                var source = Definitions + "return fun Module(exports) {\n" + moduleSource + "return exports; };";
 
-                var program = MondProgram.Compile(source, fileName);
+                var options = new MondCompilerOptions
+                {
+                    FirstLineNumber = -1
+                };
+
+                var program = MondProgram.Compile(source, fileName, options);
                 var initializer = state.Load(program);
 
                 var result = state.Call(initializer, exports);

@@ -192,7 +192,7 @@ namespace Mond
         /// <param name="options">Compiler options</param>
         public static MondProgram Compile(IEnumerable<char> source, string fileName = null, MondCompilerOptions options = null)
         {
-            var lexer = new Lexer(source, fileName);
+            var lexer = new Lexer(source, fileName, options);
             var parser = new Parser(lexer);
             return CompileImpl(parser.ParseAll(), options);
         }
@@ -206,7 +206,7 @@ namespace Mond
         /// <param name="options">Compiler options</param>
         public static IEnumerable<MondProgram> CompileStatements(IEnumerable<char> source, string fileName = null, MondCompilerOptions options = null)
         {
-            var lexer = new Lexer(source, fileName);
+            var lexer = new Lexer(source, fileName, options);
             var parser = new Parser(lexer);
 
             while (true)
