@@ -33,6 +33,10 @@ namespace Mond.Tests.Expressions
             Assert.True(Script.Run("return 0b00010010001101001010101111001101;") == 0x1234ABCD, "binary number");
 
             Assert.True(Script.Run("return 0b00010010_00110100_10101011_11001101;") == 0x1234ABCD, "binary number with separator");
+
+            Assert.True(Script.Run("return 0xDEADBEEF;") == unchecked((int)0xDEADBEEF), "negative hex number");
+
+            Assert.True(Script.Run("return 0b11011110101011011011111011101111;") == unchecked((int)0xDEADBEEF), "negative binary number");
         }
 
         [Test]

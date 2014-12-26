@@ -13,55 +13,86 @@ namespace Mond.Compiler.Parselets
     {
         public Expression Parse(Parser parser, Token token)
         {
-            var value = 0D;
             var format = (NumberFormat)token.Tag;
-            var end = -1;
+
+            bool success;
+            double value;
+            int intValue;
 
             switch (format)
             {
                 case NumberFormat.Hexadecimal:
-                    end = token.Contents.Length - 1;
-                    for (var i = end; i >= 0; --i)
-                    {
-                        byte hex;
-
-                        if (!byte.TryParse(token.Contents[i].ToString(), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out hex))
-                            throw new MondCompilerException(token.FileName, token.Line, token.Column, CompilerError.InvalidNumber, format.GetName(), token.Contents);
-
-                        value += hex * Math.Pow(16, end - i);
-                    }
-
+                    success = TryHexToInt32(token.Contents, out intValue);
+                    value = intValue;
                     break;
 
                 case NumberFormat.Binary:
-                    end = token.Contents.Length - 1;
-                    var accumulator = 1;
-                    for (var i = end; i >= 0; --i)
-                    {
-                        var ch = token.Contents[i];
-
-                        if (ch != '0' && ch != '1')
-                            throw new MondCompilerException(token.FileName, token.Line, token.Column, CompilerError.InvalidNumber, format.GetName(), token.Contents);
-
-                        if (ch == '1')
-                            value += accumulator;
-
-                        accumulator *= 2;
-                    }
-
+                    success = TryBinToInt32(token.Contents, out intValue);
+                    value = intValue;
                     break;
 
                 case NumberFormat.Decimal:
-                    if(!double.TryParse(token.Contents, NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent, CultureInfo.InvariantCulture, out value))
-                        throw new MondCompilerException(token.FileName, token.Line, token.Column, CompilerError.InvalidNumber, format.GetName(), token.Contents);
-
+                    success = double.TryParse(token.Contents, NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent, CultureInfo.InvariantCulture, out value);
                     break;
 
                 default:
-                    throw new NotImplementedException(String.Format("Unimplemented number format '{0}'.", format.GetName()));
+                    throw new NotSupportedException("Unimplemented number format: " + format.GetName());
             }
 
+            if (!success)
+                throw new MondCompilerException(token.FileName, token.Line, token.Column, CompilerError.InvalidNumber, format.GetName(), token.Contents);
+
             return new NumberExpression(token, value);
+        }
+
+        private static bool TryHexToInt32(string number, out int result)
+        {
+            result = 0;
+
+            if (string.IsNullOrEmpty(number) || number.Length > 8) // max 8 chars per number
+                return false;
+
+            foreach (var c in number)
+            {
+                result <<= 4; // 4 bits per digit
+
+                int add;
+                if (c >= '0' && c <= '9')
+                    add = c - '0';
+                else if (c >= 'A' && c <= 'F')
+                    add = 10 + (c - 'A');
+                else if (c >= 'a' && c <= 'f')
+                    add = 10 + (c - 'a');
+                else
+                    return false;
+
+                result |= add;
+            }
+
+            return true;
+        }
+
+        private static bool TryBinToInt32(string number, out int result)
+        {
+            result = 0;
+
+            if (string.IsNullOrEmpty(number) || number.Length > 32) // max 32 chars per number
+                return false;
+
+            foreach (var c in number)
+            {
+                result <<= 1; // 1 bit per digit
+
+                int add;
+                if (c >= '0' && c <= '1')
+                    add = c - '0';
+                else
+                    return false;
+
+                result |= add;
+            }
+
+            return true;
         }
     }
 
@@ -69,7 +100,7 @@ namespace Mond.Compiler.Parselets
     {
         public static string GetName(this NumberFormat format)
         {
-            return Enum.GetName(typeof(NumberFormat), format).ToLower();
+            return format.ToString().ToLower();
         }
     }
 }
