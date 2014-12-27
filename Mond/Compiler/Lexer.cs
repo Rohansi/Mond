@@ -351,8 +351,6 @@ namespace Mond.Compiler
                     throw new MondCompilerException(_fileName, lastPosition.Line, lastPosition.Column, CompilerError.UnexpectedEofComment);
                 }
 
-                _positions.Pop();
-
                 return true;
             }
 
