@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using Mond.Repl.Input;
 
 namespace Mond.Repl
 {
@@ -8,17 +10,19 @@ namespace Mond.Repl
     {
         static void Main(string[] args)
         {
-            if (args.Length >= 1)
+            var fileName = args.FirstOrDefault(s => s.Length > 0 && s[0] != '-');
+
+            if (fileName != null)
             {
                 try
                 {
-                    using (var file = File.OpenRead(args[0]))
+                    using (var file = File.OpenRead(fileName))
                     using (var reader = new StreamReader(file))
                         ScriptMain(reader, args[0]);
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine("Failed to open file '{0}':", args[0]);
+                    Console.WriteLine("Failed to open file '{0}':", fileName);
                     Console.WriteLine(e);
                 }
 
@@ -31,7 +35,7 @@ namespace Mond.Repl
                 return;
             }
 
-            InteractiveMain();
+            InteractiveMain(args);
         }
 
         static void ScriptMain(TextReader input, string fileName)
@@ -74,11 +78,20 @@ namespace Mond.Repl
             }
         }
 
+        private static Func<string> _readLine;
         private static Queue<char> _input;
         private static bool _first;
+        private static Highlighter _highlighter;
 
-        static void InteractiveMain()
+        static void InteractiveMain(string[] args)
         {
+            var useColoredInput = args.Any(s => s == "-c");
+
+            if (useColoredInput)
+                _readLine = () => Highlighted.ReadLine(ref _highlighter);
+            else
+                _readLine = Console.ReadLine;
+
             _input = new Queue<char>();
             _first = true;
 
@@ -110,17 +123,7 @@ namespace Mond.Repl
 
         static void InteractiveRun(MondState state, MondProgram program)
         {
-            MondValue result;
-
-            try
-            {
-                result = state.Load(program);
-            }
-            catch (Exception e)
-            {
-                PrintException(e);
-                return;
-            }
+            var result = state.Load(program);
 
             // get rid of leading whitespace
             while (_input.Count > 0 && char.IsWhiteSpace(_input.Peek()))
@@ -136,6 +139,8 @@ namespace Mond.Repl
             // ignore undefined return value, it's almost always useless
             if (result == MondValue.Undefined)
                 return;
+
+            Console.WriteLine();
 
             if (result["moveNext"] && result.IsEnumerable)
             {
@@ -160,9 +165,9 @@ namespace Mond.Repl
             {
                 if (_input.Count == 0)
                 {
-                    Console.Write(_first ? "> " : ">> ");
+                    Console.Write(_first ? "> " : "| ");
 
-                    var line = Console.ReadLine();
+                    var line = _readLine();
                     if (line != null)
                     {
                         if (_first && line.StartsWith("="))
@@ -188,11 +193,13 @@ namespace Mond.Repl
         {
             string message = e is MondException ? e.Message : e.ToString();
 
-            Console.WriteLine(message);
             Console.WriteLine();
+            Console.WriteLine(message);
 
             _first = true;
             _input.Clear();
+
+            _highlighter = null;
         }
     }
 }
