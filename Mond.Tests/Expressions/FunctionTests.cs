@@ -248,5 +248,44 @@ namespace Mond.Tests.Expressions
             Assert.True(result["a"] == 100, "return object 4a");
             Assert.True(result["b"] == 200, "return object 4b");
         }
+
+        [Test]
+        public void ClosureInLoop()
+        {
+            var result = Script.Run(@"
+                var arr = [];
+
+                for (var i = 0; i < 10; i++) {
+                    var ii = i;
+                    arr.add(() -> ii);
+                }
+
+                return arr[4]();
+            ");
+
+            Assert.True(result == 4);
+        }
+
+        [Test]
+        public void ClosureInNestedLoop()
+        {
+            var result = Script.Run(@"
+                var arr = [];
+
+                for (var i = 0; i < 10; i++) {
+                    var ii = i;
+                    arr.add([]);
+
+                    for (var j = 0; j < 10; j++) {
+                        var jj = j;
+                        arr[i].add(() -> ii / jj);
+                    }
+                }
+
+                return arr[4][2]();
+            ");
+
+            Assert.True(result == 2);
+        }
     }
 }

@@ -30,31 +30,5 @@ namespace Mond.Compiler.Visitors
             Value = true;
             return 0;
         }
-
-        public override int Visit(DoWhileExpression expression)
-        {
-            // DoWhile condition is part of the loop, don't visit it
-            return 0;
-        }
-
-        public override int Visit(ForeachExpression expression)
-        {
-            expression.Expression.Accept(this);
-            return 0;
-        }
-
-        public override int Visit(ForExpression expression)
-        {
-            if (expression.Initializer != null)
-                expression.Initializer.Accept(this);
-
-            return 0;
-        }
-
-        public override int Visit(WhileExpression expression)
-        {
-            // While condition is part of the loop, don't visit it
-            return 0;
-        }
     }
 }
