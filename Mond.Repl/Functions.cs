@@ -19,12 +19,16 @@ namespace Mond.Repl
             var functions = MondModuleBinder.BindFunctions<Functions>()
                                             .ToDictionary(kv => kv.Key, kv => new MondValue(kv.Value));
 
-            var modules = new Dictionary<string, MondValue>
+            var modules = new Dictionary<string, Func<MondValue>>
             {
-                { "Math", MondMath.Binding }
+                { "Math", () => MondModuleBinder.Bind<MondMath>() },
+                { "Random", () => MondClassBinder.Bind<MondRandom>() },
             };
 
-            _values = functions.Concat(modules).ToList();
+            var moduleBindings = modules
+                .Select(kv => new KeyValuePair<string, MondValue>(kv.Key, kv.Value()));
+
+            _values = functions.Concat(moduleBindings).ToList();
 
             if (_values.Count == 0)
             {
