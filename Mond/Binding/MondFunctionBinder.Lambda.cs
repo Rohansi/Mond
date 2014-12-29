@@ -111,7 +111,7 @@ namespace Mond.Binding
                 return result;
             }
 
-            throw new MondBindingException(ParameterTypeError(errorPrefix, methodTable));
+            throw new MondBindingException(BindingError.ParameterTypeError(errorPrefix, methodTable));
         }
 
         private static Method FindMatch(List<Method> methods, MondValue[] args)

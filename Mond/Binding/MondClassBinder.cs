@@ -55,6 +55,9 @@ namespace Mond.Binding
 
             prototype = prototypeObj;
 
+            if (constructor == null)
+                return null;
+
             return (_, arguments) =>
             {
                 var instance = new MondValue(_);
@@ -126,9 +129,6 @@ namespace Mond.Binding
 
             var constructors = type.GetConstructors(BindingFlags.Public | BindingFlags.Instance);
             var constructor = MondFunctionBinder.BindConstructor(className, constructors);
-
-            if (constructor == null)
-                throw new MondBindingException(BindingError.NotEnoughConstructors);
 
             binding = new ClassBinding(constructor, functions);
             _cache.Add(type, binding);

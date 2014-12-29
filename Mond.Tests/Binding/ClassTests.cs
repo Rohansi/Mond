@@ -81,7 +81,7 @@ namespace Mond.Tests.Binding
         {
             Assert.True(_state.Run("return global.brian.test;") == 123);
 
-            Assert.Throws<MondBindingException>(() => MondClassBinder.Bind<NoConstructor>());
+            Assert.True(MondClassBinder.Bind<NoConstructor>() == null);
 
             Assert.DoesNotThrow(() => MondClassBinder.Bind<MultipleConstructors>());
         }

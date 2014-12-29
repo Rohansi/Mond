@@ -173,7 +173,7 @@ namespace Mond.Binding
             if (constructor == null)
                 throw new MondBindingException("Could not find MondRuntimeException constructor");
 
-            var parameterTypeError = typeof(MondFunctionBinder).GetMethod("ParameterTypeError", BindingFlags.NonPublic | BindingFlags.Static);
+            var parameterTypeError = typeof(BindingError).GetMethod("ParameterTypeError", BindingFlags.Public | BindingFlags.Static);
             var errorString = Expression.Call(parameterTypeError, Expression.Constant(errorPrefix), Expression.Constant(methodTable));
 
             return Expression.Throw(Expression.New(constructor, errorString));

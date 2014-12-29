@@ -1,4 +1,7 @@
-﻿namespace Mond.Binding
+﻿using System.Linq;
+using System.Text;
+
+namespace Mond.Binding
 {
     static class BindingError
     {
@@ -9,22 +12,30 @@
 
         public const string DuplicateDefinition = "Duplicate definition of '{0}'";
 
-        public const string TooManyConstructors = "Classes cannot have multiple Mond constructors";
-        public const string NotEnoughConstructors = "Classes must have one Mond constructor";
-
         public static string ErrorPrefix(string moduleName, string methodName)
         {
             return string.Format("{0}{1}{2}: ", moduleName ?? "", string.IsNullOrEmpty(moduleName) ? "" : ".", methodName);
         }
 
-        public static string ArgumentLengthError(string prefix, int requiredArgumentCount)
+        public static string ParameterTypeError(string prefix, MethodTable methodTable)
         {
-            return string.Format("{0}must be called with {1} argument{2}", prefix, requiredArgumentCount, requiredArgumentCount != 1 ? "s" : "");
-        }
+            var sb = new StringBuilder();
 
-        public static string TypeError(string prefix, int argumentIndex, string expectedType)
-        {
-            return string.Format("{0}argument {1} must be of type {2}", prefix, argumentIndex + 1, expectedType);
+            sb.Append(prefix);
+            sb.AppendLine("argument types do not match any available functions");
+
+            var methods = methodTable.Methods
+                .SelectMany(l => l)
+                .Concat(methodTable.ParamsMethods)
+                .Distinct();
+
+            foreach (var method in methods)
+            {
+                sb.Append("- ");
+                sb.AppendLine(method.ToString());
+            }
+
+            return sb.ToString();
         }
     }
 }

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 
 namespace Mond.Binding
 {
@@ -142,27 +141,6 @@ namespace Mond.Binding
             }
 
             return result;
-        }
-
-        internal static string ParameterTypeError(string prefix, MethodTable methodTable)
-        {
-            var sb = new StringBuilder();
-
-            sb.Append(prefix);
-            sb.AppendLine("argument types do not match any available functions");
-
-            var methods = methodTable.Methods
-                .SelectMany(l => l)
-                .Concat(methodTable.ParamsMethods)
-                .Distinct();
-
-            foreach (var method in methods)
-            {
-                sb.Append("- ");
-                sb.AppendLine(method.ToString());
-            }
-
-            return sb.ToString();
         }
     }
 }
