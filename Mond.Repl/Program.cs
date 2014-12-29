@@ -199,6 +199,9 @@ namespace Mond.Repl
             Console.WriteLine();
             Console.WriteLine(message);
 
+            if (!message.EndsWith("\n"))
+                Console.WriteLine();
+
             _first = true;
             _input.Clear();
 

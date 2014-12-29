@@ -21,7 +21,7 @@ namespace Mond.Repl
 
             var modules = new Dictionary<string, Func<MondValue>>
             {
-                { "Math", () => MondModuleBinder.Bind<MondMath>() },
+                { "Math", () => MondMath.Binding },
                 { "Random", () => MondClassBinder.Bind<MondRandom>() },
             };
 
