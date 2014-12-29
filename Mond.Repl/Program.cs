@@ -143,23 +143,38 @@ namespace Mond.Repl
             if (result == MondValue.Undefined)
                 return;
 
-            Console.WriteLine();
-
-            if (result["moveNext"] && result.IsEnumerable)
+            if (result["moveNext"].Type == MondValueType.Function && result.IsEnumerable)
             {
-                foreach (var value in result.Enumerate(state))
+                Console.WriteLine();
+
+                foreach (var value in result.Enumerate(state).Take(25))
                 {
                     value.Serialize(Console.Out);
                     Console.WriteLine();
                 }
+
+                if (state.Call(result["moveNext"]))
+                    Console.WriteLine("...");
+
+                Console.WriteLine();
             }
             else
             {
-                result.Serialize(Console.Out);
-                Console.WriteLine();
-            }
+                var resultStr = result.Serialize();
+                var multiline = resultStr.Contains("\n");
 
-            Console.WriteLine();
+                if (multiline)
+                {
+                    Console.WriteLine();
+                    Console.WriteLine(resultStr);
+                    Console.WriteLine();
+                }
+                else
+                {
+                    var lineNumberLen = Math.Max(_line.ToString("G").Length, 3);
+                    Console.WriteLine("{0}> {1}", new string('=', lineNumberLen), resultStr);
+                }
+            }
         }
 
         static IEnumerable<char> ConsoleInput()
@@ -168,7 +183,7 @@ namespace Mond.Repl
             {
                 if (_input.Count == 0)
                 {
-                    Console.Write("{0,3}{1}", ++_line, _first ? "> " : "| ");
+                    Console.Write("{0,3:G}{1} ", ++_line, _first ? ">" : "|");
 
                     var line = _readLine();
                     if (line != null)
