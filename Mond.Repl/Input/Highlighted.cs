@@ -5,84 +5,44 @@ namespace Mond.Repl.Input
 {
     public static class Highlighted
     {
+        private static List<string> _history;
+        private static int _historyIndex;
+        private static string _current;
+         
         private static int _position;
         private static List<int> _positions;
 
+        private static List<char> _input;
+        private static int _caretIndex;
+
+        private static Highlighter _originalHighlighter;
+        private static ColoredCharacter[] _previousColors;
+
         static Highlighted()
         {
+            _history = new List<string>();
+
             _position = 0;
             _positions = new List<int>(8);
+
+            _input = new List<char>(64);
         }
 
         public static string ReadLine(ref Highlighter highlighter)
         {
             highlighter = highlighter ?? new Highlighter();
 
+            _historyIndex = -1;
+            _current = "";
+
             _position = 0;
             _positions.Clear();
 
-            var originalHighlighter = highlighter.Clone();
+            _input.Clear();
+            _caretIndex = 0;
 
-            var input = new List<char>(64);
-            var caretIndex = 0;
-
-            var previousColors = new ColoredCharacter[0];
-
-            Func<Highlighter> redraw = () =>
-            {
-                var inputString = new string(input.ToArray());
-                var newHighlighter = originalHighlighter.Clone();
-                var currentColors = newHighlighter.Highlight(inputString);
-
-                SavePosition();
-
-                var length = Math.Max(currentColors.Length, previousColors.Length);
-
-                int start = 0;
-                for (; start < length; start++)
-                {
-                    if (start >= previousColors.Length || start >= currentColors.Length)
-                        break;
-
-                    var prev = previousColors[start];
-                    var curr = currentColors[start];
-
-                    if (prev.Character != curr.Character || prev.Color != curr.Color)
-                        break;
-                }
-
-                Move(-_position + start);
-
-                ConsoleColor? prevColor = null;
-
-                for (var i = start; i < length; i++)
-                {
-                    var curr = new ColoredCharacter(' ', ConsoleColor.Gray);
-
-                    if (i < currentColors.Length)
-                        curr = currentColors[i];
-
-                    if (!prevColor.HasValue || prevColor.Value != curr.Color)
-                        Console.ForegroundColor = curr.Color;
-
-                    prevColor = curr.Color;
-
-                    Console.Write(curr.Character);
-                    _position++;
-
-                    if (Console.CursorLeft == Console.BufferWidth - 1 && Console.CursorTop == Console.BufferHeight - 1)
-                    {
-                        Console.WriteLine();
-                        Move(-1);
-                        _position++;
-                    }
-                }
-
-                RestorePosition();
-
-                previousColors = currentColors;
-                return newHighlighter;
-            };
+            _originalHighlighter = highlighter.Clone();
+            _previousColors = new ColoredCharacter[0];
 
             SavePosition();
 
@@ -93,63 +53,96 @@ namespace Mond.Repl.Input
                 switch (info.Key)
                 {
                     case ConsoleKey.Enter:
-                        RestorePosition(input.Count);
+                        var result = new string(_input.ToArray());
+
+                        if (!string.IsNullOrWhiteSpace(result))
+                        {
+                            // add result to history
+                            _history.Insert(0, result);
+                            if (_history.Count > 50)
+                                _history.RemoveAt(_history.Count - 1);
+                        }
+
+                        // restore console state
+                        RestorePosition(_input.Count);
                         Console.ResetColor();
                         Console.WriteLine();
-                        return new string(input.ToArray());
+                        return result;
+
+                    case ConsoleKey.UpArrow:
+                        if (_historyIndex >= _history.Count -1)
+                            continue;
+
+                        if (_historyIndex == -1)
+                            _current = new string(_input.ToArray());
+
+                        _historyIndex++;
+                        SetInput(_history[_historyIndex], out highlighter);
+                        continue;
+
+                    case ConsoleKey.DownArrow:
+                        if (_historyIndex <= -1)
+                            continue;
+
+                        _historyIndex--;
+                        var historyStr = _historyIndex == -1 ? _current : _history[_historyIndex];
+
+                        SetInput(historyStr, out highlighter);
+                        continue;
 
                     case ConsoleKey.LeftArrow:
-                        if (caretIndex > 0)
+                        if (_caretIndex > 0)
                         {
-                            caretIndex--;
-
+                            _caretIndex--;
                             Move(-1);
                         }
                         continue;
 
                     case ConsoleKey.RightArrow:
-                        if (caretIndex < input.Count)
+                        if (_caretIndex < _input.Count)
                         {
-                            caretIndex++;
-
+                            _caretIndex++;
                             Move(1);
                         }
                         continue;
 
                     case ConsoleKey.Backspace:
-                        if (caretIndex == 0)
+                        if (_caretIndex == 0)
                             continue;
 
-                        caretIndex--;
-                        input.RemoveAt(caretIndex);
+                        _caretIndex--;
+                        _historyIndex = -1;
+                        _input.RemoveAt(_caretIndex);
 
-                        highlighter = redraw();
+                        highlighter = Redraw();
 
                         Move(-1);
                         continue;
 
                     case ConsoleKey.Delete:
-                        if (caretIndex == input.Count)
+                        if (_caretIndex == _input.Count)
                             continue;
 
-                        input.RemoveAt(caretIndex);
+                        _historyIndex = -1;
+                        _input.RemoveAt(_caretIndex);
 
-                        highlighter = redraw();
+                        highlighter = Redraw();
                         continue;
 
                     case ConsoleKey.Escape:
-                        var count = input.Count;
+                        var count = _input.Count;
 
                         if (count == 0)
                             continue;
 
-                        input.Clear();
-                        caretIndex = 0;
+                        _input.Clear();
+                        _caretIndex = 0;
+                        _historyIndex = -1;
 
                         RestorePosition();
                         SavePosition();
 
-                        highlighter = redraw();
+                        highlighter = Redraw();
                         continue;
 
                     default:
@@ -159,16 +152,87 @@ namespace Mond.Repl.Input
                         break;
                 }
 
-                if (caretIndex == input.Count)
-                    input.Add(info.KeyChar);
+                if (_caretIndex == _input.Count)
+                    _input.Add(info.KeyChar);
                 else
-                    input.Insert(caretIndex, info.KeyChar);
+                    _input.Insert(_caretIndex, info.KeyChar);
 
-                highlighter = redraw();
+                highlighter = Redraw();
                 Move(1);
 
-                caretIndex++;
+                _caretIndex++;
+                _historyIndex = -1;
             }
+        }
+
+        private static void SetInput(string value, out Highlighter highlighter)
+        {
+            _input.Clear();
+            _input.AddRange(value);
+
+            RestorePosition();
+            SavePosition();
+
+            highlighter = Redraw();
+
+            _caretIndex = _input.Count;
+            Move(_input.Count);
+        }
+
+        private static Highlighter Redraw()
+        {
+            var inputString = new string(_input.ToArray());
+            var newHighlighter = _originalHighlighter.Clone();
+            var currentColors = newHighlighter.Highlight(inputString);
+
+            SavePosition();
+
+            var length = Math.Max(currentColors.Length, _previousColors.Length);
+
+            int start = 0;
+            for (; start < length; start++)
+            {
+                if (start >= _previousColors.Length || start >= currentColors.Length)
+                    break;
+
+                var prev = _previousColors[start];
+                var curr = currentColors[start];
+
+                if (prev.Character != curr.Character || prev.Color != curr.Color)
+                    break;
+            }
+
+            Move(-_position + start);
+
+            ConsoleColor? prevColor = null;
+
+            for (var i = start; i < length; i++)
+            {
+                var curr = new ColoredCharacter(' ', ConsoleColor.Gray);
+
+                if (i < currentColors.Length)
+                    curr = currentColors[i];
+
+                if (!prevColor.HasValue || prevColor.Value != curr.Color)
+                    Console.ForegroundColor = curr.Color;
+
+                prevColor = curr.Color;
+
+                Console.Write(curr.Character);
+                _position++;
+
+                if (Console.CursorLeft == Console.BufferWidth - 1 && Console.CursorTop == Console.BufferHeight - 1)
+                {
+                    Console.WriteLine();
+                    Move(-1);
+                    _position++;
+                }
+            }
+
+            RestorePosition();
+
+            _previousColors = currentColors;
+            return newHighlighter;
         }
 
         private static void SavePosition()
