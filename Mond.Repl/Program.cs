@@ -80,6 +80,7 @@ namespace Mond.Repl
 
         private static Func<string> _readLine;
         private static Queue<char> _input;
+        private static int _line;
         private static bool _first;
         private static Highlighter _highlighter;
 
@@ -109,6 +110,8 @@ namespace Mond.Repl
             {
                 try
                 {
+                    options.FirstLineNumber = _line + 1;
+
                     foreach (var program in MondProgram.CompileStatements(ConsoleInput(), "stdin", options))
                     {
                         InteractiveRun(state, program);
@@ -165,7 +168,7 @@ namespace Mond.Repl
             {
                 if (_input.Count == 0)
                 {
-                    Console.Write(_first ? "> " : "| ");
+                    Console.Write("{0,3}{1}", ++_line, _first ? "> " : "| ");
 
                     var line = _readLine();
                     if (line != null)
