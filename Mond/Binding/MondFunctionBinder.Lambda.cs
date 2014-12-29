@@ -23,9 +23,22 @@ namespace Mond.Binding
             };
         }
 
-        private static MondInstanceFunction BindInstanceImpl(string moduleName, MethodTable method, string nameOverride = null)
+        private static MondInstanceFunction BindInstanceImpl(string moduleName, MethodTable method, string nameOverride = null, bool fakeInstance = false)
         {
             var errorPrefix = BindingError.ErrorPrefix(moduleName, nameOverride ?? method.Name);
+
+            if (!fakeInstance)
+            {
+                return (state, instance, args) =>
+                {
+                    MethodBase function;
+                    Func<object, MondValue> returnConversion;
+                    var parameters = BuildParameterArray(errorPrefix, method, state, instance, args, out function, out returnConversion);
+
+                    var classInstance = instance.UserData;
+                    return returnConversion(function.Invoke(classInstance, parameters));
+                };
+            }
 
             return (state, instance, args) =>
             {
@@ -33,8 +46,7 @@ namespace Mond.Binding
                 Func<object, MondValue> returnConversion;
                 var parameters = BuildParameterArray(errorPrefix, method, state, instance, args, out function, out returnConversion);
 
-                var classInstance = instance.UserData;
-                return returnConversion(function.Invoke(classInstance, parameters));
+                return returnConversion(function.Invoke(null, parameters));
             };
         }
 

@@ -1,30 +1,17 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
+using Mond.Binding;
 
 namespace Mond.VirtualMachine.Prototypes
 {
-    static class ObjectPrototype
+    [MondModule("Object")]
+    internal static class ObjectPrototype
     {
         public static readonly MondValue Value;
 
         static ObjectPrototype()
         {
-            Value = new MondValue(MondValueType.Object);
+            Value = MondPrototypeBinder.Bind(typeof(ObjectPrototype));
             Value.Prototype = ValuePrototype.Value;
-
-            Value["add"] = new MondInstanceFunction(Add);
-            Value["clear"] = new MondInstanceFunction(Clear);
-            Value["containsKey"] = new MondInstanceFunction(ContainsKey);
-            Value["containsValue"] = new MondInstanceFunction(ContainsValue);
-            Value["get"] = new MondInstanceFunction(Get);
-            Value["remove"] = new MondInstanceFunction(Remove);
-
-            Value["length"] = new MondInstanceFunction(Length);
-            Value["getEnumerator"] = new MondInstanceFunction(GetEnumerator);
-
-            Value["setPrototype"] = new MondInstanceFunction(SetPrototype);
-            Value["lock"] = new MondInstanceFunction(Lock);
-            Value["setPrototypeAndLock"] = new MondInstanceFunction(SetPrototypeAndLock);
 
             Value.Lock();
         }
@@ -34,24 +21,22 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// add(key, value): object
         /// </summary>
-        private static MondValue Add(MondState state, MondValue instance, params MondValue[] arguments)
+        [MondFunction("add")]
+        public static MondValue Add([MondInstance] MondValue instance, MondValue key, MondValue value)
         {
-            Check("add", instance.Type, arguments, MondValueType.Undefined, MondValueType.Undefined);
-
             if (instance.ObjectValue.Locked)
                 throw new MondRuntimeException(LockedError, "add");
 
-            instance.ObjectValue.Values[arguments[0]] = arguments[1];
+            instance.ObjectValue.Values[key] = value;
             return instance;
         }
 
         /// <summary>
         /// clear(): object
         /// </summary>
-        private static MondValue Clear(MondState state, MondValue instance, params MondValue[] arguments)
+        [MondFunction("clear")]
+        public static MondValue Clear([MondInstance] MondValue instance)
         {
-            Check("clear", instance.Type, arguments);
-
             if (instance.ObjectValue.Locked)
                 throw new MondRuntimeException(LockedError, "clear");
 
@@ -62,30 +47,29 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// containsKey(key): bool
         /// </summary>
-        private static MondValue ContainsKey(MondState state, MondValue instance, params MondValue[] arguments)
+        [MondFunction("containsKey")]
+        public static bool ContainsKey([MondInstance] MondValue instance, MondValue key)
         {
-            Check("containsKey", instance.Type, arguments, MondValueType.Undefined);
-            return instance.ObjectValue.Values.ContainsKey(arguments[0]);
+            return instance.ObjectValue.Values.ContainsKey(key);
         }
 
         /// <summary>
         /// containsValue(value): bool
         /// </summary>
-        private static MondValue ContainsValue(MondState state, MondValue instance, params MondValue[] arguments)
+        [MondFunction("containsValue")]
+        public static bool ContainsValue([MondInstance] MondValue instance, MondValue value)
         {
-            Check("containsValue", instance.Type, arguments, MondValueType.Undefined);
-            return instance.ObjectValue.Values.ContainsValue(arguments[0]);
+            return instance.ObjectValue.Values.ContainsValue(value);
         }
 
         /// <summary>
         /// get(key): any
         /// </summary>
-        private static MondValue Get(MondState state, MondValue instance, params MondValue[] arguments)
+        [MondFunction("get")]
+        public static MondValue Get([MondInstance] MondValue instance, MondValue key)
         {
-            Check("get", instance.Type, arguments, MondValueType.Undefined);
-
             MondValue value;
-            if (!instance.ObjectValue.Values.TryGetValue(arguments[0], out value))
+            if (!instance.ObjectValue.Values.TryGetValue(key, out value))
                 return MondValue.Undefined;
 
             return value;
@@ -94,38 +78,36 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// remove(key): object
         /// </summary>
-        private static MondValue Remove(MondState state, MondValue instance, params MondValue[] arguments)
+        [MondFunction("remove")]
+        public static MondValue Remove([MondInstance] MondValue instance, MondValue key)
         {
-            Check("remove", instance.Type, arguments, MondValueType.Undefined);
-
             if (instance.ObjectValue.Locked)
-                throw new MondRuntimeException(LockedError, "clear");
+                throw new MondRuntimeException(LockedError, "remove");
 
-            instance.ObjectValue.Values.Remove(arguments[0]);
+            instance.ObjectValue.Values.Remove(key);
             return instance;
         }
 
         /// <summary>
         /// length(): number
         /// </summary>
-        private static MondValue Length(MondState state, MondValue instance, params MondValue[] arguments)
+        [MondFunction("length")]
+        public static int Length([MondInstance] MondValue instance)
         {
-            Check("length", instance.Type, arguments);
             return instance.ObjectValue.Values.Count;
         }
 
         /// <summary>
         /// getEnumerator(): object
         /// </summary>
-        private static MondValue GetEnumerator(MondState state, MondValue instance, MondValue[] arguments)
+        [MondFunction("getEnumerator")]
+        public static MondValue GetEnumerator([MondInstance] MondValue instance)
         {
-            Check("getEnumerator", instance.Type, arguments);
-
             var enumerator = new MondValue(MondValueType.Object);
             var keys = instance.ObjectValue.Values.Keys.ToList();
             var i = 0;
 
-            enumerator["current"] = MondValue.Null;
+            enumerator["current"] = MondValue.Undefined;
             enumerator["moveNext"] = new MondValue((_, args) =>
             {
                 if (i >= keys.Count)
@@ -148,15 +130,13 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// setPrototype(value: any) : object
         /// </summary>
-        private static MondValue SetPrototype(MondState state, MondValue instance, params MondValue[] arguments)
+        [MondFunction("setPrototype")]
+        public static MondValue SetPrototype([MondInstance] MondValue instance, MondValue value)
         {
-            Check("setPrototype", instance.Type, arguments, MondValueType.Undefined);
-
-            var obj = arguments[0];
-            if (obj.Type != MondValueType.Object && obj.Type != MondValueType.Null && obj.Type != MondValueType.Undefined)
+            if (value.Type != MondValueType.Object && value.Type != MondValueType.Null && value.Type != MondValueType.Undefined)
                 throw new MondRuntimeException("Object.setPrototype: prototype value must be an object, null, or undefined");
 
-            instance.Prototype = obj;
+            instance.Prototype = value;
 
             return instance;
         }
@@ -164,10 +144,9 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// lock(): object
         /// </summary>
-        private static MondValue Lock(MondState state, MondValue instance, params MondValue[] arguments)
+        [MondFunction("lock")]
+        public static MondValue Lock([MondInstance] MondValue instance)
         {
-            Check("lock", instance.Type, arguments);
-
             instance.Lock();
             return instance;
         }
@@ -175,32 +154,13 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// setPrototypeAndLock(value: any): object
         /// </summary>
-        private static MondValue SetPrototypeAndLock(MondState state, MondValue instance, params MondValue[] arguments)
+        [MondFunction("setPrototypeAndLock")]
+        public static MondValue SetPrototypeAndLock([MondInstance] MondValue instance, MondValue value)
         {
-            Check("setPrototypeAndLock", instance.Type, arguments, MondValueType.Undefined);
-
-            SetPrototype(state, instance, arguments);
-            Lock(state, instance, arguments);
+            SetPrototype(instance, value);
+            Lock(instance);
 
             return instance;
-        }
-
-        private static void Check(string method, MondValueType type, IList<MondValue> arguments, params MondValueType[] requiredTypes)
-        {
-            if (type != MondValueType.Object)
-                throw new MondRuntimeException("Object.{0}: must be called on an object", method);
-
-            if (arguments.Count < requiredTypes.Length)
-                throw new MondRuntimeException("Object.{0}: must be called with {1} argument{2}", method, requiredTypes.Length, requiredTypes.Length == 1 ? "" : "s");
-
-            for (var i = 0; i < requiredTypes.Length; i++)
-            {
-                if (requiredTypes[i] == MondValueType.Undefined)
-                    continue;
-
-                if (arguments[i].Type != requiredTypes[i])
-                    throw new MondRuntimeException("Object.{0}: argument {1} must be of type {2}", method, i + 1, requiredTypes[i].GetName());
-            }
         }
     }
 }

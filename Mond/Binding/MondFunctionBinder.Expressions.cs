@@ -194,7 +194,7 @@ namespace Mond.Binding
 
             Expression callExpr;
 
-            if (instanceFunction)
+            if (instanceFunction && instanceType != null)
             {
                 // instance functions store the instance in UserData
                 var userData = Expression.Convert(Expression.PropertyOrField(parameters[1], "UserData"), instanceType);

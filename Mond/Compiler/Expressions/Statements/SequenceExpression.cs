@@ -46,7 +46,7 @@ namespace Mond.Compiler.Expressions.Statements
             stack += context.NewObject();
 
             stack += context.Dup();
-            stack += context.LoadNull();
+            stack += context.LoadUndefined();
             stack += context.Swap();
             stack += context.StoreField(context.String("current"));
 

@@ -1,36 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
+using Mond.Binding;
 
 namespace Mond.VirtualMachine.Prototypes
 {
-    static class StringPrototype
+    [MondModule("String")]
+    internal static class StringPrototype
     {
         public static readonly MondValue Value;
 
         static StringPrototype()
         {
-            Value = new MondValue(MondValueType.Object);
+            Value = MondPrototypeBinder.Bind(typeof(StringPrototype));
             Value.Prototype = ValuePrototype.Value;
-
-            Value["charAt"] = new MondInstanceFunction(CharAt);
-            Value["charCodeAt"] = new MondInstanceFunction(CharCodeAt);
-            Value["contains"] = new MondInstanceFunction(Contains);
-            Value["endsWith"] = new MondInstanceFunction(EndsWith);
-            Value["indexOf"] = new MondInstanceFunction(IndexOf);
-            Value["insert"] = new MondInstanceFunction(Insert);
-            Value["lastIndexOf"] = new MondInstanceFunction(LastIndexOf);
-            Value["replace"] = new MondInstanceFunction(Replace);
-            Value["split"] = new MondInstanceFunction(Split);
-            Value["startsWith"] = new MondInstanceFunction(StartsWith);
-            Value["substring"] = new MondInstanceFunction(Substring);
-            Value["toUpper"] = new MondInstanceFunction(ToUpper);
-            Value["toLower"] = new MondInstanceFunction(ToLower);
-            Value["trim"] = new MondInstanceFunction(Trim);
-            Value["format"] = new MondInstanceFunction(Format);
-
-            Value["length"] = new MondInstanceFunction(Length);
-            Value["getEnumerator"] = new MondInstanceFunction(GetEnumerator);
 
             Value.Lock();
         }
@@ -40,12 +22,10 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// charAt(index: number): string
         /// </summary>
-        private static MondValue CharAt(MondState state, MondValue instance, params MondValue[] arguments)
+        [MondFunction("charAt")]
+        public static string CharAt([MondInstance] MondValue instance, int index)
         {
-            Check("charAt", instance.Type, arguments, MondValueType.Number);
-
             var instStr = (string)instance;
-            var index = (int)arguments[0];
 
             if (index < 0 || index >= instStr.Length)
                 throw new MondRuntimeException(IndexOutOfBounds, "charAt");
@@ -56,93 +36,86 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// charCodeAt(index: number): number
         /// </summary>
-        private static MondValue CharCodeAt(MondState state, MondValue instance, params MondValue[] arguments)
+        [MondFunction("charCodeAt")]
+        public static int CharCodeAt([MondInstance] MondValue instance, int index)
         {
-            Check("charCodeAt", instance.Type, arguments, MondValueType.Number);
-
             var instStr = (string)instance;
-            var index = (int)arguments[0];
 
             if (index < 0 || index >= instStr.Length)
-                throw new MondRuntimeException(IndexOutOfBounds, "charAt");
+                throw new MondRuntimeException(IndexOutOfBounds, "charCodeAt");
 
-            return (double)instStr[index];
+            return instStr[index];
         }
 
         /// <summary>
         /// contains(value: string): bool
         /// </summary>
-        private static MondValue Contains(MondState state, MondValue instance, params MondValue[] arguments)
+        [MondFunction("contains")]
+        public static bool Contains([MondInstance] MondValue instance, string value)
         {
-            Check("contains", instance.Type, arguments, MondValueType.String);
-            return ((string)instance).Contains(arguments[0]);
+            return ((string)instance).Contains(value);
         }
 
         /// <summary>
         /// endsWith(value: string): bool
         /// </summary>
-        private static MondValue EndsWith(MondState state, MondValue instance, params MondValue[] arguments)
+        [MondFunction("endsWith")]
+        public static bool EndsWith([MondInstance] MondValue instance, string value)
         {
-            Check("endsWith", instance.Type, arguments, MondValueType.String);
-            return ((string)instance).EndsWith(arguments[0]);
+            return ((string)instance).EndsWith(value);
         }
 
         /// <summary>
         /// indexOf(value: string): number
         /// </summary>
-        private static MondValue IndexOf(MondState state, MondValue instance, params MondValue[] arguments)
+        [MondFunction("indexOf")]
+        public static int IndexOf([MondInstance] MondValue instance, string value)
         {
-            Check("indexOf", instance.Type, arguments, MondValueType.String);
-            return ((string)instance).IndexOf(arguments[0]);
+            return ((string)instance).IndexOf(value, StringComparison.Ordinal);
         }
 
         /// <summary>
         /// insert(index: number, value: string): string
         /// </summary>
-        private static MondValue Insert(MondState state, MondValue instance, params MondValue[] arguments)
+        [MondFunction("insert")]
+        public static string Insert([MondInstance] MondValue instance, int index, string value)
         {
-            Check("insert", instance.Type, arguments, MondValueType.Number, MondValueType.String);
-
             var instStr = (string)instance;
-            var index = (int)arguments[0];
 
             if (index < 0 || index > instStr.Length)
                 throw new MondRuntimeException(IndexOutOfBounds, "insert");
 
-            return instStr.Insert(index, arguments[1]);
+            return instStr.Insert(index, value);
         }
 
         /// <summary>
         /// lastIndexOf(value: string): number
         /// </summary>
-        private static MondValue LastIndexOf(MondState state, MondValue instance, params MondValue[] arguments)
+        [MondFunction("lastIndexOf")]
+        public static int LastIndexOf([MondInstance] MondValue instance, string value)
         {
-            Check("lastIndexOf", instance.Type, arguments, MondValueType.String);
-            return ((string)instance).LastIndexOf(arguments[0]);
+            return ((string)instance).LastIndexOf(value, StringComparison.Ordinal);
         }
 
         /// <summary>
         /// replace(oldValue: string, newValue: string): string
         /// </summary>
-        private static MondValue Replace(MondState state, MondValue instance, params MondValue[] arguments)
+        [MondFunction("replace")]
+        public static string Replace([MondInstance] MondValue instance, string oldValue, string newValue)
         {
-            Check("replace", instance.Type, arguments, MondValueType.String, MondValueType.String);
-
-            var oldValue = (string)arguments[0];
             if (string.IsNullOrEmpty(oldValue))
                 return instance;
 
-            return ((string)instance).Replace(oldValue, arguments[1]);
+            return ((string)instance).Replace(oldValue, newValue);
         }
 
         /// <summary>
         /// split(separator: string): array
         /// </summary>
-        private static MondValue Split(MondState state, MondValue instance, params MondValue[] arguments)
+        [MondFunction("split")]
+        public static MondValue Split([MondInstance] MondValue instance, string separator)
         {
-            Check("split", instance.Type, arguments, MondValueType.String);
-
-            var values = ((string)instance).Split(new string[] { arguments[0] }, StringSplitOptions.None);
+            var values = ((string)instance).Split(new [] { separator }, StringSplitOptions.None);
             var result = new MondValue(MondValueType.Array);
 
             result.ArrayValue.AddRange(values.Select(v => (MondValue)v));
@@ -153,33 +126,37 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// startsWith(value: string): bool
         /// </summary>
-        private static MondValue StartsWith(MondState state, MondValue instance, params MondValue[] arguments)
+        [MondFunction("startsWith")]
+        public static bool StartsWith([MondInstance] MondValue instance, string value)
         {
-            Check("startsWith", instance.Type, arguments, MondValueType.String);
-            return ((string)instance).StartsWith(arguments[0]);
+            return ((string)instance).StartsWith(value);
         }
 
         /// <summary>
         /// substring(startIndex: number): string
-        /// substring(startIndex: number, length: number): string
         /// </summary>
-        private static MondValue Substring(MondState state, MondValue instance, params MondValue[] arguments)
+        [MondFunction("substring")]
+        public static string Substring([MondInstance] MondValue instance, int startIndex)
         {
-            Check("substring", instance.Type, arguments, MondValueType.Number);
-
             var instStr = (string)instance;
-            var startIndex = (int)arguments[0];
 
             if (startIndex < 0 || startIndex >= instStr.Length)
                 return "";
 
-            if (arguments.Length <= 1)
-                return instStr.Substring((int)arguments[0]);
+            return instStr.Substring(startIndex);
+        }
 
-            if (arguments[1].Type != MondValueType.Number)
-                throw new MondRuntimeException("String.substring: argument 2 must be of type number");
+        /// <summary>
+        /// substring(startIndex: number, length: number): string
+        /// </summary>
+        [MondFunction("substring")]
+        public static string Substring([MondInstance] MondValue instance, int startIndex, int length)
+        {
+            var instStr = (string)instance;
 
-            var length = (int)arguments[1];
+            if (startIndex < 0 || startIndex >= instStr.Length)
+                return "";
+
             if (startIndex + length >= instStr.Length)
                 length = Math.Max(instStr.Length - startIndex, 0);
 
@@ -189,37 +166,36 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// toUpper(): string
         /// </summary>
-        private static MondValue ToUpper(MondState state, MondValue instance, params MondValue[] arguments)
+        [MondFunction("toUpper")]
+        public static string ToUpper([MondInstance] MondValue instance)
         {
-            Check("toUpper", instance.Type, arguments);
             return ((string)instance).ToUpper();
         }
 
         /// <summary>
         /// toLower(): string
         /// </summary>
-        private static MondValue ToLower(MondState state, MondValue instance, params MondValue[] arguments)
+        [MondFunction("toLower")]
+        public static string ToLower([MondInstance] MondValue instance)
         {
-            Check("toLower", instance.Type, arguments);
             return ((string)instance).ToLower();
         }
 
         /// <summary>
         /// trim(): string
         /// </summary>
-        private static MondValue Trim(MondState state, MondValue instance, params MondValue[] arguments)
+        [MondFunction("trim")]
+        public static string Trim([MondInstance] MondValue instance)
         {
-            Check("trim", instance.Type, arguments);
             return ((string)instance).Trim();
         }
 
         /// <summary>
         /// format(): string
         /// </summary>
-        private static MondValue Format(MondState state, MondValue instance, params MondValue[] arguments)
+        [MondFunction("format")]
+        public static string Format([MondInstance] MondValue instance, params MondValue[] arguments)
         {
-            Check("format", instance.Type, arguments);
-
             var values = arguments.Select<MondValue, object>(x =>
             {
                 // System.String.Format has certain format specifiers
@@ -244,24 +220,23 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// length(): number
         /// </summary>
-        private static MondValue Length(MondState state, MondValue instance, params MondValue[] arguments)
+        [MondFunction("length")]
+        public static int Length([MondInstance] MondValue instance)
         {
-            Check("length", instance.Type, arguments);
             return ((string)instance).Length;
         }
 
         /// <summary>
         /// getEnumerator(): object
         /// </summary>
-        private static MondValue GetEnumerator(MondState state, MondValue instance, MondValue[] arguments)
+        [MondFunction("getEnumerator")]
+        public static MondValue GetEnumerator([MondInstance] MondValue instance)
         {
-            Check("getEnumerator", instance.Type, arguments);
-
             var enumerator = new MondValue(MondValueType.Object);
             var str = (string)instance;
             var i = 0;
 
-            enumerator["current"] = MondValue.Null;
+            enumerator["current"] = MondValue.Undefined;
             enumerator["moveNext"] = new MondValue((_, args) =>
             {
                 if (i >= str.Length)
@@ -274,24 +249,6 @@ namespace Mond.VirtualMachine.Prototypes
             enumerator["dispose"] = new MondFunction((_, args) => MondValue.Undefined);
 
             return enumerator;
-        }
-
-        private static void Check(string method, MondValueType type, IList<MondValue> arguments, params MondValueType[] requiredTypes)
-        {
-            if (type != MondValueType.String)
-                throw new MondRuntimeException("String.{0}: must be called on a string", method);
-
-            if (arguments.Count < requiredTypes.Length)
-                throw new MondRuntimeException("String.{0}: must be called with {1} argument{2}", method, requiredTypes.Length, requiredTypes.Length == 1 ? "" : "s");
-
-            for (var i = 0; i < requiredTypes.Length; i++)
-            {
-                if (requiredTypes[i] == MondValueType.Undefined)
-                    continue;
-
-                if (arguments[i].Type != requiredTypes[i])
-                    throw new MondRuntimeException("String.{0}: argument {1} must be of type {2}", method, i + 1, requiredTypes[i].GetName());
-            }
         }
     }
 }

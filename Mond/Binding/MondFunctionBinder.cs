@@ -74,7 +74,7 @@ namespace Mond.Binding
                 BindCallFactory callFactory = (m, p, a, r) => BindFunctionCall(m, type, true, p, a, r);
                 yield return Tuple.Create(table.Name, BindImpl<MondInstanceFunction, MondValue>(className, table, true, callFactory));
 #else
-                yield return Tuple.Create(table.Name, BindInstanceImpl(className, table, nameOverride));
+                yield return Tuple.Create(table.Name, BindInstanceImpl(className, table, nameOverride, type == null));
 #endif
             }
         }

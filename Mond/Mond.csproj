@@ -60,6 +60,7 @@
     <Compile Include="Binding\MondInstanceAttribute.cs" />
     <Compile Include="Binding\MondModuleAttribute.cs" />
     <Compile Include="Binding\MondModuleBinder.cs" />
+    <Compile Include="Binding\MondPrototypeBinder.cs" />
     <Compile Include="Compiler\CompilerError.cs" />
     <Compile Include="Compiler\ConstantPool.cs" />
     <Compile Include="Compiler\Expressions\IBlockExpression.cs" />

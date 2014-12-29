@@ -1,23 +1,21 @@
-﻿namespace Mond.VirtualMachine.Prototypes
+﻿using Mond.Binding;
+
+namespace Mond.VirtualMachine.Prototypes
 {
     /// <summary>
     /// Contains members common to ALL values.
     /// </summary>
-    static class ValuePrototype
+    [MondModule("Value")]
+    internal static class ValuePrototype
     {
         public static readonly MondValue Value;
 
         static ValuePrototype()
         {
-            Value = new MondValue(MondValueType.Object);
+            Value = MondPrototypeBinder.Bind(typeof(ValuePrototype));
 
             // we dont use MondValue.Prototype here because this should not have a prototype
             Value.ObjectValue.Prototype = MondValue.Undefined;
-
-            Value["getType"] = new MondInstanceFunction(GetType);
-            Value["toString"] = new MondInstanceFunction(ToString);
-            Value["serialize"] = new MondInstanceFunction(Serialize);
-            Value["getPrototype"] = new MondInstanceFunction(GetPrototype);
 
             Value.Lock();
         }
@@ -25,7 +23,8 @@
         /// <summary>
         /// getType(): string
         /// </summary>
-        private static MondValue GetType(MondState state, MondValue instance, params MondValue[] args)
+        [MondFunction("getType")]
+        public static string GetType([MondInstance] MondValue instance)
         {
             return instance.Type.GetName();
         }
@@ -33,7 +32,8 @@
         /// <summary>
         /// toString(): string
         /// </summary>
-        private static MondValue ToString(MondState state, MondValue instance, params MondValue[] args)
+        [MondFunction("toString")]
+        public static string ToString([MondInstance] MondValue instance)
         {
             return instance.ToString();
         }
@@ -41,7 +41,8 @@
         /// <summary>
         /// serialize(): string
         /// </summary>
-        private static MondValue Serialize(MondState state, MondValue instance, params MondValue[] args)
+        [MondFunction("serialize")]
+        public static string Serialize([MondInstance] MondValue instance)
         {
             return instance.Serialize();
         }
@@ -49,7 +50,8 @@
         /// <summary>
         /// getPrototype(): object
         /// </summary>
-        private static MondValue GetPrototype(MondState state, MondValue instance, params MondValue[] args)
+        [MondFunction("getPrototype")]
+        public static MondValue GetPrototype([MondInstance] MondValue instance)
         {
             return instance.Prototype;
         }
