@@ -43,6 +43,12 @@ namespace Mond.Tests.Binding
             Assert.True(_state.Run("return global.Ov.Test('hi', 20, 'hi');") == 6, "6.2");
         }
 
+        [Test]
+        public void HiddenOverloads()
+        {
+            Assert.Throws<MondBindingException>(() => MondModuleBinder.Bind<HiddenOverloadsModule>());
+        }
+
         [MondModule]
         public class OverloadedModule
         {
@@ -86,6 +92,22 @@ namespace Mond.Tests.Binding
             public static int Test(params MondValue[] args)
             {
                 return 6;
+            }
+        }
+
+        [MondModule]
+        public class HiddenOverloadsModule
+        {
+            [MondFunction]
+            public static int Add(int x, int y)
+            {
+                return x + y;
+            }
+
+            [MondFunction]
+            public static double Add(double x, double y)
+            {
+                return x + y;
             }
         }
     }

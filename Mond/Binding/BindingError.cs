@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace Mond.Binding
@@ -11,6 +13,20 @@ namespace Mond.Binding
         public const string TypeMissingAttribute = "Type must have the {0} attribute";
 
         public const string DuplicateDefinition = "Duplicate definition of '{0}'";
+
+        public static string MethodsHiddenError(IEnumerable<MethodBase> methods)
+        {
+            var sb = new StringBuilder();
+
+            sb.AppendLine("Methods are hidden by overloads:");
+
+            foreach (var m in methods)
+            {
+                sb.AppendLine(m.ToString());
+            }
+
+            return sb.ToString();
+        }
 
         public static string ErrorPrefix(string moduleName, string methodName)
         {

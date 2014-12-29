@@ -58,11 +58,13 @@ namespace Mond.Binding
 
         private static MethodTable BuildMethodTable(IEnumerable<Method> source)
         {
+            var sourceList = source.ToList();
+
             string name = null;
             var methods = new List<List<Method>>();
             var paramsMethods = new List<Method>();
 
-            foreach (var method in source)
+            foreach (var method in sourceList)
             {
                 if (name == null)
                 {
@@ -93,6 +95,21 @@ namespace Mond.Binding
 
             paramsMethods.Sort();
 
+            // make sure all functions made it in
+            var sourceMethodInfo = sourceList.Select(m => m.Info);
+
+            var tableMethodInfo = methods.SelectMany(l => l).Select(m => m.Info);
+            var paramsMethodInfo = paramsMethods.Select(m => m.Info);
+
+            var difference = sourceMethodInfo
+                .Except(tableMethodInfo.Concat(paramsMethodInfo))
+                .ToList();
+
+            if (difference.Count > 0)
+            {
+                throw new MondBindingException(BindingError.MethodsHiddenError(difference));
+            }
+
             return new MethodTable(name, methods, paramsMethods);
         }
 
@@ -112,7 +129,7 @@ namespace Mond.Binding
 
                 for (var i = 0; i < _length; i++)
                 {
-                    if (xParams[i].Info.ParameterType != yParams[i].Info.ParameterType ||
+                    if (!xParams[i].MondTypes.SequenceEqual(yParams[i].MondTypes) ||
                         xParams[i].IsOptional != yParams[i].IsOptional)
                     {
                         return false;
