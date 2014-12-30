@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using Mond.Compiler.Expressions;
 using Mond.Compiler.Expressions.Statements;
@@ -7,6 +8,60 @@ namespace Mond.Compiler.Visitors
 {
     sealed class ExpressionPrintVisitor : IExpressionVisitor<int>, IDisposable
     {
+        #region Static
+
+        private static readonly Dictionary<TokenType, string> OperatorMap;
+
+        static ExpressionPrintVisitor()
+        {
+            OperatorMap = new Dictionary<TokenType, string>
+            {
+                { TokenType.Assign, "=" },
+
+                { TokenType.Add, "+" },
+                { TokenType.Subtract, "-" },
+                { TokenType.Multiply, "*" },
+                { TokenType.Divide, "/" },
+                { TokenType.Modulo, "%" },
+                { TokenType.Exponent, "**" },
+                { TokenType.BitAnd, "&" },
+                { TokenType.BitOr, "|" },
+                { TokenType.BitXor, "^" },
+                { TokenType.BitNot, "~" },
+                { TokenType.BitLeftShift, "<<" },
+                { TokenType.BitRightShift, ">>" },
+                { TokenType.Increment, "++" },
+                { TokenType.Decrement, "--" },
+
+                { TokenType.AddAssign, "+=" },
+                { TokenType.SubtractAssign, "-=" },
+                { TokenType.MultiplyAssign, "*=" },
+                { TokenType.DivideAssign, "/=" },
+                { TokenType.ModuloAssign, "%=" },
+                { TokenType.ExponentAssign, "**=" },
+                { TokenType.BitAndAssign, "&=" },
+                { TokenType.BitOrAssign, "|=" },
+                { TokenType.BitXorAssign, "^=" },
+                { TokenType.BitLeftShiftAssign, "<<=" },
+                { TokenType.BitRightShiftAssign, ">>=" },
+
+                { TokenType.EqualTo, "==" },
+                { TokenType.NotEqualTo, "!=" },
+                { TokenType.GreaterThan, ">" },
+                { TokenType.GreaterThanOrEqual, ">=" },
+                { TokenType.LessThan, "<" },
+                { TokenType.LessThanOrEqual, "<=" },
+                { TokenType.Not, "!" },
+                { TokenType.ConditionalAnd, "&&" },
+                { TokenType.ConditionalOr, "||" },
+
+                { TokenType.In, "in" },
+                { TokenType.NotIn, "!in" },
+            };
+        }
+
+        #endregion
+
         private IndentTextWriter _writer;
 
         public ExpressionPrintVisitor(TextWriter writer)
@@ -24,143 +79,113 @@ namespace Mond.Compiler.Visitors
 
         public int Visit(BreakExpression expression)
         {
-            _writer.WriteLine("Break");
+            _writer.Write("break");
             return 0;
         }
 
         public int Visit(ContinueExpression expression)
         {
-            _writer.WriteLine("Continue");
+            _writer.Write("continue");
             return 0;
         }
 
         public int Visit(DoWhileExpression expression)
         {
-            _writer.WriteLine("DoWhile");
+            _writer.WriteLine("do");
 
-            _writer.WriteLine("-Block");
-
-            _writer.Indent += 2;
             expression.Block.Accept(this);
-            _writer.Indent -= 2;
 
-            _writer.WriteLine("-Condition");
-
-            _writer.Indent += 2;
+            _writer.Write(" while (");
             expression.Condition.Accept(this);
-            _writer.Indent -= 2;
+            _writer.Write(")");
 
             return 0;
         }
 
         public int Visit(ForeachExpression expression)
         {
-            _writer.WriteLine("Foreach - {0}", expression.Identifier);
-
-            _writer.WriteLine("-Expression");
-
-            _writer.Indent += 2;
+            _writer.Write("foreach (var {0} in ", expression.Identifier);
             expression.Expression.Accept(this);
-            _writer.Indent -= 2;
+            _writer.WriteLine(")");
 
-            _writer.WriteLine("-Block");
-
-            _writer.Indent += 2;
             expression.Block.Accept(this);
-            _writer.Indent -= 2;
-
             return 0;
         }
 
         public int Visit(ForExpression expression)
         {
-            _writer.WriteLine("For");
+            _writer.Write("for (");
 
             if (expression.Initializer != null)
             {
-                _writer.WriteLine("-Initializer");
-
-                _writer.Indent += 2;
-                expression.Initializer.Accept(this);
-                _writer.Indent -= 2;
+                expression.Initializer.Statements[0].Accept(this);
             }
+            _writer.Write("; ");
 
             if (expression.Condition != null)
             {
-                _writer.WriteLine("-Condition");
-
-                _writer.Indent += 2;
                 expression.Condition.Accept(this);
-                _writer.Indent -= 2;
             }
+            _writer.Write("; ");
 
             if (expression.Increment != null)
             {
-                _writer.WriteLine("-Increment");
+                var incrementExprs = expression.Increment.Statements;
+                for (var i = 0; i < incrementExprs.Count; i++)
+                {
+                    incrementExprs[i].Accept(this);
 
-                _writer.Indent += 2;
-                expression.Increment.Accept(this);
-                _writer.Indent -= 2;
+                    if (i < incrementExprs.Count - 1)
+                        _writer.Write(", ");
+                }
             }
+            _writer.WriteLine(")");
 
-            _writer.WriteLine("-Block");
-
-            _writer.Indent += 2;
             expression.Block.Accept(this);
-            _writer.Indent -= 2;
-
             return 0;
         }
 
         public int Visit(FunctionExpression expression)
         {
-            _writer.WriteLine("Function " + expression.Name);
-
-            _writer.WriteLine("-Arguments: {0}", string.Join(", ", expression.Arguments));
+            _writer.Write("fun {0}(", expression.Name);
+            _writer.Write(string.Join(", ", expression.Arguments));
 
             if (expression.OtherArguments != null)
-                _writer.WriteLine("-Other Arguments: {0}", expression.OtherArguments);
+            {
+                if (expression.Arguments.Count > 0)
+                    _writer.Write(", ");
 
-            _writer.WriteLine("-Block");
+                _writer.Write("...{0}", expression.OtherArguments);
+            }
 
-            _writer.Indent += 2;
+            _writer.WriteLine(")");
+
             expression.Block.Accept(this);
-            _writer.Indent -= 2;
-
             return 0;
         }
 
         public int Visit(IfExpression expression)
         {
-            _writer.WriteLine("If Statement");
-
-            var first = true;
-
-            foreach (var branch in expression.Branches)
+            for (var i = 0; i < expression.Branches.Count; i++)
             {
-                _writer.WriteLine(first ? "-If" : "-ElseIf");
-                first = false;
+                var branch = expression.Branches[i];
 
-                _writer.Indent += 2;
+                _writer.Write(i == 0 ? "if" : "else if");
+
+                _writer.Write(" (");
                 branch.Condition.Accept(this);
-                _writer.Indent -= 2;
+                _writer.WriteLine(")");
 
-                _writer.WriteLine(" Do");
-
-                _writer.Indent += 2;
                 branch.Block.Accept(this);
-                _writer.Indent -= 2;
+
+                if (expression.Else != null || i < expression.Branches.Count - 1)
+                    _writer.WriteLine();
             }
 
             if (expression.Else != null)
             {
-                _writer.WriteLine("-Else");
-
-                _writer.WriteLine(" Do");
-
-                _writer.Indent += 2;
+                _writer.WriteLine("else ");
                 expression.Else.Block.Accept(this);
-                _writer.Indent -= 2;
             }
 
             return 0;
@@ -168,13 +193,12 @@ namespace Mond.Compiler.Visitors
 
         public int Visit(ReturnExpression expression)
         {
-            _writer.WriteLine("Return");
+            _writer.Write("return");
 
             if (expression.Value != null)
             {
-                _writer.Indent++;
+                _writer.Write(" ");
                 expression.Value.Accept(this);
-                _writer.Indent--;
             }
 
             return 0;
@@ -182,75 +206,82 @@ namespace Mond.Compiler.Visitors
 
         public int Visit(SequenceExpression expression)
         {
-            _writer.WriteLine("Sequence " + expression.Name);
-
-            _writer.WriteLine("-Arguments: {0}", string.Join(", ", expression.Arguments));
+            _writer.Write("seq {0}(", expression.Name);
+            _writer.Write(string.Join(", ", expression.Arguments));
 
             if (expression.OtherArguments != null)
-                _writer.WriteLine("-Other Arguments: {0}", expression.OtherArguments);
+            {
+                if (expression.Arguments.Count > 0)
+                    _writer.Write(", ");
 
-            _writer.WriteLine("-Block");
+                _writer.Write("...{0}", expression.OtherArguments);
+            }
 
-            _writer.Indent += 2;
+            _writer.WriteLine(")");
+
             expression.Block.Accept(this);
-            _writer.Indent -= 2;
-
             return 0;
         }
 
         public int Visit(SwitchExpression expression)
         {
-            _writer.WriteLine("Switch");
-
-            _writer.WriteLine("-Expression");
-
-            _writer.Indent += 2;
+            _writer.Write("switch (");
             expression.Expression.Accept(this);
-            _writer.Indent -= 2;
+            _writer.WriteLine(")");
 
-            foreach (var branch in expression.Branches)
+            _writer.WriteLine("{");
+            _writer.Indent++;
+
+            for (var i = 0; i < expression.Branches.Count; i++)
             {
-                _writer.WriteLine("-Cases");
+                var branch = expression.Branches[i];
 
-                _writer.Indent += 2;
                 foreach (var condition in branch.Conditions)
                 {
+                    _writer.Write("case ");
                     condition.Accept(this);
+                    _writer.WriteLine(":");
                 }
-                _writer.Indent -= 2;
 
-                _writer.WriteLine(" Do");
-
-                _writer.Indent += 2;
                 branch.Block.Accept(this);
-                _writer.Indent -= 2;
+
+                if (expression.DefaultBlock != null || i < expression.Branches.Count - 1)
+                    _writer.WriteLine();
             }
 
             if (expression.DefaultBlock != null)
             {
-                _writer.WriteLine("-Default");
-
-                _writer.Indent += 2;
+                _writer.WriteLine("default:");
                 expression.DefaultBlock.Accept(this);
-                _writer.Indent -= 2;
             }
+
+            _writer.WriteLine();
+
+            _writer.Indent--;
+            _writer.Write("}");
 
             return 0;
         }
 
         public int Visit(VarExpression expression)
         {
-            _writer.WriteLine(expression.IsReadOnly ? "Const" : "Var");
+            _writer.Write(expression.IsReadOnly ? "const " : "var ");
+
+            var first = true;
 
             foreach (var declaration in expression.Declarations)
             {
-                _writer.WriteLine("-" + declaration.Name + (declaration.Initializer != null ? " =" : ""));
+                if (first)
+                    first = false;
+                else
+                    _writer.Write(", ");
+
+                _writer.Write(declaration.Name);
 
                 if (declaration.Initializer != null)
                 {
-                    _writer.Indent += 2;
+                    _writer.Write(" = ");
                     declaration.Initializer.Accept(this);
-                    _writer.Indent -= 2;
                 }
             }
 
@@ -259,36 +290,24 @@ namespace Mond.Compiler.Visitors
 
         public int Visit(WhileExpression expression)
         {
-            _writer.WriteLine("While");
-
-            _writer.WriteLine("-Condition");
-
-            _writer.Indent += 2;
+            _writer.Write("while (");
             expression.Condition.Accept(this);
-            _writer.Indent -= 2;
+            _writer.WriteLine(")");
 
-            _writer.WriteLine("-Do");
-
-            _writer.Indent += 2;
             expression.Block.Accept(this);
-            _writer.Indent -= 2;
-
             return 0;
         }
 
         public int Visit(YieldBreakExpression expression)
         {
-            _writer.WriteLine("YieldBreak");
+            _writer.WriteLine("yield break");
             return 0;
         }
 
         public int Visit(YieldExpression expression)
         {
-            _writer.WriteLine("Yield");
-
-            _writer.Indent++;
+            _writer.Write("yield ");
             expression.Value.Accept(this);
-            _writer.Indent--;
 
             return 0;
         }
@@ -299,287 +318,255 @@ namespace Mond.Compiler.Visitors
 
         public int Visit(ArrayExpression expression)
         {
-            _writer.WriteLine("Array");
+            if (expression.Values.Count == 0)
+            {
+                _writer.Write("[]");
+                return 0;
+            }
+
+            _writer.WriteLine("[");
+
+            var first = true;
 
             _writer.Indent++;
             foreach (var value in expression.Values)
             {
+                if (first)
+                    first = false;
+                else
+                    _writer.WriteLine(", ");
+
                 value.Accept(this);
             }
             _writer.Indent--;
 
+            _writer.WriteLine();
+            _writer.Write("]");
             return 0;
         }
 
         public int Visit(BinaryOperatorExpression expression)
         {
-            _writer.WriteLine("Operator {0}", expression.Operation);
-
-            _writer.Indent++;
+            _writer.Write("(");
             expression.Left.Accept(this);
+            _writer.Write(" {0} ", OperatorMap[expression.Operation]);
             expression.Right.Accept(this);
-            _writer.Indent--;
+            _writer.Write(")");
 
             return 0;
         }
 
         public int Visit(BlockExpression expression)
         {
+            _writer.WriteLine("{");
+            _writer.Indent++;
+
             foreach (var statement in expression.Statements)
             {
                 statement.Accept(this);
+                _writer.WriteLine(";");
             }
+
+            _writer.Indent--;
+            _writer.Write("}");
 
             return 0;
         }
 
         public int Visit(BoolExpression expression)
         {
-            _writer.WriteLine("bool: {0}", expression.Value);
+            _writer.Write(expression.Value ? "true" : "false");
             return 0;
         }
 
         public int Visit(CallExpression expression)
         {
-            _writer.WriteLine("Call");
-
-            _writer.WriteLine("-Expression");
-
-            _writer.Indent += 2;
             expression.Method.Accept(this);
-            _writer.Indent -= 2;
 
-            _writer.WriteLine("-Arguments");
+            _writer.Write("(");
 
-            _writer.Indent += 2;
+            var first = true;
             foreach (var arg in expression.Arguments)
             {
+                if (first)
+                    first = false;
+                else
+                    _writer.Write(", ");
+
                 arg.Accept(this);
             }
-            _writer.Indent -= 2;
 
+            _writer.Write(")");
             return 0;
         }
 
         public int Visit(EmptyExpression expression)
         {
-            _writer.WriteLine("Empty");
+            _writer.Write("/* empty */");
             return 0;
         }
 
         public int Visit(FieldExpression expression)
         {
-            _writer.WriteLine("Field {0}", expression.Name);
-
-            _writer.Indent++;
             expression.Left.Accept(this);
-            _writer.Indent--;
+            _writer.Write(".");
+            _writer.Write(expression.Name);
 
             return 0;
         }
 
         public int Visit(GlobalExpression expression)
         {
-            _writer.WriteLine("global");
+            _writer.Write("global");
             return 0;
         }
 
         public int Visit(IdentifierExpression expression)
         {
-            _writer.WriteLine("identifier: {0}", expression.Name);
+            _writer.Write(expression.Name);
             return 0;
         }
 
         public int Visit(IndexerExpression expression)
         {
-            _writer.WriteLine("Indexer");
-
-            _writer.WriteLine("-Left");
-
-            _writer.Indent += 2;
             expression.Left.Accept(this);
-            _writer.Indent -= 2;
-
-            _writer.WriteLine("-Index");
-
-            _writer.Indent += 2;
+            _writer.Write("[");
             expression.Index.Accept(this);
-            _writer.Indent -= 2;
+            _writer.Write("]");
 
             return 0;
         }
 
         public int Visit(ListComprehensionExpression expression)
         {
-            _writer.WriteLine("List Comprehension");
-
-            _writer.WriteLine("-Body");
-
-            _writer.Indent += 2;
+            _writer.Write("/* list comprehension */ (seq () ");
             expression.Body.Accept(this);
-            _writer.Indent -= 2;
+            _writer.Write(")()");
 
             return 0;
         }
 
         public int Visit(NullExpression expression)
         {
-            _writer.WriteLine("null");
+            _writer.Write("null");
             return 0;
         }
 
         public int Visit(NumberExpression expression)
         {
-            _writer.WriteLine("number: {0}", expression.Value);
+            _writer.Write(expression.Value);
             return 0;
         }
 
         public int Visit(ObjectExpression expression)
         {
-            _writer.WriteLine("Object");
-
-            foreach (var value in expression.Values)
+            if (expression.Values.Count == 0)
             {
-                _writer.WriteLine("-" + value.Key);
-
-                _writer.Indent += 2;
-                value.Value.Accept(this);
-                _writer.Indent -= 2;
+                _writer.Write("{}");
+                return 0;
             }
 
+            _writer.WriteLine("{");
+
+            var first = true;
+
+            _writer.Indent++;
+            foreach (var value in expression.Values)
+            {
+                if (first)
+                    first = false;
+                else
+                    _writer.WriteLine(", ");
+
+                _writer.Write("{0}: ", value.Key);
+                value.Value.Accept(this);
+            }
+            _writer.Indent--;
+
+            _writer.WriteLine();
+            _writer.Write("}");
             return 0;
         }
 
         public int Visit(PipelineExpression expression)
         {
-            _writer.WriteLine("Pipeline");
-
-            _writer.Indent++;
             expression.Left.Accept(this);
+            _writer.Write(" |> ");
             expression.Right.Accept(this);
-            _writer.Indent--;
 
             return 0;
         }
 
         public int Visit(PostfixOperatorExpression expression)
         {
-            var discardResult = expression.Parent == null || expression.Parent is BlockExpression;
-
-            _writer.WriteLine("Postfix {0}" + (discardResult ? " - Result not used" : ""), expression.Operation);
-
-            _writer.Indent++;
             expression.Left.Accept(this);
-            _writer.Indent--;
+            _writer.Write(OperatorMap[expression.Operation]);
 
             return 0;
         }
 
         public int Visit(PrefixOperatorExpression expression)
         {
-            _writer.WriteLine("Prefix {0}", expression.Operation);
-
-            _writer.Indent++;
+            _writer.Write(OperatorMap[expression.Operation]);
             expression.Right.Accept(this);
-            _writer.Indent--;
 
             return 0;
         }
 
         public int Visit(ScopeExpression expression)
         {
-            foreach (var statement in expression.Statements)
-            {
-                statement.Accept(this);
-            }
-
-            return 0;
+            return Visit((BlockExpression)expression);
         }
 
         public int Visit(SliceExpression expression)
         {
-            _writer.WriteLine("Slice");
-
-            _writer.WriteLine("-Left");
-
-            _writer.Indent += 2;
             expression.Left.Accept(this);
-            _writer.Indent -= 2;
+            _writer.Write("[");
 
             if (expression.Start != null)
-            {
-                _writer.WriteLine("-Start");
-
-                _writer.Indent += 2;
                 expression.Start.Accept(this);
-                _writer.Indent -= 2;
-            }
+            _writer.Write(":");
 
             if (expression.End != null)
-            {
-                _writer.WriteLine("-End");
-
-                _writer.Indent += 2;
                 expression.End.Accept(this);
-                _writer.Indent -= 2;
-            }
+            _writer.Write(":");
 
             if (expression.Step != null)
-            {
-                _writer.WriteLine("-Step");
-
-                _writer.Indent += 2;
                 expression.Step.Accept(this);
-                _writer.Indent -= 2;
-            }
 
+            _writer.Write("]");
             return 0;
         }
 
         public int Visit(StringExpression expression)
         {
-            _writer.WriteLine("string: \"{0}\"", expression.Value);
+            new MondValue(expression.Value).Serialize(_writer);
             return 0;
         }
 
         public int Visit(TernaryExpression expression)
         {
-            _writer.WriteLine("Conditional");
-
-            _writer.WriteLine("-Expression");
-
-            _writer.Indent += 2;
+            _writer.Write("(");
             expression.Condition.Accept(this);
-            _writer.Indent -= 2;
-
-            _writer.WriteLine("-True");
-
-            _writer.Indent += 2;
+            _writer.Write(" ? ");
             expression.IfTrue.Accept(this);
-            _writer.Indent -= 2;
-
-            _writer.WriteLine("-False");
-
-            _writer.Indent += 2;
+            _writer.Write(" : ");
             expression.IfFalse.Accept(this);
-            _writer.Indent -= 2;
+            _writer.Write(")");
 
             return 0;
         }
 
         public int Visit(UndefinedExpression expression)
         {
-            _writer.WriteLine("undefined");
+            _writer.Write("undefined");
             return 0;
         }
 
         public int Visit(UnpackExpression expression)
         {
-            _writer.WriteLine("Unpack");
-
-            _writer.Indent++;
+            _writer.Write("...");
             expression.Right.Accept(this);
-            _writer.Indent--;
 
             return 0;
         }

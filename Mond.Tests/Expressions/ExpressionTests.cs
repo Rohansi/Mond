@@ -63,7 +63,7 @@ namespace Mond.Tests.Expressions
         }
 
         [Test]
-        public void LogicalOr()
+        public void ConditionalOr()
         {
             var result = Script.Run(@"
                 var result = '';
@@ -86,7 +86,7 @@ namespace Mond.Tests.Expressions
         }
 
         [Test]
-        public void LogicalAnd()
+        public void ConditionalAnd()
         {
             var result = Script.Run(@"
                 var result = '';
@@ -109,7 +109,7 @@ namespace Mond.Tests.Expressions
         }
 
         [Test]
-        public void LogicalNot()
+        public void ConditionalNot()
         {
             var result = Script.Run(@"
                 var a = true;

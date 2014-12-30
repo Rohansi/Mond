@@ -141,7 +141,7 @@ namespace Mond.Binding
 
             public int GetHashCode(Method obj)
             {
-                return 0; // TODO?
+                return 0;
             }
         }
 

@@ -53,6 +53,8 @@ namespace Mond.Compiler.Parselets.Statements
                 {
                     new ReturnExpression(token, parser.ParseExpression())
                 });
+
+                trailingSemicolon = true;
             }
             else
             {
