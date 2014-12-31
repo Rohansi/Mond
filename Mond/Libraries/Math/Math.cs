@@ -1,29 +1,12 @@
-﻿using System;
-using Mond.Binding;
+﻿using Mond.Binding;
 
-namespace Mond.Repl.Modules
+namespace Mond.Libraries.Math
 {
+    using Math = System.Math;
+
     [MondModule("Math")]
-    public class MondMath
+    internal class MondMath
     {
-        private static MondValue _binding;
-
-        public static MondValue Binding
-        {
-            get
-            {
-                if (_binding != null)
-                    return _binding;
-
-                _binding = MondModuleBinder.Bind<MondMath>();
-
-                _binding["PI"] = Math.PI;
-                _binding["E"] = Math.E;
-
-                return _binding;
-            }
-        }
-
         [MondFunction("abs")]
         public static double Abs(double value)
         {

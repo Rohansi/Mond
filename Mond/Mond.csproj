@@ -161,9 +161,22 @@
     <Compile Include="GenericComparer.cs" />
     <Compile Include="IndentTextWriter.cs" />
     <Compile Include="IndexedStack.cs" />
+    <Compile Include="Libraries\ConsoleLibraries.cs" />
+    <Compile Include="Libraries\Console\ConsoleInput.cs" />
+    <Compile Include="Libraries\Console\ConsoleOutput.cs" />
+    <Compile Include="Libraries\CoreLibraries.cs" />
+    <Compile Include="Libraries\Core\Error.cs" />
+    <Compile Include="Libraries\Core\Require.cs" />
+    <Compile Include="Libraries\MathLibraries.cs" />
+    <Compile Include="Libraries\IMondLibrary.cs" />
+    <Compile Include="Libraries\IMondLibraryCollection.cs" />
+    <Compile Include="Libraries\Math\Math.cs" />
+    <Compile Include="Libraries\Math\Random.cs" />
+    <Compile Include="Libraries\StandardLibraries.cs" />
     <Compile Include="MondCompilerException.cs" />
     <Compile Include="MondCompilerOptions.cs" />
     <Compile Include="MondException.cs" />
+    <Compile Include="Libraries\MondLibraryManager.cs" />
     <Compile Include="MondValueType.cs" />
     <Compile Include="VirtualMachine\Machine.Stacks.cs" />
     <Compile Include="VirtualMachine\Object.cs" />
@@ -195,6 +208,7 @@
   <ItemGroup>
     <Compile Include="Compiler\Lexer.Static.cs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

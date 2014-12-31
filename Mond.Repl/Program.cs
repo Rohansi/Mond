@@ -2,14 +2,22 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Mond.Libraries;
 using Mond.Repl.Input;
 
 namespace Mond.Repl
 {
     class Program
     {
+        private static MondLibraryManager _libraries;
+
         static void Main(string[] args)
         {
+            _libraries = new MondLibraryManager
+            {
+                new StandardLibraries()
+            };
+
             var fileName = args.FirstOrDefault(s => s.Length > 0 && s[0] != '-');
 
             if (fileName != null)
@@ -41,7 +49,7 @@ namespace Mond.Repl
         static void ScriptMain(TextReader input, string fileName)
         {
             var state = new MondState();
-            Functions.Register(state);
+            _libraries.Load(state);
 
             string source;
 
@@ -63,7 +71,7 @@ namespace Mond.Repl
                     FirstLineNumber = 0
                 };
 
-                var program = MondProgram.Compile(Functions.Definitions + source, Path.GetFileName(fileName), options);
+                var program = MondProgram.Compile(_libraries.Definitions + source, Path.GetFileName(fileName), options);
                 var result = state.Load(program);
 
                 if (result == MondValue.Undefined)
@@ -103,8 +111,8 @@ namespace Mond.Repl
                 MakeRootDeclarationsGlobal = true,
                 UseImplicitGlobals = true
             };
-
-            Functions.Register(state);
+            
+            _libraries.Load(state);
 
             while (true)
             {

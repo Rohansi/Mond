@@ -80,11 +80,13 @@ namespace Mond
                     break;
 
                 case MondValueType.Object:
-                    foreach (var kv in ObjectValue.Values)
+                    foreach (var key in ObjectValue.Values.Keys)
                     {
+                        var value = this[key];
+
                         var pair = new MondValue(MondValueType.Object);
-                        pair["key"] = kv.Key;
-                        pair["value"] = kv.Value;
+                        pair["key"] = key;
+                        pair["value"] = value;
 
                         yield return pair;
                     }

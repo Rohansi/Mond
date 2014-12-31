@@ -1,10 +1,10 @@
 ﻿using System;
 using Mond.Binding;
 
-namespace Mond.Repl.Modules
+namespace Mond.Libraries.Math
 {
     [MondClass("Random")]
-    public class MondRandom
+    internal class MondRandom
     {
         private readonly Random _random;
 

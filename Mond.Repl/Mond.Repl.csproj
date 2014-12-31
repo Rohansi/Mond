@@ -41,12 +41,9 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Functions.cs" />
     <Compile Include="Input\Highlighted.cs" />
     <Compile Include="Input\Highlighter.cs" />
     <Compile Include="Input\Highlighter.Static.cs" />
-    <Compile Include="Modules\Math.cs" />
-    <Compile Include="Modules\Random.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
