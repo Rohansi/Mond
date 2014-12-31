@@ -13,7 +13,8 @@ const Char = {
     },
     
     isLetter: fun (ch) {
-        return (ch >= "a" && ch <= "z") || (ch >= "A" && ch <= "Z");
+        return (ch >= "a" && ch <= "z") ||
+               (ch >= "A" && ch <= "Z");
     },
     
     isDigit: fun (ch) {
@@ -22,6 +23,12 @@ const Char = {
     
     isLetterOrDigit: fun (ch) {
         return Char.isLetter(ch) || Char.isDigit(ch);
+    },
+    
+    isHexDigit: fun (ch) {
+        return (ch >= "0" && ch <= "9") ||
+               (ch >= "A" && ch <= "F") ||
+               (ch >= "a" && ch <= "f");
     }
 };
 
@@ -265,9 +272,30 @@ seq tokenize(input) {
         
         // number
         if (Char.isDigit(ch)) {
+            var format = "dec";
+            var prefix = "";
             var hasDecimal = false;
             var hasExp = false;
             var justTake = false;
+            
+            if (ch == '0') {
+                var nextChar = peekChar(1);
+                
+                if (nextChar == "x" || nextChar == "X")
+                    format = "hex";
+                    
+                if (nextChar == "b" || nextChar == "B")
+                    format = "bin";
+                    
+                if (format != "dec") {
+                    takeChar(); // '0'
+                    takeChar(); // 'x' or 'b'
+                    
+                    prefix = ch + nextChar;
+                }
+            }
+            
+            fun isDigit(c) -> Char.isDigit(c) || (format == "hex" && Char.isHexDigit(c));
             
             var number = takeWhile(c -> {
                 if (justTake) {
@@ -275,29 +303,45 @@ seq tokenize(input) {
                     return true;
                 }
                 
-                if (c == "." && !hasDecimal) {
-                    hasDecimal = true;
-                    return Char.isDigit(peekChar(1));
-                }
-                
-                if ((c == "e" || c == "E") && !hasExp) {
-                    var next = peekChar(1);
-                    if (next == "+" || next == "-")
-                        justTake = true;
-                        
-                    hasExp = true;
+                if (c == "_" && isDigit(peekChar(1)))
                     return true;
+                
+                if (format == "dec") {
+                    if (c == "." && !hasDecimal) {
+                        hasDecimal = true;
+                        return isDigit(peekChar(1));
+                    }
+                    
+                    if ((c == "e" || c == "E") && !hasExp) {
+                        var next = peekChar(1);
+                        if (next == "+" || next == "-")
+                            justTake = true;
+                            
+                        hasExp = true;
+                        return true;
+                    }
                 }
                 
-                return Char.isDigit(c);
+                return isDigit(c);
             });
             
-            yield { type: "number", contents: number };
+            yield { type: "number", contents: prefix + number };
             continue;
         }
         
         ch = takeChar();
         yield { type: "unknown", contents: ch };
+    }
+}
+
+seq stdin() {
+    var line;
+    while ((line = readLn()) != null) {
+        foreach (var ch in line) {
+            yield ch;
+        }
+        
+        yield "\n";
     }
 }
 
