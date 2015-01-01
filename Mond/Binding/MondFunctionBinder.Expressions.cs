@@ -217,7 +217,7 @@ namespace Mond.Binding
                 expressions.Add(Expression.Return(returnLabel, Expression.Constant(MondValue.Undefined)));
             }
 
-            return  Expression.Block(expressions);
+            return Expression.Block(expressions);
         }
 
         /// <summary>
@@ -253,7 +253,26 @@ namespace Mond.Binding
             }
 
             if (returnType == typeof(MondValue))
-                return v => v;
+                return v => Expression.Coalesce(v, Expression.Constant(MondValue.Null));
+
+            if (returnType == typeof(string))
+            {
+                return v =>
+                {
+                    var tempVar = Expression.Variable(typeof(string));
+
+                    var tempVarIsNull = Expression.ReferenceEqual(tempVar, Expression.Constant(null));
+                    var tempVarAsValue = Expression.Convert(tempVar, typeof(MondValue));
+
+                    var block = Expression.Block(
+                        new[] { tempVar },
+                        Expression.Assign(tempVar, v),
+                        Expression.Condition(tempVarIsNull, Expression.Constant(MondValue.Null), tempVarAsValue)
+                    );
+
+                    return block;
+                };
+            }
 
             if (BasicTypes.Contains(returnType))
                 return v => Expression.Convert(v, typeof(MondValue));

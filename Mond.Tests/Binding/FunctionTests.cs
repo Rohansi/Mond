@@ -25,6 +25,7 @@ namespace Mond.Tests.Binding
                 "ReturnSByte", "ReturnByte",
                 "ReturnString", "ReturnBool",
                 "ReturnVoid",
+                "ReturnNullValue", "ReturnNullString",
 
                 "Add", "Concat", "Greet"
             };
@@ -64,7 +65,8 @@ namespace Mond.Tests.Binding
                 "Short", "UShort",
                 "SByte", "Byte",
                 "String", "Bool",
-                "Void"
+                "Void",
+                "NullValue", "NullString"
             };
 
             var results = new List<MondValue>
@@ -73,14 +75,18 @@ namespace Mond.Tests.Binding
                 int.MaxValue, uint.MaxValue,
                 short.MaxValue, ushort.MaxValue,
                 sbyte.MaxValue, byte.MaxValue,
-                "a string", true, MondValue.Undefined
+                "a string", true,
+                MondValue.Undefined,
+                MondValue.Null, MondValue.Null
             };
 
             for (var i = 0; i < types.Count; i++)
             {
-                Assert.True(_state.Run(string.Format(@"
+                var result = _state.Run(string.Format(@"
                     return global.Return{0}();
-                ", types[i])) == results[i], types[i]);
+                ", types[i]));
+
+                Assert.True(result == results[i], types[i]);
             }
         }
 
@@ -278,6 +284,18 @@ namespace Mond.Tests.Binding
         public static void ReturnVoid()
         {
 
+        }
+
+        [MondFunction]
+        public static MondValue ReturnNullValue()
+        {
+            return null;
+        }
+
+        [MondFunction]
+        public static string ReturnNullString()
+        {
+            return null;
         }
 
         #endregion

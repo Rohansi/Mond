@@ -202,10 +202,10 @@ namespace Mond.Binding
                 return o => MondValue.Undefined;
 
             if (returnType == typeof(MondValue))
-                return o => (MondValue)o;
+                return o => ReferenceEquals(o, null) ? MondValue.Null : (MondValue)o;
 
             if (returnType == typeof(string))
-                return o => (string)o;
+                return o => ReferenceEquals(o, null) ? MondValue.Null : (MondValue)(string)o;
 
             if (returnType == typeof(bool))
                 return o => (bool)o;

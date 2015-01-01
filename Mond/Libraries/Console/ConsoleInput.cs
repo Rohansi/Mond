@@ -24,14 +24,9 @@ namespace Mond.Libraries.Console
         }
 
         [MondFunction("readLn")]
-        public MondValue ReadLn()
+        public string ReadLn()
         {
-            var line = _consoleInput.In.ReadLine();
-
-            if (line == null)
-                return MondValue.Null;
-
-            return line;
+            return _consoleInput.In.ReadLine();
         }
     }
 }
