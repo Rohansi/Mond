@@ -84,6 +84,9 @@ namespace Mond
         /// </summary>
         public MondValue(string value)
         {
+            if (ReferenceEquals(value, null))
+                throw new ArgumentNullException("value");
+
             Type = MondValueType.String;
             _stringValue = value;
         }
@@ -93,6 +96,9 @@ namespace Mond
         /// </summary>
         public MondValue(MondFunction function)
         {
+            if (ReferenceEquals(function, null))
+                throw new ArgumentNullException("function");
+
             Type = MondValueType.Function;
             FunctionValue = new Closure(function);
         }
@@ -103,6 +109,9 @@ namespace Mond
         /// </summary>
         public MondValue(MondInstanceFunction function)
         {
+            if (ReferenceEquals(function, null))
+                throw new ArgumentNullException("function");
+
             Type = MondValueType.Function;
             FunctionValue = new Closure(function);
         }
@@ -120,6 +129,9 @@ namespace Mond
         {
             get
             {
+                if (ReferenceEquals(index, null))
+                    throw new ArgumentNullException("index");
+
                 if (Type == MondValueType.Array && index.Type == MondValueType.Number)
                 {
                     var n = (int)index._numberValue;
@@ -167,10 +179,10 @@ namespace Mond
             }
             set
             {
-                if (index == null)
+                if (ReferenceEquals(index, null))
                     throw new ArgumentNullException("index");
 
-                if (value == null)
+                if (ReferenceEquals(value, null))
                     throw new ArgumentNullException("value");
 
                 if (Type == MondValueType.Array && index.Type == MondValueType.Number)
@@ -428,7 +440,7 @@ namespace Mond
             {
                 case MondValueType.Object:
                     {
-                        if (ReferenceEquals(ObjectValue, other.ObjectValue))
+                        if (other.Type == MondValueType.Object && ReferenceEquals(ObjectValue, other.ObjectValue))
                             return true;
 
                         MondValue result;
@@ -439,17 +451,17 @@ namespace Mond
                     }
 
                 case MondValueType.Array:
-                    return ReferenceEquals(ArrayValue, other.ArrayValue);
+                    return other.Type == MondValueType.Array && ReferenceEquals(ArrayValue, other.ArrayValue);
 
                 case MondValueType.Number:
                     // ReSharper disable once CompareOfFloatsByEqualityOperator
-                    return _numberValue == other._numberValue;
+                    return other.Type == MondValueType.Number && _numberValue == other._numberValue;
 
                 case MondValueType.String:
-                    return _stringValue == other._stringValue;
+                    return other.Type == MondValueType.String && _stringValue == other._stringValue;
 
                 case MondValueType.Function:
-                    return ReferenceEquals(FunctionValue, other.FunctionValue);
+                    return other.Type == MondValueType.Function && ReferenceEquals(FunctionValue, other.FunctionValue);
 
                 default:
                     return Type == other.Type;

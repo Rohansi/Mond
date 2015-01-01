@@ -216,6 +216,10 @@ namespace Mond.Tests
             _left = new MondValue(MondValueType.Object);
             _right = _left;
             Assert.True(_left == _right);
+
+            _left = 0;
+            _right = MondValue.Null;
+            Assert.False(_left == _right, "type check");
         }
 
         [Test]
