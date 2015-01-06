@@ -91,24 +91,57 @@ namespace Mond.Repl.Input
                         continue;
 
                     case ConsoleKey.LeftArrow:
-                        if (_caretIndex > 0)
+                        if (_caretIndex == 0)
+                            continue;
+
+                        if (info.Modifiers.HasFlag(ConsoleModifiers.Control))
                         {
-                            _caretIndex--;
-                            Move(-1);
+                            var diff = PreviousBoundary();
+                            _caretIndex += diff;
+                            Move(diff);
+
+                            continue;
                         }
+
+                        _caretIndex--;
+                        Move(-1);
+
                         continue;
 
                     case ConsoleKey.RightArrow:
-                        if (_caretIndex < _input.Count)
+                        if (_caretIndex == _input.Count)
+                            continue;
+
+                        if (info.Modifiers.HasFlag(ConsoleModifiers.Control))
                         {
-                            _caretIndex++;
-                            Move(1);
+                            var diff = NextBoundary();
+                            _caretIndex += diff;
+                            Move(diff);
+
+                            continue;
                         }
+
+                        _caretIndex++;
+                        Move(1);
+
                         continue;
 
                     case ConsoleKey.Backspace:
                         if (_caretIndex == 0)
                             continue;
+
+                        if (info.Modifiers.HasFlag(ConsoleModifiers.Control))
+                        {
+                            var diff = PreviousBoundary();
+
+                            _caretIndex += diff;
+                            Move(diff);
+
+                            _input.RemoveRange(_caretIndex, Math.Abs(diff));
+
+                            highlighter = Redraw();
+                            continue;
+                        }
 
                         _caretIndex--;
                         _historyIndex = -1;
@@ -122,6 +155,16 @@ namespace Mond.Repl.Input
                     case ConsoleKey.Delete:
                         if (_caretIndex == _input.Count)
                             continue;
+
+                        if (info.Modifiers.HasFlag(ConsoleModifiers.Control))
+                        {
+                            var diff = NextBoundary();
+
+                            _input.RemoveRange(_caretIndex, diff);
+
+                            highlighter = Redraw();
+                            continue;
+                        }
 
                         _historyIndex = -1;
                         _input.RemoveAt(_caretIndex);
@@ -145,6 +188,9 @@ namespace Mond.Repl.Input
                         highlighter = Redraw();
                         continue;
 
+                    case ConsoleKey.Tab:
+                        continue;
+
                     default:
                         if (info.KeyChar == 0)
                             continue;
@@ -163,6 +209,45 @@ namespace Mond.Repl.Input
                 _caretIndex++;
                 _historyIndex = -1;
             }
+        }
+
+        private static int NextBoundary()
+        {
+            if (_caretIndex == _input.Count)
+                return 0;
+
+            var index = _caretIndex;
+
+            while (index < _input.Count)
+            {
+                if (!char.IsLetterOrDigit(_input[index]))
+                    break;
+
+                index++;
+            }
+
+            return Math.Max(index - _caretIndex, 1);
+        }
+
+        private static int PreviousBoundary()
+        {
+            if (_caretIndex == 0)
+                return 0;
+
+            var index = _caretIndex - 1;
+
+            while (index > 0)
+            {
+                if (!char.IsLetterOrDigit(_input[index]))
+                {
+                    index++;
+                    break;
+                }
+
+                index--;
+            }
+
+            return Math.Min(index - _caretIndex, -1);
         }
 
         private static void SetInput(string value, out Highlighter highlighter)
