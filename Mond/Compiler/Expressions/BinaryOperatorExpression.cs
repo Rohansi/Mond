@@ -32,12 +32,13 @@ namespace Mond.Compiler.Expressions
 
                 var needResult = !(Parent is IBlockExpression);
 
+                if (isAssignOperation)
+                    stack += Left.Compile(context);
+
                 stack += Right.Compile(context);
 
                 if (isAssignOperation)
                 {
-                    stack += Left.Compile(context);
-
                     context.Position(FileName, Line, Column); // debug info
                     stack += context.BinaryOperation(assignOperation);
                 }
@@ -77,8 +78,8 @@ namespace Mond.Compiler.Expressions
                 return stack;
             }
 
-            stack += Right.Compile(context);
             stack += Left.Compile(context);
+            stack += Right.Compile(context);
 
             context.Position(FileName, Line, Column); // debug info
             stack += context.BinaryOperation(Operation);

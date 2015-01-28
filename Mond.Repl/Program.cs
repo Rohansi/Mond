@@ -26,7 +26,7 @@ namespace Mond.Repl
                 {
                     using (var file = File.OpenRead(fileName))
                     using (var reader = new StreamReader(file))
-                        ScriptMain(reader, args[0]);
+                        ScriptMain(reader, fileName);
                 }
                 catch (Exception e)
                 {

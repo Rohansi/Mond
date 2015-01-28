@@ -22,7 +22,7 @@ namespace Mond.Compiler
         LdLoc, StLoc,                       // load/store local
         LdFld, StFld,                       // load/store field
         LdArr, StArr,                       // load/store array
-        LdLocals, StLocals,                 // load/store current frame stack in another frame
+        LdState, StState,                   // load/store current frame stack and evals in another frame
 
         NewObject, NewArray,                // create object/array
         Slice,                              // slice array

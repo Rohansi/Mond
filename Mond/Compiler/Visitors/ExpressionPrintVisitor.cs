@@ -306,8 +306,16 @@ namespace Mond.Compiler.Visitors
 
         public int Visit(YieldExpression expression)
         {
+            var needParens = !(expression.Parent is IBlockExpression);
+
+            if (needParens)
+                _writer.Write('(');
+
             _writer.Write("yield ");
             expression.Value.Accept(this);
+
+            if (needParens)
+                _writer.Write(')');
 
             return 0;
         }

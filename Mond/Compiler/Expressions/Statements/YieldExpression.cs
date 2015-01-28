@@ -32,25 +32,18 @@
             stack += context.Load(enumerable);
             stack += context.StoreField(context.String("current"));
 
-            stack += context.StoreLocals(sequenceContext.LocalIndex - 1); // save locals
+            stack += context.StoreState(sequenceContext.LocalIndex - 1); // save locals
             stack += context.LoadTrue();
             stack += context.Return();
 
             stack += context.Bind(nextStateLabel);
-            stack += context.LoadLocals(sequenceContext.LocalIndex - 1); // load locals
+            stack += context.LoadState(sequenceContext.LocalIndex - 1); // load locals
 
             if (!(Parent is IBlockExpression))
             {
-                var parentBinOp = Parent as BinaryOperatorExpression;
-                if ((parentBinOp != null && parentBinOp.IsAssign) || Parent is VarExpression)
-                {
-                    stack += context.Load(context.Identifier("#input"));
-                    CheckStack(stack, 1);
-                    return stack;
-                }
-
-                // TODO: allow more cases? can't yield with stuff on the stack
-                throw new MondCompilerException(FileName, Line, Column, CompilerError.YieldNotInAssign);
+                stack += context.Load(context.Identifier("#input"));
+                CheckStack(stack, 1);
+                return stack;
             }
 
             CheckStack(stack, 0);

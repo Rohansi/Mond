@@ -214,5 +214,54 @@ namespace Mond.Tests.Expressions
             result = result.Enumerate(state).Skip(4).FirstOrDefault();
             Assert.True(state.Call(result) == 4);
         }
+
+        [Test]
+        public void YieldExpression()
+        {
+            var result = Script.Run(@"
+                var result = 0;
+
+                seq adder() {
+                    result = (yield) + (yield);
+                }
+
+                var e = adder().getEnumerator();
+                e.moveNext();
+
+                e.moveNext(10);
+                e.moveNext(5);
+
+                return result;
+            ");
+
+            Assert.True(result == 15);
+        }
+
+        [Test]
+        public void InterlacedYieldExpression()
+        {
+            var result = Script.Run(@"
+                seq adder() {
+                    yield (yield) + (yield);
+                }
+
+                var ae = adder().getEnumerator();
+                var be = adder().getEnumerator();
+
+                ae.moveNext();
+                be.moveNext();
+
+                ae.moveNext(1);
+                be.moveNext(10);
+
+                ae.moveNext(5);
+                be.moveNext(15);
+
+                return [ ae.current, be.current ];
+            ");
+
+            Assert.True(result[0] == 6);
+            Assert.True(result[1] == 25);
+        }
     }
 }

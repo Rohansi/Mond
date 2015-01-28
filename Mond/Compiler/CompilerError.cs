@@ -27,7 +27,6 @@
         public const string UnresolvedJump = "Unresolved jump";
 
         public const string YieldInFun = "'yield' cannot be used in functions";
-        public const string YieldNotInAssign = "'yield' expressions can only appear in assignments";
         public const string ReturnInSeq = "'yield break' should be used to return from sequences";
 
         public const string PipelineNeedsCall = "The right side of the pipeline operator must be a function call";

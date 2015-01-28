@@ -32,8 +32,8 @@ namespace Mond.Compiler.Expressions
             }
             else
             {
-                stack += context.Load(context.Number(1));
                 stack += Left.Compile(context);
+                stack += context.Load(context.Number(1));
             }
 
             context.Position(FileName, Line, Column); // debug info

@@ -119,15 +119,15 @@ namespace Mond.Compiler
             return -3;
         }
 
-        public int LoadLocals(int depth)
+        public int LoadState(int depth)
         {
-            Emit(new Instruction(InstructionType.LdLocals, new ImmediateOperand(depth)));
+            Emit(new Instruction(InstructionType.LdState, new ImmediateOperand(depth)));
             return 0;
         }
 
-        public int StoreLocals(int depth)
+        public int StoreState(int depth)
         {
-            Emit(new Instruction(InstructionType.StLocals, new ImmediateOperand(depth)));
+            Emit(new Instruction(InstructionType.StState, new ImmediateOperand(depth)));
             return 0;
         }
 

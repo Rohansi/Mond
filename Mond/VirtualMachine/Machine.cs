@@ -60,7 +60,7 @@ namespace Mond.VirtualMachine
                         argFrame.Values[i] = arguments[i];
                     }
 
-                    PushCall(new ReturnAddress(closure.Program, closure.Address, argFrame));
+                    PushCall(new ReturnAddress(closure.Program, closure.Address, argFrame, _evalStackSize));
                     PushLocal(closure.Locals);
                     break;
 
@@ -98,7 +98,7 @@ namespace Mond.VirtualMachine
 
                     /*if (program.DebugInfo != null)
                     {
-                        var line = program.DebugInfo.FindLine(errorIp);
+                        var line = program.DebugInfo.FindPosition(errorIp);
                         if (line.HasValue)
                             Console.WriteLine("{0:X4} {1} line {2}: {3}", errorIp, program.Strings[line.Value.FileName], line.Value.LineNumber, (InstructionType)code[ip]);
                         else
@@ -250,7 +250,7 @@ namespace Mond.VirtualMachine
                                 break;
                             }
 
-                        case (int)InstructionType.LdLocals:
+                        case (int)InstructionType.LdState:
                             {
                                 var depth = ReadInt32(code, ref ip);
                                 var frame = locals.GetFrame(depth);
@@ -259,14 +259,40 @@ namespace Mond.VirtualMachine
                                 PopLocal();
                                 PushLocal(locals);
 
+                                var evals = frame.StoredEvals;
+                                if (evals != null)
+                                {
+                                    for (var i = evals.Count - 1; i >= 0; i--)
+                                    {
+                                        Push(evals[i]);
+                                    }
+
+                                    evals.Clear();
+                                }
+
                                 break;
                             }
 
-                        case (int)InstructionType.StLocals:
+                        case (int)InstructionType.StState:
                             {
                                 var depth = ReadInt32(code, ref ip);
                                 var frame = locals.GetFrame(depth);
                                 frame.StoredFrame = locals;
+
+                                var initialEvals = _callStackSize > 0 ? PeekCall().EvalDepth : 0;
+                                var currentEvals = _evalStackSize;
+
+                                if (currentEvals != initialEvals)
+                                {
+                                    var evals = frame.StoredEvals ?? (frame.StoredEvals = new List<MondValue>());
+
+                                    while (currentEvals != initialEvals)
+                                    {
+                                        evals.Add(Pop());
+                                        currentEvals--;
+                                    }
+                                }
+
                                 break;
                             }
                         #endregion
@@ -313,88 +339,88 @@ namespace Mond.VirtualMachine
                         #region Math
                         case (int)InstructionType.Add:
                             {
-                                var left = Pop();
                                 var right = Pop();
+                                var left = Pop();
                                 Push(left + right);
                                 break;
                             }
 
                         case (int)InstructionType.Sub:
                             {
-                                var left = Pop();
                                 var right = Pop();
+                                var left = Pop();
                                 Push(left - right);
                                 break;
                             }
 
                         case (int)InstructionType.Mul:
                             {
-                                var left = Pop();
                                 var right = Pop();
+                                var left = Pop();
                                 Push(left * right);
                                 break;
                             }
 
                         case (int)InstructionType.Div:
                             {
-                                var left = Pop();
                                 var right = Pop();
+                                var left = Pop();
                                 Push(left / right);
                                 break;
                             }
 
                         case (int)InstructionType.Mod:
                             {
-                                var left = Pop();
                                 var right = Pop();
+                                var left = Pop();
                                 Push(left % right);
                                 break;
                             }
 
                         case (int)InstructionType.Exp:
                             {
-                                var left = Pop();
                                 var right = Pop();
+                                var left = Pop();
                                 Push(left.Pow(right));
                                 break;
                             }
 
                         case (int)InstructionType.BitLShift:
                             {
-                                var left = Pop();
                                 var right = Pop();
+                                var left = Pop();
                                 Push(left.LShift(right));
                                 break;
                             }
 
                         case (int)InstructionType.BitRShift:
                             {
-                                var left = Pop();
                                 var right = Pop();
+                                var left = Pop();
                                 Push(left.RShift(right));
                                 break;
                             }
 
                         case (int)InstructionType.BitAnd:
                             {
-                                var left = Pop();
                                 var right = Pop();
+                                var left = Pop();
                                 Push(left & right);
                                 break;
                             }
 
                         case (int)InstructionType.BitOr:
                             {
-                                var left = Pop();
                                 var right = Pop();
+                                var left = Pop();
                                 Push(left | right);
                                 break;
                             }
 
                         case (int)InstructionType.BitXor:
                             {
-                                var left = Pop();
                                 var right = Pop();
+                                var left = Pop();
                                 Push(left ^ right);
                                 break;
                             }
@@ -415,48 +441,48 @@ namespace Mond.VirtualMachine
                         #region Logic
                         case (int)InstructionType.Eq:
                             {
-                                var left = Pop();
                                 var right = Pop();
+                                var left = Pop();
                                 Push(left == right);
                                 break;
                             }
 
                         case (int)InstructionType.Neq:
                             {
-                                var left = Pop();
                                 var right = Pop();
+                                var left = Pop();
                                 Push(left != right);
                                 break;
                             }
 
                         case (int)InstructionType.Gt:
                             {
-                                var left = Pop();
                                 var right = Pop();
+                                var left = Pop();
                                 Push(left > right);
                                 break;
                             }
 
                         case (int)InstructionType.Gte:
                             {
-                                var left = Pop();
                                 var right = Pop();
+                                var left = Pop();
                                 Push(left >= right);
                                 break;
                             }
 
                         case (int)InstructionType.Lt:
                             {
-                                var left = Pop();
                                 var right = Pop();
+                                var left = Pop();
                                 Push(left < right);
                                 break;
                             }
 
                         case (int)InstructionType.Lte:
                             {
-                                var left = Pop();
                                 var right = Pop();
+                                var left = Pop();
                                 Push(left <= right);
                                 break;
                             }
@@ -469,16 +495,16 @@ namespace Mond.VirtualMachine
 
                         case (int)InstructionType.In:
                             {
-                                var left = Pop();
                                 var right = Pop();
+                                var left = Pop();
                                 Push(right.Contains(left));
                                 break;
                             }
 
                         case (int)InstructionType.NotIn:
                             {
-                                var left = Pop();
                                 var right = Pop();
+                                var left = Pop();
                                 Push(!right.Contains(left));
                                 break;
                             }
@@ -567,7 +593,7 @@ namespace Mond.VirtualMachine
                                 switch (closure.Type)
                                 {
                                     case ClosureType.Mond:
-                                        PushCall(new ReturnAddress(program, returnAddress, argFrame));
+                                        PushCall(new ReturnAddress(program, returnAddress, argFrame, _evalStackSize));
                                         PushLocal(closure.Locals);
 
                                         program = closure.Program;
@@ -639,7 +665,7 @@ namespace Mond.VirtualMachine
                                 // get rid of old locals
                                 PushLocal(PopLocal().Previous);
 
-                                PushCall(new ReturnAddress(returnAddress.Program, returnAddress.Address, argFrame));
+                                PushCall(new ReturnAddress(returnAddress.Program, returnAddress.Address, argFrame, _evalStackSize));
 
                                 ip = address;
                                 break;

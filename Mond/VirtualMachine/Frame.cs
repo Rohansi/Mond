@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Mond.VirtualMachine
 {
@@ -7,7 +8,9 @@ namespace Mond.VirtualMachine
         public readonly int Depth;
         public readonly Frame Previous;
         public MondValue[] Values;
+
         public Frame StoredFrame;
+        public List<MondValue> StoredEvals; 
 
         public Frame(int depth, Frame previous, int valueCount)
         {

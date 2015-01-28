@@ -23,8 +23,8 @@ namespace Mond.Compiler.Expressions
             switch (Operation)
             {
                 case TokenType.Increment:
-                    stack += context.Load(context.Number(1));
                     stack += Right.Compile(context);
+                    stack += context.Load(context.Number(1));
 
                     context.Position(FileName, Line, Column); // debug info
                     stack += context.BinaryOperation(TokenType.Add);
@@ -32,8 +32,8 @@ namespace Mond.Compiler.Expressions
                     break;
 
                 case TokenType.Decrement:
-                    stack += context.Load(context.Number(1));
                     stack += Right.Compile(context);
+                    stack += context.Load(context.Number(1));
 
                     context.Position(FileName, Line, Column); // debug info
                     stack += context.BinaryOperation(TokenType.Subtract);
