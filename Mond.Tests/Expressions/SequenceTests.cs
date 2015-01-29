@@ -14,7 +14,7 @@ namespace Mond.Tests.Expressions
                 var test = seq () {
                     for (var i = 1; i <= 10; i++) {
                         if (i > 5)
-                            yield break;
+                            return;
                         
                         yield i;
                     }
@@ -65,12 +65,6 @@ namespace Mond.Tests.Expressions
         public void SequenceErrors()
         {
             Assert.Throws<MondCompilerException>(() => Script.Run(@"
-                seq test() {
-                    return;
-                }
-            "), "can't use return in seq");
-
-            Assert.Throws<MondCompilerException>(() => Script.Run(@"
                 fun test() {
                     yield 1;
                 }
@@ -83,6 +77,32 @@ namespace Mond.Tests.Expressions
             "), "can't use yield in fun");
         }
 
+        [Test]
+        public void SequenceReturn()
+        {
+            var result = Script.Run(@"
+                seq test() {
+                    yield 1;
+                    return 2;
+                }
+
+                var enumerator = test().getEnumerator();
+
+                fun check(result, current) {
+                    if (enumerator.moveNext() != result)
+                        return false;
+
+                    return enumerator.current == current;
+                }
+
+                return check(true, 1) &&
+                       check(false, 2) &&
+                       check(false, 2);
+            ");
+
+            Assert.True(result == MondValue.True);
+        }
+        
         [Test]
         public void FizzBuzz()
         {

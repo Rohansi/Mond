@@ -225,7 +225,7 @@ seq tokenize(input) {
             while (true) {
                 if (offset >= length) {
                     print("unterminated string");
-                    yield break;
+                    return;
                 }
             
                 ch = takeChar();
@@ -239,7 +239,7 @@ seq tokenize(input) {
                         
                         if (offset >= length) {
                             print("unexpected end of string");
-                            yield break;
+                            return;
                         }
                             
                         switch (ch) {

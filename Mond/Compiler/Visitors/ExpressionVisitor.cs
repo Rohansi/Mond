@@ -115,11 +115,6 @@ namespace Mond.Compiler
             return default(T);
         }
 
-        public virtual T Visit(YieldBreakExpression expression)
-        {
-            return default(T);
-        }
-
         public virtual T Visit(YieldExpression expression)
         {
             expression.Value.Accept(this);

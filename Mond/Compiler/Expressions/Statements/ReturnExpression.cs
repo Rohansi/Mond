@@ -7,17 +7,29 @@
         public ReturnExpression(Token token, Expression value)
             : base(token.FileName, token.Line, token.Column)
         {
-            Value = value;
+            Value = value ?? new UndefinedExpression(token);
         }
 
         public override int Compile(FunctionContext context)
         {
             context.Position(FileName, Line, Column);
-            
-            if (context is SequenceBodyContext)
-                throw new MondCompilerException(FileName, Line, Column, CompilerError.ReturnInSeq);
 
             var stack = 0;
+
+            var sequenceContext = context.Root as SequenceBodyContext;
+            if (sequenceContext != null)
+            {
+                var sequenceBody = sequenceContext.SequenceBody;
+
+                stack += Value.Compile(context);
+                stack += context.Load(sequenceBody.Enumerable);
+                stack += context.StoreField(context.String("current"));
+                
+                stack += context.Jump(sequenceBody.EndLabel);
+
+                CheckStack(stack, 0);
+                return stack;
+            }
 
             if (context.AssignedName != null)
             {
@@ -34,11 +46,7 @@
                 }
             }
 
-            if (Value != null)
-                stack += Value.Compile(context);
-            else
-                stack += context.LoadUndefined();
-
+            stack += Value.Compile(context);
             stack += context.Return();
 
             CheckStack(stack, 0);

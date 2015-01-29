@@ -70,7 +70,6 @@
     <Compile Include="Compiler\Expressions\SliceExpression.cs" />
     <Compile Include="Compiler\Expressions\Statements\ForeachExpression.cs" />
     <Compile Include="Compiler\Expressions\Statements\SequenceExpression.cs" />
-    <Compile Include="Compiler\Expressions\Statements\YieldBreakExpression.cs" />
     <Compile Include="Compiler\Expressions\Statements\YieldExpression.cs" />
     <Compile Include="Compiler\Expressions\UnpackExpression.cs" />
     <Compile Include="Compiler\LoopContext.cs" />

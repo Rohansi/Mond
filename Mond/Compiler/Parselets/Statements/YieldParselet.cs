@@ -9,9 +9,6 @@ namespace Mond.Compiler.Parselets.Statements
         {
             trailingSemicolon = true;
 
-            if (parser.MatchAndTake(TokenType.Break))
-                return new YieldBreakExpression(token);
-
             return Parse(parser, token);
         }
 

@@ -126,16 +126,17 @@ namespace Mond.Compiler.Expressions.Statements
             // compile body
             stack += Block.Compile(context);
 
+            // set enumerator.current to undefined
+            // do this before EndLabel so we dont overwrite return values
+            stack += context.LoadUndefined();
+            stack += context.Load(Enumerable);
+            stack += context.StoreField(context.String("current"));
+
             stack += context.Bind(EndLabel);
 
             // set state to end
             stack += context.Load(context.Number(-1));
             stack += context.Store(State);
-
-            // set enumerator.current to undefined
-            stack += context.LoadUndefined();
-            stack += context.Load(Enumerable);
-            stack += context.StoreField(context.String("current"));
 
             stack += context.LoadFalse();
             stack += context.Return();

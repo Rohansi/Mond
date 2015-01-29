@@ -298,12 +298,6 @@ namespace Mond.Compiler.Visitors
             return 0;
         }
 
-        public int Visit(YieldBreakExpression expression)
-        {
-            _writer.WriteLine("yield break");
-            return 0;
-        }
-
         public int Visit(YieldExpression expression)
         {
             var needParens = !(expression.Parent is IBlockExpression);
