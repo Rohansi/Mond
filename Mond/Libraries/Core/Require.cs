@@ -3,16 +3,16 @@
 namespace Mond.Libraries.Core
 {
     [MondClass("")]
-    internal class MondRequire
+    internal class RequireClass
     {
         private RequireLibrary _require;
 
         public static MondValue Create(RequireLibrary require)
         {
             MondValue prototype;
-            MondClassBinder.Bind<MondRequire>(out prototype);
+            MondClassBinder.Bind<RequireClass>(out prototype);
 
-            var instance = new MondRequire();
+            var instance = new RequireClass();
             instance._require = require;
 
             var obj = new MondValue(MondValueType.Object);

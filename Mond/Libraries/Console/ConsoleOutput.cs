@@ -3,16 +3,16 @@
 namespace Mond.Libraries.Console
 {
     [MondClass("")]
-    internal class MondConsoleOutput
+    internal class ConsoleOutputClass
     {
         private ConsoleOutputLibrary _consoleOutput;
 
         public static MondValue Create(ConsoleOutputLibrary consoleOutput)
         {
             MondValue prototype;
-            MondClassBinder.Bind<MondConsoleOutput>(out prototype);
+            MondClassBinder.Bind<ConsoleOutputClass>(out prototype);
 
-            var instance = new MondConsoleOutput();
+            var instance = new ConsoleOutputClass();
             instance._consoleOutput = consoleOutput;
 
             var obj = new MondValue(MondValueType.Object);

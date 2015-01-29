@@ -58,7 +58,7 @@ namespace Mond.Libraries
 
         public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions()
         {
-            var consoleOutputClass = MondConsoleOutput.Create(this);
+            var consoleOutputClass = ConsoleOutputClass.Create(this);
 
             yield return new KeyValuePair<string, MondValue>("print", consoleOutputClass["print"]);
             yield return new KeyValuePair<string, MondValue>("printLn", consoleOutputClass["printLn"]);
@@ -79,7 +79,7 @@ namespace Mond.Libraries
 
         public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions()
         {
-            var consoleInputClass = MondConsoleInput.Create(this);
+            var consoleInputClass = ConsoleInputClass.Create(this);
 
             yield return new KeyValuePair<string, MondValue>("readLn", consoleInputClass["readLn"]);
         }

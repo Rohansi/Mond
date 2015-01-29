@@ -23,7 +23,7 @@ namespace Mond.Libraries
     {
         public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions()
         {
-            var mathModule = MondModuleBinder.Bind<MondMath>();
+            var mathModule = MondModuleBinder.Bind<MathModule>();
 
             mathModule["PI"] = System.Math.PI;
             mathModule["E"] = System.Math.E;
@@ -41,7 +41,7 @@ namespace Mond.Libraries
     {
         public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions()
         {
-            var randomClass = MondClassBinder.Bind<MondRandom>();
+            var randomClass = MondClassBinder.Bind<RandomClass>();
             yield return new KeyValuePair<string, MondValue>("Random", randomClass);
         }
     }

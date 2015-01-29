@@ -4,18 +4,18 @@ using Mond.Binding;
 namespace Mond.Libraries.Math
 {
     [MondClass("Random")]
-    internal class MondRandom
+    internal class RandomClass
     {
         private readonly Random _random;
 
         [MondConstructor]
-        public MondRandom()
+        public RandomClass()
         {
             _random = new Random();
         }
 
         [MondConstructor]
-        public MondRandom(int seed)
+        public RandomClass(int seed)
         {
             _random = new Random(seed);
         }

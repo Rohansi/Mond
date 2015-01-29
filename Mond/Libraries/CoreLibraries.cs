@@ -25,7 +25,7 @@ namespace Mond.Libraries
     {
         public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions()
         {
-            var errorModule = MondModuleBinder.Bind<MondError>();
+            var errorModule = MondModuleBinder.Bind<ErrorModule>();
             yield return new KeyValuePair<string, MondValue>("error", errorModule["error"]);
         }
     }
@@ -54,7 +54,7 @@ namespace Mond.Libraries
 
         public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions()
         {
-            var requireClass = MondRequire.Create(this);
+            var requireClass = RequireClass.Create(this);
             yield return new KeyValuePair<string, MondValue>("require", requireClass["require"]);
         }
     }

@@ -3,7 +3,7 @@
 namespace Mond.Libraries.Core
 {
     [MondModule("")]
-    internal class MondError
+    internal class ErrorModule
     {
         [MondFunction("error")]
         public static void Error(string message)

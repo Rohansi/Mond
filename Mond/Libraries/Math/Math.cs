@@ -5,7 +5,7 @@ namespace Mond.Libraries.Math
     using Math = System.Math;
 
     [MondModule("Math")]
-    internal class MondMath
+    internal class MathModule
     {
         [MondFunction("abs")]
         public static double Abs(double value)
