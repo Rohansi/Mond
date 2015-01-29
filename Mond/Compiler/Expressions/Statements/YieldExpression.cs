@@ -25,12 +25,12 @@
             var nextState = sequenceContext.SequenceBody.NextState;
             var nextStateLabel = sequenceContext.SequenceBody.MakeStateLabel(context);
 
-            stack += context.Load(context.Number(nextState));
-            stack += context.Store(state);
-
             stack += Value.Compile(context);
             stack += context.Load(enumerable);
             stack += context.StoreField(context.String("current"));
+
+            stack += context.Load(context.Number(nextState)); // set resume point
+            stack += context.Store(state);
 
             stack += context.StoreState(sequenceContext.LocalIndex - 1); // save locals
             stack += context.LoadTrue();
