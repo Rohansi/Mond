@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Mond.Binding;
 using Mond.Libraries.Async;
@@ -67,6 +68,43 @@ namespace Mond.Libraries
                 var resultEnumerator = state.Call(getEnumerator);
                 input = await RunMondTask(state, resultEnumerator);
             }
+        }
+
+        /// <summary>
+        /// Converts a Task to a MondValue.
+        /// </summary>
+        public static MondValue ToObject(Task task)
+        {
+            return ToObject(task.ContinueWith(t => MondValue.Undefined));
+        }
+
+        /// <summary>
+        /// Converts a Task to a MondValue.
+        /// </summary>
+        public static MondValue ToObject(Task<MondValue> task)
+        {
+            return new MondValue(MondValueType.Object)
+            {
+                Prototype = MondValue.Null,
+                UserData = task
+            };
+        }
+
+        /// <summary>
+        /// Converts an array of MondValues to an array of Tasks.
+        /// </summary>
+        public static Task<MondValue>[] ToTaskArray(MondState state, params MondValue[] tasks)
+        {
+            return tasks
+                .Select(t =>
+                {
+                    var task = t.UserData as Task<MondValue>;
+                    if (task != null)
+                        return task;
+
+                    return RunMondTask(state, t);
+                })
+                .ToArray();
         }
     }
 }
