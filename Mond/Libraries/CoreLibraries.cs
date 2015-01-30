@@ -7,7 +7,7 @@ using Mond.Libraries.Core;
 namespace Mond.Libraries
 {
     /// <summary>
-    /// Contains the <c>error</c> and <c>require</c> functions.
+    /// Contains the <c>error</c>, <c>try</c> and <c>require</c> functions.
     /// </summary>
     public class CoreLibraries : IMondLibraryCollection
     {
@@ -19,7 +19,7 @@ namespace Mond.Libraries
     }
 
     /// <summary>
-    /// Library containing the <c>error</c> function.
+    /// Library containing the <c>error</c> and <c>try</c> functions.
     /// </summary>
     public class ErrorLibrary : IMondLibrary
     {
@@ -27,6 +27,7 @@ namespace Mond.Libraries
         {
             var errorModule = MondModuleBinder.Bind<ErrorModule>();
             yield return new KeyValuePair<string, MondValue>("error", errorModule["error"]);
+            yield return new KeyValuePair<string, MondValue>("try", errorModule["try"]);
         }
     }
 
