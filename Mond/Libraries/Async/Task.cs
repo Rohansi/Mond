@@ -13,6 +13,17 @@ namespace Mond.Libraries.Async
             return AsyncUtil.ToObject(Task.Delay(TimeSpan.FromSeconds(seconds)));
         }
 
+        [MondFunction("delay")]
+        public static MondValue Delay(double seconds, MondValue cancellationToken)
+        {
+            var ct = AsyncUtil.AsCancellationToken(cancellationToken);
+
+            if (!ct.HasValue)
+                throw new MondRuntimeException("delay: second argument must be a CancellationToken");
+
+            return AsyncUtil.ToObject(Task.Delay(TimeSpan.FromSeconds(seconds), ct.Value));
+        }
+
         [MondFunction("whenAll")]
         public static MondValue WhenAll(MondState state, params MondValue[] tasks)
         {

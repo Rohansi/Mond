@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -19,7 +20,7 @@ namespace Mond.Binding
             }
         }
 
-        private static Dictionary<Type, ModuleBinding> _cache = new Dictionary<Type, ModuleBinding>();
+        private static ConcurrentDictionary<Type, ModuleBinding> _cache = new ConcurrentDictionary<Type, ModuleBinding>();
 
         /// <summary>
         /// Generates module bindings for T. Returns an object containing the bound methods.
@@ -116,7 +117,7 @@ namespace Mond.Binding
             }
 
             binding = new ModuleBinding(result);
-            _cache.Add(type, binding);
+            _cache.TryAdd(type, binding);
 
             return result;
         }

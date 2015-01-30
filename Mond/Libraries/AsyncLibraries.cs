@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Mond.Binding;
 using Mond.Libraries.Async;
@@ -18,7 +19,8 @@ namespace Mond.Libraries
     }
 
     /// <summary>
-    /// Library containing the <c>Async</c> and <c>Task</c> modules.
+    /// Library containing the <c>Async</c>, <c>Task</c>, <c>TaskCompletionSource</c>,
+    /// <c>CancellationTokenSource</c>, and <c>CancellationToken</c>.
     /// </summary>
     public class AsyncLibrary : IMondLibrary
     {
@@ -29,6 +31,15 @@ namespace Mond.Libraries
 
             var taskModule = MondModuleBinder.Bind<TaskModule>();
             yield return new KeyValuePair<string, MondValue>("Task", taskModule);
+
+            var tcsClass = MondClassBinder.Bind<TaskCompletionSourceClass>();
+            yield return new KeyValuePair<string, MondValue>("TaskCompletionSource", tcsClass);
+
+            var ctsClass = MondClassBinder.Bind<CancellationTokenSourceClass>();
+            yield return new KeyValuePair<string, MondValue>("CancellationTokenSource", ctsClass);
+
+            var ctClass = MondClassBinder.Bind<CancellationTokenClass>();
+            yield return new KeyValuePair<string, MondValue>("CancellationToken", ctClass);
         }
     }
 
@@ -95,6 +106,9 @@ namespace Mond.Libraries
         /// </summary>
         public static Task<MondValue>[] ToTaskArray(MondState state, params MondValue[] tasks)
         {
+            if (tasks.Length == 1 && tasks[0].Type == MondValueType.Array)
+                tasks = tasks[0].ArrayValue.ToArray();
+
             return tasks
                 .Select(t =>
                 {
@@ -105,6 +119,22 @@ namespace Mond.Libraries
                     return RunMondTask(state, t);
                 })
                 .ToArray();
+        }
+
+        /// <summary>
+        /// Tries to convert a MondValue to a CancellationToken.
+        /// </summary>
+        public static CancellationToken? AsCancellationToken(MondValue value)
+        {
+            if (value.Type != MondValueType.Object)
+                return null;
+
+            var token = value.UserData as CancellationTokenClass;
+
+            if (token == null)
+                return null;
+
+            return token.CancellationToken;
         }
     }
 }

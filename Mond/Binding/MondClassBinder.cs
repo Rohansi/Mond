@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -20,7 +21,7 @@ namespace Mond.Binding
             }
         }
 
-        private static Dictionary<Type, ClassBinding> _cache = new Dictionary<Type, ClassBinding>();
+        private static ConcurrentDictionary<Type, ClassBinding> _cache = new ConcurrentDictionary<Type, ClassBinding>();
 
         /// <summary>
         /// Generate a class binding for T. Returns the constructor function. The
@@ -131,7 +132,7 @@ namespace Mond.Binding
             var constructor = MondFunctionBinder.BindConstructor(className, constructors);
 
             binding = new ClassBinding(constructor, functions);
-            _cache.Add(type, binding);
+            _cache.TryAdd(type, binding);
 
             prototypeFunctions = functions;
             return constructor;
