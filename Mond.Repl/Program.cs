@@ -194,20 +194,23 @@ namespace Mond.Repl
                     Console.Write("{0,3:G}{1} ", ++_line, _first ? ">" : "|");
 
                     var line = _readLine();
-                    if (line != null)
+
+                    if (line == null)
+                        yield break;
+
+                    if (_first && line.StartsWith("="))
+                        line = "return " + line.Substring(1);
+
+                    foreach (var c in line)
                     {
-                        if (_first && line.StartsWith("="))
-                            line = "return " + line.Substring(1);
-
-                        foreach (var c in line)
-                        {
-                            _input.Enqueue(c);
-                        }
-
-                        _input.Enqueue('\n');
+                        _input.Enqueue(c);
                     }
 
-                    _first = false;
+                    _input.Enqueue('\n');
+
+                    if (!string.IsNullOrWhiteSpace(line))
+                        _first = false;
+
                     continue;
                 }
 
