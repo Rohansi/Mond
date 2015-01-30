@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Mond.Binding;
 
@@ -8,13 +10,19 @@ namespace Mond.Libraries.Async
     [MondClass("Async")]
     internal class AsyncClass
     {
-        private readonly List<NativeTask> _nativeTasks;
-        private readonly Queue<MondTask> _tasks;
+        private readonly Scheduler _scheduler;
+        private readonly TaskFactory _factory;
+        private int _activeTasks;
+
+        private Queue<Exception> _exceptions;
 
         private AsyncClass()
         {
-            _nativeTasks = new List<NativeTask>();
-            _tasks = new Queue<MondTask>();
+            _scheduler = new Scheduler();
+            _factory = new TaskFactory(_scheduler);
+            _activeTasks = 0;
+
+            _exceptions = new Queue<Exception>();
         }
 
         public static MondValue Create()
@@ -33,126 +41,68 @@ namespace Mond.Libraries.Async
         }
 
         [MondFunction("start")]
-        public void Start(MondState state, MondValue function)
+        public void Start(MondState state, MondValue value)
         {
-            var enumerator = state.Call(state.Call(function)["getEnumerator"]);
+            if (value.Type == MondValueType.Function)
+                value = state.Call(value);
 
-            _tasks.Enqueue(new MondTask(enumerator));
+            var getEnumerator = value["getEnumerator"];
+
+            if (getEnumerator.Type != MondValueType.Function)
+                throw new MondRuntimeException("Task objects must define getEnumerator");
+
+            var enumerator = state.Call(getEnumerator);
+
+            _factory.StartNew(async () =>
+            {
+                try
+                {
+                    await AsyncUtil.RunMondTask(state, enumerator);
+                }
+                catch (Exception e)
+                {
+                    lock (_exceptions)
+                        _exceptions.Enqueue(e);
+                }
+                finally
+                {
+                    Interlocked.Decrement(ref _activeTasks);
+                }
+            });
+
+            Interlocked.Increment(ref _activeTasks);
+        }
+
+        [MondFunction("run")]
+        public bool Run()
+        {
+            Exception ex = null;
+
+            lock (_exceptions)
+            {
+                if (_exceptions.Count > 0)
+                    ex = _exceptions.Dequeue();
+            }
+
+            if (ex != null)
+            {
+                var sb = new StringBuilder();
+                sb.AppendLine("Unhandled error in task:");
+                sb.Append(ex.Message);
+
+                throw new MondRuntimeException(sb.ToString(), ex);
+            }
+
+            _scheduler.Run();
+            return _activeTasks > 0;
         }
 
         [MondFunction("runToCompletion")]
-        public void RunToCompletion(MondState state)
+        public void RunToCompletion()
         {
-            while (_nativeTasks.Count > 0 || _tasks.Count > 0)
+            while (Run())
             {
-                if (_nativeTasks.Count > 0)
-                {
-                    if (_tasks.Count > 0)
-                    {
-                        RunNativeTask(true);
-                        RunSomeTasks(state);
-                    }
-                    else
-                    {
-                        RunNativeTask(false);
-                    }
-                }
-                else
-                {
-                    RunSomeTasks(state);
-                }
-            }
-        }
-
-        private void RunNativeTask(bool timeout)
-        {
-            var whenAnyTask = Task.WhenAny(_nativeTasks.Select(t => t.Task));
-
-            if (timeout && !whenAnyTask.Wait(0))
-                return;
-
-            var task = whenAnyTask.Result;
-
-            var nativeTask = _nativeTasks.Find(t => ReferenceEquals(t.Task, task));
-            _nativeTasks.Remove(nativeTask);
-
-            var mondTask = nativeTask.Parent;
-
-            mondTask.Result = task.Result;
-            _tasks.Enqueue(mondTask);
-        }
-
-        private void RunSomeTasks(MondState state)
-        {
-            var count = _tasks.Count;
-
-            while (count >= 0 && _tasks.Count > 0)
-            {
-                count--;
-
-                var mondTask = _tasks.Dequeue();
-                var enumerator = mondTask.Enumerator;
-
-                var yielded = state.Call(enumerator["moveNext"], mondTask.Result);
-                var result = enumerator["current"];
-
-                if (yielded)
-                {
-                    if (result.Type == MondValueType.Object)
-                    {
-                        var task = result.UserData as Task<MondValue>;
-                        if (task != null)
-                        {
-                            _nativeTasks.Add(new NativeTask(task, mondTask));
-                            continue;
-                        }
-                    }
-
-                    var parent = mondTask;
-                    var resultEnumerator = state.Call(result["getEnumerator"]);
-
-                    mondTask = new MondTask(resultEnumerator, parent);
-                }
-                else
-                {
-                    var parent = mondTask.Parent;
-
-                    if (parent == null)
-                        continue;
-
-                    mondTask = parent;
-                    mondTask.Result = result;
-                }
-
-                _tasks.Enqueue(mondTask);
-            }
-        }
-
-        class NativeTask
-        {
-            public readonly Task<MondValue> Task;
-            public readonly MondTask Parent;
-
-            public NativeTask(Task<MondValue> task, MondTask parent)
-            {
-                Task = task;
-                Parent = parent;
-            }
-        }
-
-        class MondTask
-        {
-            public readonly MondValue Enumerator;
-            public readonly MondTask Parent;
-
-            public MondValue Result;
-
-            public MondTask(MondValue enumerator, MondTask parent = null)
-            {
-                Enumerator = enumerator;
-                Parent = parent;
-
-                Result = MondValue.Undefined;
+                Thread.Sleep(1);
             }
         }
     }

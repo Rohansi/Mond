@@ -162,6 +162,7 @@
     <Compile Include="IndexedStack.cs" />
     <Compile Include="Libraries\AsyncLibraries.cs" />
     <Compile Include="Libraries\Async\Async.cs" />
+    <Compile Include="Libraries\Async\Scheduler.cs" />
     <Compile Include="Libraries\Async\Task.cs" />
     <Compile Include="Libraries\ConsoleLibraries.cs" />
     <Compile Include="Libraries\Console\ConsoleInput.cs" />
