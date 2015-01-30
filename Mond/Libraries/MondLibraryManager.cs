@@ -13,7 +13,7 @@ namespace Mond.Libraries
         private readonly List<IMondLibraryCollection> _factories;
         private bool _locked;
 
-        private Action<MondModuleCollection> _configAction;
+        private Action<MondLibraryCollection> _configAction;
 
         public MondLibraryManager()
         {
@@ -31,7 +31,7 @@ namespace Mond.Libraries
         /// <summary>
         /// Adds a configuration action to the instance.
         /// </summary>
-        public MondLibraryManager Configure(Action<MondModuleCollection> configAction)
+        public MondLibraryManager Configure(Action<MondLibraryCollection> configAction)
         {
             if (configAction == null)
                 throw new ArgumentNullException("configAction");
@@ -54,7 +54,7 @@ namespace Mond.Libraries
         /// <summary>
         /// Loads the libraries into a given state.
         /// </summary>
-        public void Load(MondState state, Action<MondModuleCollection> configAction = null)
+        public void Load(MondState state, Action<MondLibraryCollection> configAction = null)
         {
             _locked = true;
 
@@ -88,7 +88,7 @@ namespace Mond.Libraries
                 Definitions = MakeDefinitionString(definitionNames);
             }
 
-            var libraryCollection = new MondModuleCollection(libraries);
+            var libraryCollection = new MondLibraryCollection(libraries);
 
             // set default require definitions
             var require = libraryCollection.Get<RequireLibrary>();
@@ -159,11 +159,11 @@ namespace Mond.Libraries
         }
     }
 
-    public class MondModuleCollection : IEnumerable<IMondLibrary>
+    public class MondLibraryCollection : IEnumerable<IMondLibrary>
     {
         private readonly List<IMondLibrary> _libraries;
          
-        internal MondModuleCollection(List<IMondLibrary> libraries)
+        internal MondLibraryCollection(List<IMondLibrary> libraries)
         {
             _libraries = libraries;
         }
