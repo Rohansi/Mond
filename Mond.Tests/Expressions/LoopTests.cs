@@ -140,6 +140,10 @@ namespace Mond.Tests.Expressions
             Assert.Throws<MondCompilerException>(() => Script.Run(@"
                 for (break;;) {} 
             "), "for loop initializer must be var");
+
+            Assert.Throws<MondCompilerException>(() => Script.Run(@"
+                for (;; return) {}
+            "), "for loop increment must be expression");
         }
 
         [Test]

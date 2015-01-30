@@ -41,7 +41,7 @@ namespace Mond.Compiler.Parselets.Statements
 
                 do
                 {
-                    statements.Add(parser.ParseStatement(false));
+                    statements.Add(parser.ParseExpression());
 
                     if (!parser.Match(TokenType.Comma))
                         break;
