@@ -242,6 +242,7 @@ namespace Mond.Compiler
             }
 
             MarkPosition();
+
             var format = NumberFormat.Decimal;
             var hasDecimal = false;
             var hasExp = false;
@@ -259,6 +260,15 @@ namespace Mond.Compiler
 
                 if (format != NumberFormat.Decimal)
                 {
+                    // 0x_ or 0b_ aren't allowed
+                    if (PeekChar(2) == '_')
+                    {
+                        TakeChar(); // '0'
+
+                        token = new Token(_fileName, _currentLine, _currentColumn, TokenType.Number, "0", format);
+                        return true;
+                    }
+
                     TakeChar(); // '0'
                     TakeChar(); // 'x' or 'b'
                 }
@@ -274,25 +284,39 @@ namespace Mond.Compiler
                     return true;
                 }
 
-                if (c == '_' && isDigit(PeekChar(1)))
+                if (c == '_')
                 {
+                    // _ must be followed by a digit
+                    if (!isDigit(PeekChar(1)))
+                        return false;
+
+                    // skip _ so it takes the digit
                     TakeChar();
                     return true;
                 }
 
                 if (format == NumberFormat.Decimal)
                 {
-                    if (c == '.' && !hasDecimal)
+                    // only allowed one . and it cant be after e
+                    if (c == '.' && !hasDecimal && !hasExp)
                     {
                         hasDecimal = true;
+
+                        // . must be followed by a digit
                         return isDigit(PeekChar(1));
                     }
 
+                    // only allowed one e
                     if ((c == 'e' || c == 'E') && !hasExp)
                     {
                         var next = PeekChar(1);
+
+                        // e can be followed by +/-
                         if (next == '+' || next == '-')
+                        {
+                            // take it next time
                             justTake = true;
+                        }
 
                         hasExp = true;
                         return true;
@@ -303,6 +327,10 @@ namespace Mond.Compiler
             });
 
             var start = _positions.Pop();
+
+            if (string.IsNullOrEmpty(numberContents))
+                throw new MondCompilerException(_fileName, start.Line, start.Column, CompilerError.EmptyNumber, format.GetName());
+
             token =  new Token(_fileName, start.Line, start.Column, TokenType.Number, numberContents, format);
             return true;
         }

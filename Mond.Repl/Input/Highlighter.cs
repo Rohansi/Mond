@@ -153,6 +153,12 @@ namespace Mond.Repl.Input
 
                         if (format != NumberFormat.Decimal)
                         {
+                            if (index + 2 < line.Length && line[index + 2] == '_')
+                            {
+                                result[index++] = new ColoredCharacter('0', NumberColor);
+                                continue;
+                            }
+
                             result[index + 0] = new ColoredCharacter('0', NumberColor);
                             result[index + 1] = new ColoredCharacter(nextChar, NumberColor);
                             index += 2;
@@ -180,7 +186,7 @@ namespace Mond.Repl.Input
 
                         if (format == NumberFormat.Decimal)
                         {
-                            if (c == '.' && !hasDecimal)
+                            if (c == '.' && !hasDecimal && !hasExp)
                             {
                                 hasDecimal = true;
 

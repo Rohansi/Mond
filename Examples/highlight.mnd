@@ -288,6 +288,13 @@ seq tokenize(input) {
                     format = "bin";
                     
                 if (format != "dec") {
+                    if (peekChar(2) == "_") {
+                        takeChar(); // '0'
+                        
+                        yield { type: "number", contents: "0" };
+                        continue;
+                    }
+                
                     takeChar(); // '0'
                     takeChar(); // 'x' or 'b'
                     
@@ -307,7 +314,7 @@ seq tokenize(input) {
                     return true;
                 
                 if (format == "dec") {
-                    if (c == "." && !hasDecimal) {
+                    if (c == "." && !hasDecimal && !hasExp) {
                         hasDecimal = true;
                         return isDigit(peekChar(1));
                     }
