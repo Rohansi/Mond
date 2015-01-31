@@ -94,11 +94,20 @@ namespace Mond
 
         public static MondValue operator +(MondValue left, MondValue right)
         {
-            if (left.Type == MondValueType.String || right.Type == MondValueType.String)
-                return new MondValue(left.ToString() + right.ToString());
-
             if (left.Type == MondValueType.Number && right.Type == MondValueType.Number)
                 return new MondValue(left._numberValue + right._numberValue);
+
+            if (left.Type == MondValueType.String || right.Type == MondValueType.String)
+            {
+                MondValue result;
+                if (left.TryDispatch("__add", out result, left, right))
+                    return result;
+
+                if (right.TryDispatch("__add", out result, right, right))
+                    return result;
+
+                return new MondValue(left.ToString() + right.ToString());
+            }
 
             if (left.Type == MondValueType.Object || right.Type == MondValueType.Object)
             {
