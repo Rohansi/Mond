@@ -173,6 +173,9 @@
     <Compile Include="Libraries\CoreLibraries.cs" />
     <Compile Include="Libraries\Core\Error.cs" />
     <Compile Include="Libraries\Core\Require.cs" />
+    <Compile Include="Libraries\JsonLibraries.cs" />
+    <Compile Include="Libraries\Json\Json.Deserialize.cs" />
+    <Compile Include="Libraries\Json\Json.cs" />
     <Compile Include="Libraries\MathLibraries.cs" />
     <Compile Include="Libraries\IMondLibrary.cs" />
     <Compile Include="Libraries\IMondLibraryCollection.cs" />

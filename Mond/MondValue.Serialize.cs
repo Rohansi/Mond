@@ -34,7 +34,7 @@ namespace Mond
 
         private bool SerializeImpl(IndentTextWriter writer, int depth)
         {
-            if (depth >= 64)
+            if (depth >= 32)
             {
                 writer.Write("< max depth reached >");
                 return false;
