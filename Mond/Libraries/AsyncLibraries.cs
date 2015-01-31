@@ -122,10 +122,14 @@ namespace Mond.Libraries
         }
 
         /// <summary>
-        /// Tries to convert a MondValue to a CancellationToken.
+        /// Tries to convert a MondValue to a CancellationToken. If value is null, this will
+        /// return CancellationToken.None.
         /// </summary>
         public static CancellationToken? AsCancellationToken(MondValue value)
         {
+            if (value == null)
+                return CancellationToken.None;
+
             if (value.Type != MondValueType.Object)
                 return null;
 

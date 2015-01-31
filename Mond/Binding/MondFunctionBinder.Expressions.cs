@@ -114,7 +114,7 @@ namespace Mond.Binding
                             if (j < checkedArguments)
                                 arguments.Add(param.Conversion(argumentIndex(j++)));
                             else
-                                arguments.Add(Expression.Constant(param.Info.DefaultValue));
+                                arguments.Add(Expression.Constant(param.Info.DefaultValue, param.Info.ParameterType));
                             break;
 
                         case ParameterType.Params:

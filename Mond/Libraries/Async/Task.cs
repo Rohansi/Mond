@@ -8,20 +8,18 @@ namespace Mond.Libraries.Async
     internal class TaskModule
     {
         [MondFunction("delay")]
-        public static MondValue Delay(double seconds)
-        {
-            return AsyncUtil.ToObject(Task.Delay(TimeSpan.FromSeconds(seconds)));
-        }
-
-        [MondFunction("delay")]
-        public static MondValue Delay(double seconds, MondValue cancellationToken)
+        public static MondValue Delay(double seconds, MondValue cancellationToken = null)
         {
             var ct = AsyncUtil.AsCancellationToken(cancellationToken);
 
             if (!ct.HasValue)
                 throw new MondRuntimeException("delay: second argument must be a CancellationToken");
 
-            return AsyncUtil.ToObject(Task.Delay(TimeSpan.FromSeconds(seconds), ct.Value));
+            var timeSpan = seconds >= 0 ? 
+                TimeSpan.FromSeconds(seconds) :
+                TimeSpan.FromMilliseconds(-1);
+
+            return AsyncUtil.ToObject(Task.Delay(timeSpan, ct.Value));
         }
 
         [MondFunction("whenAll")]
