@@ -16,7 +16,7 @@
             var identifier = context.Identifier(Name);
 
             if (!context.Compiler.Options.UseImplicitGlobals && identifier == null)
-                throw new MondCompilerException(FileName, Line, Column, CompilerError.UndefinedIdentifier, Name);
+                throw new MondCompilerException(this, CompilerError.UndefinedIdentifier, Name);
 
             context.Position(FileName, Line, Column); // debug info
 
@@ -40,7 +40,7 @@
             var identifier = context.Identifier(Name);
 
             if (!context.Compiler.Options.UseImplicitGlobals && identifier == null)
-                throw new MondCompilerException(FileName, Line, Column, CompilerError.UndefinedIdentifier, Name);
+                throw new MondCompilerException(this, CompilerError.UndefinedIdentifier, Name);
 
             if (identifier == null)
             {
@@ -52,7 +52,7 @@
             else
             {
                 if (identifier.IsReadOnly)
-                    throw new MondCompilerException(FileName, Line, Column, CompilerError.CantModifyReadonlyVar, Name);
+                    throw new MondCompilerException(this, CompilerError.CantModifyReadonlyVar, Name);
 
                 context.Position(FileName, Line, Column); // debug info
                 stack += context.Store(identifier);

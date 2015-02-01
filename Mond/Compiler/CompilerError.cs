@@ -25,6 +25,8 @@
 
         public const string FunctionNeverUsed = "Function is never used";
 
+        public const string ObjectFunctionNotNamed = "Object literal functions must be named";
+
         public const string UnresolvedJump = "Unresolved jump";
 
         public const string YieldInFun = "'yield' cannot be used in functions";

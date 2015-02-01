@@ -40,7 +40,7 @@ namespace Mond.Compiler.Parselets
             }
 
             if (!success)
-                throw new MondCompilerException(token.FileName, token.Line, token.Column, CompilerError.InvalidNumber, format.GetName(), token.Contents);
+                throw new MondCompilerException(token, CompilerError.InvalidNumber, format.GetName(), token.Contents);
 
             return new NumberExpression(token, value);
         }

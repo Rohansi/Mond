@@ -14,7 +14,7 @@
 
             var target = context.ContinueLabel();
             if (target == null)
-                throw new MondCompilerException(FileName, Line, Column, CompilerError.UnresolvedJump);
+                throw new MondCompilerException(this, CompilerError.UnresolvedJump);
 
             return context.Jump(target);
         }

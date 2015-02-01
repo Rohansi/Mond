@@ -50,7 +50,7 @@ namespace Mond.Compiler.Parselets.Statements
                 }
 
                 var errorToken = parser.Peek();
-                throw new MondCompilerException(errorToken.FileName, errorToken.Line, errorToken.Column, CompilerError.ExpectedButFound2, TokenType.Case, TokenType.Default, errorToken);
+                throw new MondCompilerException(errorToken, CompilerError.ExpectedButFound2, TokenType.Case, TokenType.Default, errorToken);
             }
 
             parser.Take(TokenType.RightBrace);

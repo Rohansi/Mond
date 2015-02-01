@@ -1,4 +1,6 @@
 ﻿using JetBrains.Annotations;
+using Mond.Compiler;
+using Mond.Compiler.Expressions;
 
 namespace Mond
 {
@@ -9,6 +11,20 @@ namespace Mond
             : base(string.Format("{0}(line {1}:{2}): {3}", fileName ?? "null", line, column, string.Format(format, args)))
         {
             
+        }
+
+        [StringFormatMethod("format")]
+        internal MondCompilerException(Token token, string format, params object[] args)
+            : this(token.FileName, token.Line, token.Column, format, args)
+        {
+            
+        }
+
+        [StringFormatMethod("format")]
+        internal MondCompilerException(Expression expression, string format, params object[] args)
+            : this(expression.FileName, expression.Line, expression.Column, format, args)
+        {
+
         }
     }
 }

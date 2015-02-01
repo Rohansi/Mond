@@ -14,7 +14,7 @@
         {
             var parentCall = Parent as CallExpression;
             if (parentCall == null || parentCall.Method == this)
-                throw new MondCompilerException(FileName, Line, Column, CompilerError.UnpackMustBeInCall);
+                throw new MondCompilerException(this, CompilerError.UnpackMustBeInCall);
 
             return Right.Compile(context);
         }

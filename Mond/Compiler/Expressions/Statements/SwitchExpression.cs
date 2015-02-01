@@ -199,10 +199,10 @@ namespace Mond.Compiler.Expressions.Statements
                 {
                     var constantExpression = condition as IConstantExpression;
                     if (constantExpression == null)
-                        throw new MondCompilerException(condition.FileName, condition.Line, condition.Column, CompilerError.ExpectedConstant);
+                        throw new MondCompilerException(condition, CompilerError.ExpectedConstant);
 
                     if (!branchConditions.Add(constantExpression.GetValue()))
-                        throw new MondCompilerException(condition.FileName, condition.Line, condition.Column, CompilerError.DuplicateCase);
+                        throw new MondCompilerException(condition, CompilerError.DuplicateCase);
 
                     yield return new JumpEntry(condition, labels[i]);
                 }

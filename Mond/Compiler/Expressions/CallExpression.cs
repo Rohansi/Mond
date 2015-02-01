@@ -52,7 +52,7 @@ namespace Mond.Compiler.Expressions
                 .ToList();
 
             if (unpackIndices.Count < byte.MinValue || unpackIndices.Count > byte.MaxValue)
-                throw new MondCompilerException(FileName, Line, Column, CompilerError.TooManyUnpacks);
+                throw new MondCompilerException(this, CompilerError.TooManyUnpacks);
 
             return unpackIndices;
         }

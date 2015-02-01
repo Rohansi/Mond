@@ -18,7 +18,7 @@ namespace Mond.Compiler.Expressions
         {
             var callExpression = Right as CallExpression;
             if (callExpression == null)
-                throw new MondCompilerException(FileName, Line, Column, CompilerError.PipelineNeedsCall);
+                throw new MondCompilerException(this, CompilerError.PipelineNeedsCall);
 
             var token = new Token(callExpression.FileName, callExpression.Line, callExpression.Column, TokenType.LeftParen, null);
             var transformedArgs = Enumerable.Repeat(Left, 1).Concat(callExpression.Arguments).ToList();

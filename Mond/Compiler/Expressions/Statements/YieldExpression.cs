@@ -16,7 +16,7 @@
 
             var sequenceContext = context.Root as SequenceBodyContext;
             if (sequenceContext == null)
-                throw new MondCompilerException(FileName, Line, Column, CompilerError.YieldInFun);
+                throw new MondCompilerException(this, CompilerError.YieldInFun);
 
             var state = sequenceContext.SequenceBody.State;
             var enumerable = sequenceContext.SequenceBody.Enumerable;

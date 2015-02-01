@@ -30,6 +30,20 @@ namespace Mond.Tests.Expressions
                 Assert.True(result["a"] == 123);
                 Assert.True(result["b"] == 456);
             }
+
+            MondState state;
+            var obj = Script.Run(out state, @"
+                return {
+                    fun function() { return 1; },
+                    seq sequence() { yield 1; }
+                };
+            ");
+
+            Assert.True(obj["function"].Type == MondValueType.Function);
+            Assert.True(obj["sequence"].Type == MondValueType.Function);
+
+            Assert.True(state.Call(obj["function"]) == 1);
+            Assert.True(state.Call(obj["sequence"])["getEnumerator"].Type == MondValueType.Function);
         }
 
         [Test]

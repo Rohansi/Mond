@@ -28,7 +28,7 @@ namespace Mond.Compiler.Expressions
             {
                 var storable = Left as IStorableExpression;
                 if (storable == null)
-                    throw new MondCompilerException(FileName, Line, Column, CompilerError.LeftSideMustBeStorable);
+                    throw new MondCompilerException(this, CompilerError.LeftSideMustBeStorable);
 
                 var needResult = !(Parent is IBlockExpression);
 

@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using Mond.Compiler.Expressions;
+using Mond.Compiler.Expressions.Statements;
+using Mond.Compiler.Parselets.Statements;
 
 namespace Mond.Compiler.Parselets
 {
@@ -28,10 +30,37 @@ namespace Mond.Compiler.Parselets
                 {
                     key = parser.Take(TokenType.String).Contents;
                 }
+                else if (parser.Match(TokenType.Fun))
+                {
+                    var funToken = parser.Take(TokenType.Fun);
+                    var function = (FunctionExpression)new FunctionParselet().Parse(parser, funToken);
+
+                    if (function.Name == null)
+                        throw new MondCompilerException(funToken, CompilerError.ObjectFunctionNotNamed);
+
+                    function.StoreInNameVariable = false;
+
+                    key = function.Name;
+                    value = function;
+                }
+                else if (parser.Match(TokenType.Seq))
+                {
+                    var seqToken = parser.Take(TokenType.Seq);
+                    var sequence = (SequenceExpression)new SequenceParselet().Parse(parser, seqToken);
+
+                    if (sequence.Name == null)
+                        throw new MondCompilerException(seqToken, CompilerError.ObjectFunctionNotNamed);
+
+                    sequence.StoreInNameVariable = false;
+
+                    key = sequence.Name;
+                    value = sequence;
+                }
                 else
                 {
                     var errorToken = parser.Take();
-                    throw new MondCompilerException(errorToken.FileName, errorToken.Line, errorToken.Column, CompilerError.ExpectedButFound2, TokenType.Identifier, TokenType.String, errorToken);
+
+                    throw new MondCompilerException(errorToken, CompilerError.ExpectedButFound, "Identifier, String, Fun or Seq", errorToken);
                 }
 
                 if (value == null)

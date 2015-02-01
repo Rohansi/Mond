@@ -18,7 +18,7 @@ namespace Mond.Compiler.Parselets.Statements
                 var initializerExpr = parser.ParseStatement(false);
 
                 if (initializerExpr is IStatementExpression && !(initializerExpr is VarExpression))
-                    throw new MondCompilerException(token.FileName, token.Line, token.Column, CompilerError.BadForLoopInitializer);
+                    throw new MondCompilerException(token, CompilerError.BadForLoopInitializer);
 
                 initializer = new BlockExpression(new List<Expression>()
                 {

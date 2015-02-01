@@ -46,7 +46,7 @@ namespace Mond.Compiler.Expressions.Statements
 
             // create the loop variable outside of the loop context (but inside of its scope!)
             if (!context.DefineIdentifier(Identifier))
-                throw new MondCompilerException(FileName, Line, Column, CompilerError.IdentifierAlreadyDefined, Identifier);
+                throw new MondCompilerException(this, CompilerError.IdentifierAlreadyDefined, Identifier);
 
             var identifier = context.Identifier(Identifier);
 

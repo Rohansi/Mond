@@ -42,7 +42,7 @@ namespace Mond.Compiler.Expressions.Statements
                 if (!shouldBeGlobal)
                 {
                     if (!context.DefineIdentifier(name, IsReadOnly))
-                        throw new MondCompilerException(FileName, Line, Column, CompilerError.IdentifierAlreadyDefined, name);
+                        throw new MondCompilerException(this, CompilerError.IdentifierAlreadyDefined, name);
                 }
 
                 if (declaration.Initializer == null)
