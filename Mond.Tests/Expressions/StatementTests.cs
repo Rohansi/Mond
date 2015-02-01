@@ -47,6 +47,10 @@ namespace Mond.Tests.Expressions
             ");
 
             Assert.True(result == 100);
+
+            Assert.Throws<MondCompilerException>(() => Script.Run(@"
+                const a;
+            "));
             
             Assert.Throws<MondCompilerException>(() => Script.Run(@"
                 const a = 100;

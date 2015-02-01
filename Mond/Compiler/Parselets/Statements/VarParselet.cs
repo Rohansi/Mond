@@ -24,8 +24,9 @@ namespace Mond.Compiler.Parselets.Statements
                 var identifier = parser.Take(TokenType.Identifier);
                 Expression initializer = null;
 
-                if (parser.MatchAndTake(TokenType.Assign))
+                if (_isReadOnly || parser.Match(TokenType.Assign))
                 {
+                    parser.Take(TokenType.Assign);
                     initializer = parser.ParseExpression();
                 }
 
