@@ -97,9 +97,15 @@ namespace Mond.Repl
             var useColoredInput = args.Any(s => s == "-c");
 
             if (useColoredInput)
+            {
                 _readLine = () => Highlighted.ReadLine(ref _highlighter);
+
+                Console.CancelKeyPress += (sender, eventArgs) => Console.ResetColor();
+            }
             else
+            {
                 _readLine = Console.ReadLine;
+            }
 
             _input = new Queue<char>();
             _first = true;
