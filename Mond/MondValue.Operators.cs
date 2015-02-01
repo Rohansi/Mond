@@ -50,7 +50,7 @@ namespace Mond
                         if (result.Type != MondValueType.True && result.Type != MondValueType.False)
                             throw new MondRuntimeException(RuntimeError.BoolCastWrongType);
 
-                        return result;
+                        return result.Type == MondValueType.True;
                     }
 
                     return true;
@@ -81,7 +81,7 @@ namespace Mond
                 if (result.Type != MondValueType.Number)
                     throw new MondRuntimeException(RuntimeError.NumberCastWrongType);
 
-                return result;
+                return result._numberValue;
             }
 
             throw new MondRuntimeException(RuntimeError.FailedCastObjectToNumber);
@@ -100,10 +100,7 @@ namespace Mond
             if (left.Type == MondValueType.String || right.Type == MondValueType.String)
             {
                 MondValue result;
-                if (left.TryDispatch("__add", out result, left, right))
-                    return result;
-
-                if (right.TryDispatch("__add", out result, right, right))
+                if (TryDispatchBinary("__add", out result, left, right))
                     return result;
 
                 return new MondValue(left.ToString() + right.ToString());
@@ -112,7 +109,7 @@ namespace Mond
             if (left.Type == MondValueType.Object || right.Type == MondValueType.Object)
             {
                 MondValue result;
-                if (left.TryDispatch("__add", out result, left, right))
+                if (TryDispatchBinary("__add", out result, left, right))
                     return result;
 
                 return new MondValue((double)left + (double)right);
@@ -129,7 +126,7 @@ namespace Mond
             if (left.Type == MondValueType.Object || right.Type == MondValueType.Object)
             {
                 MondValue result;
-                if (left.TryDispatch("__sub", out result, left, right))
+                if (TryDispatchBinary("__sub", out result, left, right))
                     return result;
 
                 return new MondValue((double)left - (double)right);
@@ -146,7 +143,7 @@ namespace Mond
             if (left.Type == MondValueType.Object || right.Type == MondValueType.Object)
             {
                 MondValue result;
-                if (left.TryDispatch("__mul", out result, left, right))
+                if (TryDispatchBinary("__mul", out result, left, right))
                     return result;
 
                 return new MondValue((double)left * (double)right);
@@ -163,7 +160,7 @@ namespace Mond
             if (left.Type == MondValueType.Object || right.Type == MondValueType.Object)
             {
                 MondValue result;
-                if (left.TryDispatch("__div", out result, left, right))
+                if (TryDispatchBinary("__div", out result, left, right))
                     return result;
 
                 return new MondValue((double)left / (double)right);
@@ -180,7 +177,7 @@ namespace Mond
             if (left.Type == MondValueType.Object || right.Type == MondValueType.Object)
             {
                 MondValue result;
-                if (left.TryDispatch("__mod", out result, left, right))
+                if (TryDispatchBinary("__mod", out result, left, right))
                     return result;
 
                 return new MondValue((double)left % (double)right);
@@ -197,7 +194,7 @@ namespace Mond
             if (Type == MondValueType.Object || right.Type == MondValueType.Object)
             {
                 MondValue result;
-                if (TryDispatch("__pow", out result, this, right))
+                if (TryDispatchBinary("__pow", out result, this, right))
                     return result;
 
                 return new MondValue(Math.Pow(this, right));
@@ -211,7 +208,7 @@ namespace Mond
             if (Type == MondValueType.Object || right.Type == MondValueType.Object)
             {
                 MondValue result;
-                if (TryDispatch("__lshift", out result, this, right))
+                if (TryDispatchBinary("__lshift", out result, this, right))
                     return result;
 
                 return new MondValue((int)this << (int)right);
@@ -225,7 +222,7 @@ namespace Mond
             if (Type == MondValueType.Object || right.Type == MondValueType.Object)
             {
                 MondValue result;
-                if (TryDispatch("__rshift", out result, this, right))
+                if (TryDispatchBinary("__rshift", out result, this, right))
                     return result;
 
                 return new MondValue((int)this >> (int)right);
@@ -276,7 +273,7 @@ namespace Mond
             if (left.Type == MondValueType.Object || right.Type == MondValueType.Object)
             {
                 MondValue result;
-                if (left.TryDispatch("__and", out result, left, right))
+                if (TryDispatchBinary("__and", out result, left, right))
                     return result;
 
                 return new MondValue((int)left & (int)right);
@@ -293,7 +290,7 @@ namespace Mond
             if (left.Type == MondValueType.Object || right.Type == MondValueType.Object)
             {
                 MondValue result;
-                if (left.TryDispatch("__or", out result, left, right))
+                if (TryDispatchBinary("__or", out result, left, right))
                     return result;
 
                 return new MondValue((int)left | (int)right);
@@ -310,7 +307,7 @@ namespace Mond
             if (left.Type == MondValueType.Object || right.Type == MondValueType.Object)
             {
                 MondValue result;
-                if (left.TryDispatch("__xor", out result, left, right))
+                if (TryDispatchBinary("__xor", out result, left, right))
                     return result;
 
                 return new MondValue((int)left ^ (int)right);
@@ -371,30 +368,30 @@ namespace Mond
 
         public static bool operator >(MondValue left, MondValue right)
         {
-            switch (left.Type)
+            if (left.Type == MondValueType.Number && right.Type == MondValueType.Number)
+                return left._numberValue > right._numberValue;
+
+            if (left.Type == MondValueType.String && right.Type == MondValueType.String)
+                return string.Compare(left._stringValue, right._stringValue, CultureInfo.InvariantCulture, CompareOptions.None) > 0;
+
+            if (left.Type == MondValueType.Object)
             {
-                case MondValueType.Number:
-                    if (right.Type != MondValueType.Number)
-                        throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "relational", left.Type.GetName(), right.Type.GetName());
-
-                    return left._numberValue > right._numberValue;
-
-                case MondValueType.String:
-                    if (right.Type != MondValueType.String)
-                        throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "relational", left.Type.GetName(), right.Type.GetName());
-
-                    return string.Compare(left._stringValue, right._stringValue, CultureInfo.InvariantCulture, CompareOptions.None) > 0;
-
-                case MondValueType.Object:
-                    MondValue result;
-                    if (left.TryDispatch("__gt", out result, left, right))
-                        return result;
-
-                    goto default;
-
-                default:
-                    throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "relational", left.Type.GetName(), right.Type.GetName());
+                MondValue result;
+                if (left.TryDispatch("__gt", out result, left, right))
+                    return result;
             }
+
+            if (right.Type == MondValueType.Object)
+            {
+                if (right.Equals(left))
+                    return false;
+
+                MondValue result;
+                if (right.TryDispatch("__gt", out result, right, left))
+                    return !result;
+            }
+
+            throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "relational", left.Type.GetName(), right.Type.GetName());
         }
 
         public static bool operator >=(MondValue left, MondValue right)

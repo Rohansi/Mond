@@ -436,20 +436,26 @@ namespace Mond
             if (ReferenceEquals(other, null))
                 return false;
 
+            if (ReferenceEquals(this, other))
+                return true;
+
+            if (Type == MondValueType.Object || other.Type == MondValueType.Object)
+            {
+                if (ReferenceEquals(ObjectValue, other.ObjectValue))
+                    return true;
+
+                MondValue result;
+                if (TryDispatch("__eq", out result, this, other))
+                    return result;
+
+                if (other.TryDispatch("__eq", out result, other, this))
+                    return result;
+
+                return false;
+            }
+
             switch (Type)
             {
-                case MondValueType.Object:
-                    {
-                        if (other.Type == MondValueType.Object && ReferenceEquals(ObjectValue, other.ObjectValue))
-                            return true;
-
-                        MondValue result;
-                        if (TryDispatch("__eq", out result, this, other))
-                            return result;
-
-                        return false;
-                    }
-
                 case MondValueType.Array:
                     return other.Type == MondValueType.Array && ReferenceEquals(ArrayValue, other.ArrayValue);
 
@@ -530,7 +536,7 @@ namespace Mond
                             if (result.Type != MondValueType.String)
                                 throw new MondRuntimeException(RuntimeError.StringCastWrongType);
 
-                            return result;
+                            return result._stringValue;
                         }
 
                         return "object";
@@ -559,6 +565,18 @@ namespace Mond
         {
             if (Type == MondValueType.Object)
                 return ObjectValue.TryDispatch(name, out result, args);
+
+            result = Undefined;
+            return false;
+        }
+
+        private static bool TryDispatchBinary(string name, out MondValue result, MondValue left, MondValue right)
+        {
+            if (left.Type == MondValueType.Object)
+                return left.ObjectValue.TryDispatch(name, out result, left, right, false);
+
+            if (right.Type == MondValueType.Object)
+                return right.ObjectValue.TryDispatch(name, out result, left, right, true);
 
             result = Undefined;
             return false;
