@@ -72,14 +72,8 @@ namespace Mond.Compiler.Parselets.Statements
 
         public static BlockExpression ParseLambdaExpressionBody(Parser parser, Token token)
         {
-            // { <ident/str> <}/:/,> == object
-
-            if (parser.Match(TokenType.LeftBrace) &&
-               ((!parser.Match(TokenType.RightBrace, 1) && !parser.Match(TokenType.Identifier, 1) && !parser.Match(TokenType.String, 1)) ||
-               (!parser.Match(TokenType.RightBrace, 2) && !parser.Match(TokenType.Colon, 2) && !parser.Match(TokenType.Comma, 2))))
-            {
+            if (parser.Match(TokenType.LeftBrace))
                 return parser.ParseBlock();
-            }
 
             return new BlockExpression(new List<Expression>
             {
