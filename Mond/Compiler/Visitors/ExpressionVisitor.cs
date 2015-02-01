@@ -91,9 +91,6 @@ namespace Mond.Compiler
                 branch.Block.Accept(this);
             }
 
-            if (expression.DefaultBlock != null)
-                expression.DefaultBlock.Accept(this);
-
             return default(T);
         }
 

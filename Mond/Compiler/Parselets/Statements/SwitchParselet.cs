@@ -17,17 +17,34 @@ namespace Mond.Compiler.Parselets.Statements
             parser.Take(TokenType.RightParen);
             parser.Take(TokenType.LeftBrace);
 
+            var hasDefault = false;
             var branches = new List<SwitchExpression.Branch>();
-            BlockExpression defaultBlock = null;
 
             while (!parser.Match(TokenType.RightBrace))
             {
                 var conditions = new List<Expression>();
 
-                while (parser.MatchAndTake(TokenType.Case))
+                while (true)
                 {
-                    var condition = parser.ParseExpression();
-                    conditions.Add(condition);
+                    if (parser.MatchAndTake(TokenType.Case))
+                    {
+                        var condition = parser.ParseExpression();
+                        conditions.Add(condition);
+
+                        parser.Take(TokenType.Colon);
+                        continue;
+                    }
+
+                    if (!parser.Match(TokenType.Default))
+                        break;
+
+                    var defaultToken = parser.Take(TokenType.Default);
+
+                    if (hasDefault)
+                        throw new MondCompilerException(defaultToken, CompilerError.DuplicateDefault);
+
+                    conditions.Add(null); // special default condition
+                    hasDefault = true;
 
                     parser.Take(TokenType.Colon);
                 }
@@ -39,15 +56,6 @@ namespace Mond.Compiler.Parselets.Statements
                     branches.Add(branch);
                     continue;
                 }
-                
-                if (parser.MatchAndTake(TokenType.Default))
-                {
-                    parser.Take(TokenType.Colon);
-
-                    var block = ParseBlock(parser);
-                    defaultBlock = block;
-                    break;
-                }
 
                 var errorToken = parser.Peek();
                 throw new MondCompilerException(errorToken, CompilerError.ExpectedButFound2, TokenType.Case, TokenType.Default, errorToken);
@@ -55,7 +63,7 @@ namespace Mond.Compiler.Parselets.Statements
 
             parser.Take(TokenType.RightBrace);
 
-            return new SwitchExpression(token, expression, branches, defaultBlock);
+            return new SwitchExpression(token, expression, branches);
         }
 
         private static BlockExpression ParseBlock(Parser parser)

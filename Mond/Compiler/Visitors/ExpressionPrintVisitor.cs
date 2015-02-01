@@ -238,6 +238,12 @@ namespace Mond.Compiler.Visitors
 
                 foreach (var condition in branch.Conditions)
                 {
+                    if (condition == null)
+                    {
+                        _writer.WriteLine("default:");
+                        continue;
+                    }
+
                     _writer.Write("case ");
                     condition.Accept(this);
                     _writer.WriteLine(":");
@@ -245,14 +251,8 @@ namespace Mond.Compiler.Visitors
 
                 branch.Block.Accept(this);
 
-                if (expression.DefaultBlock != null || i < expression.Branches.Count - 1)
+                if (i < expression.Branches.Count - 1)
                     _writer.WriteLine();
-            }
-
-            if (expression.DefaultBlock != null)
-            {
-                _writer.WriteLine("default:");
-                expression.DefaultBlock.Accept(this);
             }
 
             _writer.WriteLine();

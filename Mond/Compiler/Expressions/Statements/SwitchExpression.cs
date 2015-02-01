@@ -21,14 +21,12 @@ namespace Mond.Compiler.Expressions.Statements
 
         public Expression Expression { get; private set; }
         public ReadOnlyCollection<Branch> Branches { get; private set; }
-        public BlockExpression DefaultBlock { get; private set; }
 
-        public SwitchExpression(Token token, Expression expression, List<Branch> branches, BlockExpression defaultBlock)
+        public SwitchExpression(Token token, Expression expression, List<Branch> branches)
             : base(token.FileName, token.Line, token.Column)
         {
             Expression = expression;
             Branches = branches.AsReadOnly();
-            DefaultBlock = defaultBlock;
         }
 
         public override int Compile(FunctionContext context)
@@ -38,19 +36,34 @@ namespace Mond.Compiler.Expressions.Statements
             var stack = 0;
             var caseLabels = new List<LabelOperand>(Branches.Count);
 
+            var caseEnd = context.MakeLabel("caseEnd");
+            LabelOperand caseDefault = null;
+            BlockExpression defaultBlock = null;
+
             for (var i = 0; i < Branches.Count; i++)
             {
-                caseLabels.Add(context.MakeLabel("caseBranch_" + i));
+                var label = context.MakeLabel("caseBranch_" + i);
+                caseLabels.Add(label);
+
+                var conditions = Branches[i].Conditions;
+                if (conditions.Any(c => c == null))
+                {
+                    caseDefault = label;
+
+                    if (conditions.Count == 1)
+                        defaultBlock = Branches[i].Block;
+                }
             }
 
-            var caseDefault = context.MakeLabel("caseDefault");
-            var caseEnd = context.MakeLabel("caseEnd");
+            var emptyDefault = caseDefault == null;
+            if (emptyDefault)
+                caseDefault = context.MakeLabel("caseDefault");
 
             stack += Expression.Compile(context);
 
             List<JumpTable> tables;
             List<JumpEntry> rest;
-            var flattenedBranches = FlattenBranches(Branches, caseLabels);
+            var flattenedBranches = FlattenBranches(Branches, caseLabels, caseDefault);
             BuildTables(flattenedBranches, caseDefault, out tables, out rest);
 
             foreach (var table in tables)
@@ -87,11 +100,15 @@ namespace Mond.Compiler.Expressions.Statements
                 CheckStack(branchStack, 0);
             }
 
-            stack += context.Bind(caseDefault);
+            // only bind if we need a default block
+            if (emptyDefault || defaultBlock != null)
+                stack += context.Bind(caseDefault);
+
+            // always drop the switch value
             stack += context.Drop();
 
-            if (DefaultBlock != null)
-                stack += DefaultBlock.Compile(context);
+            if (defaultBlock != null)
+                stack += defaultBlock.Compile(context);
 
             context.PopLoop();
 
@@ -109,16 +126,13 @@ namespace Mond.Compiler.Expressions.Statements
                 .Select(b =>
                 {
                     var conditions = b.Conditions
-                        .Select(condition => condition.Simplify())
+                        .Select(c => c != null ? c.Simplify() : null)
                         .ToList();
 
                     return new Branch(conditions, (BlockExpression)b.Block.Simplify());
                 })
                 .ToList()
                 .AsReadOnly();
-
-            if (DefaultBlock != null)
-                DefaultBlock = (BlockExpression)DefaultBlock.Simplify();
 
             return this;
         }
@@ -133,15 +147,13 @@ namespace Mond.Compiler.Expressions.Statements
             {
                 foreach (var condition in branch.Conditions)
                 {
+                    if (condition == null)
+                        continue;
+
                     condition.SetParent(this);
                 }
                 
                 branch.Block.SetParent(this);
-            }
-
-            if (DefaultBlock != null)
-            {
-                DefaultBlock.SetParent(this);
             }
         }
 
@@ -189,7 +201,7 @@ namespace Mond.Compiler.Expressions.Statements
             }
         }
 
-        static IEnumerable<JumpEntry> FlattenBranches(IList<Branch> branches, IList<LabelOperand> labels)
+        static IEnumerable<JumpEntry> FlattenBranches(IList<Branch> branches, IList<LabelOperand> labels, LabelOperand defaultLabel)
         {
             var branchConditions = new HashSet<MondValue>();
 
@@ -197,6 +209,12 @@ namespace Mond.Compiler.Expressions.Statements
             {
                 foreach (var condition in branches[i].Conditions)
                 {
+                    if (condition == null) // default
+                    {
+                        yield return new JumpEntry(null, defaultLabel);
+                        continue;
+                    }
+
                     var constantExpression = condition as IConstantExpression;
                     if (constantExpression == null)
                         throw new MondCompilerException(condition, CompilerError.ExpectedConstant);
@@ -243,6 +261,9 @@ namespace Mond.Compiler.Expressions.Statements
             foreach (var jump in jumps)
             {
                 var condition = jump.Condition;
+
+                if (condition == null) // default
+                    continue;
 
                 var numberExpression = condition as NumberExpression;
                 if (numberExpression == null)

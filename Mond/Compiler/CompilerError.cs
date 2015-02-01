@@ -20,6 +20,7 @@
 
         public const string ExpectedConstant = "Expected a constant value";
         public const string DuplicateCase = "Duplicate case value";
+        public const string DuplicateDefault = "Cannot have more than one default case";
 
         public const string BadForLoopInitializer = "For loop initializer cannot be statement";
 

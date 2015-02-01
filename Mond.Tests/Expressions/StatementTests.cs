@@ -150,10 +150,93 @@ namespace Mond.Tests.Expressions
             Assert.True(state.Call(test, MondValue.Undefined) == 10);
 
             Assert.True(state.Call(test, 11) == 11);
+        }
 
+        [Test]
+        public void SwitchMixedDefault()
+        {
+            var state = Script.Load(@"
+                global.test = fun (x) {
+                    
+                    switch (x) {
+                        case 1:
+                        default:
+                            return 1;
+
+                        case 2:
+                            return 2;
+                    }
+
+                    return 0;
+                };
+            ");
+
+            var test = state["test"];
+
+            Assert.True(state.Call(test, 1) == 1);
+            
+            Assert.True(state.Call(test, 2) == 2);
+
+            Assert.True(state.Call(test, 3) == 1);
+        }
+
+        [Test]
+        public void SwitchNoDefault()
+        {
+            var state = Script.Load(@"
+                global.test = fun (x) {
+                    
+                    switch (x) {
+                        case 1:
+                            return 1;
+                        case 2:
+                            return 2;
+                    }
+
+                    return 0;
+                };
+            ");
+
+            var test = state["test"];
+
+            Assert.True(state.Call(test, 1) == 1);
+
+            Assert.True(state.Call(test, 2) == 2);
+
+            Assert.True(state.Call(test, 3) == 0);
+        }
+
+        [Test]
+        public void SwitchErrors()
+        {
             Assert.Throws<MondCompilerException>(() => Script.Run(@"
                 switch (1) { var }
             "));
+
+            Assert.Throws<MondCompilerException>(() => Script.Run(@"
+                switch (1) {
+                    case 1:
+                    case 1:
+                        return 0;
+                }
+            "), "duplicate case");
+
+            Assert.Throws<MondCompilerException>(() => Script.Run(@"
+                switch (1) {
+                    default:
+                    default:
+                        return 0;
+                }
+            "), "duplicate default");
+
+            Assert.Throws<MondCompilerException>(() => Script.Run(@"
+                switch (1) {
+                    default:
+                        return 0;
+                    default:
+                        return 1;
+                }
+            "), "duplicate default blocks");
         }
     }
 }
