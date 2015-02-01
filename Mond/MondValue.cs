@@ -354,7 +354,7 @@ namespace Mond
             if (Type == MondValueType.Array)
                 return ArrayValue.Contains(search);
 
-            throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "in", Type, search.Type.GetName());
+            throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "in", Type.GetName(), search.Type.GetName());
         }
 
         public MondValue Slice(MondValue start = null, MondValue end = null, MondValue step = null)

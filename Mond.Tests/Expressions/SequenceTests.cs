@@ -33,6 +33,21 @@ namespace Mond.Tests.Expressions
         }
 
         [Test]
+        public void SequenceExpression()
+        {
+            MondState state;
+            var result = Script.Run(out state, @"
+                return (seq () -> 10)();
+            ");
+
+            Assert.True(result.IsEnumerable);
+
+            var enumerator = state.Call(result["getEnumerator"]);
+            Assert.True(state.Call(enumerator["moveNext"]) == false);
+            Assert.True(enumerator["current"] == 10);
+        }
+
+        [Test]
         public void SequenceScope()
         {
             MondState state;

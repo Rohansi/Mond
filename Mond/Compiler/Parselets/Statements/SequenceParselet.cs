@@ -8,45 +8,12 @@ namespace Mond.Compiler.Parselets.Statements
     {
         public Expression Parse(Parser parser, Token token, out bool trailingSemicolon)
         {
-            trailingSemicolon = false;
+            string name;
+            List<string> arguments;
+            string otherArgs;
+            BlockExpression body;
 
-            string name = null;
-            var arguments = new List<string>();
-            string otherArgs = null;
-
-            // optional name
-            if (parser.Match(TokenType.Identifier))
-            {
-                name = parser.Take(TokenType.Identifier).Contents;
-            }
-
-            // parse argument list
-            parser.Take(TokenType.LeftParen);
-
-            if (!parser.Match(TokenType.RightParen))
-            {
-                while (true)
-                {
-                    if (parser.MatchAndTake(TokenType.Ellipsis))
-                    {
-                        otherArgs = parser.Take(TokenType.Identifier).Contents;
-                        break;
-                    }
-
-                    var identifier = parser.Take(TokenType.Identifier);
-                    arguments.Add(identifier.Contents);
-
-                    if (parser.Match(TokenType.RightParen))
-                        break;
-
-                    parser.Take(TokenType.Comma);
-                }
-            }
-
-            parser.Take(TokenType.RightParen);
-
-            // parse body
-            var body = parser.ParseBlock(false);
+            FunctionParselet.ParseFunction(parser, token, out trailingSemicolon, out name, out arguments, out otherArgs, out body);
 
             return new SequenceExpression(token, name, arguments, otherArgs, body);
         }

@@ -8,12 +8,36 @@ namespace Mond.Compiler.Parselets.Statements
     {
         public Expression Parse(Parser parser, Token token, out bool trailingSemicolon)
         {
+            string name;
+            List<string> arguments;
+            string otherArgs;
+            BlockExpression body;
+
+            ParseFunction(parser, token, out trailingSemicolon, out name, out arguments, out otherArgs, out body);
+
+            return new FunctionExpression(token, name, arguments, otherArgs, body);
+        }
+
+        public Expression Parse(Parser parser, Token token)
+        {
+            bool hasTrailingSemicolon;
+            return Parse(parser, token, out hasTrailingSemicolon);
+        }
+
+        public static void ParseFunction(
+            Parser parser,
+            Token token,
+            out bool trailingSemicolon,
+            out string name,
+            out List<string> arguments,
+            out string otherArgs,
+            out BlockExpression body)
+        {
             trailingSemicolon = false;
 
-            string name = null;
-            var arguments = new List<string>();
-            string otherArgs = null;
-            BlockExpression body;
+            name = null;
+            arguments = new List<string>();
+            otherArgs = null;
 
             // optional name
             if (parser.Match(TokenType.Identifier))
@@ -60,14 +84,6 @@ namespace Mond.Compiler.Parselets.Statements
             {
                 body = parser.ParseBlock(false);
             }
-
-            return new FunctionExpression(token, name, arguments, otherArgs, body);
-        }
-
-        public Expression Parse(Parser parser, Token token)
-        {
-            bool hasTrailingSemicolon;
-            return Parse(parser, token, out hasTrailingSemicolon);
         }
 
         public static BlockExpression ParseLambdaExpressionBody(Parser parser, Token token)
