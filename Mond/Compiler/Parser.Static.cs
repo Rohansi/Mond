@@ -74,6 +74,7 @@ namespace Mond.Compiler
             RegisterInfix(TokenType.MultiplyAssign, new BinaryOperatorParselet((int)PrecedenceValue.Assign, true));
             RegisterInfix(TokenType.DivideAssign, new BinaryOperatorParselet((int)PrecedenceValue.Assign, true));
             RegisterInfix(TokenType.ModuloAssign, new BinaryOperatorParselet((int)PrecedenceValue.Assign, true));
+            RegisterInfix(TokenType.ExponentAssign, new BinaryOperatorParselet((int)PrecedenceValue.Assign, true));
             RegisterInfix(TokenType.BitLeftShiftAssign, new BinaryOperatorParselet((int)PrecedenceValue.Assign, true));
             RegisterInfix(TokenType.BitRightShiftAssign, new BinaryOperatorParselet((int)PrecedenceValue.Assign, true));
             RegisterInfix(TokenType.BitAndAssign, new BinaryOperatorParselet((int)PrecedenceValue.Assign, true));
