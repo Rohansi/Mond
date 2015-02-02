@@ -94,7 +94,9 @@ namespace Mond.Libraries.Async
             }
 
             _scheduler.Run();
-            return _activeTasks > 0;
+
+            lock (_exceptions)
+                return _activeTasks > 0 || _exceptions.Count > 0;
         }
 
         [MondFunction("runToCompletion")]
