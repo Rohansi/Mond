@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.ExceptionServices;
 using System.Linq;
 using System.Reflection;
 
@@ -19,7 +20,7 @@ namespace Mond.Binding
                 Func<object, MondValue> returnConversion;
                 var parameters = BuildParameterArray(errorPrefix, method, state, null, args, out function, out returnConversion);
 
-                return returnConversion(function.Invoke(null, parameters));
+                return returnConversion(Call(() => function.Invoke(null, parameters)));
             };
         }
 
@@ -36,7 +37,7 @@ namespace Mond.Binding
                     var parameters = BuildParameterArray(errorPrefix, method, state, instance, args, out function, out returnConversion);
 
                     var classInstance = instance.UserData;
-                    return returnConversion(function.Invoke(classInstance, parameters));
+                    return returnConversion(Call(() => function.Invoke(classInstance, parameters)));
                 };
             }
 
@@ -46,7 +47,7 @@ namespace Mond.Binding
                 Func<object, MondValue> returnConversion;
                 var parameters = BuildParameterArray(errorPrefix, method, state, instance, args, out function, out returnConversion);
 
-                return returnConversion(function.Invoke(null, parameters));
+                return returnConversion(Call(() => function.Invoke(null, parameters)));
             };
         }
 
@@ -60,8 +61,24 @@ namespace Mond.Binding
                 Func<object, MondValue> returnConversion;
                 var parameters = BuildParameterArray(errorPrefix, method, state, instance, args, out constructor, out returnConversion);
 
-                return ((ConstructorInfo)constructor).Invoke(parameters);
+                return Call(() => ((ConstructorInfo)constructor).Invoke(parameters));
             };
+        }
+
+        private static T Call<T>(Func<T> action)
+        {
+            try
+            {
+                return action();
+            }
+            catch (TargetInvocationException e)
+            {
+                if (e.InnerException == null)
+                    throw;
+
+                ExceptionDispatchInfo.Capture(e.InnerException).Throw();
+                return default(T); // wont reach this
+            }
         }
 
         private static object[] BuildParameterArray(
