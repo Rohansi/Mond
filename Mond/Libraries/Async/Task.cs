@@ -10,10 +10,12 @@ namespace Mond.Libraries.Async
         [MondFunction("delay")]
         public static MondValue Delay(double seconds, MondValue cancellationToken = null)
         {
+            AsyncUtil.CheckScheduler();
+
             var ct = AsyncUtil.AsCancellationToken(cancellationToken);
 
             if (!ct.HasValue)
-                throw new MondRuntimeException("delay: second argument must be a CancellationToken");
+                throw new MondRuntimeException("Task.delay: second argument must be a CancellationToken");
 
             var timeSpan = seconds >= 0 ? 
                 TimeSpan.FromSeconds(seconds) :
@@ -25,6 +27,8 @@ namespace Mond.Libraries.Async
         [MondFunction("whenAll")]
         public static MondValue WhenAll(MondState state, params MondValue[] tasks)
         {
+            AsyncUtil.CheckScheduler();
+
             var taskArray = AsyncUtil.ToTaskArray(state, tasks);
 
             var task = Task.WhenAll(taskArray).ContinueWith(t =>
@@ -40,6 +44,8 @@ namespace Mond.Libraries.Async
         [MondFunction("whenAny")]
         public static MondValue WhenAny(MondState state, params MondValue[] tasks)
         {
+            AsyncUtil.CheckScheduler();
+
             var taskArray = AsyncUtil.ToTaskArray(state, tasks);
 
             var task = Task.WhenAny(taskArray).ContinueWith(t =>

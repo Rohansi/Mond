@@ -46,11 +46,22 @@ namespace Mond.Libraries
     public static class AsyncUtil
     {
         /// <summary>
+        /// Throws an exception if not running in an async function.
+        /// </summary>
+        public static void CheckScheduler()
+        {
+            if (!(TaskScheduler.Current is Scheduler))
+                throw new MondRuntimeException("Cannot use async functions in a synchronous context");
+        }
+
+        /// <summary>
         /// Runs a Mond sequence as an async function.
         /// Should only be used when implementing your own async methods.
         /// </summary>
         public static async Task<MondValue> RunMondTask(MondState state, MondValue enumerator)
         {
+            CheckScheduler();
+
             var input = MondValue.Undefined;
 
             while (true)

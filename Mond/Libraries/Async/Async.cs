@@ -41,7 +41,7 @@ namespace Mond.Libraries.Async
         }
 
         [MondFunction("start")]
-        public void Start(MondState state, MondValue value)
+        public MondValue Start(MondState state, MondValue value)
         {
             if (value.Type == MondValueType.Function)
                 value = state.Call(value);
@@ -53,7 +53,7 @@ namespace Mond.Libraries.Async
 
             var enumerator = state.Call(getEnumerator);
 
-            _factory.StartNew(async () =>
+            var task = _factory.StartNew(async () =>
             {
                 try
                 {
@@ -71,6 +71,14 @@ namespace Mond.Libraries.Async
             });
 
             Interlocked.Increment(ref _activeTasks);
+
+            // return a task that completes when the started task completes
+            Func<Task> waitTask = async () =>
+            {
+                await await task;
+            };
+
+            return AsyncUtil.ToObject(waitTask());
         }
 
         [MondFunction("run")]
