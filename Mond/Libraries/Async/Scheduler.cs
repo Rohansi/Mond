@@ -37,8 +37,13 @@ namespace Mond.Libraries.Async
                     _tasks.RemoveAt(0);
                 }
 
-                if (!TryExecuteTask(task))
+                if (TryExecuteTask(task))
+                    continue;
+
+                lock (_tasks)
+                {
                     _tasks.Add(task);
+                }
             }
         }
 
@@ -68,7 +73,15 @@ namespace Mond.Libraries.Async
 
         protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
         {
-            return false;
+            if (taskWasPreviouslyQueued)
+            {
+                if (TryDequeue(task))
+                    return TryExecuteTask(task);
+
+                return false;
+            }
+
+            return TryExecuteTask(task);
         }
     }
 }
