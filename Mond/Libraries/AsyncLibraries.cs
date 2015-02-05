@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Mond.Binding;
@@ -45,6 +47,19 @@ namespace Mond.Libraries
 
     public static class AsyncUtil
     {
+        private static readonly bool IsMono;
+        private static readonly PropertyInfo TaskSchedulerCurrent;
+
+        static AsyncUtil()
+        {
+            IsMono = Type.GetType("Mono.Runtime") != null;
+
+            if (IsMono)
+            {
+                TaskSchedulerCurrent = typeof(TaskScheduler).GetProperty("Current");
+            }
+        }
+
         /// <summary>
         /// Throws an exception if not running in an async function.
         /// </summary>
@@ -61,6 +76,11 @@ namespace Mond.Libraries
         public static async Task<MondValue> RunMondTask(MondState state, MondValue enumerator)
         {
             CheckScheduler();
+
+            // HACK: save TaskScheduler instance
+            object initialScheduler = null;
+            if (IsMono)
+                initialScheduler = TaskSchedulerCurrent.GetValue(null);
 
             var input = MondValue.Undefined;
 
@@ -79,6 +99,11 @@ namespace Mond.Libraries
                 if (task != null)
                 {
                     input = await task;
+                    
+                    // HACK: restore TaskScheduler instance (might not be needed here)
+                    if (IsMono)
+                        TaskSchedulerCurrent.SetValue(null, initialScheduler);
+
                     continue;
                 }
 
@@ -89,6 +114,10 @@ namespace Mond.Libraries
 
                 var resultEnumerator = state.Call(getEnumerator);
                 input = await RunMondTask(state, resultEnumerator);
+
+                // HACK: restore TaskScheduler instance
+                if (IsMono)
+                    TaskSchedulerCurrent.SetValue(null, initialScheduler);
             }
         }
 

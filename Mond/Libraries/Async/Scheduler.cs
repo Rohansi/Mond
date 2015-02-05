@@ -1,25 +1,21 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Mond.Libraries.Async
 {
     internal class Scheduler : TaskScheduler
     {
-        private List<Task> _tasks;
+        private ConcurrentQueue<Task> _tasks;
 
         public Scheduler()
         {
-            _tasks = new List<Task>();
+            _tasks = new ConcurrentQueue<Task>();
         }
 
         public void Run()
         {
-            int count;
-
-            lock (_tasks)
-            {
-                count = _tasks.Count;
-            }
+            var count = _tasks.Count;
 
             if (count == 0)
                 return;
@@ -27,59 +23,32 @@ namespace Mond.Libraries.Async
             while (--count >= 0)
             {
                 Task task;
+                if (!_tasks.TryDequeue(out task))
+                    break;
 
-                lock (_tasks)
-                {
-                    if (_tasks.Count == 0)
-                        return;
-
-                    task = _tasks[0];
-                    _tasks.RemoveAt(0);
-                }
-
-                if (TryExecuteTask(task))
-                    continue;
-
-                lock (_tasks)
-                {
-                    _tasks.Add(task);
-                }
+                TryExecuteTask(task);
             }
         }
 
         protected override IEnumerable<Task> GetScheduledTasks()
         {
-            lock (_tasks)
-            {
-                return _tasks.ToArray();
-            }
+            return _tasks;
         }
 
         protected override void QueueTask(Task task)
         {
-            lock (_tasks)
-            {
-                _tasks.Add(task);
-            }
+            _tasks.Enqueue(task);
         }
 
         protected override bool TryDequeue(Task task)
         {
-            lock (_tasks)
-            {
-                return _tasks.Remove(task);
-            }
+            return false;
         }
 
         protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
         {
-            if (taskWasPreviouslyQueued)
-            {
-                if (TryDequeue(task))
-                    return TryExecuteTask(task);
-
+            if (taskWasPreviouslyQueued && !TryDequeue(task))
                 return false;
-            }
 
             return TryExecuteTask(task);
         }
