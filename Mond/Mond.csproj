@@ -164,7 +164,7 @@
     <Compile Include="Libraries\Async\Async.cs" />
     <Compile Include="Libraries\Async\CancellationToken.cs" />
     <Compile Include="Libraries\Async\CancellationTokenSource.cs" />
-    <Compile Include="Libraries\Async\Scheduler.cs" />
+    <Compile Include="Libraries\Async\MondTaskScheduler.cs" />
     <Compile Include="Libraries\Async\Task.cs" />
     <Compile Include="Libraries\Async\TaskCompletionSource.cs" />
     <Compile Include="Libraries\ConsoleLibraries.cs" />
