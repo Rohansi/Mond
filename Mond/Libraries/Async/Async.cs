@@ -10,7 +10,7 @@ namespace Mond.Libraries.Async
     [MondClass("Async")]
     internal class AsyncClass
     {
-        private readonly Scheduler _scheduler;
+        private readonly MondTaskScheduler _scheduler;
         private readonly TaskFactory _factory;
         private int _activeTasks;
 
@@ -18,7 +18,7 @@ namespace Mond.Libraries.Async
 
         private AsyncClass()
         {
-            _scheduler = new Scheduler();
+            _scheduler = new MondTaskScheduler();
             _factory = new TaskFactory(_scheduler);
             _activeTasks = 0;
 
@@ -84,6 +84,9 @@ namespace Mond.Libraries.Async
         [MondFunction("run")]
         public bool Run()
         {
+            if (SynchronizationContext.Current is MondSynchronizationContext)
+                throw new MondRuntimeException("Async.run: cannot be called in an async function");
+
             Exception ex = null;
 
             lock (_exceptions)

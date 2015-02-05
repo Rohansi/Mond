@@ -10,7 +10,7 @@ namespace Mond.Libraries.Async
         [MondFunction("delay")]
         public static MondValue Delay(double seconds, MondValue cancellationToken = null)
         {
-            AsyncUtil.CheckScheduler();
+            AsyncUtil.EnsureAsync();
 
             var ct = AsyncUtil.AsCancellationToken(cancellationToken);
 
@@ -27,7 +27,7 @@ namespace Mond.Libraries.Async
         [MondFunction("whenAll")]
         public static MondValue WhenAll(MondState state, params MondValue[] tasks)
         {
-            AsyncUtil.CheckScheduler();
+            AsyncUtil.EnsureAsync();
 
             var taskArray = AsyncUtil.ToTaskArray(state, tasks);
 
@@ -44,7 +44,7 @@ namespace Mond.Libraries.Async
         [MondFunction("whenAny")]
         public static MondValue WhenAny(MondState state, params MondValue[] tasks)
         {
-            AsyncUtil.CheckScheduler();
+            AsyncUtil.EnsureAsync();
 
             var taskArray = AsyncUtil.ToTaskArray(state, tasks);
 
