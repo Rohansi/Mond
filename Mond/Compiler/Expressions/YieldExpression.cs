@@ -1,4 +1,6 @@
-﻿namespace Mond.Compiler.Expressions.Statements
+﻿using Mond.Compiler.Expressions.Statements;
+
+namespace Mond.Compiler.Expressions
 {
     class YieldExpression : Expression, IStatementExpression
     {
