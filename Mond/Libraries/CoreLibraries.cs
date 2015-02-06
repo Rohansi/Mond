@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Mond.Binding;
 using Mond.Libraries.Core;
+using Mond.Libraries.Math;
 
 namespace Mond.Libraries
 {
@@ -15,6 +16,9 @@ namespace Mond.Libraries
         {
             yield return new ErrorLibrary();
             yield return new RequireLibrary();
+            yield return new CharLibrary();
+            yield return new MathLibrary();
+            yield return new RandomLibrary();
         }
     }
 
@@ -57,6 +61,46 @@ namespace Mond.Libraries
         {
             var requireClass = RequireClass.Create(this);
             yield return new KeyValuePair<string, MondValue>("require", requireClass["require"]);
+        }
+    }
+
+    /// <summary>
+    /// Library containing the <c>Char</c> module.
+    /// </summary>
+    public class CharLibrary : IMondLibrary
+    {
+        public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions()
+        {
+            var charModule = MondModuleBinder.Bind<CharModule>();
+            yield return new KeyValuePair<string, MondValue>("Char", charModule);
+        }
+    }
+
+    /// <summary>
+    /// Library containing the <c>Math</c> module.
+    /// </summary>
+    public class MathLibrary : IMondLibrary
+    {
+        public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions()
+        {
+            var mathModule = MondModuleBinder.Bind<MathModule>();
+
+            mathModule["PI"] = System.Math.PI;
+            mathModule["E"] = System.Math.E;
+
+            yield return new KeyValuePair<string, MondValue>("Math", mathModule);
+        }
+    }
+
+    /// <summary>
+    /// Library containing the <c>Random</c> class.
+    /// </summary>
+    public class RandomLibrary : IMondLibrary
+    {
+        public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions()
+        {
+            var randomClass = MondClassBinder.Bind<RandomClass>();
+            yield return new KeyValuePair<string, MondValue>("Random", randomClass);
         }
     }
 }

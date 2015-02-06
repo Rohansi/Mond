@@ -68,6 +68,7 @@ namespace Mond.Libraries
                 .ToList();
 
             var definitions = libraries
+                .Distinct(new MondLibraryEqualityComparer())
                 .SelectMany(l => l.GetDefinitions());
 
             // copy definitions into state
@@ -156,6 +157,19 @@ namespace Mond.Libraries
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
+        }
+
+        class MondLibraryEqualityComparer : IEqualityComparer<IMondLibrary>
+        {
+            public bool Equals(IMondLibrary x, IMondLibrary y)
+            {
+                return x.GetType() == y.GetType();
+            }
+
+            public int GetHashCode(IMondLibrary obj)
+            {
+                return obj.GetType().GetHashCode();
+            }
         }
     }
 

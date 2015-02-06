@@ -13,7 +13,6 @@ namespace Mond.Libraries
             var libraries = new IMondLibraryCollection[]
             {
                 new CoreLibraries(),
-                new MathLibraries(), 
                 new ConsoleLibraries(),
                 new AsyncLibraries(),
                 new JsonLibraries()
