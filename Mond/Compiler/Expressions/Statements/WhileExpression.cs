@@ -32,6 +32,8 @@ namespace Mond.Compiler.Expressions.Statements
 
             var loopContext = containsFunction.Value ? new LoopContext(context) : context;
 
+            context.PushScope();
+
             stack += context.Bind(start); // continue (without function)
 
             if (!isInfinite)
@@ -64,6 +66,8 @@ namespace Mond.Compiler.Expressions.Statements
             }
 
             stack += context.Bind(end); // break (without function)
+
+            context.PopScope();
 
             CheckStack(stack, 0);
             return stack;

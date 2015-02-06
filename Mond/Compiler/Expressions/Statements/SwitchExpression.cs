@@ -59,6 +59,8 @@ namespace Mond.Compiler.Expressions.Statements
             if (emptyDefault)
                 caseDefault = context.MakeLabel("caseDefault");
 
+            context.PushScope();
+
             stack += Expression.Compile(context);
 
             List<JumpTable> tables;
@@ -113,6 +115,8 @@ namespace Mond.Compiler.Expressions.Statements
             context.PopLoop();
 
             stack += context.Bind(caseEnd);
+
+            context.PopScope();
 
             CheckStack(stack, 0);
             return stack;

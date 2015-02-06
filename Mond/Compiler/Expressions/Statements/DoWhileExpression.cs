@@ -30,6 +30,7 @@ namespace Mond.Compiler.Expressions.Statements
             var loopContext = containsFunction.Value ? new LoopContext(context) : context;
 
             // body
+            loopContext.PushScope();
             loopContext.PushLoop(cont, containsFunction.Value ? brk : end);
 
             stack += loopContext.Bind(start);
@@ -58,6 +59,8 @@ namespace Mond.Compiler.Expressions.Statements
             }
 
             stack += context.Bind(end); // break (without function)
+
+            loopContext.PopScope();
 
             CheckStack(stack, 0);
             return stack;

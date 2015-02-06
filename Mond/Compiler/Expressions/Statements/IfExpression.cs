@@ -43,6 +43,8 @@ namespace Mond.Compiler.Expressions.Statements
             var branchElse = context.MakeLabel("ifElse");
             var branchEnd = context.MakeLabel("ifEnd");
 
+            context.PushScope();
+
             for (var i = 0; i < Branches.Count; i++)
             {
                 var branch = Branches[i];
@@ -68,6 +70,8 @@ namespace Mond.Compiler.Expressions.Statements
                 stack += Else.Block.Compile(context);
 
             stack += context.Bind(branchEnd);
+
+            context.PopScope();
 
             CheckStack(stack, 0);
             return 0;
