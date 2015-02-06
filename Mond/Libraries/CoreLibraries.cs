@@ -8,7 +8,9 @@ using Mond.Libraries.Math;
 namespace Mond.Libraries
 {
     /// <summary>
-    /// Contains the <c>error</c>, <c>try</c> and <c>require</c> functions.
+    /// Contains the basic libraries that should be supported everywhere. This
+    /// includes the <c>error</c>, <c>try</c> and <c>require</c> functions, the
+    /// <c>Char</c> and <c>Math</c> modules, and the <c>Random</c> class.
     /// </summary>
     public class CoreLibraries : IMondLibraryCollection
     {
