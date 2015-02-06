@@ -122,7 +122,7 @@ namespace Mond.Libraries
         public static Task<MondValue>[] ToTaskArray(MondState state, params MondValue[] tasks)
         {
             if (tasks.Length == 1 && tasks[0].Type == MondValueType.Array)
-                tasks = tasks[0].ArrayValue.ToArray();
+                tasks = tasks[0].Array.ToArray();
 
             return tasks
                 .Select(t =>

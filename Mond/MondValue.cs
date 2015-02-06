@@ -247,6 +247,34 @@ namespace Mond
         }
 
         /// <summary>
+        /// Gets the dictionary instance used to store this object's values.
+        /// </summary>
+        public IDictionary<MondValue, MondValue> Object
+        {
+            get
+            {
+                if (Type != MondValueType.Object)
+                    throw new InvalidOperationException("MondValue.Object is only valid on objects");
+
+                return ObjectValue.Values;
+            }
+        }
+
+        /// <summary>
+        /// Gets the list instance used to store this array's values.
+        /// </summary>
+        public IList<MondValue> Array
+        {
+            get
+            {
+                if (Type != MondValueType.Array)
+                    throw new InvalidOperationException("MondValue.Array is only valid on arrays");
+
+                return ArrayValue;
+            }
+        } 
+
+        /// <summary>
         /// Gets the prototype object for this value.
         /// 
         /// <para>

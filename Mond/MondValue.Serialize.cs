@@ -65,7 +65,7 @@ namespace Mond
                     writer.WriteLine("{");
                     writer.Indent++;
 
-                    foreach (var objValue in ObjectValue.Values)
+                    foreach (var objValue in Object)
                     {
                         if (first)
                         {

@@ -106,12 +106,12 @@ namespace Mond.Libraries.Json
                     return arr;
                 }
 
-                arr.ArrayValue.Add(ParseValue());
+                arr.Array.Add(ParseValue());
 
                 while (!Match(TokenType.ArrayEnd))
                 {
                     Require(TokenType.Comma);
-                    arr.ArrayValue.Add(ParseValue());
+                    arr.Array.Add(ParseValue());
                 }
 
                 Require(TokenType.ArrayEnd);

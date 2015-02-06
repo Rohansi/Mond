@@ -63,39 +63,5 @@ namespace Mond
 
             return enumerableObj;
         }
-
-        /// <summary>
-        /// Enumerates an Object or Array without going through the Mond VM.
-        /// </summary>
-        public IEnumerable<MondValue> RawEnumerate()
-        {
-            switch (Type)
-            {
-                case MondValueType.Array:
-                    foreach (var e in ArrayValue)
-                    {
-                        yield return e;
-                    }
-
-                    break;
-
-                case MondValueType.Object:
-                    foreach (var key in ObjectValue.Values.Keys)
-                    {
-                        var value = this[key];
-
-                        var pair = new MondValue(MondValueType.Object);
-                        pair["key"] = key;
-                        pair["value"] = value;
-
-                        yield return pair;
-                    }
-
-                    break;
-
-                default:
-                    throw new MondRuntimeException("RawEnumerate can only be used on Object or Array");
-            }
-        }
     }
 }

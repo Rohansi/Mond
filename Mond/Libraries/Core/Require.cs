@@ -76,10 +76,10 @@ namespace Mond.Libraries.Core
                 if (!ReferenceEquals(exports, result))
                 {
                     // module returned a different object, merge with ours
-                    foreach (var kv in result.RawEnumerate())
+                    foreach (var kv in result.Object)
                     {
-                        var key = kv["key"];
-                        var value = kv["value"];
+                        var key = kv.Key;
+                        var value = kv.Value;
 
                         exports[key] = value;
                     }

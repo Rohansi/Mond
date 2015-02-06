@@ -12,7 +12,7 @@ namespace Mond.Binding
 
             foreach (var m in BindImpl(type))
             {
-                obj.ObjectValue.Values.Add(m.Item1, m.Item2);
+                obj.Object.Add(m.Item1, m.Item2);
             }
 
             return obj;
