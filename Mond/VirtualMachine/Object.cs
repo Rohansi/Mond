@@ -8,6 +8,7 @@ namespace Mond.VirtualMachine
         public bool Locked;
         public MondValue Prototype;
         public object UserData;
+        public bool ThisEnabled;
 
         private MondState _dispatcherState;
 
@@ -26,6 +27,7 @@ namespace Mond.VirtualMachine
             Locked = false;
             Prototype = null;
             UserData = null;
+            ThisEnabled = false;
         }
 
         public bool TryDispatch(string name, out MondValue result, params MondValue[] args)

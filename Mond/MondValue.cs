@@ -146,7 +146,7 @@ namespace Mond
                 if (Type == MondValueType.Object)
                 {
                     if (ObjectValue.Values.TryGetValue(index, out indexValue))
-                        return CheckWrapInstanceNative(indexValue);
+                        return CheckWrapFunction(indexValue, ObjectValue.ThisEnabled);
                 }
 
                 var i = 0;
@@ -159,8 +159,9 @@ namespace Mond
                     if (currentValue.Type != MondValueType.Object)
                         break;
 
-                    if (currentValue.ObjectValue.Values.TryGetValue(index, out indexValue))
-                        return CheckWrapInstanceNative(indexValue);
+                    var currentObjValue = currentValue.ObjectValue;
+                    if (currentObjValue.Values.TryGetValue(index, out indexValue))
+                        return CheckWrapFunction(indexValue, currentObjValue.ThisEnabled);
 
                     prototype = currentValue.Prototype;
                     i++;
@@ -172,7 +173,7 @@ namespace Mond
                 if (Type == MondValueType.Object)
                 {
                     if (TryDispatch("__get", out indexValue, this, index))
-                        return CheckWrapInstanceNative(indexValue);
+                        return CheckWrapFunction(indexValue, ObjectValue.ThisEnabled);
                 }
 
                 return Undefined;
@@ -352,7 +353,7 @@ namespace Mond
         public void Lock()
         {
             if (Type != MondValueType.Object)
-                throw new MondRuntimeException("Attempt to lock non-object");
+                throw new MondRuntimeException("Cannot lock non-object");
 
             ObjectValue.Locked = true;
         }
@@ -360,6 +361,17 @@ namespace Mond
         public bool IsLocked
         {
             get { return Type == MondValueType.Object && ObjectValue.Locked; }
+        }
+
+        public void EnableThis()
+        {
+            if (Type != MondValueType.Object)
+                throw new MondRuntimeException("Cannot enable this on non-object");
+
+            if (ObjectValue.Locked)
+                throw new MondRuntimeException(RuntimeError.ObjectIsLocked);
+
+            ObjectValue.ThisEnabled = true;
         }
 
         public bool Contains(MondValue search)
@@ -578,14 +590,40 @@ namespace Mond
             }
         }
 
-        private MondValue CheckWrapInstanceNative(MondValue value)
+        private MondValue CheckWrapFunction(MondValue value, bool thisEnabled)
         {
-            if (value.Type != MondValueType.Function || value.FunctionValue.Type != ClosureType.InstanceNative)
+            if (value.Type != MondValueType.Function)
                 return value;
 
-            var func = value.FunctionValue.InstanceNativeFunction;
-            var inst = this;
-            return new MondValue((state, args) => func(state, inst, args));
+            switch (value.FunctionValue.Type)
+            {
+                case ClosureType.Mond:
+                {
+                    if (!thisEnabled)
+                        break;
+
+                    var func = value;
+                    var inst = this;
+                    return new MondValue((state, args) =>
+                    {
+                        // insert "this" value into argument array
+                        System.Array.Resize(ref args, args.Length + 1);
+                        System.Array.Copy(args, 0, args, 1, args.Length - 1);
+                        args[0] = inst;
+
+                        return state.Call(func, args);
+                    });
+                }
+
+                case ClosureType.InstanceNative:
+                {
+                    var func = value.FunctionValue.InstanceNativeFunction;
+                    var inst = this;
+                    return new MondValue((state, args) => func(state, inst, args));
+                }
+            }
+            
+            return value;
         }
 
         // Convenience function on VirtualMachine.Object.TryDispatch

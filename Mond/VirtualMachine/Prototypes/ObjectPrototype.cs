@@ -162,5 +162,18 @@ namespace Mond.VirtualMachine.Prototypes
 
             return instance;
         }
+
+        /// <summary>
+        /// enableThis(): object
+        /// </summary>
+        [MondFunction("enableThis")]
+        public static MondValue EnableThis([MondInstance] MondValue instance)
+        {
+            if (instance.ObjectValue.Locked)
+                throw new MondRuntimeException(LockedError, "enableThis");
+
+            instance.EnableThis();
+            return instance;
+        }
     }
 }
