@@ -133,7 +133,7 @@ namespace Mond.VirtualMachine.Prototypes
                 var pair = new MondValue(MondValueType.Object);
                 pair["key"] = keys[i];
                 pair["value"] = instance.ObjectValue.Values[keys[i]];
-                
+
                 enumerator["current"] = pair;
                 i++;
                 return true;
@@ -183,6 +183,21 @@ namespace Mond.VirtualMachine.Prototypes
             SetPrototype(instance, value);
             Lock(instance);
 
+            return instance;
+        }
+
+        /// <summary>
+        /// enableThis(): object
+        /// </summary>
+        [MondFunction("enableThis")]
+        public static MondValue EnableThis([MondInstance] MondValue instance)
+        {
+            EnsureObject("enableThis", instance);
+
+            if (instance.ObjectValue.Locked)
+                throw new MondRuntimeException(LockedError, "enableThis");
+
+            instance.EnableThis();
             return instance;
         }
 
