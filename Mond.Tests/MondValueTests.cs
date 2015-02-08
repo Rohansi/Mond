@@ -511,5 +511,33 @@ namespace Mond.Tests
             var empty = new MondValue(MondValueType.Array);
             Assert.True(!empty.Slice().Enumerate(state).Any(), "clone empty");
         }
+
+        [Test]
+        public void ObjectThisValue()
+        {
+            var state = new MondState();
+
+            var result = state.Run(@"
+                var obj = {
+                    fun test(this) -> this == obj
+                }.enableThis();
+                return obj.test();
+            ");
+
+            Assert.True(result == MondValue.True);
+
+            // when accessed through a prototype, "this" value is still
+            // what was used to request it
+            result = state.Run(@"
+                var obj;
+                var base = {
+                    fun test(this) -> this == obj
+                }.enableThis();
+                obj = {}.setPrototype(base);
+                return obj.test();
+            ");
+
+            Assert.True(result == MondValue.True);
+        }
     }
 }
