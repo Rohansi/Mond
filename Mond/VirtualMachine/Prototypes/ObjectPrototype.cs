@@ -16,6 +16,7 @@ namespace Mond.VirtualMachine.Prototypes
             Value.Lock();
         }
 
+        private const string MustBeAnObject = "Object.{0}: must be called on an object";
         private const string LockedError = "Object.{0}: " + RuntimeError.ObjectIsLocked;
 
         /// <summary>
@@ -24,6 +25,8 @@ namespace Mond.VirtualMachine.Prototypes
         [MondFunction("add")]
         public static MondValue Add([MondInstance] MondValue instance, MondValue key, MondValue value)
         {
+            EnsureObject("add", instance);
+
             if (instance.ObjectValue.Locked)
                 throw new MondRuntimeException(LockedError, "add");
 
@@ -37,6 +40,8 @@ namespace Mond.VirtualMachine.Prototypes
         [MondFunction("clear")]
         public static MondValue Clear([MondInstance] MondValue instance)
         {
+            EnsureObject("clear", instance);
+
             if (instance.ObjectValue.Locked)
                 throw new MondRuntimeException(LockedError, "clear");
 
@@ -50,6 +55,8 @@ namespace Mond.VirtualMachine.Prototypes
         [MondFunction("containsKey")]
         public static bool ContainsKey([MondInstance] MondValue instance, MondValue key)
         {
+            EnsureObject("containsKey", instance);
+
             return instance.ObjectValue.Values.ContainsKey(key);
         }
 
@@ -59,6 +66,8 @@ namespace Mond.VirtualMachine.Prototypes
         [MondFunction("containsValue")]
         public static bool ContainsValue([MondInstance] MondValue instance, MondValue value)
         {
+            EnsureObject("containsValue", instance);
+
             return instance.ObjectValue.Values.ContainsValue(value);
         }
 
@@ -68,6 +77,8 @@ namespace Mond.VirtualMachine.Prototypes
         [MondFunction("get")]
         public static MondValue Get([MondInstance] MondValue instance, MondValue key)
         {
+            EnsureObject("get", instance);
+
             MondValue value;
             if (!instance.ObjectValue.Values.TryGetValue(key, out value))
                 return MondValue.Undefined;
@@ -81,6 +92,8 @@ namespace Mond.VirtualMachine.Prototypes
         [MondFunction("remove")]
         public static MondValue Remove([MondInstance] MondValue instance, MondValue key)
         {
+            EnsureObject("remove", instance);
+
             if (instance.ObjectValue.Locked)
                 throw new MondRuntimeException(LockedError, "remove");
 
@@ -94,6 +107,8 @@ namespace Mond.VirtualMachine.Prototypes
         [MondFunction("length")]
         public static int Length([MondInstance] MondValue instance)
         {
+            EnsureObject("length", instance);
+
             return instance.ObjectValue.Values.Count;
         }
 
@@ -103,6 +118,8 @@ namespace Mond.VirtualMachine.Prototypes
         [MondFunction("getEnumerator")]
         public static MondValue GetEnumerator([MondInstance] MondValue instance)
         {
+            EnsureObject("getEnumerator", instance);
+
             var enumerator = new MondValue(MondValueType.Object);
             var keys = instance.ObjectValue.Values.Keys.ToList();
             var i = 0;
@@ -133,6 +150,8 @@ namespace Mond.VirtualMachine.Prototypes
         [MondFunction("setPrototype")]
         public static MondValue SetPrototype([MondInstance] MondValue instance, MondValue value)
         {
+            EnsureObject("setPrototype", instance);
+
             if (value.Type != MondValueType.Object && value.Type != MondValueType.Null && value.Type != MondValueType.Undefined)
                 throw new MondRuntimeException("Object.setPrototype: prototype value must be an object, null, or undefined");
 
@@ -147,6 +166,8 @@ namespace Mond.VirtualMachine.Prototypes
         [MondFunction("lock")]
         public static MondValue Lock([MondInstance] MondValue instance)
         {
+            EnsureObject("lock", instance);
+
             instance.Lock();
             return instance;
         }
@@ -157,10 +178,18 @@ namespace Mond.VirtualMachine.Prototypes
         [MondFunction("setPrototypeAndLock")]
         public static MondValue SetPrototypeAndLock([MondInstance] MondValue instance, MondValue value)
         {
+            EnsureObject("setPrototypeAndLock", instance);
+
             SetPrototype(instance, value);
             Lock(instance);
 
             return instance;
+        }
+
+        private static void EnsureObject(string methodName, MondValue instance)
+        {
+            if (instance.Type != MondValueType.Object)
+                throw new MondRuntimeException(MustBeAnObject, methodName);
         }
     }
 }

@@ -15,6 +15,7 @@ namespace Mond.VirtualMachine.Prototypes
             Value.Lock();
         }
 
+        private const string MustBeAnArray = "Array.{0}: must be called on an array";
         private const string IndexOutOfBounds = "Array.{0}: index out of bounds";
 
         /// <summary>
@@ -23,6 +24,8 @@ namespace Mond.VirtualMachine.Prototypes
         [MondFunction("add")]
         public static MondValue Add([MondInstance] MondValue instance, MondValue item)
         {
+            EnsureArray("add", instance);
+
             instance.ArrayValue.Add(item);
             return instance;
         }
@@ -33,6 +36,8 @@ namespace Mond.VirtualMachine.Prototypes
         [MondFunction("clear")]
         public static MondValue Clear([MondInstance] MondValue instance)
         {
+            EnsureArray("clear", instance);
+
             instance.ArrayValue.Clear();
             return instance;
         }
@@ -43,6 +48,8 @@ namespace Mond.VirtualMachine.Prototypes
         [MondFunction("contains")]
         public static bool Contains([MondInstance] MondValue instance, MondValue item)
         {
+            EnsureArray("contains", instance);
+
             return instance.ArrayValue.Contains(item);
         }
 
@@ -52,6 +59,8 @@ namespace Mond.VirtualMachine.Prototypes
         [MondFunction("indexOf")]
         public static int IndexOf([MondInstance] MondValue instance, MondValue item)
         {
+            EnsureArray("indexOf", instance);
+
             return instance.ArrayValue.IndexOf(item);
         }
 
@@ -61,6 +70,8 @@ namespace Mond.VirtualMachine.Prototypes
         [MondFunction("insert")]
         public static MondValue Insert([MondInstance] MondValue instance, int index, MondValue item)
         {
+            EnsureArray("insert", instance);
+
             if (index < 0 || index > instance.ArrayValue.Count)
                 throw new MondRuntimeException(IndexOutOfBounds, "insert");
 
@@ -74,6 +85,8 @@ namespace Mond.VirtualMachine.Prototypes
         [MondFunction("lastIndexOf")]
         public static int LastIndexOf([MondInstance] MondValue instance, MondValue item)
         {
+            EnsureArray("lastIndexOf", instance);
+
             return instance.ArrayValue.LastIndexOf(item);
         }
 
@@ -83,6 +96,8 @@ namespace Mond.VirtualMachine.Prototypes
         [MondFunction("remove")]
         public static MondValue Remove([MondInstance] MondValue instance, MondValue item)
         {
+            EnsureArray("remove", instance);
+
             instance.ArrayValue.Remove(item);
             return instance;
         }
@@ -93,6 +108,8 @@ namespace Mond.VirtualMachine.Prototypes
         [MondFunction("removeAt")]
         public static MondValue RemoveAt([MondInstance] MondValue instance, int index)
         {
+            EnsureArray("removeAt", instance);
+
             if (index < 0 || index >= instance.ArrayValue.Count)
                 throw new MondRuntimeException(IndexOutOfBounds, "removeAt");
 
@@ -106,6 +123,8 @@ namespace Mond.VirtualMachine.Prototypes
         [MondFunction("length")]
         public static int Length([MondInstance] MondValue instance)
         {
+            EnsureArray("length", instance);
+
             return instance.ArrayValue.Count;
         }
 
@@ -115,6 +134,8 @@ namespace Mond.VirtualMachine.Prototypes
         [MondFunction("getEnumerator")]
         public static MondValue GetEnumerator([MondInstance] MondValue instance)
         {
+            EnsureArray("getEnumerator", instance);
+
             var enumerator = new MondValue(MondValueType.Object);
             var i = 0;
 
@@ -131,6 +152,12 @@ namespace Mond.VirtualMachine.Prototypes
             enumerator["dispose"] = new MondFunction((_, args) => MondValue.Undefined);
 
             return enumerator;
+        }
+
+        private static void EnsureArray(string methodName, MondValue instance)
+        {
+            if (instance.Type != MondValueType.Array)
+                throw new MondRuntimeException(MustBeAnArray, methodName);
         }
     }
 }
