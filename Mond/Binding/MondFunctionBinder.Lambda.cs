@@ -230,6 +230,21 @@ namespace Mond.Binding
             if (NumberTypes.Contains(returnType))
                 return o => Convert.ToDouble(o);
 
+            var classAttrib = returnType.GetCustomAttribute<MondClassAttribute>();
+            if (classAttrib != null && classAttrib.AllowReturn)
+            {
+                MondValue prototype;
+                MondClassBinder.Bind(returnType, out prototype);
+
+                return o =>
+                {
+                    var obj = new MondValue(MondValueType.Object);
+                    obj.Prototype = prototype;
+                    obj.UserData = o;
+                    return obj;
+                };
+            }
+
             throw new MondBindingException(BindingError.UnsupportedReturnType, returnType);
         }
     }

@@ -27,6 +27,8 @@ namespace Mond.Tests.Binding
                 "ReturnVoid",
                 "ReturnNullValue", "ReturnNullString",
 
+                "ReturnClass",
+
                 "Add", "Concat", "Greet"
             };
 
@@ -87,6 +89,20 @@ namespace Mond.Tests.Binding
                 ", types[i]));
 
                 Assert.True(result == results[i], types[i]);
+            }
+
+            {
+                var result = _state.Run(@"
+                    return global.ReturnClass();
+                ");
+
+                Assert.True(result.Type == MondValueType.Object);
+
+                var person = result.UserData as ClassTests.Person;
+
+                Assert.True(person != null);
+
+                Assert.True(person.Name == "Test");
             }
         }
 
@@ -296,6 +312,12 @@ namespace Mond.Tests.Binding
         public static string ReturnNullString()
         {
             return null;
+        }
+
+        [MondFunction]
+        public static ClassTests.Person ReturnClass()
+        {
+            return new ClassTests.Person(new MondValue(MondValueType.Object), "Test");
         }
 
         #endregion

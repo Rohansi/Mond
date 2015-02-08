@@ -7,9 +7,15 @@ namespace Mond.Binding
     {
         public readonly string Name;
 
+        /// <summary>
+        /// Allows the type to be used as a return value from other functions.
+        /// </summary>
+        public bool AllowReturn { get; set; }
+
         public MondClassAttribute(string name = null)
         {
             Name = name;
+            AllowReturn = true;
         }
     }
 }

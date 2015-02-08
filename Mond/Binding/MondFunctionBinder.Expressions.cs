@@ -280,6 +280,31 @@ namespace Mond.Binding
             if (NumberTypes.Contains(returnType))
                 return v => Expression.Convert(Expression.Convert(v, typeof(double)), typeof(MondValue));
 
+            var classAttrib = returnType.GetCustomAttribute<MondClassAttribute>();
+            if (classAttrib != null && classAttrib.AllowReturn)
+            {
+                var valueCtor = typeof(MondValue).GetConstructor(new[] { typeof(MondValueType) });
+
+                if (valueCtor == null)
+                    throw new Exception("Could not find MondValue constructor");
+
+                MondValue prototype;
+                MondClassBinder.Bind(returnType, out prototype);
+
+                return v =>
+                {
+                    var obj = Expression.Variable(typeof(MondValue));
+
+                    return Expression.Block(
+                        new [] { obj },
+                        Expression.Assign(obj, Expression.New(valueCtor, Expression.Constant(MondValueType.Object))),
+                        Expression.Assign(Expression.PropertyOrField(obj, "Prototype"), Expression.Constant(prototype, typeof(MondValue))),
+                        Expression.Assign(Expression.PropertyOrField(obj, "UserData"), v),
+                        obj
+                    );
+                };
+            }
+
             throw new MondBindingException(BindingError.UnsupportedReturnType, returnType);
         }
     }
