@@ -33,20 +33,45 @@ namespace Mond.Compiler.Expressions
                 var needResult = !(Parent is IBlockExpression);
 
                 if (isAssignOperation)
-                    stack += Left.Compile(context);
-
-                stack += Right.Compile(context);
-
-                if (isAssignOperation)
                 {
-                    context.Position(FileName, Line, Column); // debug info
+                    int preTotal;
+                    var preTimes = needResult ? 3 : 2;
+                    
+                    stack += preTotal = storable.CompilePreLoadStore(context, preTimes);
+
+                    stack += storable.CompileLoad(context);
+                    stack += Right.Compile(context);
                     stack += context.BinaryOperation(assignOperation);
+
+                    switch (preTotal / preTimes)
+                    {
+                        case 0:
+                            break;
+                        case 1:
+                            stack += context.Swap();
+                            break;
+                        case 2:
+                            stack += context.Swap1For2();
+                            break;
+                        default:
+                            throw new NotSupportedException();
+                    }
+
+                    stack += storable.CompileStore(context);
+
+                    if (needResult)
+                        stack += storable.CompileLoad(context);
                 }
+                else
+                {
+                    stack += Right.Compile(context);
 
-                if (needResult)
-                    stack += context.Dup();
+                    if (needResult)
+                        stack += context.Dup();
 
-                stack += storable.CompileStore(context);
+                    stack += storable.CompilePreLoadStore(context, 1);
+                    stack += storable.CompileStore(context);
+                }
 
                 CheckStack(stack, needResult ? 1 : 0);
                 return stack;

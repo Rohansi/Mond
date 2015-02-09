@@ -62,6 +62,7 @@ namespace Mond.Compiler.Expressions
                 if (needResult)
                     stack += context.Dup();
 
+                stack += storable.CompilePreLoadStore(context, 1);
                 stack += storable.CompileStore(context);
             }
 

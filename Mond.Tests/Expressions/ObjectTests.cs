@@ -83,5 +83,20 @@ namespace Mond.Tests.Expressions
                 Assert.True(result["b"] == 456);
             }
         }
+
+        [Test]
+        public void FieldLoadStore()
+        {
+            var result = Script.Run(@"
+                var i = 0, o = { x: 3 };
+                fun get() { i++; return o; }
+                get().x += 6;
+                return { i, x: o.x };
+            ");
+
+            Assert.True(result.Type == MondValueType.Object);
+            Assert.True(result["i"] == 1);
+            Assert.True(result["x"] == 9);
+        }
     }
 }

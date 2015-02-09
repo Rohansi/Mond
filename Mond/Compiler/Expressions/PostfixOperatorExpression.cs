@@ -52,6 +52,7 @@ namespace Mond.Compiler.Expressions
                     throw new NotSupportedException();
             }
 
+            stack += storable.CompilePreLoadStore(context, 1);
             stack += storable.CompileStore(context);
 
             CheckStack(stack, needResult ? 1 : 0);

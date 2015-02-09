@@ -13,7 +13,7 @@ namespace Mond
     public sealed class MondProgram
     {
         private const uint MagicId = 0xFA57C0DE;
-        private const byte FormatVersion = 3;
+        private const byte FormatVersion = 4;
 
         internal readonly byte[] Bytecode;
         internal readonly List<MondValue> Numbers;
@@ -126,7 +126,7 @@ namespace Mond
 
                 byte version;
                 if ((version = reader.ReadByte()) != FormatVersion)
-                    throw new NotSupportedException(string.Format("Wrong bytecode version. Expected 0x{0:X2} or lower, got 0x{1:X2}.", FormatVersion, version));
+                    throw new NotSupportedException(string.Format("Wrong bytecode version. Expected 0x{0:X2}, got 0x{1:X2}.", FormatVersion, version));
 
                 var hasDebugInfo = reader.ReadBoolean();
 
@@ -145,7 +145,7 @@ namespace Mond
                 var bytecodeLength = reader.ReadInt32();
                 var bytecode = reader.ReadBytes(bytecodeLength);
 
-                var debugInfo = (DebugInfo)null;
+                DebugInfo debugInfo = null;
                 if (hasDebugInfo)
                 {
                     var functionCount = reader.ReadInt32();
@@ -167,11 +167,7 @@ namespace Mond
                         var address = reader.ReadInt32();
                         var fileName = reader.ReadInt32();
                         var lineNumber = reader.ReadInt32();
-                        var columnNumber = -1;
-
-                        //For backwards compatibility with version 1.
-                        if (version >= FormatVersion)
-                            columnNumber = reader.ReadInt32();
+                        var columnNumber = reader.ReadInt32();
 
                         var line = new DebugInfo.Position(address, fileName, lineNumber, columnNumber);
                         lines.Add(line);

@@ -11,7 +11,7 @@ namespace Mond.Compiler
         Position,                           // debug info
         Label,                              // label binding
 
-        Dup, Drop, Swap,                    // duplicate, drop, swap
+        Dup, Dup2, Drop, Swap, Swap1For2,   // duplicates, drop, swaps
 
         LdUndef, LdNull,                    // load undefined/null constant
         LdTrue, LdFalse,                    // load true/false constant

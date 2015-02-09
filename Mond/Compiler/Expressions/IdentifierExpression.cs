@@ -34,6 +34,16 @@
             return stack;
         }
 
+        public int CompilePreLoadStore(FunctionContext context, int times)
+        {
+            return 0;
+        }
+
+        public int CompileLoad(FunctionContext context)
+        {
+            return Compile(context);
+        }
+
         public int CompileStore(FunctionContext context)
         {
             var stack = 0;

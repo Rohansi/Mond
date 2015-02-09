@@ -114,6 +114,17 @@ namespace Mond.VirtualMachine
                                 break;
                             }
 
+                        case (int)InstructionType.Dup2:
+                            {
+                                var value2 = Pop();
+                                var value1 = Pop();
+                                Push(value1);
+                                Push(value2);
+                                Push(value1);
+                                Push(value2);
+                                break;
+                            }
+
                         case (int)InstructionType.Drop:
                             {
                                 Pop();
@@ -126,6 +137,17 @@ namespace Mond.VirtualMachine
                                 var value2 = Pop();
                                 Push(value1);
                                 Push(value2);
+                                break;
+                            }
+
+                        case (int)InstructionType.Swap1For2:
+                            {
+                                var one = Pop();
+                                var two2 = Pop();
+                                var two1 = Pop();
+                                Push(one);
+                                Push(two1);
+                                Push(two2);
                                 break;
                             }
                         #endregion

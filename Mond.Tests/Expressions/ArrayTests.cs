@@ -59,6 +59,23 @@ namespace Mond.Tests.Expressions
         }
 
         [Test]
+        public void IndexerLoadStore()
+        {
+            var result = Script.Run(@"
+                var i = 0, j = 0, a = [3];
+                fun zero() { i++; return 0; }
+                fun get() { j++; return a; }
+                get()[zero()] += 6;
+                return { i, j, x: a[0] };
+            ");
+
+            Assert.True(result.Type == MondValueType.Object);
+            Assert.True(result["i"] == 1);
+            Assert.True(result["j"] == 1);
+            Assert.True(result["x"] == 9);
+        }
+
+        [Test]
         public void Length()
         {
             var result = Script.Run(@"

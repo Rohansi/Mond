@@ -26,12 +26,34 @@
             return stack;
         }
 
-        public int CompileStore(FunctionContext context)
+        public int CompilePreLoadStore(FunctionContext context, int times)
         {
             var stack = 0;
 
             stack += Left.Compile(context);
             stack += Index.Compile(context);
+
+            for (var i = 1; i < times; i++)
+            {
+                stack += context.Dup2();
+            }
+
+            return stack;
+        }
+
+        public int CompileLoad(FunctionContext context)
+        {
+            var stack = 0;
+
+            context.Position(FileName, Line, Column); // debug info
+            stack += context.LoadArray();
+
+            return stack;
+        }
+
+        public int CompileStore(FunctionContext context)
+        {
+            var stack = 0;
 
             context.Position(FileName, Line, Column); // debug info
             stack += context.StoreArray();

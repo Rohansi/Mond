@@ -155,6 +155,12 @@ namespace Mond.Compiler
             return 1;
         }
 
+        public int Dup2()
+        {
+            Emit(new Instruction(InstructionType.Dup2));
+            return 2;
+        }
+
         public int Drop()
         {
             Emit(new Instruction(InstructionType.Drop));
@@ -164,6 +170,12 @@ namespace Mond.Compiler
         public int Swap()
         {
             Emit(new Instruction(InstructionType.Swap));
+            return 0;
+        }
+
+        public int Swap1For2()
+        {
+            Emit(new Instruction(InstructionType.Swap1For2));
             return 0;
         }
 
