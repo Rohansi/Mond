@@ -439,15 +439,6 @@ namespace Mond.Compiler.Visitors
             return 0;
         }
 
-        public int Visit(ListComprehensionExpression expression)
-        {
-            _writer.Write("/* list comprehension */ (seq () ");
-            expression.Body.Accept(this);
-            _writer.Write(")()");
-
-            return 0;
-        }
-
         public int Visit(NullExpression expression)
         {
             _writer.Write("null");

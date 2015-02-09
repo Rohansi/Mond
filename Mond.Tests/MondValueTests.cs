@@ -519,7 +519,7 @@ namespace Mond.Tests
 
             var result = state.Run(@"
                 var obj = {
-                    fun test(this) -> this == obj
+                    test: fun (this) -> this == obj
                 }.enableThis();
                 return obj.test();
             ");
@@ -531,7 +531,7 @@ namespace Mond.Tests
             result = state.Run(@"
                 var obj;
                 var base = {
-                    fun test(this) -> this == obj
+                    test: fun (this) -> this == obj
                 }.enableThis();
                 obj = {}.setPrototype(base);
                 return obj.test();

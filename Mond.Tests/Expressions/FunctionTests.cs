@@ -219,14 +219,15 @@ namespace Mond.Tests.Expressions
         }
 
         [Test]
-        public void DoubleAssign()
+        public void NameRequirement()
         {
-            var result = Script.Run(@"
-                var a = fun b() -> 1;
-                return a() + b();
-            ");
+            Assert.Throws<MondCompilerException>(() => Script.Run(@"
+                return fun x() { return 0; };
+            "));
 
-            Assert.True(result == 2);
+            Assert.Throws<MondCompilerException>(() => Script.Run(@"
+                fun () { return 0; }
+            "));
         }
 
         [Test]

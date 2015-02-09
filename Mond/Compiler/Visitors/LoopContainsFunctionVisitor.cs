@@ -23,12 +23,5 @@ namespace Mond.Compiler.Visitors
             Value = true;
             return 0;
         }
-
-        public override int Visit(ListComprehensionExpression expression)
-        {
-            // List comprehensions are just immediately invoked sequences
-            Value = true;
-            return 0;
-        }
     }
 }

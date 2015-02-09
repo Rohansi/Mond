@@ -182,31 +182,6 @@ namespace Mond.Tests.Expressions
         }
 
         [Test]
-        public void Comprehension()
-        {
-            MondState state;
-            var result = Script.Run(out state, @"
-                fun double(x) -> x * 2;
-                fun half(x) -> x / 2;
-
-                fun isNumber(x) -> x.getType() == 'number';
-                fun above10(x) -> x > 10;
-
-                var input = [ [5, null, 15, 20], [1, 100, 1000, 'test'] ];
-            
-                return [double(x) + half(x) : list in input, x in list, isNumber(x), above10(x)];
-            ");
-
-            var expected = new MondValue[]
-            {
-                37.5, 50, 250, 2500
-            };
-
-            Assert.True(result.IsEnumerable);
-            Assert.True(result.Enumerate(state).SequenceEqual(expected));
-        }
-
-        [Test]
         public void VariableLengthArguments()
         {
             MondState state;

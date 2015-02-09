@@ -29,7 +29,6 @@ namespace Mond.Compiler
         T Visit(GlobalExpression expression);
         T Visit(IdentifierExpression expression);
         T Visit(IndexerExpression expression);
-        T Visit(ListComprehensionExpression expression);
         T Visit(NullExpression expression);
         T Visit(NumberExpression expression);
         T Visit(ObjectExpression expression);

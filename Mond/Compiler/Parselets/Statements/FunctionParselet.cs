@@ -13,20 +13,28 @@ namespace Mond.Compiler.Parselets.Statements
             string otherArgs;
             BlockExpression body;
 
-            ParseFunction(parser, token, out trailingSemicolon, out name, out arguments, out otherArgs, out body);
+            ParseFunction(parser, token, true, out trailingSemicolon, out name, out arguments, out otherArgs, out body);
 
             return new FunctionExpression(token, name, arguments, otherArgs, body);
         }
 
         public Expression Parse(Parser parser, Token token)
         {
-            bool hasTrailingSemicolon;
-            return Parse(parser, token, out hasTrailingSemicolon);
+            string name;
+            List<string> arguments;
+            string otherArgs;
+            BlockExpression body;
+            bool trailingSemicolon;
+
+            ParseFunction(parser, token, false, out trailingSemicolon, out name, out arguments, out otherArgs, out body);
+
+            return new FunctionExpression(token, name, arguments, otherArgs, body);
         }
 
         public static void ParseFunction(
             Parser parser,
             Token token,
+            bool isStatement,
             out bool trailingSemicolon,
             out string name,
             out List<string> arguments,
@@ -39,11 +47,9 @@ namespace Mond.Compiler.Parselets.Statements
             arguments = new List<string>();
             otherArgs = null;
 
-            // optional name
-            if (parser.Match(TokenType.Identifier))
-            {
+            // only statements can be named
+            if (isStatement)
                 name = parser.Take(TokenType.Identifier).Contents;
-            }
 
             // parse argument list
             parser.Take(TokenType.LeftParen);

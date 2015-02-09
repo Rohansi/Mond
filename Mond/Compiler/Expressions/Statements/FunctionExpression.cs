@@ -10,9 +10,7 @@ namespace Mond.Compiler.Expressions.Statements
         public string OtherArguments { get; private set; }
         public BlockExpression Block { get; private set; }
 
-        public string DebugName { get; private set; }
-
-        public bool StoreInNameVariable { get; set; }
+        public string DebugName { get; set; }
 
         public FunctionExpression(Token token, string name, List<string> arguments, string otherArgs, BlockExpression block, string debugName = null)
             : base(token.FileName, token.Line, token.Column)
@@ -23,8 +21,6 @@ namespace Mond.Compiler.Expressions.Statements
             Block = block;
 
             DebugName = debugName;
-
-            StoreInNameVariable = true;
         }
 
         public virtual void CompileBody(FunctionContext context)
@@ -48,10 +44,7 @@ namespace Mond.Compiler.Expressions.Statements
         {
             var isStatement = Parent is IBlockExpression;
             var shouldBeGlobal = context.ArgIndex == 0 && context.Compiler.Options.MakeRootDeclarationsGlobal;
-            var shouldStore = StoreInNameVariable && Name != null;
-
-            if (Name == null && isStatement)
-                throw new MondCompilerException(this, CompilerError.FunctionNeverUsed);
+            var shouldStore = Name != null;
 
             IdentifierOperand identifier = null;
 

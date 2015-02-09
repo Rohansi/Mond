@@ -85,7 +85,8 @@ namespace Mond.Compiler
             {
                 foreach (var branchCondition in branch.Conditions)
                 {
-                    branchCondition.Accept(this);
+                    if (branchCondition != null)
+                        branchCondition.Accept(this);
                 }
 
                 branch.Block.Accept(this);
@@ -192,13 +193,6 @@ namespace Mond.Compiler
         {
             expression.Left.Accept(this);
             expression.Index.Accept(this);
-
-            return default(T);
-        }
-
-        public virtual T Visit(ListComprehensionExpression expression)
-        {
-            expression.Body.Accept(this);
 
             return default(T);
         }

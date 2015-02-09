@@ -3,7 +3,6 @@
 
 ### Features
 * [sequences](https://github.com/Rohansi/Mond/wiki/Sequences)
-* [list comprehension](https://github.com/Rohansi/Mond/wiki/List-Comprehension)
 * [prototype-based inheritance](https://github.com/Rohansi/Mond/wiki/Prototypes)
 * [metamethods](https://github.com/Rohansi/Mond/wiki/Metamethods)
 * [simple embedding](https://github.com/Rohansi/Mond/wiki/Basic-Usage)
@@ -17,16 +16,23 @@ seq range(start, end) {
         yield i;
 }
 
-fun where(list, filter) -> [x : x in list, filter(x)];
-fun select(list, transform) -> [transform(x) : x in list];
+seq where(list, filter) {
+    foreach (var x in list) {
+        if (filter(x))
+            yield x;
+    }
+}
+
+seq select(list, transform) {
+    foreach (var x in list)
+        yield transform(x);
+}
 
 fun toArray(list) {
     var array = [];
-
     foreach (var value in list) {
         array.add(value);
     }
-
     return array;
 }
 

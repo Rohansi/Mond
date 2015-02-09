@@ -4,34 +4,6 @@
     Syntax highlights Mond code from stdin. Outputs HTML.
 */
 
-const Char = {
-    isWhiteSpace: fun (ch) {
-        return ch == " "  ||
-               ch == "\t" ||
-               ch == "\n" ||
-               ch == "\r";
-    },
-    
-    isLetter: fun (ch) {
-        return (ch >= "a" && ch <= "z") ||
-               (ch >= "A" && ch <= "Z");
-    },
-    
-    isDigit: fun (ch) {
-        return ch >= "0" && ch <= "9";
-    },
-    
-    isLetterOrDigit: fun (ch) {
-        return Char.isLetter(ch) || Char.isDigit(ch);
-    },
-    
-    isHexDigit: fun (ch) {
-        return (ch >= "0" && ch <= "9") ||
-               (ch >= "A" && ch <= "F") ||
-               (ch >= "a" && ch <= "f");
-    }
-};
-
 const tokenizerOperators = {
     ";": [ ";" ],
     ",": [ "," ],
@@ -302,7 +274,8 @@ seq tokenize(input) {
                 }
             }
             
-            fun isDigit(c) -> Char.isDigit(c) || (format == "hex" && Char.isHexDigit(c));
+            fun isHexDigit(c) -> (c >= "A" && c <= "F") || (c >= "a" && c <= "f");
+            fun isDigit(c) -> Char.isDigit(c) || (format == "hex" && isHexDigit(c));
             
             var number = takeWhile(c -> {
                 if (justTake) {

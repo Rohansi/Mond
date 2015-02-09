@@ -13,15 +13,22 @@ namespace Mond.Compiler.Parselets.Statements
             string otherArgs;
             BlockExpression body;
 
-            FunctionParselet.ParseFunction(parser, token, out trailingSemicolon, out name, out arguments, out otherArgs, out body);
+            FunctionParselet.ParseFunction(parser, token, true, out trailingSemicolon, out name, out arguments, out otherArgs, out body);
 
             return new SequenceExpression(token, name, arguments, otherArgs, body);
         }
 
         public Expression Parse(Parser parser, Token token)
         {
-            bool hasTrailingSemicolon;
-            return Parse(parser, token, out hasTrailingSemicolon);
+            string name;
+            List<string> arguments;
+            string otherArgs;
+            BlockExpression body;
+            bool trailingSemicolon;
+
+            FunctionParselet.ParseFunction(parser, token, false, out trailingSemicolon, out name, out arguments, out otherArgs, out body);
+
+            return new SequenceExpression(token, name, arguments, otherArgs, body);
         }
     }
 }

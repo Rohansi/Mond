@@ -30,20 +30,6 @@ namespace Mond.Tests.Expressions
                 Assert.True(result["a"] == 123);
                 Assert.True(result["b"] == 456);
             }
-
-            MondState state;
-            var obj = Script.Run(out state, @"
-                return {
-                    fun function() { return 1; },
-                    seq sequence() { yield 1; }
-                };
-            ");
-
-            Assert.True(obj["function"].Type == MondValueType.Function);
-            Assert.True(obj["sequence"].Type == MondValueType.Function);
-
-            Assert.True(state.Call(obj["function"]) == 1);
-            Assert.True(state.Call(obj["sequence"])["getEnumerator"].Type == MondValueType.Function);
         }
 
         [Test]
@@ -97,6 +83,31 @@ namespace Mond.Tests.Expressions
             Assert.True(result.Type == MondValueType.Object);
             Assert.True(result["i"] == 1);
             Assert.True(result["x"] == 9);
+        }
+
+        [Test]
+        public void AnonymousFunctionDebugName()
+        {
+            MondState state;
+            var obj = Script.Run(out state, @"
+                return {
+                    fun123: fun () { error('test'); },
+                    seq456: seq () { error('test'); },
+                };
+            ");
+
+            Assert.True(obj["fun123"].Type == MondValueType.Function);
+            Assert.True(obj["seq456"].Type == MondValueType.Function);
+
+            var funEx = Assert.Throws<MondRuntimeException>(() => state.Call(obj["fun123"]));
+            Assert.True(funEx.Message.Contains("fun123"));
+
+            var seqEx = Assert.Throws<MondRuntimeException>(() =>
+            {
+                var enumerator = state.Call(obj["seq456"]);
+                state.Call(enumerator["moveNext"]);
+            });
+            Assert.True(seqEx.Message.Contains("seq456"));
         }
     }
 }

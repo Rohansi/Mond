@@ -24,8 +24,6 @@
 
         public const string BadForLoopInitializer = "For loop initializer cannot be statement";
 
-        public const string FunctionNeverUsed = "Function is never used";
-
         public const string ObjectFunctionNotNamed = "Object literal functions must be named";
 
         public const string UnresolvedJump = "Unresolved jump";
