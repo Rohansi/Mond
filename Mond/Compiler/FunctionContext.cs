@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Mond.Compiler
 {
@@ -32,7 +33,7 @@ namespace Mond.Compiler
             ArgIndex = argIndex;
             LocalIndex = localIndex;
 
-            Scope = new Scope(ArgIndex, LocalIndex, prevScope);
+            Scope = prevScope;
 
             ParentName = parentName;
             Name = name;
@@ -70,12 +71,51 @@ namespace Mond.Compiler
 
         public virtual void PushScope()
         {
-            Scope = new Scope(ArgIndex, LocalIndex, Scope);
+            Compiler.ScopeDepth++;
+            var scopeId = Compiler.ScopeId++;
+
+            // don't do extra work if we dont need it
+            if (Compiler.Options.DebugInfo <= MondDebugInfoLevel.StackTrace)
+            {
+                Scope = new Scope(scopeId, ArgIndex, LocalIndex, Scope);
+                return;
+            }
+
+            var startLabel = MakeLabel("scopeStart");
+            var endLabel = MakeLabel("scopeEnd");
+
+            var newScope = new Scope(scopeId, ArgIndex, LocalIndex, Scope, () => Bind(endLabel));
+
+            Emit(new Instruction(InstructionType.Scope, new IInstructionOperand[]
+            {
+                new ImmediateOperand(scopeId),
+                new ImmediateOperand(Compiler.ScopeDepth),
+                new ImmediateOperand(Scope != null ? Scope.Id : -1),
+                startLabel,
+                endLabel,
+                new DeferredOperand<ListOperand<DebugIdentifierOperand>>(() =>
+                {
+                    var operands = newScope.Identifiers
+                        .Select(i => new DebugIdentifierOperand(String(i.Name), i.IsReadOnly, i.FrameIndex, i.Id))
+                        .ToList();
+
+                    return new ListOperand<DebugIdentifierOperand>(operands);
+                })
+            }));
+
+            Bind(startLabel);
+
+            Scope = newScope;
         }
 
         public virtual void PopScope()
         {
+            var popAction = Scope.PopAction;
+            if (popAction != null)
+                popAction();
+
             Scope = Scope.Previous;
+            Compiler.ScopeDepth--;
         }
 
         public virtual void PushLoop(LabelOperand continueTarget, LabelOperand breakTarget)

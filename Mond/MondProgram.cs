@@ -13,7 +13,7 @@ namespace Mond
     public sealed class MondProgram
     {
         private const uint MagicId = 0xFA57C0DE;
-        private const byte FormatVersion = 4;
+        private const byte FormatVersion = 5;
 
         internal readonly byte[] Bytecode;
         internal readonly List<MondValue> Numbers;
@@ -51,37 +51,78 @@ namespace Mond
                 writer.Write(MagicId);
                 writer.Write(FormatVersion);
                 writer.Write(DebugInfo != null);
-                writer.Write(Strings.Count);
 
+                writer.Write(Strings.Count);
                 foreach (var str in Strings)
+                {
                     writer.Write(str.ToString());
+                }
 
                 writer.Write(Numbers.Count);
-
                 foreach (var num in Numbers)
+                {
                     writer.Write((double)num);
+                }
 
                 writer.Write(Bytecode.Length);
                 writer.Write(Bytecode, 0, Bytecode.Length);
 
                 if (DebugInfo != null)
                 {
-                    writer.Write(DebugInfo.Functions.Count);
-
-                    foreach (var function in DebugInfo.Functions)
+                    if (DebugInfo.Functions != null)
                     {
-                        writer.Write(function.Address);
-                        writer.Write(function.Name);
+                        writer.Write(DebugInfo.Functions.Count);
+                        foreach (var function in DebugInfo.Functions)
+                        {
+                            writer.Write(function.Address);
+                            writer.Write(function.Name);
+                        }
+                    }
+                    else
+                    {
+                        writer.Write(0);
                     }
 
-                    writer.Write(DebugInfo.Lines.Count);
-
-                    foreach (var line in DebugInfo.Lines)
+                    if (DebugInfo.Lines != null)
                     {
-                        writer.Write(line.Address);
-                        writer.Write(line.FileName);
-                        writer.Write(line.LineNumber);
-                        writer.Write(line.ColumnNumber);
+                        writer.Write(DebugInfo.Lines.Count);
+                        foreach (var line in DebugInfo.Lines)
+                        {
+                            writer.Write(line.Address);
+                            writer.Write(line.FileName);
+                            writer.Write(line.LineNumber);
+                            writer.Write(line.ColumnNumber);
+                        }
+                    }
+                    else
+                    {
+                        writer.Write(0);
+                    }
+
+                    if (DebugInfo.Scopes != null)
+                    {
+                        writer.Write(DebugInfo.Scopes.Count);
+                        foreach (var scope in DebugInfo.Scopes)
+                        {
+                            writer.Write(scope.Id);
+                            writer.Write(scope.Depth);
+                            writer.Write(scope.ParentId);
+                            writer.Write(scope.StartAddress);
+                            writer.Write(scope.EndAddress);
+
+                            writer.Write(scope.Identifiers.Count);
+                            foreach (var ident in scope.Identifiers)
+                            {
+                                writer.Write(ident.Name);
+                                writer.Write(ident.IsReadOnly);
+                                writer.Write(ident.FrameIndex);
+                                writer.Write(ident.Id);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        writer.Write(0);
                     }
                 }
 
@@ -132,15 +173,17 @@ namespace Mond
 
                 var stringCount = reader.ReadInt32();
                 var strings = new List<string>(stringCount);
-
                 for (var i = 0; i < stringCount; ++i)
+                {
                     strings.Add(reader.ReadString());
+                }
 
                 var numberCount = reader.ReadInt32();
                 var numbers = new List<double>(numberCount);
-
                 for (var i = 0; i < numberCount; ++i)
+                {
                     numbers.Add(reader.ReadDouble());
+                }
 
                 var bytecodeLength = reader.ReadInt32();
                 var bytecode = reader.ReadBytes(bytecodeLength);
@@ -150,7 +193,6 @@ namespace Mond
                 {
                     var functionCount = reader.ReadInt32();
                     var functions = new List<DebugInfo.Function>(functionCount);
-
                     for (var i = 0; i < functionCount; ++i)
                     {
                         var address = reader.ReadInt32();
@@ -161,7 +203,6 @@ namespace Mond
 
                     var lineCount = reader.ReadInt32();
                     var lines = new List<DebugInfo.Position>(lineCount);
-
                     for (var i = 0; i < lineCount; ++i)
                     {
                         var address = reader.ReadInt32();
@@ -173,7 +214,32 @@ namespace Mond
                         lines.Add(line);
                     }
 
-                    debugInfo = new DebugInfo(functions, lines);
+                    var scopeCount = reader.ReadInt32();
+                    var scopes = new List<DebugInfo.Scope>(scopeCount);
+                    for (var i = 0; i < scopeCount; ++i)
+                    {
+                        var id = reader.ReadInt32();
+                        var depth = reader.ReadInt32();
+                        var parentId = reader.ReadInt32();
+                        var startAddress = reader.ReadInt32();
+                        var endAddress = reader.ReadInt32();
+
+                        var identCount = reader.ReadInt32();
+                        var idents = new List<DebugInfo.Identifier>(identCount);
+                        for (var j = 0; j < identCount; ++j)
+                        {
+                            var name = reader.ReadInt32();
+                            var isReadOnly = reader.ReadBoolean();
+                            var frameIndex = reader.ReadInt32();
+                            var idx = reader.ReadInt32();
+
+                            idents.Add(new DebugInfo.Identifier(name, isReadOnly, frameIndex, idx));
+                        }
+
+                        scopes.Add(new DebugInfo.Scope(id, depth, parentId, startAddress, endAddress, idents));
+                    }
+
+                    debugInfo = new DebugInfo(functions, lines, scopes);
                 }
 
                 return new MondProgram(bytecode, numbers, strings, debugInfo);

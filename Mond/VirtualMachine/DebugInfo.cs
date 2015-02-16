@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
 namespace Mond.VirtualMachine
@@ -33,8 +34,47 @@ namespace Mond.VirtualMachine
             }
         }
 
+        public class Scope
+        {
+            public readonly int Id;
+            public readonly int Depth;
+            public readonly int ParentId;
+            public readonly int StartAddress;
+            public readonly int EndAddress;
+            public readonly ReadOnlyCollection<Identifier> Identifiers;
+
+            public Scope(int id, int depth, int parentId, int startAddress, int endAddress, List<Identifier> identifiers)
+            {
+                Id = id;
+                Depth = depth;
+                ParentId = parentId;
+                StartAddress = startAddress;
+                EndAddress = endAddress;
+                Identifiers = identifiers != null ? identifiers.AsReadOnly() : null;
+            }
+        }
+
+        public struct Identifier
+        {
+            public readonly int Name;
+            public readonly bool IsReadOnly;
+            public readonly int FrameIndex;
+            public readonly int Id;
+
+            public Identifier(int name, bool isReadOnly, int frameIndex, int id)
+            {
+                Name = name;
+                IsReadOnly = isReadOnly;
+                FrameIndex = frameIndex;
+                Id = id;
+            }
+        }
+
         private readonly List<Function> _functions;
         private readonly List<Position> _lines;
+        private readonly List<Scope> _scopes;
+
+        private List<List<Scope>> _unpackedScopes; 
 
         internal ReadOnlyCollection<Function> Functions
         {
@@ -46,10 +86,16 @@ namespace Mond.VirtualMachine
             get { return _lines.AsReadOnly(); }
         }
 
-        public DebugInfo(List<Function> functions, List<Position> lines)
+        internal ReadOnlyCollection<Scope> Scopes
         {
-            _functions = functions;
-            _lines = lines;
+            get { return _scopes.AsReadOnly(); }
+        }
+
+        public DebugInfo(List<Function> functions, List<Position> lines, List<Scope> scopes)
+        {
+            _functions = functions ?? new List<Function>();
+            _lines = lines ?? new List<Position>();
+            _scopes = scopes ?? new List<Scope>();
         }
 
         public Function? FindFunction(int address)
@@ -74,6 +120,43 @@ namespace Mond.VirtualMachine
             return result;
         }
 
+        public Scope FindScope(int address)
+        {
+            if (_unpackedScopes == null)
+            {
+                _unpackedScopes = new List<List<Scope>>(16);
+
+                for (var i = 0; i < _scopes.Count; i++)
+                {
+                    var scope = _scopes[i];
+
+                    if (scope.Id != i)
+                        throw new Exception();
+
+                    while (scope.Depth >= _unpackedScopes.Count)
+                    {
+                        _unpackedScopes.Add(new List<Scope>(16));
+                    }
+
+                    _unpackedScopes[scope.Depth].Add(scope);
+                }
+            }
+
+            var target = new Scope(0, 0, 0, address, address, null);
+
+            for (var i = _unpackedScopes.Count - 1; i >= 0; i--)
+            {
+                var idx = _unpackedScopes[i].BinarySearch(target, ScopeAddressComparer);
+
+                if (idx < 0)
+                    continue;
+
+                return _unpackedScopes[i][idx];
+            }
+
+            return null;
+        }
+
         private static int Search<T>(List<T> list, T key, IComparer<T> comparer)
         {
             var idx = list.BinarySearch(key, comparer);
@@ -89,5 +172,17 @@ namespace Mond.VirtualMachine
 
         private static readonly GenericComparer<Position> PositionAddressComparer =
             new GenericComparer<Position>((x, y) => x.Address - y.Address);
+
+        private static readonly GenericComparer<Scope> ScopeAddressComparer =
+            new GenericComparer<Scope>((x, y) =>
+            {
+                if (x.StartAddress <= y.StartAddress && x.EndAddress >= y.EndAddress)
+                    return 0;
+
+                if (x.EndAddress < y.StartAddress)
+                    return -1;
+
+                return 1;
+            });
     }
 }

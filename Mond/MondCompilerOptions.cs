@@ -1,11 +1,29 @@
 ﻿namespace Mond
 {
+    public enum MondDebugInfoLevel
+    {
+        /// <summary>
+        /// No debug information.
+        /// </summary>
+        None,
+        
+        /// <summary>
+        /// Enough debug information for stack traces.
+        /// </summary>
+        StackTrace,
+
+        /// <summary>
+        /// All debug information.
+        /// </summary>
+        Full
+    }
+
     public class MondCompilerOptions
     {
         /// <summary>
-        /// Generate debug information for stack traces.
+        /// Specify how much debug information to generate.
         /// </summary>
-        public bool GenerateDebugInfo { get; set; }
+        public MondDebugInfoLevel DebugInfo { get; set; }
 
         /// <summary>
         /// Force all declarations in the script root to be stored in the global object.
@@ -25,7 +43,7 @@
 
         public MondCompilerOptions()
         {
-            GenerateDebugInfo = true;
+            DebugInfo = MondDebugInfoLevel.StackTrace;
             MakeRootDeclarationsGlobal = false;
             UseImplicitGlobals = false;
             FirstLineNumber = 1;

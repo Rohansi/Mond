@@ -8,11 +8,11 @@ namespace Mond.Compiler.Expressions.Statements
         public string Name { get; private set; }
         public ReadOnlyCollection<string> Arguments { get; private set; }
         public string OtherArguments { get; private set; }
-        public BlockExpression Block { get; private set; }
+        public ScopeExpression Block { get; private set; }
 
         public string DebugName { get; set; }
 
-        public FunctionExpression(Token token, string name, List<string> arguments, string otherArgs, BlockExpression block, string debugName = null)
+        public FunctionExpression(Token token, string name, List<string> arguments, string otherArgs, ScopeExpression block, string debugName = null)
             : base(token.FileName, token.Line, token.Column)
         {
             Name = name;
@@ -108,7 +108,7 @@ namespace Mond.Compiler.Expressions.Statements
 
         public override Expression Simplify()
         {
-            Block = (BlockExpression)Block.Simplify();
+            Block = (ScopeExpression)Block.Simplify();
 
             return this;
         }

@@ -14,6 +14,61 @@ namespace Mond.Compiler
         void Write(BinaryWriter writer);
     }
 
+    class DeferredOperand<T> : IInstructionOperand where T : IInstructionOperand
+    {
+        private readonly Lazy<T> _lazy;
+
+        public T Value
+        {
+            get { return _lazy.Value; }
+        }
+
+        public DeferredOperand(Func<T> valueFactory)
+        {
+            _lazy = new Lazy<T>(valueFactory);
+        }
+
+        public void Print()
+        {
+            _lazy.Value.Print();
+        }
+
+        public int Length { get { return _lazy.Value.Length; } }
+
+        public void Write(BinaryWriter writer)
+        {
+            _lazy.Value.Write(writer);
+        }
+    }
+
+    class ListOperand<T> : IInstructionOperand where T : IInstructionOperand
+    {
+        public readonly ReadOnlyCollection<T> Operands;
+
+        public ListOperand(List<T> operands)
+        {
+            Operands = operands.AsReadOnly();
+        }
+
+        public void Print()
+        {
+            foreach (var operand in Operands)
+            {
+                operand.Print();
+            }
+        }
+
+        public int Length { get { return Operands.Sum(o => o.Length); } }
+
+        public void Write(BinaryWriter writer)
+        {
+            foreach (var operand in Operands)
+            {
+                operand.Write(writer);
+            }
+        }
+    }
+
     class ImmediateOperand : IInstructionOperand
     {
         public readonly int Value;
@@ -33,28 +88,6 @@ namespace Mond.Compiler
         public void Write(BinaryWriter writer)
         {
             writer.Write(Value);
-        }
-    }
-
-    class DeferredImmediateOperand : IInstructionOperand
-    {
-        public readonly Func<int> Value;
-
-        public DeferredImmediateOperand(Func<int> value)
-        {
-            Value = value;
-        }
-
-        public void Print()
-        {
-            Console.Write("{0,-30} (immediate)", Value());
-        }
-
-        public int Length { get { return 4; } }
-
-        public void Write(BinaryWriter writer)
-        {
-            writer.Write(Value());
         }
     }
 
@@ -177,31 +210,37 @@ namespace Mond.Compiler
         }
     }
 
-    class ListOperand<T> : IInstructionOperand where T : IInstructionOperand
+    class DebugIdentifierOperand : IInstructionOperand
     {
-        public readonly ReadOnlyCollection<T> Operands;
+        public readonly ConstantOperand<string> Name;
+        public readonly bool IsReadOnly;
+        public readonly int FrameIndex;
+        public readonly int Id;
 
-        public ListOperand(List<T> operands)
+        public DebugIdentifierOperand(ConstantOperand<string> name, bool isReadOnly, int frameIndex, int id)
         {
-            Operands = operands.AsReadOnly();
-        }
-         
-        public void Print()
-        {
-            foreach (var operand in Operands)
-            {
-                operand.Print();
-            }
+            Name = name;
+            IsReadOnly = isReadOnly;
+            FrameIndex = frameIndex;
+            Id = id;
         }
 
-        public int Length { get { return Operands.Sum(o => o.Length); } }
+        public virtual void Print()
+        {
+            throw new NotSupportedException();
+        }
+
+        public int Length
+        {
+            get { return 4 + 1 + 4 + 4; }
+        }
 
         public void Write(BinaryWriter writer)
         {
-            foreach (var operand in Operands)
-            {
-                operand.Write(writer);
-            }
+            writer.Write(Name.Id);
+            writer.Write(IsReadOnly);
+            writer.Write(FrameIndex);
+            writer.Write(Id);
         }
     }
 }

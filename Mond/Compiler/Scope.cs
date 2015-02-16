@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Mond.Compiler
 {
@@ -9,19 +10,28 @@ namespace Mond.Compiler
         private readonly int _localIndex;
         private int _nextId;
 
+        public readonly int Id;
         public readonly Scope Previous;
+        public readonly Action PopAction;
 
-        public Scope(int argIndex, int localIndex, Scope previous)
+        public Scope(int id, int argIndex, int localIndex, Scope previous, Action popAction = null)
         {
             _identifiers = new Dictionary<string, IdentifierOperand>();
             _argIndex = argIndex;
             _localIndex = localIndex;
             _nextId = 0;
 
+            Id = id;
             Previous = previous;
+            PopAction = popAction;
         }
 
-        public virtual bool Define(string name, bool isReadOnly)
+        public IEnumerable<IdentifierOperand> Identifiers
+        {
+            get { return _identifiers.Values; }
+        } 
+
+        public bool Define(string name, bool isReadOnly)
         {
             if (IsDefined(name))
                 return false;
@@ -33,7 +43,7 @@ namespace Mond.Compiler
             return true;
         }
 
-        public virtual bool DefineArgument(int index, string name)
+        public bool DefineArgument(int index, string name)
         {
             if (name[0] != '#' && IsDefined(name))
                 return false;
@@ -43,7 +53,7 @@ namespace Mond.Compiler
             return true;
         }
 
-        public virtual IdentifierOperand DefineInternal(string name, bool canHaveMultiple = false)
+        public IdentifierOperand DefineInternal(string name, bool canHaveMultiple = false)
         {
             name = "#" + name;
 
@@ -75,7 +85,7 @@ namespace Mond.Compiler
             return identifier;
         }
 
-        public virtual IdentifierOperand Get(string name, bool inherit = true)
+        public IdentifierOperand Get(string name, bool inherit = true)
         {
             IdentifierOperand identifier;
             if (_identifiers.TryGetValue(name, out identifier))

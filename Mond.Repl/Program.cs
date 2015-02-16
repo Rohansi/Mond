@@ -113,7 +113,6 @@ namespace Mond.Repl
             var state = new MondState();
             var options = new MondCompilerOptions
             {
-                GenerateDebugInfo = true,
                 MakeRootDeclarationsGlobal = true,
                 UseImplicitGlobals = true
             };

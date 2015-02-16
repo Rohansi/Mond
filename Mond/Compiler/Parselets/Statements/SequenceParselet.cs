@@ -11,7 +11,7 @@ namespace Mond.Compiler.Parselets.Statements
             string name;
             List<string> arguments;
             string otherArgs;
-            BlockExpression body;
+            ScopeExpression body;
 
             FunctionParselet.ParseFunction(parser, token, true, out trailingSemicolon, out name, out arguments, out otherArgs, out body);
 
@@ -23,7 +23,7 @@ namespace Mond.Compiler.Parselets.Statements
             string name;
             List<string> arguments;
             string otherArgs;
-            BlockExpression body;
+            ScopeExpression body;
             bool trailingSemicolon;
 
             FunctionParselet.ParseFunction(parser, token, false, out trailingSemicolon, out name, out arguments, out otherArgs, out body);

@@ -746,32 +746,6 @@ namespace Mond.VirtualMachine
                                 args.Set(args.Depth, fixedCount, varArgs);
                                 break;
                             }
-
-                        case (int)InstructionType.JmpTable:
-                            {
-                                var start = ReadInt32(code, ref ip);
-                                var count = ReadInt32(code, ref ip);
-
-                                var endIp = ip + count * 4;
-
-                                var value = Pop();
-                                if (value.Type == MondValueType.Number)
-                                {
-                                    var number = (double)value;
-                                    var numberInt = (int)number;
-
-                                    if (number >= start && number < start + count &&
-                                        Math.Abs(number - numberInt) <= double.Epsilon)
-                                    {
-                                        ip += (numberInt - start) * 4;
-                                        ip = ReadInt32(code, ref ip);
-                                        break;
-                                    }
-                                }
-
-                                ip = endIp;
-                                break;
-                            }
                         #endregion
 
                         #region Branching
@@ -819,6 +793,32 @@ namespace Mond.VirtualMachine
                                 if (!Pop())
                                     ip = address;
 
+                                break;
+                            }
+
+                        case (int)InstructionType.JmpTable:
+                            {
+                                var start = ReadInt32(code, ref ip);
+                                var count = ReadInt32(code, ref ip);
+
+                                var endIp = ip + count * 4;
+
+                                var value = Pop();
+                                if (value.Type == MondValueType.Number)
+                                {
+                                    var number = (double)value;
+                                    var numberInt = (int)number;
+
+                                    if (number >= start && number < start + count &&
+                                        Math.Abs(number - numberInt) <= double.Epsilon)
+                                    {
+                                        ip += (numberInt - start) * 4;
+                                        ip = ReadInt32(code, ref ip);
+                                        break;
+                                    }
+                                }
+
+                                ip = endIp;
                                 break;
                             }
                         #endregion

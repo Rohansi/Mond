@@ -7,10 +7,6 @@ namespace Mond.Compiler
 {
     enum InstructionType : byte
     {
-        Function,                           // debug info
-        Position,                           // debug info
-        Label,                              // label binding
-
         Dup, Dup2, Drop, Swap, Swap1For2,   // duplicates, drop, swaps
 
         LdUndef, LdNull,                    // load undefined/null constant
@@ -45,7 +41,16 @@ namespace Mond.Compiler
         Jmp,                                // jump unconditionally
         JmpTrueP, JmpFalseP,                // jump if peek() == true/false
         JmpTrue, JmpFalse,                  // jump if pop() == true/false
-        JmpTable,
+        JmpTable,                           // jump to one of multiple locations
+
+        // ----------------- //
+
+        Label = 200,                        // label binding
+
+        DebugInfo,                          // debug info (shouldn't be used)
+        Function,                           // debug info
+        Position,                           // debug info
+        Scope,                              // debug info
     }
 
     class Instruction
@@ -81,8 +86,7 @@ namespace Mond.Compiler
             get
             {
                 if (Type == InstructionType.Label ||
-                    Type == InstructionType.Function ||
-                    Type == InstructionType.Position)
+                    Type >= InstructionType.DebugInfo)
                 {
                     return 0;
                 }
@@ -93,7 +97,7 @@ namespace Mond.Compiler
 
         public void Print()
         {
-            if (Type == InstructionType.Function || Type == InstructionType.Position)
+            if (Type >= InstructionType.DebugInfo)
                 return;
 
             if (Type == InstructionType.Label)
@@ -114,8 +118,7 @@ namespace Mond.Compiler
         public void Write(BinaryWriter writer)
         {
             if (Type == InstructionType.Label ||
-                Type == InstructionType.Function ||
-                Type == InstructionType.Position)
+                Type >= InstructionType.DebugInfo)
             {
                 return;
             }

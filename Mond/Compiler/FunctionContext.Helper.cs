@@ -7,7 +7,7 @@ namespace Mond.Compiler
     {
         public void Function(string name = null)
         {
-            if (!Compiler.Options.GenerateDebugInfo)
+            if (Compiler.Options.DebugInfo < MondDebugInfoLevel.StackTrace)
                 return;
 
             Emit(new Instruction(InstructionType.Function, String(name)));
@@ -15,7 +15,7 @@ namespace Mond.Compiler
 
         public void Position(string fileName, int line, int column)
         {
-            if (!Compiler.Options.GenerateDebugInfo)
+            if (Compiler.Options.DebugInfo < MondDebugInfoLevel.StackTrace)
                 return;
 
             Emit(new Instruction(InstructionType.Position, String(fileName ?? "<unknown>"), new ImmediateOperand(line), new ImmediateOperand(column)));
@@ -236,7 +236,10 @@ namespace Mond.Compiler
 
         public int Enter()
         {
-            Emit(new Instruction(InstructionType.Enter, new DeferredImmediateOperand(() => IdentifierCount)));
+            var identifierCount = new DeferredOperand<ImmediateOperand>(() =>
+                new ImmediateOperand(IdentifierCount));
+
+            Emit(new Instruction(InstructionType.Enter, identifierCount));
             return 0;
         }
 
@@ -285,7 +288,10 @@ namespace Mond.Compiler
         public int JumpTable(int start, List<LabelOperand> labels)
         {
             var startOp = new ImmediateOperand(start);
-            var count = new DeferredImmediateOperand(() => labels.Count);
+
+            var count = new DeferredOperand<ImmediateOperand>(() =>
+                new ImmediateOperand(labels.Count));
+
             var list = new ListOperand<LabelOperand>(labels);
 
             Emit(new Instruction(InstructionType.JmpTable, startOp, count, list));

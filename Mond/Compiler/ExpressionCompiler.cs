@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Mond.Compiler.Expressions;
@@ -9,7 +10,6 @@ namespace Mond.Compiler
     class ExpressionCompiler
     {
         private readonly List<FunctionContext> _contexts;
-        private Scope _scope;
         private int _labelIndex;
         private List<Instruction> _instructions; 
 
@@ -19,11 +19,13 @@ namespace Mond.Compiler
         public readonly ConstantPool<string> StringPool;
 
         public int LambdaId;
+
+        public int ScopeId;
+        public int ScopeDepth;
          
         public ExpressionCompiler(MondCompilerOptions options)
         {
             _contexts = new List<FunctionContext>();
-            _scope = new Scope(0, 0, null);
             _labelIndex = 0;
 
             Options = options;
@@ -32,20 +34,25 @@ namespace Mond.Compiler
             StringPool = new ConstantPool<string>();
 
             LambdaId = 0;
+
+            ScopeId = 0;
+            ScopeDepth = -1;
         }
 
         public MondProgram Compile(Expression expression)
         {
-            var context = new FunctionContext(this, 0, 0, _scope, null, null);
+            var context = new FunctionContext(this, 0, 0, null, null, null);
             RegisterFunction(context);
 
             context.Function(context.FullName);
             context.Position(expression.FileName, 1, 1);
 
+            context.PushScope();
             context.Enter();
             expression.Compile(context);
             context.LoadUndefined();
             context.Return();
+            context.PopScope();
 
             var length = PatchLabels();
             var bytecode = GenerateBytecode(length);
@@ -84,7 +91,7 @@ namespace Mond.Compiler
 
         private DebugInfo GenerateDebugInfo()
         {
-            if (!Options.GenerateDebugInfo)
+            if (Options.DebugInfo == MondDebugInfoLevel.None)
                 return null;
 
             var prevName = -1;
@@ -105,7 +112,6 @@ namespace Mond.Compiler
 
                     return true;
                 })
-                .OrderBy(f => f.Address)
                 .ToList();
 
             var prevFileName = -1;
@@ -133,10 +139,35 @@ namespace Mond.Compiler
 
                      return true;
                  })
-                 .OrderBy(l => l.Address)
                  .ToList();
 
-            return new DebugInfo(functions, lines);
+            if (Options.DebugInfo <= MondDebugInfoLevel.StackTrace)
+                return new DebugInfo(functions, lines, null);
+
+            var scopes = AllInstructions()
+                .Where(i => i.Type == InstructionType.Scope)
+                .Select(s =>
+                {
+                    var id = ((ImmediateOperand)s.Operands[0]).Value;
+                    var depth = ((ImmediateOperand)s.Operands[1]).Value;
+                    var parentId = ((ImmediateOperand)s.Operands[2]).Value;
+                    var start = ((LabelOperand)s.Operands[3]).Position;
+                    var end = ((LabelOperand)s.Operands[4]).Position;
+                    var identOperands = ((DeferredOperand<ListOperand<DebugIdentifierOperand>>)s.Operands[5]).Value.Operands;
+
+                    if (!start.HasValue || !end.HasValue)
+                        throw new Exception("scope labels not bound");
+
+                    var identifiers = identOperands
+                        .Select(i => new DebugInfo.Identifier(i.Name.Id, i.IsReadOnly, i.FrameIndex, i.Id))
+                        .ToList();
+
+                    return new DebugInfo.Scope(id, depth, parentId, start.Value, end.Value, identifiers);
+                })
+                .OrderBy(s => s.Id)
+                .ToList();
+
+            return new DebugInfo(functions, lines, scopes);
         }
 
         private IEnumerable<Instruction> AllInstructions()
@@ -152,11 +183,6 @@ namespace Mond.Compiler
         public LabelOperand MakeLabel(string name = null)
         {
             return new LabelOperand(_labelIndex++, name);
-        }
-
-        public IdentifierOperand Identifier(string name)
-        {
-            return _scope.Get(name);
         }
     }
 }

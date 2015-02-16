@@ -11,7 +11,7 @@ namespace Mond.Compiler.Parselets.Statements
             string name;
             List<string> arguments;
             string otherArgs;
-            BlockExpression body;
+            ScopeExpression body;
 
             ParseFunction(parser, token, true, out trailingSemicolon, out name, out arguments, out otherArgs, out body);
 
@@ -23,7 +23,7 @@ namespace Mond.Compiler.Parselets.Statements
             string name;
             List<string> arguments;
             string otherArgs;
-            BlockExpression body;
+            ScopeExpression body;
             bool trailingSemicolon;
 
             ParseFunction(parser, token, false, out trailingSemicolon, out name, out arguments, out otherArgs, out body);
@@ -39,7 +39,7 @@ namespace Mond.Compiler.Parselets.Statements
             out string name,
             out List<string> arguments,
             out string otherArgs,
-            out BlockExpression body)
+            out ScopeExpression body)
         {
             trailingSemicolon = false;
 
@@ -79,7 +79,7 @@ namespace Mond.Compiler.Parselets.Statements
             // parse body
             if (parser.MatchAndTake(TokenType.Pointy))
             {
-                body = new BlockExpression(new List<Expression>
+                body = new ScopeExpression(new List<Expression>
                 {
                     new ReturnExpression(token, parser.ParseExpression())
                 });
@@ -88,16 +88,16 @@ namespace Mond.Compiler.Parselets.Statements
             }
             else
             {
-                body = parser.ParseBlock(false);
+                body = new ScopeExpression(parser.ParseBlock(false));
             }
         }
 
-        public static BlockExpression ParseLambdaExpressionBody(Parser parser, Token token)
+        public static ScopeExpression ParseLambdaExpressionBody(Parser parser, Token token)
         {
             if (parser.Match(TokenType.LeftBrace))
-                return parser.ParseBlock();
+                return new ScopeExpression(parser.ParseBlock());
 
-            return new BlockExpression(new List<Expression>
+            return new ScopeExpression(new List<Expression>
             {
                 new ReturnExpression(token, parser.ParseExpression())
             });

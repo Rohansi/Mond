@@ -4,7 +4,7 @@ namespace Mond.Compiler.Expressions.Statements
 {
     class SequenceExpression : FunctionExpression
     {
-        public SequenceExpression(Token token, string name, List<string> arguments, string otherArgs, BlockExpression block)
+        public SequenceExpression(Token token, string name, List<string> arguments, string otherArgs, ScopeExpression block)
             : base(token, name, arguments, otherArgs, block)
         {
 
@@ -89,7 +89,7 @@ namespace Mond.Compiler.Expressions.Statements
         public int NextState { get { return _stateLabels.Count; } }
         public LabelOperand EndLabel { get; private set; }
 
-        public SequenceBodyExpression(Token token, string name, BlockExpression block, string debugName,
+        public SequenceBodyExpression(Token token, string name, ScopeExpression block, string debugName,
                                       IdentifierOperand state, IdentifierOperand enumerable)
             : base(token, name, new List<string> { "#input" }, null, block, debugName)
         {
