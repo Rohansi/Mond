@@ -96,15 +96,6 @@ namespace Mond.VirtualMachine
                 {
                     errorIp = ip;
 
-                    /*if (program.DebugInfo != null)
-                    {
-                        var line = program.DebugInfo.FindPosition(errorIp);
-                        if (line.HasValue)
-                            Console.WriteLine("{0:X4} {1} line {2}: {3}", errorIp, program.Strings[line.Value.FileName], line.Value.LineNumber, (InstructionType)code[ip]);
-                        else
-                            Console.WriteLine("{0:X4}: {1}", errorIp, (InstructionType)code[ip]);
-                    }*/
-
                     switch (code[ip++])
                     {
                         #region Stack Manipulation
@@ -822,6 +813,11 @@ namespace Mond.VirtualMachine
                                 break;
                             }
                         #endregion
+
+                        case (int)InstructionType.Breakpoint:
+                            {
+                                break;
+                            }
 
                         default:
                             throw new MondRuntimeException(RuntimeError.UnhandledOpcode);

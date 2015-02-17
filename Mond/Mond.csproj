@@ -67,11 +67,13 @@
     <Compile Include="Compiler\Expressions\GlobalExpression.cs" />
     <Compile Include="Compiler\Expressions\PipelineExpression.cs" />
     <Compile Include="Compiler\Expressions\SliceExpression.cs" />
+    <Compile Include="Compiler\Expressions\Statements\DebuggerExpression.cs" />
     <Compile Include="Compiler\Expressions\Statements\ForeachExpression.cs" />
     <Compile Include="Compiler\Expressions\Statements\SequenceExpression.cs" />
     <Compile Include="Compiler\Expressions\YieldExpression.cs" />
     <Compile Include="Compiler\Expressions\UnpackExpression.cs" />
     <Compile Include="Compiler\LoopContext.cs" />
+    <Compile Include="Compiler\Parselets\Statements\DebuggerParselet.cs" />
     <Compile Include="Compiler\Visitors\LoopContainsFunctionVisitor.cs" />
     <Compile Include="Compiler\Visitors\ExpressionPrintVisitor.cs" />
     <Compile Include="Compiler\Visitors\ExpressionVisitor.cs" />

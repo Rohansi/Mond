@@ -101,6 +101,8 @@ namespace Mond.Compiler
                 { "switch", TokenType.Switch },
                 { "case", TokenType.Case },
                 { "default", TokenType.Default },
+
+                { "debugger", TokenType.Debugger },
             };
 
             _hexChars = new HashSet<char>

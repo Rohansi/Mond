@@ -34,6 +34,8 @@
         Case,
         Default,
 
+        Debugger,
+
         Semicolon,
         Comma,
         Dot,

@@ -78,6 +78,8 @@ namespace Mond.Repl.Input
                 "switch",
                 "case",
                 "default",
+
+                "debugger",
             };
 
             HexChars = new HashSet<char>

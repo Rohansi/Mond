@@ -89,6 +89,12 @@ namespace Mond.Compiler.Visitors
             return 0;
         }
 
+        public int Visit(DebuggerExpression expression)
+        {
+            _writer.Write("debugger");
+            return 0;
+        }
+
         public int Visit(DoWhileExpression expression)
         {
             _writer.WriteLine("do");

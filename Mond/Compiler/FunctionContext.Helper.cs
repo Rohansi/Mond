@@ -21,6 +21,12 @@ namespace Mond.Compiler
             Emit(new Instruction(InstructionType.Position, String(fileName ?? "<unknown>"), new ImmediateOperand(line), new ImmediateOperand(column)));
         }
 
+        public int Breakpoint()
+        {
+            Emit(new Instruction(InstructionType.Breakpoint));
+            return 0;
+        }
+
         public int Bind(LabelOperand label)
         {
             Emit(new Instruction(InstructionType.Label, label));
