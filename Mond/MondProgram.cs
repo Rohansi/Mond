@@ -13,7 +13,7 @@ namespace Mond
     public sealed class MondProgram
     {
         private const uint MagicId = 0xFA57C0DE;
-        private const byte FormatVersion = 5;
+        private const byte FormatVersion = 6;
 
         internal readonly byte[] Bytecode;
         internal readonly List<MondValue> Numbers;
@@ -80,7 +80,7 @@ namespace Mond
                     }
                     else
                     {
-                        writer.Write(0);
+                        writer.Write(-1);
                     }
 
                     if (DebugInfo.Lines != null)
@@ -96,7 +96,20 @@ namespace Mond
                     }
                     else
                     {
-                        writer.Write(0);
+                        writer.Write(-1);
+                    }
+
+                    if (DebugInfo.Statements != null)
+                    {
+                        writer.Write(DebugInfo.Statements.Count);
+                        foreach (var statement in DebugInfo.Statements)
+                        {
+                            writer.Write(statement);
+                        }
+                    }
+                    else
+                    {
+                        writer.Write(-1);
                     }
 
                     if (DebugInfo.Scopes != null)
@@ -122,7 +135,7 @@ namespace Mond
                     }
                     else
                     {
-                        writer.Write(0);
+                        writer.Write(-1);
                     }
                 }
 
@@ -192,54 +205,81 @@ namespace Mond
                 if (hasDebugInfo)
                 {
                     var functionCount = reader.ReadInt32();
-                    var functions = new List<DebugInfo.Function>(functionCount);
-                    for (var i = 0; i < functionCount; ++i)
+                    List<DebugInfo.Function> functions = null;
+
+                    if (functionCount >= 0)
                     {
-                        var address = reader.ReadInt32();
-                        var name = reader.ReadInt32();
-                        var function = new DebugInfo.Function(address, name);
-                        functions.Add(function);
+                        functions = new List<DebugInfo.Function>(functionCount);
+                        for (var i = 0; i < functionCount; ++i)
+                        {
+                            var address = reader.ReadInt32();
+                            var name = reader.ReadInt32();
+                            var function = new DebugInfo.Function(address, name);
+                            functions.Add(function);
+                        }
                     }
 
                     var lineCount = reader.ReadInt32();
-                    var lines = new List<DebugInfo.Position>(lineCount);
-                    for (var i = 0; i < lineCount; ++i)
-                    {
-                        var address = reader.ReadInt32();
-                        var fileName = reader.ReadInt32();
-                        var lineNumber = reader.ReadInt32();
-                        var columnNumber = reader.ReadInt32();
+                    List<DebugInfo.Position> lines = null;
 
-                        var line = new DebugInfo.Position(address, fileName, lineNumber, columnNumber);
-                        lines.Add(line);
+                    if (lineCount >= 0)
+                    {
+                        lines = new List<DebugInfo.Position>(lineCount);
+                        for (var i = 0; i < lineCount; ++i)
+                        {
+                            var address = reader.ReadInt32();
+                            var fileName = reader.ReadInt32();
+                            var lineNumber = reader.ReadInt32();
+                            var columnNumber = reader.ReadInt32();
+
+                            var line = new DebugInfo.Position(address, fileName, lineNumber, columnNumber);
+                            lines.Add(line);
+                        }
+                    }
+
+                    var statementCount = reader.ReadInt32();
+                    List<int> statements = null;
+
+                    if (statementCount >= 0)
+                    {
+                        statements = new List<int>(statementCount);
+                        for (var i = 0; i < statementCount; ++i)
+                        {
+                            statements.Add(reader.ReadInt32());
+                        }
                     }
 
                     var scopeCount = reader.ReadInt32();
-                    var scopes = new List<DebugInfo.Scope>(scopeCount);
-                    for (var i = 0; i < scopeCount; ++i)
+                    List<DebugInfo.Scope> scopes = null;
+
+                    if (scopeCount >= 0)
                     {
-                        var id = reader.ReadInt32();
-                        var depth = reader.ReadInt32();
-                        var parentId = reader.ReadInt32();
-                        var startAddress = reader.ReadInt32();
-                        var endAddress = reader.ReadInt32();
-
-                        var identCount = reader.ReadInt32();
-                        var idents = new List<DebugInfo.Identifier>(identCount);
-                        for (var j = 0; j < identCount; ++j)
+                        scopes = new List<DebugInfo.Scope>(scopeCount);
+                        for (var i = 0; i < scopeCount; ++i)
                         {
-                            var name = reader.ReadInt32();
-                            var isReadOnly = reader.ReadBoolean();
-                            var frameIndex = reader.ReadInt32();
-                            var idx = reader.ReadInt32();
+                            var id = reader.ReadInt32();
+                            var depth = reader.ReadInt32();
+                            var parentId = reader.ReadInt32();
+                            var startAddress = reader.ReadInt32();
+                            var endAddress = reader.ReadInt32();
 
-                            idents.Add(new DebugInfo.Identifier(name, isReadOnly, frameIndex, idx));
+                            var identCount = reader.ReadInt32();
+                            var idents = new List<DebugInfo.Identifier>(identCount);
+                            for (var j = 0; j < identCount; ++j)
+                            {
+                                var name = reader.ReadInt32();
+                                var isReadOnly = reader.ReadBoolean();
+                                var frameIndex = reader.ReadInt32();
+                                var idx = reader.ReadInt32();
+
+                                idents.Add(new DebugInfo.Identifier(name, isReadOnly, frameIndex, idx));
+                            }
+
+                            scopes.Add(new DebugInfo.Scope(id, depth, parentId, startAddress, endAddress, idents));
                         }
-
-                        scopes.Add(new DebugInfo.Scope(id, depth, parentId, startAddress, endAddress, idents));
                     }
 
-                    debugInfo = new DebugInfo(functions, lines, scopes);
+                    debugInfo = new DebugInfo(functions, lines, statements, scopes);
                 }
 
                 return new MondProgram(bytecode, numbers, strings, debugInfo);

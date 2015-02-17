@@ -50,6 +50,7 @@ namespace Mond.Compiler
         DebugInfo,                          // debug info (shouldn't be used)
         Function,                           // debug info
         Position,                           // debug info
+        Statement,                          // debug info
         Scope,                              // debug info
     }
 

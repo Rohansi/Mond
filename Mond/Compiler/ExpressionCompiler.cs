@@ -142,7 +142,13 @@ namespace Mond.Compiler
                  .ToList();
 
             if (Options.DebugInfo <= MondDebugInfoLevel.StackTrace)
-                return new DebugInfo(functions, lines, null);
+                return new DebugInfo(functions, lines, null, null);
+
+            var statements = AllInstructions()
+                .Where(i => i.Type == InstructionType.Statement)
+                .Select(s => s.Offset)
+                .Distinct()
+                .ToList();
 
             var scopes = AllInstructions()
                 .Where(i => i.Type == InstructionType.Scope)
@@ -167,7 +173,7 @@ namespace Mond.Compiler
                 .OrderBy(s => s.Id)
                 .ToList();
 
-            return new DebugInfo(functions, lines, scopes);
+            return new DebugInfo(functions, lines, statements, scopes);
         }
 
         private IEnumerable<Instruction> AllInstructions()

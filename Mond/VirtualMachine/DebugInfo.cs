@@ -72,34 +72,44 @@ namespace Mond.VirtualMachine
 
         private readonly List<Function> _functions;
         private readonly List<Position> _lines;
+        private readonly List<int> _statements; 
         private readonly List<Scope> _scopes;
 
         private List<List<Scope>> _unpackedScopes; 
 
         internal ReadOnlyCollection<Function> Functions
         {
-            get { return _functions.AsReadOnly(); }
+            get { return _functions != null ? _functions.AsReadOnly() : null; }
         }
 
         internal ReadOnlyCollection<Position> Lines
         {
-            get { return _lines.AsReadOnly(); }
+            get { return _lines != null ? _lines.AsReadOnly() : null; }
         }
+
+        internal ReadOnlyCollection<int> Statements
+        {
+            get { return _statements != null ? _statements.AsReadOnly() : null; }
+        } 
 
         internal ReadOnlyCollection<Scope> Scopes
         {
-            get { return _scopes.AsReadOnly(); }
+            get { return _scopes != null ? _scopes.AsReadOnly() : null; }
         }
 
-        public DebugInfo(List<Function> functions, List<Position> lines, List<Scope> scopes)
+        public DebugInfo(List<Function> functions, List<Position> lines, List<int> statements, List<Scope> scopes)
         {
-            _functions = functions ?? new List<Function>();
-            _lines = lines ?? new List<Position>();
-            _scopes = scopes ?? new List<Scope>();
+            _functions = functions;
+            _lines = lines;
+            _statements = statements;
+            _scopes = scopes;
         }
 
         public Function? FindFunction(int address)
         {
+            if (_functions == null)
+                return null;
+
             var idx = Search(_functions, new Function(address, 0), FunctionAddressComparer);
             Function? result = null;
 
@@ -111,6 +121,9 @@ namespace Mond.VirtualMachine
 
         public Position? FindPosition(int address)
         {
+            if (_lines == null)
+                return null;
+
             var idx = Search(_lines, new Position(address, 0, 0, 0), PositionAddressComparer);
             Position? result = null;
 
@@ -120,8 +133,19 @@ namespace Mond.VirtualMachine
             return result;
         }
 
+        public bool IsStatementStart(int address)
+        {
+            if (_statements == null)
+                throw new InvalidOperationException("DebugInfo doesn't contain statement start addresses");
+
+            return _statements.BinarySearch(address) >= 0;
+        }
+
         public Scope FindScope(int address)
         {
+            if (_scopes == null)
+                return null;
+
             if (_unpackedScopes == null)
             {
                 _unpackedScopes = new List<List<Scope>>(16);

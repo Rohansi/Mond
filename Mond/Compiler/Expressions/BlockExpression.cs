@@ -28,6 +28,8 @@ namespace Mond.Compiler.Expressions
         {
             foreach (var statement in Statements)
             {
+                context.Emit(new Instruction(InstructionType.Statement));
+
                 var stack = statement.Compile(context);
                 
                 while (stack > 0)
