@@ -158,6 +158,8 @@
     <Compile Include="Compiler\Parselets\Statements\WhileParselet.cs" />
     <Compile Include="Compiler\Parser.cs" />
     <Compile Include="Compiler\PrecedenceValue.cs" />
+    <Compile Include="Debugger\MondDebugAction.cs" />
+    <Compile Include="Debugger\MondDebugger.cs" />
     <Compile Include="GenericComparer.cs" />
     <Compile Include="IndentTextWriter.cs" />
     <Compile Include="IndexedStack.cs" />

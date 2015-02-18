@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mond.Tests", "Mond.Tests\Mo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mond.Repl", "Mond.Repl\Mond.Repl.csproj", "{47013C8D-959A-423B-9F67-4484930C1C12}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mond.RemoteDebugger", "Mond.RemoteDebugger\Mond.RemoteDebugger.csproj", "{02B39787-7210-4B0A-B5E0-D31D466F9239}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{47013C8D-959A-423B-9F67-4484930C1C12}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{47013C8D-959A-423B-9F67-4484930C1C12}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{47013C8D-959A-423B-9F67-4484930C1C12}.Release|Any CPU.Build.0 = Release|Any CPU
+		{02B39787-7210-4B0A-B5E0-D31D466F9239}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{02B39787-7210-4B0A-B5E0-D31D466F9239}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{02B39787-7210-4B0A-B5E0-D31D466F9239}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{02B39787-7210-4B0A-B5E0-D31D466F9239}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -45,7 +45,7 @@ namespace Mond.Compiler
             RegisterFunction(context);
 
             context.Function(context.FullName);
-            context.Position(expression.FileName, 1, 1);
+            context.Position(expression.FileName, Options.FirstLineNumber, 1);
 
             context.PushScope();
             context.Enter();

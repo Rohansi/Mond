@@ -78,6 +78,8 @@ namespace Mond.Compiler.Expressions.Statements
 
             // assign result
             var stack = 0;
+
+            context.Position(FileName, Line, Column); // debug info
             stack += context.Closure(functionContext.Label);
 
             if (shouldStore)

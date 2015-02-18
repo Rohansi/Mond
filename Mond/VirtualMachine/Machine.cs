@@ -3,19 +3,30 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Mond.Compiler;
+using Mond.Debugger;
 
 namespace Mond.VirtualMachine
 {
     partial class Machine
     {
         private readonly MondState _state;
-        public MondValue Global;
+        internal MondValue Global;
+
+        private MondDebugAction _debugAction;
+        private bool _debugAlign;
+        private int _debugDepth;
+        internal MondDebugger Debugger;
 
         public Machine(MondState state)
             : this()
         {
             _state = state;
             Global = new MondValue(MondValueType.Object);
+
+            _debugAction = MondDebugAction.Run;
+            _debugAlign = false;
+            _debugDepth = 0;
+            Debugger = null;
         }
 
         public MondValue Load(MondProgram program)
@@ -94,6 +105,22 @@ namespace Mond.VirtualMachine
             {
                 while (true)
                 {
+                    if (Debugger != null)
+                    {
+                        var shouldStopAtStmt =
+                            (_debugAction == MondDebugAction.StepInto) ||
+                            (_debugAction == MondDebugAction.StepOver);
+
+                        var shouldBreak = 
+                            (_debugAlign && program.DebugInfo == null) ||
+                            (_debugAlign && program.DebugInfo.IsStatementStart(ip)) ||
+                            (Debugger.ShouldBreak(program, ip)) ||
+                            (shouldStopAtStmt && program.DebugInfo != null && program.DebugInfo.IsStatementStart(ip));
+
+                        if (shouldBreak)
+                            DebuggerBreak(program, ip);
+                    }
+
                     errorIp = ip;
 
                     switch (code[ip++])
@@ -614,6 +641,10 @@ namespace Mond.VirtualMachine
                                         ip = closure.Address;
                                         args = argFrame;
                                         locals = closure.Locals;
+
+                                        if (Debugger != null)
+                                            DebuggerCheckCall();
+
                                         break;
 
                                     case ClosureType.Native:
@@ -721,6 +752,9 @@ namespace Mond.VirtualMachine
                                 if (_callStackSize == initialCallDepth)
                                     return Pop();
 
+                                if (Debugger != null && DebuggerCheckReturn())
+                                    DebuggerBreak(program, ip);
+
                                 break;
                             }
 
@@ -816,6 +850,9 @@ namespace Mond.VirtualMachine
 
                         case (int)InstructionType.Breakpoint:
                             {
+                                if (Debugger != null)
+                                    DebuggerBreak(program, ip);
+
                                 break;
                             }
 
@@ -927,6 +964,42 @@ namespace Mond.VirtualMachine
 
             unpackedArgs.Reverse();
             return unpackedArgs;
+        }
+
+        private void DebuggerCheckCall()
+        {
+            switch (_debugAction)
+            {
+                case MondDebugAction.StepInto:
+                    _debugAlign = true;
+                    return;
+
+                case MondDebugAction.StepOut:
+                    _debugDepth++;
+                    return;
+
+                case MondDebugAction.StepOver:
+                    _debugAction = MondDebugAction.StepOut;
+                    _debugDepth = 1;
+                    return;
+            }
+        }
+
+        private bool DebuggerCheckReturn()
+        {
+            if (_debugAction != MondDebugAction.StepOut)
+                return false;
+
+            return --_debugDepth == 0;
+        }
+
+        private void DebuggerBreak(MondProgram program, int address)
+        {
+            _debugAction = Debugger.Break(program, address);
+            _debugAlign = false;
+
+            if (_debugAction == MondDebugAction.StepOut)
+                _debugDepth = 1;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

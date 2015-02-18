@@ -136,7 +136,7 @@ namespace Mond.VirtualMachine
         public bool IsStatementStart(int address)
         {
             if (_statements == null)
-                throw new InvalidOperationException("DebugInfo doesn't contain statement start addresses");
+                return false;
 
             return _statements.BinarySearch(address) >= 0;
         }
