@@ -43,12 +43,17 @@ namespace Mond.Libraries
     public class RequireLibrary : IMondLibrary
     {
         /// <summary>
-        /// 
+        /// The options to use when compiling modules. <c>FirstLineNumber</c> will be set to its proper value.
+        /// </summary>
+        public MondCompilerOptions Options { get; set; }
+
+        /// <summary>
+        /// The definition string from <c>MondLibraryManager</c>. This shouldn't need to be changed.
         /// </summary>
         public string Definitions { get; set; }
 
         /// <summary>
-        /// 
+        /// The function used to load modules.
         /// </summary>
         public Func<string, string> Loader { get; set; }
 
