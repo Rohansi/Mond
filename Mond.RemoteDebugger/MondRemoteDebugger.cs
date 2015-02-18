@@ -20,8 +20,12 @@ namespace Mond.RemoteDebugger
             
         }
 
-        protected override MondDebugAction OnBreak(MondProgram program, int address)
+        protected override MondDebugAction OnBreak(MondProgram program, int address, MondDebugInfo debugInfo)
         {
+            // if no debug info is available, leave the program
+            if (debugInfo == null)
+                return MondDebugAction.StepOut;
+
             Console.Write("dbg> ");
             var action = Console.ReadLine();
 

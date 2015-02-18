@@ -199,7 +199,7 @@
     <Compile Include="VirtualMachine\RuntimeError.cs" />
     <Compile Include="VirtualMachine\Prototypes\ArrayPrototype.cs" />
     <Compile Include="VirtualMachine\Closure.cs" />
-    <Compile Include="VirtualMachine\DebugInfo.cs" />
+    <Compile Include="Debugger\MondDebugInfo.cs" />
     <Compile Include="VirtualMachine\Machine.cs" />
     <Compile Include="MondProgram.cs" />
     <Compile Include="MondRuntimeException.cs" />

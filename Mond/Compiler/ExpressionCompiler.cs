@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Mond.Compiler.Expressions;
-using Mond.VirtualMachine;
+using Mond.Debugger;
 
 namespace Mond.Compiler
 {
@@ -89,7 +89,7 @@ namespace Mond.Compiler
             return bytecode;
         }
 
-        private DebugInfo GenerateDebugInfo(string sourceFileName)
+        private MondDebugInfo GenerateDebugInfo(string sourceFileName)
         {
             if (Options.DebugInfo == MondDebugInfoLevel.None)
                 return null;
@@ -101,7 +101,7 @@ namespace Mond.Compiler
                 .Select(i =>
                 {
                     var name = ((ConstantOperand<string>)i.Operands[0]).Id;
-                    return new DebugInfo.Function(i.Offset, name);
+                    return new MondDebugInfo.Function(i.Offset, name);
                 })
                 .Where(f =>
                 {
@@ -124,7 +124,7 @@ namespace Mond.Compiler
                      var line = ((ImmediateOperand)i.Operands[0]).Value;
                      var column = ((ImmediateOperand)i.Operands[1]).Value;
 
-                     return new DebugInfo.Position(i.Offset, line, column);
+                     return new MondDebugInfo.Position(i.Offset, line, column);
                  })
                  .Where(l =>
                  {
@@ -139,7 +139,7 @@ namespace Mond.Compiler
                  .ToList();
 
             if (Options.DebugInfo <= MondDebugInfoLevel.StackTrace)
-                return new DebugInfo(sourceFileName, functions, lines, null, null);
+                return new MondDebugInfo(sourceFileName, functions, lines, null, null);
 
             var statements = AllInstructions()
                 .Where(i => i.Type == InstructionType.Statement)
@@ -162,15 +162,15 @@ namespace Mond.Compiler
                         throw new Exception("scope labels not bound");
 
                     var identifiers = identOperands
-                        .Select(i => new DebugInfo.Identifier(i.Name.Id, i.IsReadOnly, i.FrameIndex, i.Id))
+                        .Select(i => new MondDebugInfo.Identifier(i.Name.Id, i.IsReadOnly, i.FrameIndex, i.Id))
                         .ToList();
 
-                    return new DebugInfo.Scope(id, depth, parentId, start.Value, end.Value, identifiers);
+                    return new MondDebugInfo.Scope(id, depth, parentId, start.Value, end.Value, identifiers);
                 })
                 .OrderBy(s => s.Id)
                 .ToList();
 
-            return new DebugInfo(sourceFileName, functions, lines, statements, scopes);
+            return new MondDebugInfo(sourceFileName, functions, lines, statements, scopes);
         }
 
         private IEnumerable<Instruction> AllInstructions()

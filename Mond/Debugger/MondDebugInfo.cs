@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
-namespace Mond.VirtualMachine
+namespace Mond.Debugger
 {
-    class DebugInfo
+    public class MondDebugInfo
     {
         public struct Function
         {
@@ -97,9 +97,9 @@ namespace Mond.VirtualMachine
             get { return _scopes != null ? _scopes.AsReadOnly() : null; }
         }
 
-        public DebugInfo(string fileName, List<Function> functions, List<Position> lines, List<int> statements, List<Scope> scopes)
+        public MondDebugInfo(string fileName, List<Function> functions, List<Position> lines, List<int> statements, List<Scope> scopes)
         {
-            FileName = fileName;
+            FileName = fileName != "" ? fileName : null;
 
             _functions = functions;
             _lines = lines;

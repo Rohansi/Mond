@@ -53,7 +53,7 @@ namespace Mond.Debugger
         /// Called when the VM breaks. This should block until an action should be taken.
         /// </summary>
         /// <returns>The action the VM should continue with.</returns>
-        protected abstract MondDebugAction OnBreak(MondProgram program, int address /* TODO */);
+        protected abstract MondDebugAction OnBreak(MondProgram program, int address, MondDebugInfo debugInfo /* TODO */);
 
         /// <summary>
         /// Adds a breakpoint to the given program.
@@ -70,6 +70,9 @@ namespace Mond.Debugger
                     breakpoints = new List<int>();
                     _programBreakpoints.Add(program, breakpoints);
                 }
+
+                if (breakpoints.Contains(address))
+                    return;
 
                 breakpoints.Add(address);
             }
@@ -94,9 +97,9 @@ namespace Mond.Debugger
 
         // -------------------------------
 
-        internal MondDebugAction Break(MondProgram program, int address /* TODO */)
+        internal MondDebugAction Break(MondProgram program, int address, MondDebugInfo debugInfo /* TODO */)
         {
-            return OnBreak(program, address);
+            return OnBreak(program, address, debugInfo);
         }
 
         internal bool ShouldBreak(MondProgram program, int address)

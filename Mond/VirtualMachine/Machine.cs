@@ -995,7 +995,7 @@ namespace Mond.VirtualMachine
 
         private void DebuggerBreak(MondProgram program, int address)
         {
-            _debugAction = Debugger.Break(program, address);
+            _debugAction = Debugger.Break(program, address, program.DebugInfo);
             _debugAlign = false;
 
             if (_debugAction == MondDebugAction.StepOut)
