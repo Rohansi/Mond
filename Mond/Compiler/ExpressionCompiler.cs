@@ -45,7 +45,7 @@ namespace Mond.Compiler
             RegisterFunction(context);
 
             context.Function(context.FullName);
-            context.Position(expression.FileName, Options.FirstLineNumber, 1);
+            context.Position(Options.FirstLineNumber, 1);
 
             context.PushScope();
             context.Enter();
@@ -56,7 +56,7 @@ namespace Mond.Compiler
 
             var length = PatchLabels();
             var bytecode = GenerateBytecode(length);
-            var debugInfo = GenerateDebugInfo();
+            var debugInfo = GenerateDebugInfo(expression.FileName);
 
             return new MondProgram(bytecode, NumberPool.Items, StringPool.Items, debugInfo);
         }
@@ -89,7 +89,7 @@ namespace Mond.Compiler
             return bytecode;
         }
 
-        private DebugInfo GenerateDebugInfo()
+        private DebugInfo GenerateDebugInfo(string sourceFileName)
         {
             if (Options.DebugInfo == MondDebugInfoLevel.None)
                 return null;
@@ -114,7 +114,6 @@ namespace Mond.Compiler
                 })
                 .ToList();
 
-            var prevFileName = -1;
             var prevLineNumber = -1;
             var prevColumnNumber = -1;
 
@@ -122,18 +121,16 @@ namespace Mond.Compiler
                  .Where(i => i.Type == InstructionType.Position)
                  .Select(i =>
                  {
-                     var fileName = ((ConstantOperand<string>)i.Operands[0]).Id;
-                     var line = ((ImmediateOperand)i.Operands[1]).Value;
-                     var column = ((ImmediateOperand)i.Operands[2]).Value;
+                     var line = ((ImmediateOperand)i.Operands[0]).Value;
+                     var column = ((ImmediateOperand)i.Operands[1]).Value;
 
-                     return new DebugInfo.Position(i.Offset, fileName, line, column);
+                     return new DebugInfo.Position(i.Offset, line, column);
                  })
                  .Where(l =>
                  {
-                     if (l.FileName == prevFileName && l.LineNumber == prevLineNumber && l.ColumnNumber == prevColumnNumber)
+                     if (l.LineNumber == prevLineNumber && l.ColumnNumber == prevColumnNumber)
                          return false;
 
-                     prevFileName = l.FileName;
                      prevLineNumber = l.LineNumber;
                      prevColumnNumber = l.ColumnNumber;
 
@@ -142,7 +139,7 @@ namespace Mond.Compiler
                  .ToList();
 
             if (Options.DebugInfo <= MondDebugInfoLevel.StackTrace)
-                return new DebugInfo(functions, lines, null, null);
+                return new DebugInfo(sourceFileName, functions, lines, null, null);
 
             var statements = AllInstructions()
                 .Where(i => i.Type == InstructionType.Statement)
@@ -173,7 +170,7 @@ namespace Mond.Compiler
                 .OrderBy(s => s.Id)
                 .ToList();
 
-            return new DebugInfo(functions, lines, statements, scopes);
+            return new DebugInfo(sourceFileName, functions, lines, statements, scopes);
         }
 
         private IEnumerable<Instruction> AllInstructions()

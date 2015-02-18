@@ -16,7 +16,7 @@
 
         public override int Compile(FunctionContext context)
         {
-            context.Position(FileName, Line, Column);
+            context.Position(Line, Column);
 
             var stack = 0;
             var falseLabel = context.MakeLabel("ternaryFalse");

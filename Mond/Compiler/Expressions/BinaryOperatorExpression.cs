@@ -106,7 +106,7 @@ namespace Mond.Compiler.Expressions
             stack += Left.Compile(context);
             stack += Right.Compile(context);
 
-            context.Position(FileName, Line, Column); // debug info
+            context.Position(Line, Column); // debug info
             stack += context.BinaryOperation(Operation);
 
             CheckStack(stack, 1);

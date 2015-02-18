@@ -19,7 +19,7 @@
             stack += Left.Compile(context);
             stack += Index.Compile(context);
 
-            context.Position(FileName, Line, Column); // debug info
+            context.Position(Line, Column); // debug info
             stack += context.LoadArray();
 
             CheckStack(stack, 1);
@@ -45,7 +45,7 @@
         {
             var stack = 0;
 
-            context.Position(FileName, Line, Column); // debug info
+            context.Position(Line, Column); // debug info
             stack += context.LoadArray();
 
             return stack;
@@ -55,7 +55,7 @@
         {
             var stack = 0;
 
-            context.Position(FileName, Line, Column); // debug info
+            context.Position(Line, Column); // debug info
             stack += context.StoreArray();
 
             return stack;

@@ -19,7 +19,7 @@ namespace Mond.Compiler.Expressions.Statements
 
         public override int Compile(FunctionContext context)
         {
-            context.Position(FileName, Line, Column);
+            context.Position(Line, Column);
 
             var stack = 0;
             var start = context.MakeLabel("foreachStart");

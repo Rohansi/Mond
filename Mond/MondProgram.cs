@@ -69,6 +69,8 @@ namespace Mond
 
                 if (DebugInfo != null)
                 {
+                    writer.Write(DebugInfo.FileName);
+
                     if (DebugInfo.Functions != null)
                     {
                         writer.Write(DebugInfo.Functions.Count);
@@ -89,7 +91,6 @@ namespace Mond
                         foreach (var line in DebugInfo.Lines)
                         {
                             writer.Write(line.Address);
-                            writer.Write(line.FileName);
                             writer.Write(line.LineNumber);
                             writer.Write(line.ColumnNumber);
                         }
@@ -204,6 +205,8 @@ namespace Mond
                 DebugInfo debugInfo = null;
                 if (hasDebugInfo)
                 {
+                    var fileName = reader.ReadString();
+                    
                     var functionCount = reader.ReadInt32();
                     List<DebugInfo.Function> functions = null;
 
@@ -228,11 +231,10 @@ namespace Mond
                         for (var i = 0; i < lineCount; ++i)
                         {
                             var address = reader.ReadInt32();
-                            var fileName = reader.ReadInt32();
                             var lineNumber = reader.ReadInt32();
                             var columnNumber = reader.ReadInt32();
 
-                            var line = new DebugInfo.Position(address, fileName, lineNumber, columnNumber);
+                            var line = new DebugInfo.Position(address, lineNumber, columnNumber);
                             lines.Add(line);
                         }
                     }
@@ -279,7 +281,7 @@ namespace Mond
                         }
                     }
 
-                    debugInfo = new DebugInfo(functions, lines, statements, scopes);
+                    debugInfo = new DebugInfo(fileName, functions, lines, statements, scopes);
                 }
 
                 return new MondProgram(bytecode, numbers, strings, debugInfo);

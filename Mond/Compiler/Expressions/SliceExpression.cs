@@ -37,7 +37,7 @@
             else
                 stack += context.LoadUndefined();
 
-            context.Position(FileName, Line, Column); // debug info
+            context.Position(Line, Column); // debug info
             stack += context.Slice();
 
             CheckStack(stack, 1);

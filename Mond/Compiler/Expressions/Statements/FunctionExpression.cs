@@ -59,7 +59,7 @@ namespace Mond.Compiler.Expressions.Statements
             // compile body
             var functionContext = context.MakeFunction(Name ?? DebugName);
             functionContext.Function(functionContext.FullName);
-            functionContext.Position(FileName, Line, Column);
+            functionContext.Position(Line, Column);
             functionContext.PushScope();
 
             for (var i = 0; i < Arguments.Count; i++)
@@ -79,7 +79,7 @@ namespace Mond.Compiler.Expressions.Statements
             // assign result
             var stack = 0;
 
-            context.Position(FileName, Line, Column); // debug info
+            context.Position(Line, Column); // debug info
             stack += context.Closure(functionContext.Label);
 
             if (shouldStore)

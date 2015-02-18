@@ -21,14 +21,12 @@ namespace Mond.VirtualMachine
         public struct Position
         {
             public readonly int Address;
-            public readonly int FileName;
             public readonly int LineNumber;
             public readonly int ColumnNumber;
 
-            public Position(int address, int fileName, int lineNumber, int columnNumber)
+            public Position(int address, int lineNumber, int columnNumber)
             {
                 Address = address;
-                FileName = fileName;
                 LineNumber = lineNumber;
                 ColumnNumber = columnNumber;
             }
@@ -75,7 +73,9 @@ namespace Mond.VirtualMachine
         private readonly List<int> _statements; 
         private readonly List<Scope> _scopes;
 
-        private List<List<Scope>> _unpackedScopes; 
+        private List<List<Scope>> _unpackedScopes;
+
+        internal readonly string FileName;
 
         internal ReadOnlyCollection<Function> Functions
         {
@@ -97,8 +97,10 @@ namespace Mond.VirtualMachine
             get { return _scopes != null ? _scopes.AsReadOnly() : null; }
         }
 
-        public DebugInfo(List<Function> functions, List<Position> lines, List<int> statements, List<Scope> scopes)
+        public DebugInfo(string fileName, List<Function> functions, List<Position> lines, List<int> statements, List<Scope> scopes)
         {
+            FileName = fileName;
+
             _functions = functions;
             _lines = lines;
             _statements = statements;
@@ -124,7 +126,7 @@ namespace Mond.VirtualMachine
             if (_lines == null)
                 return null;
 
-            var idx = Search(_lines, new Position(address, 0, 0, 0), PositionAddressComparer);
+            var idx = Search(_lines, new Position(address, 0, 0), PositionAddressComparer);
             Position? result = null;
 
             if (idx >= 0 && idx < _lines.Count)

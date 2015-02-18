@@ -14,7 +14,7 @@ namespace Mond.Compiler.Expressions
 
         public override int Compile(FunctionContext context)
         {
-            context.Position(FileName, Line, Column);
+            context.Position(Line, Column);
 
             var sequenceContext = context.Root as SequenceBodyContext;
             if (sequenceContext == null)

@@ -22,7 +22,7 @@ namespace Mond.Compiler.Expressions
 
             stack += Method.Compile(context);
 
-            context.Position(FileName, Line, Column); // debug info
+            context.Position(Line, Column); // debug info
             stack += context.Call(Arguments.Count, GetUnpackIndices());
 
             CheckStack(stack, 1);
@@ -31,11 +31,9 @@ namespace Mond.Compiler.Expressions
 
         public int CompileTailCall(FunctionContext context)
         {
-            context.Position(FileName, Line, Column);
-
             var stack = Arguments.Sum(argument => argument.Compile(context));
 
-            context.Position(FileName, Line, Column); // debug info
+            context.Position(Line, Column); // debug info
             stack += context.TailCall(Arguments.Count, context.Label, GetUnpackIndices());
 
             CheckStack(stack, 0);

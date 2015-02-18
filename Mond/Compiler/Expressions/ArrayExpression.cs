@@ -18,7 +18,7 @@ namespace Mond.Compiler.Expressions
         {
             var stack = Values.Sum(value => value.Compile(context));
 
-            context.Position(FileName, Line, Column); // debug info
+            context.Position(Line, Column); // debug info
             stack += context.NewArray(Values.Count);
 
             CheckStack(stack, 1);

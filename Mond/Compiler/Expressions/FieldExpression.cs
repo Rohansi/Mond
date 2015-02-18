@@ -18,7 +18,7 @@
 
             stack += Left.Compile(context);
 
-            context.Position(FileName, Line, Column); // debug info
+            context.Position(Line, Column); // debug info
             stack += context.LoadField(context.String(Name));
 
             return stack;
@@ -42,7 +42,7 @@
         {
             var stack = 0;
 
-            context.Position(FileName, Line, Column); // debug info
+            context.Position(Line, Column); // debug info
             stack += context.LoadField(context.String(Name));
 
             return stack;
@@ -52,7 +52,7 @@
         {
             var stack = 0;
 
-            context.Position(FileName, Line, Column); // debug info
+            context.Position(Line, Column); // debug info
             stack += context.StoreField(context.String(Name));
 
             return stack;

@@ -1022,7 +1022,7 @@ namespace Mond.VirtualMachine
                 {
                     var prefix = "";
                     var funcName = program.Strings[func.Value.Name];
-                    var fileName = program.Strings[position.Value.FileName];
+                    var fileName = program.DebugInfo.FileName;
 
                     if (!string.IsNullOrEmpty(funcName))
                         prefix = string.Format("at {0} ", funcName);

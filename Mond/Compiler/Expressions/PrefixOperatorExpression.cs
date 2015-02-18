@@ -26,7 +26,7 @@ namespace Mond.Compiler.Expressions
                     stack += Right.Compile(context);
                     stack += context.Load(context.Number(1));
 
-                    context.Position(FileName, Line, Column); // debug info
+                    context.Position(Line, Column); // debug info
                     stack += context.BinaryOperation(TokenType.Add);
                     isAssignment = true;
                     break;
@@ -35,7 +35,7 @@ namespace Mond.Compiler.Expressions
                     stack += Right.Compile(context);
                     stack += context.Load(context.Number(1));
 
-                    context.Position(FileName, Line, Column); // debug info
+                    context.Position(Line, Column); // debug info
                     stack += context.BinaryOperation(TokenType.Subtract);
                     isAssignment = true;
                     break;
@@ -45,7 +45,7 @@ namespace Mond.Compiler.Expressions
                 case TokenType.BitNot:
                     stack += Right.Compile(context);
 
-                    context.Position(FileName, Line, Column); // debug info
+                    context.Position(Line, Column); // debug info
                     stack += context.UnaryOperation(Operation);
                     break;
 
