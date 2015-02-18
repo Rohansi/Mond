@@ -70,6 +70,7 @@ namespace Mond
                 if (DebugInfo != null)
                 {
                     writer.Write(DebugInfo.FileName ?? "");
+                    writer.Write(DebugInfo.SourceCode ?? "");
 
                     if (DebugInfo.Functions != null)
                     {
@@ -206,6 +207,7 @@ namespace Mond
                 if (hasDebugInfo)
                 {
                     var fileName = reader.ReadString();
+                    var sourceCode = reader.ReadString();
                     
                     var functionCount = reader.ReadInt32();
                     List<MondDebugInfo.Function> functions = null;
@@ -281,11 +283,27 @@ namespace Mond
                         }
                     }
 
-                    debugInfo = new MondDebugInfo(fileName, functions, lines, statements, scopes);
+                    debugInfo = new MondDebugInfo(fileName, sourceCode, functions, lines, statements, scopes);
                 }
 
                 return new MondProgram(bytecode, numbers, strings, debugInfo);
             }
+        }
+
+        /// <summary>
+        /// Compile a Mond program from a string.
+        /// </summary>
+        /// <param name="source">Source code to compile</param>
+        /// <param name="fileName">Optional file name to use in errors</param>
+        /// <param name="options">Compiler options</param>
+        public static MondProgram Compile(string source, string fileName = null, MondCompilerOptions options = null)
+        {
+            options = options ?? new MondCompilerOptions();
+
+            var lexer = new Lexer(source, fileName, options);
+            var parser = new Parser(lexer);
+
+            return CompileImpl(parser.ParseAll(), options, source);
         }
 
         /// <summary>
@@ -296,9 +314,13 @@ namespace Mond
         /// <param name="options">Compiler options</param>
         public static MondProgram Compile(IEnumerable<char> source, string fileName = null, MondCompilerOptions options = null)
         {
-            var lexer = new Lexer(source, fileName, options);
+            options = options ?? new MondCompilerOptions();
+
+            var needSource = options.DebugInfo == MondDebugInfoLevel.Full;
+            var lexer = new Lexer(source, fileName, options, needSource);
             var parser = new Parser(lexer);
-            return CompileImpl(parser.ParseAll(), options);
+
+            return CompileImpl(parser.ParseAll(), options, lexer.SourceCode);
         }
 
         /// <summary>
@@ -310,7 +332,10 @@ namespace Mond
         /// <param name="options">Compiler options</param>
         public static IEnumerable<MondProgram> CompileStatements(IEnumerable<char> source, string fileName = null, MondCompilerOptions options = null)
         {
-            var lexer = new Lexer(source, fileName, options);
+            options = options ?? new MondCompilerOptions();
+
+            var needSource = options.DebugInfo == MondDebugInfoLevel.Full;
+            var lexer = new Lexer(source, fileName, options, needSource);
             var parser = new Parser(lexer);
 
             while (true)
@@ -320,14 +345,12 @@ namespace Mond
                     parser.ParseStatement()
                 });
 
-                yield return CompileImpl(expression, options);;
+                yield return CompileImpl(expression, options, lexer.SourceCode.TrimStart('\r', '\n'));
             }
         }
 
-        private static MondProgram CompileImpl(Expression expression, MondCompilerOptions options)
+        private static MondProgram CompileImpl(Expression expression, MondCompilerOptions options, string debugSourceCode = null)
         {
-            options = options ?? new MondCompilerOptions();
-
             expression.SetParent(null);
             expression.Simplify();
 
@@ -335,7 +358,7 @@ namespace Mond
             //    expression.Accept(printer);
 
             var compiler = new ExpressionCompiler(options);
-            return compiler.Compile(expression);
+            return compiler.Compile(expression, debugSourceCode);
         }
     }
 }

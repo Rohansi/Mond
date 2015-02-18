@@ -39,7 +39,7 @@ namespace Mond.Compiler
             ScopeDepth = -1;
         }
 
-        public MondProgram Compile(Expression expression)
+        public MondProgram Compile(Expression expression, string debugSourceCode = null)
         {
             var context = new FunctionContext(this, 0, 0, null, null, null);
             RegisterFunction(context);
@@ -56,7 +56,7 @@ namespace Mond.Compiler
 
             var length = PatchLabels();
             var bytecode = GenerateBytecode(length);
-            var debugInfo = GenerateDebugInfo(expression.FileName);
+            var debugInfo = GenerateDebugInfo(expression.FileName, debugSourceCode);
 
             return new MondProgram(bytecode, NumberPool.Items, StringPool.Items, debugInfo);
         }
@@ -89,10 +89,13 @@ namespace Mond.Compiler
             return bytecode;
         }
 
-        private MondDebugInfo GenerateDebugInfo(string sourceFileName)
+        private MondDebugInfo GenerateDebugInfo(string sourceFileName, string sourceCode)
         {
             if (Options.DebugInfo == MondDebugInfoLevel.None)
                 return null;
+
+            if (Options.DebugInfo <= MondDebugInfoLevel.StackTrace)
+                sourceCode = null;
 
             var prevName = -1;
 
@@ -139,7 +142,7 @@ namespace Mond.Compiler
                  .ToList();
 
             if (Options.DebugInfo <= MondDebugInfoLevel.StackTrace)
-                return new MondDebugInfo(sourceFileName, functions, lines, null, null);
+                return new MondDebugInfo(sourceFileName, sourceCode, functions, lines, null, null);
 
             var statements = AllInstructions()
                 .Where(i => i.Type == InstructionType.Statement)
@@ -170,7 +173,7 @@ namespace Mond.Compiler
                 .OrderBy(s => s.Id)
                 .ToList();
 
-            return new MondDebugInfo(sourceFileName, functions, lines, statements, scopes);
+            return new MondDebugInfo(sourceFileName, sourceCode, functions, lines, statements, scopes);
         }
 
         private IEnumerable<Instruction> AllInstructions()

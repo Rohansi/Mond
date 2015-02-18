@@ -26,6 +26,7 @@ namespace Mond.Compiler
         private readonly MondCompilerOptions _options;
         private readonly string _fileName;
         private readonly IEnumerable<char> _sourceEnumerable;
+        private readonly StringBuilder _sourceCode;
 
         private IEnumerator<char> _source;
         private int _length;
@@ -36,14 +37,37 @@ namespace Mond.Compiler
         private int _currentColumn;
         private Stack<Position> _positions;
 
-        public bool AtEof { get { return _index >= _length; } }
-
-        public Lexer(IEnumerable<char> source, string fileName = null, MondCompilerOptions options = null)
+        public Lexer(
+            IEnumerable<char> source,
+            string fileName = null,
+            MondCompilerOptions options = null,
+            bool buildSourceString = false)
         {
             _options = options;
             _fileName = fileName;
             _sourceEnumerable = source;
             _positions = new Stack<Position>();
+
+            if (buildSourceString)
+                _sourceCode = new StringBuilder(4096);
+        }
+
+        public string SourceCode
+        {
+            get
+            {
+                if (_sourceCode == null)
+                    return null;
+
+                var result = _sourceCode.ToString();
+                _sourceCode.Clear();
+                return result;
+            }
+        }
+
+        public bool AtEof
+        {
+            get { return _index >= _length; }
         }
 
         public IEnumerator<Token> GetEnumerator()
@@ -55,6 +79,9 @@ namespace Mond.Compiler
             _index = 0;
             _currentLine = _options == null ? 1 : _options.FirstLineNumber;
             _currentColumn = 1;
+
+            if (_sourceCode != null)
+                _sourceCode.Clear();
 
             while (!AtEof)
             {
@@ -447,6 +474,9 @@ namespace Mond.Compiler
 
             if (result == '\n')
                 AdvanceLine();
+
+            if (_sourceCode != null && result != '\0')
+                _sourceCode.Append(result);
 
             _index++;
             _currentColumn++;

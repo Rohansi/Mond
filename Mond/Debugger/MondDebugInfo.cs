@@ -75,31 +75,33 @@ namespace Mond.Debugger
 
         private List<List<Scope>> _unpackedScopes;
 
-        internal readonly string FileName;
+        public readonly string FileName;
+        public readonly string SourceCode;
 
-        internal ReadOnlyCollection<Function> Functions
+        public ReadOnlyCollection<Function> Functions
         {
             get { return _functions != null ? _functions.AsReadOnly() : null; }
         }
 
-        internal ReadOnlyCollection<Position> Lines
+        public ReadOnlyCollection<Position> Lines
         {
             get { return _lines != null ? _lines.AsReadOnly() : null; }
         }
 
-        internal ReadOnlyCollection<int> Statements
+        public ReadOnlyCollection<int> Statements
         {
             get { return _statements != null ? _statements.AsReadOnly() : null; }
-        } 
+        }
 
-        internal ReadOnlyCollection<Scope> Scopes
+        public ReadOnlyCollection<Scope> Scopes
         {
             get { return _scopes != null ? _scopes.AsReadOnly() : null; }
         }
 
-        public MondDebugInfo(string fileName, List<Function> functions, List<Position> lines, List<int> statements, List<Scope> scopes)
+        internal MondDebugInfo(string fileName, string sourceCode, List<Function> functions, List<Position> lines, List<int> statements, List<Scope> scopes)
         {
             FileName = fileName != "" ? fileName : null;
+            SourceCode = sourceCode != "" ? sourceCode : null;
 
             _functions = functions;
             _lines = lines;
