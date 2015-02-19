@@ -16,8 +16,10 @@ namespace Mond.RemoteDebugger
         internal TaskCompletionSource<MondDebugAction> Break;
         internal List<Tuple<MondProgram, MondDebugInfo>> Programs;
 
-        internal int BreakLine;
-        internal int BreakColumn;
+        internal int BreakStartLine;
+        internal int BreakStartColumn;
+        internal int BreakEndLine;
+        internal int BreakEndColumn;
 
         public MondRemoteDebugger(IPEndPoint endPoint)
         {
@@ -87,20 +89,24 @@ namespace Mond.RemoteDebugger
             }
 
             // find out where we are in the source code
-            var position = debugInfo.FindPosition(address);
+            var statement = debugInfo.FindStatement(address);
 
-            if (!position.HasValue)
-                position = new MondDebugInfo.Position(0, FirstLineNumber(debugInfo), 1);
+            if (!statement.HasValue)
+                statement = new MondDebugInfo.Statement(0, -1, -1, -1, -1);
 
-            BreakLine = position.Value.LineNumber;
-            BreakColumn = position.Value.ColumnNumber;
+            BreakStartLine = statement.Value.StartLineNumber;
+            BreakStartColumn = statement.Value.StartColumnNumber;
+            BreakEndLine = statement.Value.EndLineNumber;
+            BreakEndColumn = statement.Value.EndColumnNumber;
 
             Broadcast(new
             {
                 Type = "State",
                 Running = false,
-                BreakLine,
-                BreakColumn
+                BreakStartLine,
+                BreakStartColumn,
+                BreakEndLine,
+                BreakEndColumn
             });
 
             // block until an action is set

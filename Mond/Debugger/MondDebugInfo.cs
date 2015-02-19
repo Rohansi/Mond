@@ -32,6 +32,24 @@ namespace Mond.Debugger
             }
         }
 
+        public struct Statement
+        {
+            public readonly int Address;
+            public readonly int StartLineNumber;
+            public readonly int StartColumnNumber;
+            public readonly int EndLineNumber;
+            public readonly int EndColumnNumber;
+
+            public Statement(int address, int startLine, int startColumn, int endLine, int endColumn)
+            {
+                Address = address;
+                StartLineNumber = startLine;
+                StartColumnNumber = startColumn;
+                EndLineNumber = endLine;
+                EndColumnNumber = endColumn;
+            }
+        }
+
         public class Scope
         {
             public readonly int Id;
@@ -70,7 +88,7 @@ namespace Mond.Debugger
 
         private readonly List<Function> _functions;
         private readonly List<Position> _lines;
-        private readonly List<int> _statements; 
+        private readonly List<Statement> _statements; 
         private readonly List<Scope> _scopes;
 
         private List<List<Scope>> _unpackedScopes;
@@ -88,7 +106,7 @@ namespace Mond.Debugger
             get { return _lines != null ? _lines.AsReadOnly() : null; }
         }
 
-        public ReadOnlyCollection<int> Statements
+        public ReadOnlyCollection<Statement> Statements
         {
             get { return _statements != null ? _statements.AsReadOnly() : null; }
         }
@@ -98,7 +116,7 @@ namespace Mond.Debugger
             get { return _scopes != null ? _scopes.AsReadOnly() : null; }
         }
 
-        internal MondDebugInfo(string fileName, string sourceCode, List<Function> functions, List<Position> lines, List<int> statements, List<Scope> scopes)
+        internal MondDebugInfo(string fileName, string sourceCode, List<Function> functions, List<Position> lines, List<Statement> statements, List<Scope> scopes)
         {
             FileName = fileName != "" ? fileName : null;
             SourceCode = sourceCode != "" ? sourceCode : null;
@@ -137,12 +155,28 @@ namespace Mond.Debugger
             return result;
         }
 
+        public Statement? FindStatement(int address)
+        {
+            if (_lines == null)
+                return null;
+
+            var search = new Statement(address, 0, 0, 0, 0);
+            var idx = Search(_statements, search, StatementAddressComparer);
+            Statement? result = null;
+
+            if (idx >= 0 && idx < _lines.Count)
+                result = _statements[idx];
+
+            return result;
+        }
+
         public bool IsStatementStart(int address)
         {
             if (_statements == null)
                 return false;
 
-            return _statements.BinarySearch(address) >= 0;
+            var search = new Statement(address, 0, 0, 0, 0);
+            return _statements.BinarySearch(search, StatementAddressComparer) >= 0;
         }
 
         public Scope FindScope(int address)
@@ -200,6 +234,9 @@ namespace Mond.Debugger
 
         private static readonly GenericComparer<Position> PositionAddressComparer =
             new GenericComparer<Position>((x, y) => x.Address - y.Address);
+
+        private static readonly GenericComparer<Statement> StatementAddressComparer =
+            new GenericComparer<Statement>((x, y) => x.Address - y.Address);
 
         private static readonly GenericComparer<Scope> ScopeAddressComparer =
             new GenericComparer<Scope>((x, y) =>

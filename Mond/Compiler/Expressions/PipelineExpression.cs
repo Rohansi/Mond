@@ -7,8 +7,13 @@ namespace Mond.Compiler.Expressions
         public Expression Left { get; private set; }
         public Expression Right { get; private set; }
 
+        public override Token StartToken
+        {
+            get { return Left.StartToken; }
+        }
+
         public PipelineExpression(Token token, Expression left, Expression right)
-            : base(token.FileName, token.Line, token.Column)
+            : base(token)
         {
             Left = left;
             Right = right;
@@ -20,7 +25,7 @@ namespace Mond.Compiler.Expressions
             if (callExpression == null)
                 throw new MondCompilerException(this, CompilerError.PipelineNeedsCall);
 
-            var token = new Token(callExpression.FileName, callExpression.Line, callExpression.Column, TokenType.LeftParen, null);
+            var token = new Token(callExpression.Token, TokenType.LeftParen, null);
             var transformedArgs = Enumerable.Repeat(Left, 1).Concat(callExpression.Arguments).ToList();
             var transformedCall = new CallExpression(token, callExpression.Method, transformedArgs);
 

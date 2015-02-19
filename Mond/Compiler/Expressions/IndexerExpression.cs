@@ -5,8 +5,13 @@
         public Expression Left { get; private set; }
         public Expression Index { get; private set; }
 
+        public override Token StartToken
+        {
+            get { return Left.StartToken; }
+        }
+
         public IndexerExpression(Token token, Expression left, Expression index)
-            : base(token.FileName, token.Line, token.Column)
+            : base(token)
         {
             Left = left;
             Index = index;
@@ -19,7 +24,7 @@
             stack += Left.Compile(context);
             stack += Index.Compile(context);
 
-            context.Position(Line, Column); // debug info
+            context.Position(Token); // debug info
             stack += context.LoadArray();
 
             CheckStack(stack, 1);
@@ -45,7 +50,7 @@
         {
             var stack = 0;
 
-            context.Position(Line, Column); // debug info
+            context.Position(Token); // debug info
             stack += context.LoadArray();
 
             return stack;
@@ -55,7 +60,7 @@
         {
             var stack = 0;
 
-            context.Position(Line, Column); // debug info
+            context.Position(Token); // debug info
             stack += context.StoreArray();
 
             return stack;

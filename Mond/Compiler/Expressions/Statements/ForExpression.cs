@@ -10,7 +10,7 @@ namespace Mond.Compiler.Expressions.Statements
         public BlockExpression Block { get; private set; }
 
         public ForExpression(Token token, BlockExpression initializer, Expression condition, BlockExpression increment, BlockExpression block)
-            : base(token.FileName, token.Line, token.Column)
+            : base(token)
         {
             Initializer = initializer;
             Condition = condition;
@@ -20,7 +20,7 @@ namespace Mond.Compiler.Expressions.Statements
 
         public override int Compile(FunctionContext context)
         {
-            context.Position(Line, Column);
+            context.Position(Token);
 
             var stack = 0;
             var start = context.MakeLabel("forStart");

@@ -5,8 +5,13 @@
         public readonly Expression Left;
         public string Name { get; private set; }
 
+        public override Token StartToken
+        {
+            get { return Left.StartToken; }
+        }
+
         public FieldExpression(Token token, Expression left)
-            : base(token.FileName, token.Line, token.Column)
+            : base(token)
         {
             Left = left;
             Name = token.Contents;
@@ -18,7 +23,7 @@
 
             stack += Left.Compile(context);
 
-            context.Position(Line, Column); // debug info
+            context.Position(Token); // debug info
             stack += context.LoadField(context.String(Name));
 
             return stack;
@@ -42,7 +47,7 @@
         {
             var stack = 0;
 
-            context.Position(Line, Column); // debug info
+            context.Position(Token); // debug info
             stack += context.LoadField(context.String(Name));
 
             return stack;
@@ -52,7 +57,7 @@
         {
             var stack = 0;
 
-            context.Position(Line, Column); // debug info
+            context.Position(Token); // debug info
             stack += context.StoreField(context.String(Name));
 
             return stack;

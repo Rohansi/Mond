@@ -45,7 +45,7 @@ namespace Mond.Compiler
             RegisterFunction(context);
 
             context.Function(context.FullName);
-            context.Position(Options.FirstLineNumber, 1);
+            context.Position(new Token(null, Options.FirstLineNumber, 1, TokenType.Eof, null));
 
             context.PushScope();
             context.Enter();
@@ -56,7 +56,7 @@ namespace Mond.Compiler
 
             var length = PatchLabels();
             var bytecode = GenerateBytecode(length);
-            var debugInfo = GenerateDebugInfo(expression.FileName, debugSourceCode);
+            var debugInfo = GenerateDebugInfo(expression.Token.FileName, debugSourceCode);
 
             return new MondProgram(bytecode, NumberPool.Items, StringPool.Items, debugInfo);
         }
@@ -144,10 +144,27 @@ namespace Mond.Compiler
             if (Options.DebugInfo <= MondDebugInfoLevel.StackTrace)
                 return new MondDebugInfo(sourceFileName, sourceCode, functions, lines, null, null);
 
+            var prevAddress = -1;
+
             var statements = AllInstructions()
                 .Where(i => i.Type == InstructionType.Statement)
-                .Select(s => s.Offset)
-                .Distinct()
+                .Select(s =>
+                {
+                    var startLine = ((ImmediateOperand)s.Operands[0]).Value;
+                    var startColumn = ((ImmediateOperand)s.Operands[1]).Value;
+                    var endLine = ((ImmediateOperand)s.Operands[2]).Value;
+                    var endColumn = ((ImmediateOperand)s.Operands[3]).Value;
+
+                    return new MondDebugInfo.Statement(s.Offset, startLine, startColumn, endLine, endColumn);
+                })
+                .Where(s =>
+                {
+                    if (s.Address == prevAddress)
+                        return false;
+
+                    prevAddress = s.Address;
+                    return true;
+                })
                 .ToList();
 
             var scopes = AllInstructions()

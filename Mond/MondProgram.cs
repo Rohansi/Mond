@@ -106,7 +106,11 @@ namespace Mond
                         writer.Write(DebugInfo.Statements.Count);
                         foreach (var statement in DebugInfo.Statements)
                         {
-                            writer.Write(statement);
+                            writer.Write(statement.Address);
+                            writer.Write(statement.StartLineNumber);
+                            writer.Write(statement.StartColumnNumber);
+                            writer.Write(statement.EndLineNumber);
+                            writer.Write(statement.EndColumnNumber);
                         }
                     }
                     else
@@ -242,14 +246,21 @@ namespace Mond
                     }
 
                     var statementCount = reader.ReadInt32();
-                    List<int> statements = null;
+                    List<MondDebugInfo.Statement> statements = null;
 
                     if (statementCount >= 0)
                     {
-                        statements = new List<int>(statementCount);
+                        statements = new List<MondDebugInfo.Statement>(statementCount);
                         for (var i = 0; i < statementCount; ++i)
                         {
-                            statements.Add(reader.ReadInt32());
+                            var address = reader.ReadInt32();
+                            var startLine = reader.ReadInt32();
+                            var startColumn = reader.ReadInt32();
+                            var endLine = reader.ReadInt32();
+                            var endColumn = reader.ReadInt32();
+
+                            var statement = new MondDebugInfo.Statement(address, startLine, startColumn, endLine, endColumn);
+                            statements.Add(statement);
                         }
                     }
 

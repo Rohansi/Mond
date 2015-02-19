@@ -9,11 +9,15 @@ namespace Mond.Compiler.Expressions
         public ReadOnlyCollection<Expression> Statements { get; private set; }
 
         public BlockExpression(Token token, IList<Expression> statements)
-            : base(token.FileName, token.Line, token.Column)
+            : base(token)
         {
-            var exprWithFile = statements.FirstOrDefault(e => e.FileName != null);
-            if (exprWithFile != null)
-                FileName = exprWithFile.FileName;
+            if (Token.FileName == null)
+            {
+                var fileNameToken = statements.Select(e => e.Token).FirstOrDefault(t => t.FileName != null);
+
+                if (fileNameToken != null)
+                    Token = new Token(fileNameToken.FileName, Token.Line, Token.Column, Token.Type, Token.Contents);
+            }
 
             Statements = new ReadOnlyCollection<Expression>(statements);
         }
@@ -21,17 +25,28 @@ namespace Mond.Compiler.Expressions
         public BlockExpression(IList<Expression> statements)
             : this(new Token(null, -1, -1, TokenType.Eof, null), statements)
         {
-            
+
         }
 
         public override int Compile(FunctionContext context)
         {
+            var needStatements = context.Compiler.Options.DebugInfo >= MondDebugInfoLevel.Full;
+
             foreach (var statement in Statements)
             {
-                context.Emit(new Instruction(InstructionType.Statement));
+                if (needStatements)
+                {
+                    context.Emit(new Instruction(InstructionType.Statement, new IInstructionOperand[]
+                    {
+                        new ImmediateOperand(statement.StartToken.Line),
+                        new ImmediateOperand(statement.StartToken.Column),
+                        new ImmediateOperand(statement.EndToken.Line),
+                        new ImmediateOperand(statement.EndToken.Column)
+                    }));
+                }
 
                 var stack = statement.Compile(context);
-                
+
                 while (stack > 0)
                 {
                     context.Drop();

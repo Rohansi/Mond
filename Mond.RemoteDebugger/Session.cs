@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Dynamic;
 using System.Linq;
 using Mond.Debugger;
 using Newtonsoft.Json;
@@ -29,8 +28,10 @@ namespace Mond.RemoteDebugger
                     SourceCode = t.Item2.SourceCode
                 }),
                 Running = _debugger.Break == null,
-                BreakLine = _debugger.BreakLine,
-                BreakColumn = _debugger.BreakColumn
+                BreakStartLine = _debugger.BreakStartLine,
+                BreakStartColumn = _debugger.BreakStartColumn,
+                BreakEndLine = _debugger.BreakEndLine,
+                BreakEndColumn = _debugger.BreakEndColumn
             }));
         }
 

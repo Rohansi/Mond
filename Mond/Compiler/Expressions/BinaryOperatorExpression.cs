@@ -9,8 +9,13 @@ namespace Mond.Compiler.Expressions
         public Expression Left { get; private set; }
         public Expression Right { get; private set; }
 
+        public override Token StartToken
+        {
+            get { return Left.StartToken; }
+        }
+
         public BinaryOperatorExpression(Token token, Expression left, Expression right)
-            : base(token.FileName, token.Line, token.Column)
+            : base(token)
         {
             Operation = token.Type;
             Left = left;
@@ -106,7 +111,7 @@ namespace Mond.Compiler.Expressions
             stack += Left.Compile(context);
             stack += Right.Compile(context);
 
-            context.Position(Line, Column); // debug info
+            context.Position(Token); // debug info
             stack += context.BinaryOperation(Operation);
 
             CheckStack(stack, 1);
@@ -127,7 +132,7 @@ namespace Mond.Compiler.Expressions
                 if (leftNum != null && rightNum != null)
                 {
                     var result = simplifyOp(leftNum.Value, rightNum.Value);
-                    var token = new Token(FileName, Line, Column, TokenType.Number, null);
+                    var token = new Token(Token, TokenType.Number, null);
                     return new NumberExpression(token, result);
                 }
             }
@@ -140,7 +145,7 @@ namespace Mond.Compiler.Expressions
                 if (leftStr != null && rightStr != null)
                 {
                     var result = leftStr.Value + rightStr.Value;
-                    var token = new Token(FileName, Line, Column, TokenType.String, null);
+                    var token = new Token(Token, TokenType.String, null);
                     return new StringExpression(token, result);
                 }
             }

@@ -5,7 +5,7 @@
         public Expression Right { get; private set; }
 
         public UnpackExpression(Token token, Expression right)
-            : base(token.FileName, token.Line, token.Column)
+            : base(token)
         {
             Right = right;
         }

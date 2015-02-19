@@ -23,7 +23,7 @@ namespace Mond.Compiler.Expressions.Statements
         public ReadOnlyCollection<Branch> Branches { get; private set; }
 
         public SwitchExpression(Token token, Expression expression, List<Branch> branches)
-            : base(token.FileName, token.Line, token.Column)
+            : base(token)
         {
             Expression = expression;
             Branches = branches.AsReadOnly();
@@ -31,7 +31,7 @@ namespace Mond.Compiler.Expressions.Statements
 
         public override int Compile(FunctionContext context)
         {
-            context.Position(Line, Column);
+            context.Position(Token);
 
             var stack = 0;
             var caseLabels = new List<LabelOperand>(Branches.Count);
@@ -156,7 +156,7 @@ namespace Mond.Compiler.Expressions.Statements
 
                     condition.SetParent(this);
                 }
-                
+
                 branch.Block.SetParent(this);
             }
         }

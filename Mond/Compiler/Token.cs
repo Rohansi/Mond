@@ -114,6 +114,12 @@
             Tag = tag;
         }
 
+        public Token(Token token, TokenType type, string contents, object tag = null)
+            : this(token.FileName, token.Line, token.Column, type, contents, tag)
+        {
+
+        }
+
         public override string ToString()
         {
             switch (Type)

@@ -5,14 +5,14 @@
         public Expression Value { get; private set; }
 
         public ReturnExpression(Token token, Expression value)
-            : base(token.FileName, token.Line, token.Column)
+            : base(token)
         {
             Value = value ?? new UndefinedExpression(token);
         }
 
         public override int Compile(FunctionContext context)
         {
-            context.Position(Line, Column);
+            context.Position(Token);
 
             var stack = 0;
 

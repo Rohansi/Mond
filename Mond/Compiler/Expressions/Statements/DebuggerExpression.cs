@@ -3,14 +3,14 @@
     class DebuggerExpression : Expression, IStatementExpression
     {
         public DebuggerExpression(Token token)
-            : base(token.FileName, token.Line, token.Column)
+            : base(token)
         {
             
         }
 
         public override int Compile(FunctionContext context)
         {
-            context.Position(Line, Column);
+            context.Position(Token);
             return context.Breakpoint();
         }
 

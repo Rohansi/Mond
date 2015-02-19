@@ -10,7 +10,7 @@ namespace Mond.Compiler.Expressions.Statements
         public BlockExpression Block { get; private set; }
 
         public ForeachExpression(Token token, string identifier, Expression expression, BlockExpression block)
-            : base(token.FileName, token.Line, token.Column)
+            : base(token)
         {
             Identifier = identifier;
             Expression = expression;
@@ -19,7 +19,7 @@ namespace Mond.Compiler.Expressions.Statements
 
         public override int Compile(FunctionContext context)
         {
-            context.Position(Line, Column);
+            context.Position(Token);
 
             var stack = 0;
             var start = context.MakeLabel("foreachStart");

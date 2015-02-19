@@ -13,7 +13,7 @@ namespace Mond.Compiler.Expressions.Statements
         public string DebugName { get; set; }
 
         public FunctionExpression(Token token, string name, List<string> arguments, string otherArgs, ScopeExpression block, string debugName = null)
-            : base(token.FileName, token.Line, token.Column)
+            : base(token)
         {
             Name = name;
             Arguments = arguments.AsReadOnly();
@@ -59,7 +59,7 @@ namespace Mond.Compiler.Expressions.Statements
             // compile body
             var functionContext = context.MakeFunction(Name ?? DebugName);
             functionContext.Function(functionContext.FullName);
-            functionContext.Position(Line, Column);
+            functionContext.Position(Token);
             functionContext.PushScope();
 
             for (var i = 0; i < Arguments.Count; i++)
@@ -79,7 +79,7 @@ namespace Mond.Compiler.Expressions.Statements
             // assign result
             var stack = 0;
 
-            context.Position(Line, Column); // debug info
+            context.Position(Token); // debug info
             stack += context.Closure(functionContext.Label);
 
             if (shouldStore)

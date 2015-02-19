@@ -13,12 +13,12 @@ namespace Mond.Compiler
             Emit(new Instruction(InstructionType.Function, String(name)));
         }
 
-        public void Position(int line, int column)
+        public void Position(Token token)
         {
             if (Compiler.Options.DebugInfo < MondDebugInfoLevel.StackTrace)
                 return;
 
-            Emit(new Instruction(InstructionType.Position, new ImmediateOperand(line), new ImmediateOperand(column)));
+            Emit(new Instruction(InstructionType.Position, new ImmediateOperand(token.Line), new ImmediateOperand(token.Column)));
         }
 
         public int Breakpoint()

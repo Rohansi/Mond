@@ -7,14 +7,14 @@ namespace Mond.Compiler.Expressions
         public Expression Value { get; private set; }
 
         public YieldExpression(Token token, Expression value)
-            : base(token.FileName, token.Line, token.Column)
+            : base(token)
         {
             Value = value;
         }
 
         public override int Compile(FunctionContext context)
         {
-            context.Position(Line, Column);
+            context.Position(Token);
 
             var sequenceContext = context.Root as SequenceBodyContext;
             if (sequenceContext == null)

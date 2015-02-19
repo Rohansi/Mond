@@ -7,8 +7,13 @@
         public Expression End { get; private set; }
         public Expression Step { get; private set; }
 
+        public override Token StartToken
+        {
+            get { return Left.StartToken; }
+        }
+
         public SliceExpression(Token token, Expression left, Expression start, Expression end, Expression step)
-            : base(token.FileName, token.Line, token.Column)
+            : base(token)
         {
             Left = left;
             Start = start;
@@ -37,7 +42,7 @@
             else
                 stack += context.LoadUndefined();
 
-            context.Position(Line, Column); // debug info
+            context.Position(Token); // debug info
             stack += context.Slice();
 
             CheckStack(stack, 1);
