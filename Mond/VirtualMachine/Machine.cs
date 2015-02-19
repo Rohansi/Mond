@@ -13,6 +13,7 @@ namespace Mond.VirtualMachine
         internal MondValue Global;
 
         private MondDebugAction _debugAction;
+        private bool _debugSkip;
         private bool _debugAlign;
         private int _debugDepth;
         internal MondDebugger Debugger;
@@ -24,6 +25,7 @@ namespace Mond.VirtualMachine
             Global = new MondValue(MondValueType.Object);
 
             _debugAction = MondDebugAction.Run;
+            _debugSkip = false;
             _debugAlign = false;
             _debugDepth = 0;
             Debugger = null;
@@ -107,6 +109,9 @@ namespace Mond.VirtualMachine
                 {
                     if (Debugger != null)
                     {
+                        var skip = _debugSkip;
+                        _debugSkip = false;
+
                         var shouldStopAtStmt =
                             (_debugAction == MondDebugAction.StepInto) ||
                             (_debugAction == MondDebugAction.StepOver);
@@ -117,7 +122,7 @@ namespace Mond.VirtualMachine
                             (Debugger.ShouldBreak(program, ip)) ||
                             (shouldStopAtStmt && program.DebugInfo != null && program.DebugInfo.IsStatementStart(ip));
 
-                        if (shouldBreak)
+                        if (!skip && shouldBreak)
                             DebuggerBreak(program, ip);
                     }
 
@@ -850,9 +855,14 @@ namespace Mond.VirtualMachine
 
                         case (int)InstructionType.Breakpoint:
                             {
-                                if (Debugger != null)
-                                    DebuggerBreak(program, ip);
+                                if (Debugger == null)
+                                    break;
 
+                                DebuggerBreak(program, ip);
+
+                                // we stop for the statement *after* the debugger statement so we
+                                // skip the next break opportunity, otherwise we break twice
+                                _debugSkip = true;
                                 break;
                             }
 

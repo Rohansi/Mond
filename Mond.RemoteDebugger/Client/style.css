@@ -23,6 +23,10 @@ ul {
 #menu {
     flex-grow: 0;
     flex-shrink: 0;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 #menu > li {
@@ -82,14 +86,25 @@ ul {
 #source-tabs {
     flex-shrink: 0;
     flex-grow: 0;
+    min-height: 24px;
     border-bottom: #dddddd 2px solid;
     padding: 0 8px;
     margin-top: 4px;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 #source-tabs > li {
     display: inline-block;
     padding: 4px;
+    min-width: 50px;
+    max-width: 150px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    margin-bottom: -3px;
 }
 
 #source-tabs > li:hover {
@@ -101,40 +116,20 @@ ul {
     background-color: #dddddd;
 }
 
-#source-tabs > li > .label {
-    display: inline-block;
-    min-width: 50px;
-    max-width: 150px;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-}
-
-#source-tabs > li > .close {
-    float: right;
-    margin-left: 4px;
-    padding: 2px;
-    line-height: 12px;
-    color: #999999;
-}
-
-#source-tabs > li > .close:hover {
-    background-color: #cccccc;
-}
-
 #source-view {
     flex-grow: 10;
     padding: 4px;
+    overflow: auto;
 }
 
 #source-view > div {
     font-family: monospace;
-    white-space: pre;
+    white-space: pre-wrap;
 }
 
 #watch {
-    flex-grow: 6;
-    flex-shrink: 1;
+    flex-grow: 10;
+    flex-shrink: 0;
     padding: 4px;
     border-top: #dddddd 2px solid;
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using Mond.Debugger;
+using Newtonsoft.Json;
 using WebSocketSharp.Server;
 
 namespace Mond.RemoteDebugger
@@ -14,6 +15,9 @@ namespace Mond.RemoteDebugger
 
         internal TaskCompletionSource<MondDebugAction> Break;
         internal List<Tuple<MondProgram, MondDebugInfo>> Programs;
+
+        internal int BreakLine;
+        internal int BreakColumn;
 
         public MondRemoteDebugger(IPEndPoint endPoint)
         {
@@ -39,6 +43,11 @@ namespace Mond.RemoteDebugger
             _server = null;
         }
 
+        public void RequestBreak()
+        {
+            IsBreakRequested = true;
+        }
+
         protected override void OnAttached()
         {
             _seenPrograms = new HashSet<MondProgram>();
@@ -62,18 +71,56 @@ namespace Mond.RemoteDebugger
             // check if we stopped in a new program
             if (!_seenPrograms.Contains(program))
             {
+                _seenPrograms.Add(program);
+
                 var id = Programs.Count;
                 Programs.Add(Tuple.Create(program, debugInfo));
 
-                // TODO: broadcast new program info
+                Broadcast(new
+                {
+                    Type = "NewProgram",
+                    Id = id,
+                    FirstLineNumber = FirstLineNumber(debugInfo),
+                    FileName = debugInfo.FileName,
+                    SourceCode = debugInfo.SourceCode
+                });
             }
+
+            // find out where we are in the source code
+            var position = debugInfo.FindPosition(address);
+
+            if (!position.HasValue)
+                position = new MondDebugInfo.Position(0, FirstLineNumber(debugInfo), 1);
+
+            BreakLine = position.Value.LineNumber;
+            BreakColumn = position.Value.ColumnNumber;
+
+            Broadcast(new
+            {
+                Type = "State",
+                Running = false,
+                BreakLine,
+                BreakColumn
+            });
 
             // block until an action is set
             Break = new TaskCompletionSource<MondDebugAction>();
             var result = Break.Task.Result;
             Break = null;
 
+            Broadcast(new
+            {
+                Type = "State",
+                Running = true
+            });
+
             return result;
+        }
+
+        private void Broadcast(object message)
+        {
+            var data = JsonConvert.SerializeObject(message);
+            _server.WebSocketServices["/"].Sessions.Broadcast(data);
         }
 
         private static bool IsMissingDebugInfo(MondDebugInfo debugInfo)
@@ -86,6 +133,13 @@ namespace Mond.RemoteDebugger
                 debugInfo.Lines == null ||
                 debugInfo.Statements == null ||
                 debugInfo.Scopes == null;
+        }
+
+        internal static int FirstLineNumber(MondDebugInfo debugInfo)
+        {
+            var lines = debugInfo.Lines;
+            var firstLineNumber = lines.Count > 0 ? lines[0].LineNumber : 1;
+            return firstLineNumber;
         }
     }
 }
