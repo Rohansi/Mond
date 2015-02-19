@@ -1,0 +1,46 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Mond Debugger</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <div id="content">
+        <ul id="menu">
+            <li id="connect">Connect</li>
+            <li id="disconnect">Disconnect</li>
+            <li id="break">Break</li>
+            <li id="continue">Continue</li>
+            <li id="step-in">Step In</li>
+            <li id="step-over">Step Over</li>
+            <li id="step-out">Step Out</li>
+        </ul>
+        <div id="source-area">
+            <ul id="source-tabs">
+                <li>
+                    <span class="label">file1.mnd</span>
+                    <span class="close">✕</span>
+                </li>
+                <li class="selected">
+                    <span class="label">file2.mnd</span>
+                    <span class="close">✕</span>
+                </li>
+                <li>
+                    <span class="label">file3.mnd</span>
+                    <span class="close">✕</span>
+                </li>
+            </ul>
+            <div id="source-view">
+                <div data-id="0">source codes</div>
+            </div>
+        </div>
+        <div id="watch">
+            locals and watch
+        </div>
+    </div>
+    <script src="js/jquery-2.1.3.min.js"></script>
+    <script src="js/client.js"></script>
+</body>
+</html>

@@ -30,12 +30,20 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="websocket-sharp">
+      <HintPath>..\packages\WebSocketSharp.1.0.3-rc6\lib\websocket-sharp.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="MondRemoteDebugger.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Session.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Mond\Mond.csproj">
@@ -43,6 +51,22 @@
       <Name>Mond</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="Client\js\client.js" />
+    <Content Include="Client\img\break.png" />
+    <Content Include="Client\img\connect.png" />
+    <Content Include="Client\img\continue.png" />
+    <Content Include="Client\img\disconnect.png" />
+    <Content Include="Client\img\step-in.png" />
+    <Content Include="Client\img\step-out.png" />
+    <Content Include="Client\img\step-over.png" />
+    <Content Include="Client\index.htm" />
+    <Content Include="Client\style.css" />
+    <Content Include="Client\js\jquery-2.1.3.intellisense.js" />
+    <Content Include="Client\js\jquery-2.1.3.min.js" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
