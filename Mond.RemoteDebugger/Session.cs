@@ -23,15 +23,15 @@ namespace Mond.RemoteDebugger
                 Type = "InitialState",
                 Programs = _debugger.Programs.Select(t => new
                 {
-                    FirstLineNumber = MondRemoteDebugger.FirstLineNumber(t.Item2),
                     FileName = t.Item2.FileName,
-                    SourceCode = t.Item2.SourceCode
+                    SourceCode = t.Item2.SourceCode,
+                    FirstLine = MondRemoteDebugger.FirstLineNumber(t.Item2)
                 }),
                 Running = _debugger.Break == null,
-                BreakStartLine = _debugger.BreakStartLine,
-                BreakStartColumn = _debugger.BreakStartColumn,
-                BreakEndLine = _debugger.BreakEndLine,
-                BreakEndColumn = _debugger.BreakEndColumn
+                StartLine = _debugger.BreakStartLine,
+                StartColumn = _debugger.BreakStartColumn,
+                EndLine = _debugger.BreakEndLine,
+                EndColumn = _debugger.BreakEndColumn
             }));
         }
 

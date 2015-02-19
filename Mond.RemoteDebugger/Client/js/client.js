@@ -83,19 +83,27 @@ connectBtn.click(function () {
                     var program = obj.Programs[i];
 
                     sourceTabs.append($("<li/>").attr("data-id", i).text(program.FileName));
-                    sourceView.append($("<div/>").attr("data-id", i).text(program.SourceCode));
+                    sourceView.append(generateSourceHtml(i, program.FirstLine, program.SourceCode));
                 }
 
                 switchState(obj.Running ? "running" : "break");
+
+                if (!obj.Running)
+                    highlight(0, obj.StartLine, obj.StartColumn, obj.EndLine, obj.EndColumn);
+
                 break;
 
             case "NewProgram":
                 sourceTabs.append($("<li/>").attr("data-id", obj.Id).text(obj.FileName));
-                sourceView.append($("<div/>").attr("data-id", obj.Id).text(obj.SourceCode));
+                sourceView.append(generateSourceHtml(obj.Id, obj.FirstLine, obj.SourceCode));
                 break;
 
             case "State":
                 switchState(obj.Running ? "running" : "break");
+
+                if (!obj.Running)
+                    highlight(0, obj.StartLine, obj.StartColumn, obj.EndLine, obj.EndColumn);
+
                 break;
 
             default:

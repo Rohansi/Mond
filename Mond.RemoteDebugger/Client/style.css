@@ -13,6 +13,10 @@ ul {
     list-style: none;
 }
 
+ol {
+    margin: 0;
+}
+
 #content {
     width: 100%;
     height: 100%;
@@ -44,7 +48,7 @@ ul {
 }
 
 #menu > li:hover {
-    background-color: #eeeeee;
+    background-color: #eee;
     cursor: default;
 }
 
@@ -87,7 +91,7 @@ ul {
     flex-shrink: 0;
     flex-grow: 0;
     min-height: 24px;
-    border-bottom: #dddddd 2px solid;
+    border-bottom: #ddd 2px solid;
     padding: 0 8px;
     margin-top: 4px;
     -moz-user-select: none;
@@ -109,27 +113,55 @@ ul {
 
 #source-tabs > li:hover {
     cursor: default;
-    background-color: #eeeeee;
+    background-color: #eee;
 }
 
 #source-tabs > li.selected {
-    background-color: #dddddd;
+    background-color: #ddd;
 }
 
 #source-view {
     flex-grow: 10;
     padding: 4px;
     overflow: auto;
+
+    font-family: monospace;
+    white-space: pre-wrap;
 }
 
 #source-view > div {
-    font-family: monospace;
-    white-space: pre-wrap;
+    position: relative;
+}
+
+#source-view ol {
+    left: 0;
+    top: 0;
+    position: absolute;
+}
+
+#source-view ol.background {
+    color: transparent;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+#source-view ol.background .red {
+    background-color: red;
+}
+
+#source-view ol.source {
+    color: #ccc;
+}
+
+#source-view ol.source > li > span {
+    color: #000;
 }
 
 #watch {
     flex-grow: 10;
     flex-shrink: 0;
     padding: 4px;
-    border-top: #dddddd 2px solid;
+    border-top: #ddd 2px solid;
 }

@@ -82,9 +82,9 @@ namespace Mond.RemoteDebugger
                 {
                     Type = "NewProgram",
                     Id = id,
-                    FirstLineNumber = FirstLineNumber(debugInfo),
                     FileName = debugInfo.FileName,
-                    SourceCode = debugInfo.SourceCode
+                    SourceCode = debugInfo.SourceCode,
+                    FirstLine = FirstLineNumber(debugInfo)
                 });
             }
 
@@ -92,7 +92,20 @@ namespace Mond.RemoteDebugger
             var statement = debugInfo.FindStatement(address);
 
             if (!statement.HasValue)
-                statement = new MondDebugInfo.Statement(0, -1, -1, -1, -1);
+            {
+                var position = debugInfo.FindPosition(address);
+
+                if (position.HasValue)
+                {
+                    var line = position.Value.LineNumber;
+                    var column = position.Value.ColumnNumber;
+                    statement = new MondDebugInfo.Statement(0, line, column, line, column);
+                }
+                else
+                {
+                    statement = new MondDebugInfo.Statement(0, -100, -100, -100, -100);
+                }
+            }
 
             BreakStartLine = statement.Value.StartLineNumber;
             BreakStartColumn = statement.Value.StartColumnNumber;
@@ -103,10 +116,10 @@ namespace Mond.RemoteDebugger
             {
                 Type = "State",
                 Running = false,
-                BreakStartLine,
-                BreakStartColumn,
-                BreakEndLine,
-                BreakEndColumn
+                StartLine = BreakStartLine,
+                StartColumn = BreakStartColumn,
+                EndLine = BreakEndLine,
+                EndColumn = BreakEndColumn
             });
 
             // block until an action is set
