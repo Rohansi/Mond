@@ -44,9 +44,24 @@ function highlightSourceBackground(id, startLine, startColumn, endLine, endColum
     endLine -= firstLine;
     endColumn -= 1;
 
+    var line, lineText;
+
+    if (startLine == endLine) {
+        line = $(lines[startLine]);
+        lineText = line.text();
+
+        var left = lineText.substr(0, startColumn);
+        var mid = lineText.substring(startColumn, endColumn + 1);
+        var right = lineText.substr(endColumn, lineText.length - endColumn);
+
+        line.html(left + "<span class='break'>" + mid + "</span>" + right);
+        return;
+    }
+
     for (var i = startLine; i <= endLine; i++) {
-        var line = $(lines[i]);
-        var lineText = line.text();
+        line = $(lines[i]);
+        lineText = line.text();
+
         var normal;
         var red;
 
