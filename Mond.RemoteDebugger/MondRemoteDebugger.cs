@@ -15,7 +15,7 @@ namespace Mond.RemoteDebugger
 
         private readonly object _sync = new object();
         private HashSet<MondProgram> _seenPrograms;
-        private List<Tuple<MondProgram, MondDebugInfo>> _programs;
+        private List<ProgramInfo> _programs;
         private TaskCompletionSource<MondDebugAction> _breaker;
         private BreakPosition _position;
 
@@ -51,7 +51,7 @@ namespace Mond.RemoteDebugger
         protected override void OnAttached()
         {
             _seenPrograms = new HashSet<MondProgram>();
-            _programs = new List<Tuple<MondProgram, MondDebugInfo>>();
+            _programs = new List<ProgramInfo>();
             _breaker = null;
         }
 
@@ -113,7 +113,7 @@ namespace Mond.RemoteDebugger
             return result;
         }
 
-        internal void GetState(out bool isRunning, out List<Tuple<MondProgram, MondDebugInfo>> programs, out BreakPosition position)
+        internal void GetState(out bool isRunning, out List<ProgramInfo> programs, out BreakPosition position)
         {
             lock (_sync)
             {
@@ -132,6 +132,53 @@ namespace Mond.RemoteDebugger
 
             if (breaker != null)
                 breaker.SetResult(action);
+        }
+
+        internal bool SetBreakpoint(int id, int line, bool value)
+        {
+            lock (_sync)
+            {
+                if (id < 0 || id >= _programs.Count)
+                    return false;
+
+                var programInfo = _programs[id];
+
+                var statements = programInfo.DebugInfo.Statements
+                    .Where(s => s.StartLineNumber == line)
+                    .ToList();
+
+                if (statements.Count == 0)
+                    return false;
+
+                if (value)
+                {
+                    // set breakpoint
+                    if (programInfo.ContainsBreakpoint(line))
+                        return true;
+
+                    programInfo.AddBreakpoint(line);
+
+                    foreach (var statement in statements)
+                    {
+                        AddBreakpoint(programInfo.Program, statement.Address);
+                    }
+                }
+                else
+                {
+                    // clear breakpoint
+                    if (!programInfo.ContainsBreakpoint(line))
+                        return true;
+
+                    programInfo.RemoveBreakpoint(line);
+
+                    foreach (var statement in statements)
+                    {
+                        RemoveBreakpoint(programInfo.Program, statement.Address);
+                    }
+                }
+
+                return true;
+            }
         }
 
         private void UpdateBreakPosition(MondProgram program, MondDebugInfo debugInfo, int address)
@@ -159,7 +206,7 @@ namespace Mond.RemoteDebugger
             lock (_sync)
             {
                 var stmtValue = statement.Value;
-                var programId = _programs.FindIndex(t => t.Item1 == program);
+                var programId = _programs.FindIndex(t => t.Program == program);
 
                 _position = new BreakPosition(
                     programId,
@@ -195,7 +242,7 @@ namespace Mond.RemoteDebugger
                 _seenPrograms.Add(program);
 
                 id = _programs.Count;
-                _programs.Add(Tuple.Create(program, debugInfo));
+                _programs.Add(new ProgramInfo(program, debugInfo));
             }
 
             Broadcast(new
@@ -204,7 +251,8 @@ namespace Mond.RemoteDebugger
                 Id = id,
                 FileName = debugInfo.FileName,
                 SourceCode = debugInfo.SourceCode,
-                FirstLine = Utility.FirstLineNumber(debugInfo)
+                FirstLine = Utility.FirstLineNumber(debugInfo),
+                Breakpoints = _programs[id].Breakpoints
             });
         }
 

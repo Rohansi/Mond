@@ -70,8 +70,14 @@ function generateSourceHtml(id, firstLine, code) {
     var sourceHtml = "<ol class='source' start='" + firstLine + "'>";
 
     for (var i = 0; i < lines.length; i++) {
-        backgroundHtml += "<li><span class='red'>" + escapeHtml(lines[i]) + "</span></li>";
-        sourceHtml += "<li><span>" + syntaxHighlight(lines[i], state) + "</span></li>";
+        var line = lines[i];
+
+        // fixes line number click issues
+        if (line == "")
+            line = " ";
+
+        backgroundHtml += "<li><div>" + escapeHtml(line) + "</div></li>";
+        sourceHtml += "<li><div>" + syntaxHighlight(line, state) + "</div></li>";
     }
 
     backgroundHtml += "</ol>";
@@ -96,6 +102,29 @@ function addProgram(id, data) {
 
     sourceTabs.append(tab);
     sourceView.append(generateSourceHtml(id, data.FirstLine, data.SourceCode));
+
+    var sourceList = sourceView.find("> div[data-id='" + id + "'] > ol.source");
+    var firstLine = sourceList.attr("start") | 0;
+
+    function makeClickEvent(line, elem) {
+        return function (ev) {
+            if (ev.target.tagName !== "LI")
+                return;
+
+            requestSetBreakpoint(id, line, !elem.hasClass("breakpoint"));
+        }
+    }
+
+    var sourceLines = sourceList.children();
+
+    for (var i = 0, l = firstLine; i < sourceLines.length; i++, l++) {
+        var e = $(sourceLines[i]);
+        e.click(makeClickEvent(l, e));
+    }
+
+    for (i = 0; i < data.Breakpoints.length; i++) {
+        setBreakpoint(id, data.Breakpoints[i], true);
+    }
 }
 
 function switchToTab(id) {
@@ -110,9 +139,21 @@ function scrollToLine(line) {
     var sourceDiv = sourceView.find("> div").filter(":visible");
     var sourceList = sourceDiv.find("> ol.source");
     var lineElem = sourceList.children()[line];
-    var lineOffset = lineElem.offsetTop;
 
-    // TODO: don't scroll if already visible, center it?
+    // TODO: support bad browsers
 
-    sourceView.scrollTop(lineOffset);
+    lineElem.scrollIntoViewIfNeeded();
+}
+
+function setBreakpoint(id, line, value) {
+    var sourceList = sourceView.find("> div[data-id='" + id + "'] > ol.source");
+    var sourceLines = sourceList.children();
+    var firstLine = sourceList.attr("start") | 0;
+
+    line -= firstLine;
+
+    if (value)
+        $(sourceLines[line]).addClass("breakpoint");
+    else
+        $(sourceLines[line]).removeClass("breakpoint");
 }

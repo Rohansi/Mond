@@ -45,6 +45,10 @@ connectBtn.click(function () {
                 switchRunningState(obj);
                 break;
 
+            case "Breakpoint":
+                setBreakpoint(obj.Id, obj.Line, obj.Value);
+                break;
+
             default:
                 console.warn("unhandled message type: " + obj.Type);
                 break;
@@ -76,3 +80,15 @@ registerActionEvent(continueBtn, "run", "break");
 registerActionEvent(stepInBtn, "step-in", "break");
 registerActionEvent(stepOverBtn, "step-over", "break");
 registerActionEvent(stepOutBtn, "step-out", "break");
+
+function requestSetBreakpoint(id, line, value) {
+    if (socket === null)
+        return;
+
+    socket.send(JSON.stringify({
+        Type: "SetBreakpoint",
+        Id: id,
+        Line: line,
+        Value: value
+    }));
+}

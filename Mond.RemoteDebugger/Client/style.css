@@ -147,15 +147,14 @@ ol {
     user-select: none;
 }
 
-#source-view ol.background .break {
-    background-color: #ff0;
-}
-
 #source-view ol.source {
     color: #ccc;
 }
 
-#source-view ol.source > li > span {
+#source-view ol.source > li > div {
+    display: inline-block;
+    vertical-align: top;
+    width: 100%;
     color: #000;
 }
 
@@ -166,8 +165,16 @@ ol {
     border-top: #ddd 2px solid;
 }
 
+.breakpoint {
+    background-color: rgba(249, 169, 169, 0.25);
+}
+
+.break {
+    background-color: #ff0;
+}
+
 .keyword {
-    color: blue;
+    color: #00f;
     font-weight: bold;
 }
 

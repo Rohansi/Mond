@@ -20,7 +20,7 @@ namespace Mond.RemoteDebugger
         protected override void OnOpen()
         {
             bool isRunning;
-            List<Tuple<MondProgram, MondDebugInfo>> programs;
+            List<ProgramInfo> programs;
             BreakPosition position;
 
             _debugger.GetState(out isRunning, out programs, out position);
@@ -30,9 +30,10 @@ namespace Mond.RemoteDebugger
                 Type = "InitialState",
                 Programs = programs.Select(t => new
                 {
-                    FileName = t.Item2.FileName,
-                    SourceCode = t.Item2.SourceCode,
-                    FirstLine = Utility.FirstLineNumber(t.Item2)
+                    FileName = t.DebugInfo.FileName,
+                    SourceCode = t.DebugInfo.SourceCode,
+                    FirstLine = Utility.FirstLineNumber(t.DebugInfo),
+                    Breakpoints = t.Breakpoints
                 }),
 
                 Running = isRunning,
@@ -56,16 +57,38 @@ namespace Mond.RemoteDebugger
                 switch ((string)obj.Type)
                 {
                     case "Action":
-                        var value = (string)obj.Action;
-
-                        if (value == "break")
                         {
-                            _debugger.RequestBreak();
+                            var value = (string)obj.Action;
+
+                            if (value == "break")
+                            {
+                                _debugger.RequestBreak();
+                                break;
+                            }
+
+                            _debugger.PerformAction(ParseAction(value));
                             break;
                         }
 
-                        _debugger.PerformAction(ParseAction(value));
-                        break;
+                    case "SetBreakpoint":
+                        {
+                            var id = (int)obj.Id;
+                            var line = (int)obj.Line;
+                            var value = (bool)obj.Value;
+
+                            if (_debugger.SetBreakpoint(id, line, value))
+                            {
+                                Sessions.Broadcast(JsonConvert.SerializeObject(new
+                                {
+                                    Type = "Breakpoint",
+                                    Id = id,
+                                    Line = line,
+                                    Value = value
+                                }));
+                            }
+
+                            break;
+                        }
 
                     default:
                         Console.WriteLine("unhandled message type: " + obj.Type);
