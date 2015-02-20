@@ -22,19 +22,23 @@ namespace Mond.Compiler
             Emit(new Instruction(InstructionType.Position, new ImmediateOperand(token.Line), new ImmediateOperand(token.Column)));
         }
 
-        public void Statement(Expression expression)
+        public void Statement(Token start, Token end)
         {
             if (Compiler.Options.DebugInfo < MondDebugInfoLevel.Full)
                 return;
 
-            var endToken = expression.EndToken;
             Emit(new Instruction(InstructionType.Statement, new IInstructionOperand[]
             {
-                new ImmediateOperand(expression.StartToken.Line),
-                new ImmediateOperand(expression.StartToken.Column),
-                new ImmediateOperand(expression.EndToken.Line),
-                new ImmediateOperand(endToken.Column + endToken.Contents.Length - 1)
+                new ImmediateOperand(start.Line),
+                new ImmediateOperand(start.Column),
+                new ImmediateOperand(end.Line),
+                new ImmediateOperand(end.Column + end.Contents.Length - 1)
             }));
+        }
+
+        public void Statement(Expression expression)
+        {
+            Statement(expression.StartToken, expression.EndToken);
         }
 
         public int Breakpoint()

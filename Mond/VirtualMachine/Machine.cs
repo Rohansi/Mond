@@ -997,7 +997,7 @@ namespace Mond.VirtualMachine
             switch (_debugAction)
             {
                 case MondDebugAction.StepInto:
-                    return true;
+                    return !_debugAlign;
 
                 case MondDebugAction.StepOver:
                     --_debugDepth;

@@ -1,4 +1,65 @@
-﻿function generateSourceHtml(id, firstLine, code) {
+﻿var connectBtn = $("#connect");
+var disconnectBtn = $("#disconnect");
+var breakBtn = $("#break");
+var continueBtn = $("#continue");
+var stepInBtn = $("#step-in");
+var stepOverBtn = $("#step-over");
+var stepOutBtn = $("#step-out");
+
+var sourceTabs = $("#source-tabs");
+var sourceView = $("#source-view");
+
+var state = "disconnected";
+
+function resetInterface() {
+    sourceTabs.html("");
+    sourceView.html("");
+}
+
+function switchState(newState) {
+    $("#menu > li").hide();
+    state = newState;
+
+    if (newState == "disconnected") {
+        connectBtn.show();
+        return;
+    }
+
+    disconnectBtn.show();
+
+    switch (newState) {
+        case "connected":
+            break;
+
+        case "running":
+            breakBtn.show();
+            break;
+
+        case "break":
+            continueBtn.show();
+            stepInBtn.show();
+            stepOverBtn.show();
+            stepOutBtn.show();
+            break;
+
+        default:
+            console.warn("unhandled state: " + newState);
+            break;
+    }
+}
+
+function switchRunningState(obj) {
+    switchState(obj.Running ? "running" : "break");
+
+    if (obj.Running)
+        return;
+
+    highlightSourceBackground(obj.Id, obj.StartLine, obj.StartColumn, obj.EndLine, obj.EndColumn);
+    switchToTab(obj.Id);
+    scrollToLine(obj.StartLine);
+}
+
+function generateSourceHtml(id, firstLine, code) {
     var lines = code.replace("\r", "").split("\n");
 
     var state = {
@@ -26,55 +87,32 @@
     return html;
 }
 
-function highlightSourceBackground(id, startLine, startColumn, endLine, endColumn) {
-    var background = $("#source-view > div[data-id='" + id + "'] > ol.background");
-    var lines = background.find("> li");
+function addProgram(id, data) {
+    var tab = $("<li/>").attr("data-id", id).text(data.FileName);
 
-    lines.find("> span").replaceWith(function () {
-        return $(this).text();
+    tab.click(function () {
+        switchToTab(id);
     });
 
-    if (startColumn === undefined || startColumn < 0)
-        return;
+    sourceTabs.append(tab);
+    sourceView.append(generateSourceHtml(id, data.FirstLine, data.SourceCode));
+}
 
-    var firstLine = background.attr("start") | 0;
+function switchToTab(id) {
+    sourceTabs.find("> li").removeClass("selected");
+    sourceTabs.find("> li[data-id='" + id + "']").addClass("selected");
 
-    startLine -= firstLine;
-    startColumn -= 1;
-    endLine -= firstLine;
-    endColumn -= 1;
+    sourceView.find("> div").hide();
+    sourceView.find("> div[data-id='" + id + "']").show();
+}
 
-    var line, lineText;
+function scrollToLine(line) {
+    var sourceDiv = sourceView.find("> div").filter(":visible");
+    var sourceList = sourceDiv.find("> ol.source");
+    var lineElem = sourceList.children()[line];
+    var lineOffset = lineElem.offsetTop;
 
-    if (startLine == endLine) {
-        line = $(lines[startLine]);
-        lineText = line.text();
+    // TODO: don't scroll if already visible, center it?
 
-        var left = lineText.substr(0, startColumn);
-        var mid = lineText.substring(startColumn, endColumn + 1);
-        var right = lineText.substring(endColumn + 1, lineText.length);
-
-        line.html(left + "<span class='break'>" + mid + "</span>" + right);
-        return;
-    }
-
-    for (var i = startLine; i <= endLine; i++) {
-        line = $(lines[i]);
-        lineText = line.text();
-
-        var normal;
-        var red;
-
-        if (i == startLine) {
-            normal = lineText.substr(0, startColumn);
-            red = lineText.substr(startColumn, lineText.length - startColumn);
-            line.html(normal + "<span class='break'>" + red + "</span>");
-        } else if (i == endLine) {
-            red = lineText.substr(0, endColumn + 1);
-            normal = lineText.substr(endColumn, lineText.length - endColumn);
-            line.html("<span class='break'>" + red + "</span>" + normal);
-        } else {
-            line.html("<span class='break'>" + lineText + "</span>");
-        }
-    }
+    sourceView.scrollTop(lineOffset);
 }

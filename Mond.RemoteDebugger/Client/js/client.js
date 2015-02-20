@@ -1,53 +1,4 @@
-﻿var connectBtn = $("#connect");
-var disconnectBtn = $("#disconnect");
-var breakBtn = $("#break");
-var continueBtn = $("#continue");
-var stepInBtn = $("#step-in");
-var stepOverBtn = $("#step-over");
-var stepOutBtn = $("#step-out");
-
-var sourceTabs = $("#source-tabs");
-var sourceView = $("#source-view");
-
-var state = "disconnected";
-var socket = null;
-
-function resetInterface() {
-    sourceTabs.html("");
-    sourceView.html("");
-}
-
-function switchState(newState) {
-    $("#menu > li").hide();
-    state = newState;
-
-    if (newState == "disconnected") {
-        connectBtn.show();
-        return;
-    }
-
-    disconnectBtn.show();
-
-    switch (newState) {
-        case "connected":
-            break;
-
-        case "running":
-            breakBtn.show();
-            break;
-
-        case "break":
-            continueBtn.show();
-            stepInBtn.show();
-            stepOverBtn.show();
-            stepOutBtn.show();
-            break;
-
-        default:
-            console.warn("unhandled state: " + newState);
-            break;
-    }
-}
+﻿var socket = null;
 
 connectBtn.click(function () {
     if (socket !== null)
@@ -80,30 +31,18 @@ connectBtn.click(function () {
                 resetInterface();
 
                 for (var i = 0; i < obj.Programs.length; i++) {
-                    var program = obj.Programs[i];
-
-                    sourceTabs.append($("<li/>").attr("data-id", i).text(program.FileName));
-                    sourceView.append(generateSourceHtml(i, program.FirstLine, program.SourceCode));
+                    addProgram(i, obj.Programs[i]);
                 }
 
-                switchState(obj.Running ? "running" : "break");
-
-                if (!obj.Running)
-                    highlightSourceBackground(0, obj.StartLine, obj.StartColumn, obj.EndLine, obj.EndColumn);
-
+                switchRunningState(obj);
                 break;
 
             case "NewProgram":
-                sourceTabs.append($("<li/>").attr("data-id", obj.Id).text(obj.FileName));
-                sourceView.append(generateSourceHtml(obj.Id, obj.FirstLine, obj.SourceCode));
+                addProgram(obj.Id, obj);
                 break;
 
             case "State":
-                switchState(obj.Running ? "running" : "break");
-
-                if (!obj.Running)
-                    highlightSourceBackground(0, obj.StartLine, obj.StartColumn, obj.EndLine, obj.EndColumn);
-
+                switchRunningState(obj);
                 break;
 
             default:

@@ -5,7 +5,7 @@
         public Token Token { get; protected set; }
         
         public virtual Token StartToken { get { return Token; } }
-        public Token EndToken { get; set; }
+        public virtual Token EndToken { get; set; }
 
         public Expression Parent { get; private set; }
 

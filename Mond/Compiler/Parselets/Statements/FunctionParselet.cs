@@ -81,7 +81,7 @@ namespace Mond.Compiler.Parselets.Statements
             {
                 body = new ScopeExpression(new List<Expression>
                 {
-                    new ReturnExpression(token, parser.ParseExpression())
+                    new ReturnExpression(parser.Peek(), parser.ParseExpression())
                 });
 
                 trailingSemicolon = true;
@@ -99,7 +99,7 @@ namespace Mond.Compiler.Parselets.Statements
 
             return new ScopeExpression(new List<Expression>
             {
-                new ReturnExpression(token, parser.ParseExpression())
+                new ReturnExpression(parser.Peek(), parser.ParseExpression())
             });
         }
     }

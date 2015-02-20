@@ -16,6 +16,7 @@ namespace Mond.RemoteDebugger
         internal TaskCompletionSource<MondDebugAction> Break;
         internal List<Tuple<MondProgram, MondDebugInfo>> Programs;
 
+        internal int BreakId;
         internal int BreakStartLine;
         internal int BreakStartColumn;
         internal int BreakEndLine;
@@ -107,6 +108,7 @@ namespace Mond.RemoteDebugger
                 }
             }
 
+            BreakId = Programs.FindIndex(t => t.Item1 == program);
             BreakStartLine = statement.Value.StartLineNumber;
             BreakStartColumn = statement.Value.StartColumnNumber;
             BreakEndLine = statement.Value.EndLineNumber;
@@ -116,6 +118,7 @@ namespace Mond.RemoteDebugger
             {
                 Type = "State",
                 Running = false,
+                Id = BreakId,
                 StartLine = BreakStartLine,
                 StartColumn = BreakStartColumn,
                 EndLine = BreakEndLine,

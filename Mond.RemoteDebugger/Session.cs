@@ -27,7 +27,9 @@ namespace Mond.RemoteDebugger
                     SourceCode = t.Item2.SourceCode,
                     FirstLine = MondRemoteDebugger.FirstLineNumber(t.Item2)
                 }),
+
                 Running = _debugger.Break == null,
+                Id = _debugger.BreakId,
                 StartLine = _debugger.BreakStartLine,
                 StartColumn = _debugger.BreakStartColumn,
                 EndLine = _debugger.BreakEndLine,
