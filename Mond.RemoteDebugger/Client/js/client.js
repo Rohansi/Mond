@@ -89,7 +89,7 @@ connectBtn.click(function () {
                 switchState(obj.Running ? "running" : "break");
 
                 if (!obj.Running)
-                    highlight(0, obj.StartLine, obj.StartColumn, obj.EndLine, obj.EndColumn);
+                    highlightSourceBackground(0, obj.StartLine, obj.StartColumn, obj.EndLine, obj.EndColumn);
 
                 break;
 
@@ -102,7 +102,7 @@ connectBtn.click(function () {
                 switchState(obj.Running ? "running" : "break");
 
                 if (!obj.Running)
-                    highlight(0, obj.StartLine, obj.StartColumn, obj.EndLine, obj.EndColumn);
+                    highlightSourceBackground(0, obj.StartLine, obj.StartColumn, obj.EndLine, obj.EndColumn);
 
                 break;
 

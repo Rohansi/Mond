@@ -147,8 +147,8 @@ ol {
     user-select: none;
 }
 
-#source-view ol.background .red {
-    background-color: red;
+#source-view ol.background .break {
+    background-color: #ff5;
 }
 
 #source-view ol.source {
@@ -164,4 +164,24 @@ ol {
     flex-shrink: 0;
     padding: 4px;
     border-top: #ddd 2px solid;
+}
+
+.keyword {
+    color: blue;
+}
+
+.identifier, .operator {
+    color: black;
+}
+
+.comment {
+    color: green;
+}
+
+.string {
+    color: #c00;
+}
+
+.number {
+    color: #f91;
 }

@@ -61,6 +61,7 @@
     <Content Include="Client\img\step-out.png" />
     <Content Include="Client\img\step-over.png" />
     <Content Include="Client\index.htm" />
+    <Content Include="Client\js\interface.js" />
     <Content Include="Client\js\highlight.js" />
     <Content Include="Client\style.css" />
     <Content Include="Client\js\jquery-2.1.3.intellisense.js" />
