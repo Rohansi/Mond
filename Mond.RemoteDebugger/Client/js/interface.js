@@ -52,7 +52,7 @@ function highlightSourceBackground(id, startLine, startColumn, endLine, endColum
 
         var left = lineText.substr(0, startColumn);
         var mid = lineText.substring(startColumn, endColumn + 1);
-        var right = lineText.substr(endColumn, lineText.length - endColumn);
+        var right = lineText.substring(endColumn + 1, lineText.length);
 
         line.html(left + "<span class='break'>" + mid + "</span>" + right);
         return;

@@ -114,7 +114,7 @@ namespace Mond.VirtualMachine
 
                         var shouldStopAtStmt =
                             (_debugAction == MondDebugAction.StepInto) ||
-                            (_debugAction == MondDebugAction.StepOver);
+                            (_debugAction == MondDebugAction.StepOver && _debugDepth == 0);
 
                         var shouldBreak = 
                             (_debugAlign && program.DebugInfo == null) ||
@@ -984,32 +984,42 @@ namespace Mond.VirtualMachine
                     _debugAlign = true;
                     return;
 
+                case MondDebugAction.StepOver:
                 case MondDebugAction.StepOut:
                     _debugDepth++;
-                    return;
-
-                case MondDebugAction.StepOver:
-                    _debugAction = MondDebugAction.StepOut;
-                    _debugDepth = 1;
+                    _debugAlign = false;
                     return;
             }
         }
 
         private bool DebuggerCheckReturn()
         {
-            if (_debugAction != MondDebugAction.StepOut)
-                return false;
+            switch (_debugAction)
+            {
+                case MondDebugAction.StepInto:
+                    return true;
 
-            return --_debugDepth == 0;
+                case MondDebugAction.StepOver:
+                    --_debugDepth;
+
+                    if (_debugDepth < 0)
+                        return true;
+
+                    _debugAlign = _debugDepth == 0;
+                    return false;
+
+                case MondDebugAction.StepOut:
+                    return --_debugDepth < 0;
+            }
+
+            return false;
         }
 
         private void DebuggerBreak(MondProgram program, int address)
         {
             _debugAction = Debugger.Break(program, program.DebugInfo, address);
             _debugAlign = false;
-
-            if (_debugAction == MondDebugAction.StepOut)
-                _debugDepth = 1;
+            _debugDepth = 0;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

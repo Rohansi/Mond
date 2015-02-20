@@ -8,18 +8,18 @@
         Run,
 
         /// <summary>
-        /// Runs until a function is called or another statement starts.
+        /// Runs until another statement starts.
         /// </summary>
         StepInto,
 
         /// <summary>
-        /// Runs until the current function returns.
+        /// Runs until another statement starts in the current function.
         /// </summary>
-        StepOut,
+        StepOver,
 
         /// <summary>
-        /// Runs until a function is called and returned from or another statement starts.
+        /// Runs until the current function returns.
         /// </summary>
-        StepOver
+        StepOut
     }
 }
