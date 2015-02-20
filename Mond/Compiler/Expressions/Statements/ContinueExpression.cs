@@ -2,6 +2,8 @@
 {
     class ContinueExpression : Expression, IStatementExpression
     {
+        public bool HasChildren { get { return false; } }
+
         public ContinueExpression(Token token)
             : base(token)
         {

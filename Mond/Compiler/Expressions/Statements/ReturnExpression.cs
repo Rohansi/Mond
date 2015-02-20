@@ -4,6 +4,8 @@
     {
         public Expression Value { get; private set; }
 
+        public bool HasChildren { get { return false; } }
+
         public ReturnExpression(Token token, Expression value)
             : base(token)
         {

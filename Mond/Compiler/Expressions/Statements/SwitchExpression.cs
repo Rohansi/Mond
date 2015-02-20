@@ -22,6 +22,8 @@ namespace Mond.Compiler.Expressions.Statements
         public Expression Expression { get; private set; }
         public ReadOnlyCollection<Branch> Branches { get; private set; }
 
+        public bool HasChildren { get { return true; } }
+
         public SwitchExpression(Token token, Expression expression, List<Branch> branches)
             : base(token)
         {
@@ -61,6 +63,7 @@ namespace Mond.Compiler.Expressions.Statements
 
             context.PushScope();
 
+            context.Statement(Expression);
             stack += Expression.Compile(context);
 
             List<JumpTable> tables;

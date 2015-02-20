@@ -2,10 +2,12 @@
 {
     class BreakExpression : Expression, IStatementExpression
     {
+        public bool HasChildren { get { return false; } }
+
         public BreakExpression(Token token)
             : base(token)
         {
-            
+
         }
 
         public override int Compile(FunctionContext context)

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Mond.Compiler.Expressions;
 
 namespace Mond.Compiler
 {
@@ -19,6 +20,21 @@ namespace Mond.Compiler
                 return;
 
             Emit(new Instruction(InstructionType.Position, new ImmediateOperand(token.Line), new ImmediateOperand(token.Column)));
+        }
+
+        public void Statement(Expression expression)
+        {
+            if (Compiler.Options.DebugInfo < MondDebugInfoLevel.Full)
+                return;
+
+            var endToken = expression.EndToken;
+            Emit(new Instruction(InstructionType.Statement, new IInstructionOperand[]
+            {
+                new ImmediateOperand(expression.StartToken.Line),
+                new ImmediateOperand(expression.StartToken.Column),
+                new ImmediateOperand(expression.EndToken.Line),
+                new ImmediateOperand(endToken.Column + endToken.Contents.Length - 1)
+            }));
         }
 
         public int Breakpoint()

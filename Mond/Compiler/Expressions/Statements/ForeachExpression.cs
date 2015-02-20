@@ -9,6 +9,8 @@ namespace Mond.Compiler.Expressions.Statements
         public Expression Expression { get; private set; }
         public BlockExpression Block { get; private set; }
 
+        public bool HasChildren { get { return true; } }
+
         public ForeachExpression(Token token, string identifier, Expression expression, BlockExpression block)
             : base(token)
         {
@@ -33,6 +35,7 @@ namespace Mond.Compiler.Expressions.Statements
             var enumerator = context.DefineInternal("enumerator", true);
 
             // set enumerator
+            context.Statement(Expression);
             stack += Expression.Compile(context);
             stack += context.LoadField(context.String("getEnumerator"));
             stack += context.Call(0, new List<ImmediateOperand>());

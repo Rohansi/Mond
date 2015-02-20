@@ -21,6 +21,8 @@ namespace Mond.Compiler.Expressions.Statements
         public ReadOnlyCollection<Declaration> Declarations { get; private set; }
         public bool IsReadOnly { get; private set; }
 
+        public bool HasChildren { get { return false; } }
+
         public VarExpression(Token token, List<Declaration> declarations, bool isReadOnly = false)
             : base(token)
         {

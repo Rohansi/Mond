@@ -2,6 +2,8 @@
 {
     class DebuggerExpression : Expression, IStatementExpression
     {
+        public bool HasChildren { get { return false; } }
+
         public DebuggerExpression(Token token)
             : base(token)
         {

@@ -104,6 +104,7 @@ namespace Mond.Compiler
                 };
             }
 
+            var openBrace = Peek();
             Take(TokenType.LeftBrace);
 
             while (!Match(TokenType.RightBrace))
@@ -113,7 +114,7 @@ namespace Mond.Compiler
 
             Take(TokenType.RightBrace);
 
-            return new BlockExpression(statements)
+            return new BlockExpression(openBrace, statements)
             {
                 EndToken = _previous
             };

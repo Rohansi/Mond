@@ -12,6 +12,8 @@ namespace Mond.Compiler.Expressions.Statements
 
         public string DebugName { get; set; }
 
+        public bool HasChildren { get { return false; } }
+
         public FunctionExpression(Token token, string name, List<string> arguments, string otherArgs, ScopeExpression block, string debugName = null)
             : base(token)
         {
