@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Mond.Debugger;
@@ -11,16 +12,12 @@ namespace Mond.RemoteDebugger
     public class MondRemoteDebugger : MondDebugger, IDisposable
     {
         private WebSocketServer _server;
+
+        private readonly object _sync = new object();
         private HashSet<MondProgram> _seenPrograms;
-
-        internal TaskCompletionSource<MondDebugAction> Break;
-        internal List<Tuple<MondProgram, MondDebugInfo>> Programs;
-
-        internal int BreakId;
-        internal int BreakStartLine;
-        internal int BreakStartColumn;
-        internal int BreakEndLine;
-        internal int BreakEndColumn;
+        private List<Tuple<MondProgram, MondDebugInfo>> _programs;
+        private TaskCompletionSource<MondDebugAction> _breaker;
+        private BreakPosition _position;
 
         public MondRemoteDebugger(IPEndPoint endPoint)
         {
@@ -30,6 +27,11 @@ namespace Mond.RemoteDebugger
             _server.AddWebSocketService("/", () => new Session(this));
 
             _server.Start();
+        }
+
+        public void RequestBreak()
+        {
+            IsBreakRequested = true;
         }
 
         public void Dispose()
@@ -46,23 +48,27 @@ namespace Mond.RemoteDebugger
             _server = null;
         }
 
-        public void RequestBreak()
-        {
-            IsBreakRequested = true;
-        }
-
         protected override void OnAttached()
         {
             _seenPrograms = new HashSet<MondProgram>();
-            Programs = new List<Tuple<MondProgram, MondDebugInfo>>();
+            _programs = new List<Tuple<MondProgram, MondDebugInfo>>();
+            _breaker = null;
         }
 
         protected override void OnDetached()
         {
-            _seenPrograms = null;
+            TaskCompletionSource<MondDebugAction> breaker;
 
-            if (Break != null)
-                Break.SetResult(MondDebugAction.Run);
+            lock (_sync)
+            {
+                _seenPrograms = null;
+                _programs = null;
+
+                breaker = _breaker;
+            }
+
+            if (breaker != null)
+                breaker.SetResult(MondDebugAction.Run);
         }
 
         protected override MondDebugAction OnBreak(MondProgram program, MondDebugInfo debugInfo, int address)
@@ -71,25 +77,65 @@ namespace Mond.RemoteDebugger
             if (IsMissingDebugInfo(debugInfo))
                 return MondDebugAction.StepOut;
 
-            // check if we stopped in a new program
-            if (!_seenPrograms.Contains(program))
+            // keep track of program instances
+            VisitProgram(program, debugInfo);
+
+            // update where we are in the source code
+            UpdateBreakPosition(program, debugInfo, address);
+
+            // block until an action is set
+            return WaitForAction();
+        }
+
+        private MondDebugAction WaitForAction()
+        {
+            TaskCompletionSource<MondDebugAction> breaker;
+
+            lock (_sync)
             {
-                _seenPrograms.Add(program);
+                if (_breaker != null)
+                    throw new InvalidOperationException("Debugger hit breakpoint while waiting on another");
 
-                var id = Programs.Count;
-                Programs.Add(Tuple.Create(program, debugInfo));
-
-                Broadcast(new
-                {
-                    Type = "NewProgram",
-                    Id = id,
-                    FileName = debugInfo.FileName,
-                    SourceCode = debugInfo.SourceCode,
-                    FirstLine = FirstLineNumber(debugInfo)
-                });
+                _breaker = breaker = new TaskCompletionSource<MondDebugAction>();
             }
 
-            // find out where we are in the source code
+            var result = breaker.Task.Result;
+
+            lock (_sync)
+                _breaker = null;
+
+            Broadcast(new
+            {
+                Type = "State",
+                Running = true
+            });
+
+            return result;
+        }
+
+        internal void GetState(out bool isRunning, out List<Tuple<MondProgram, MondDebugInfo>> programs, out BreakPosition position)
+        {
+            lock (_sync)
+            {
+                isRunning = _breaker == null;
+                programs = _programs.ToList();
+                position = _position;
+            }
+        }
+
+        internal void PerformAction(MondDebugAction action)
+        {
+            TaskCompletionSource<MondDebugAction> breaker;
+
+            lock (_sync)
+                breaker = _breaker;
+
+            if (breaker != null)
+                breaker.SetResult(action);
+        }
+
+        private void UpdateBreakPosition(MondProgram program, MondDebugInfo debugInfo, int address)
+        {
             var statement = debugInfo.FindStatement(address);
 
             if (!statement.HasValue)
@@ -104,39 +150,62 @@ namespace Mond.RemoteDebugger
                 }
                 else
                 {
-                    statement = new MondDebugInfo.Statement(0, -100, -100, -100, -100);
+                    statement = new MondDebugInfo.Statement(0, -1, -1, -1, -1);
                 }
             }
 
-            BreakId = Programs.FindIndex(t => t.Item1 == program);
-            BreakStartLine = statement.Value.StartLineNumber;
-            BreakStartColumn = statement.Value.StartColumnNumber;
-            BreakEndLine = statement.Value.EndLineNumber;
-            BreakEndColumn = statement.Value.EndColumnNumber;
+            object message;
+
+            lock (_sync)
+            {
+                var stmtValue = statement.Value;
+                var programId = _programs.FindIndex(t => t.Item1 == program);
+
+                _position = new BreakPosition(
+                    programId,
+                    stmtValue.StartLineNumber,
+                    stmtValue.StartColumnNumber,
+                    stmtValue.EndLineNumber,
+                    stmtValue.EndColumnNumber);
+
+                message = new
+                {
+                    Type = "State",
+                    Running = false,
+                    Id = _position.Id,
+                    StartLine = _position.StartLine,
+                    StartColumn = _position.StartColumn,
+                    EndLine = _position.EndLine,
+                    EndColumn = _position.EndColumn
+                };
+            }
+
+            Broadcast(message);
+        }
+
+        private void VisitProgram(MondProgram program, MondDebugInfo debugInfo)
+        {
+            int id;
+
+            lock (_sync)
+            {
+                if (_seenPrograms.Contains(program))
+                    return;
+
+                _seenPrograms.Add(program);
+
+                id = _programs.Count;
+                _programs.Add(Tuple.Create(program, debugInfo));
+            }
 
             Broadcast(new
             {
-                Type = "State",
-                Running = false,
-                Id = BreakId,
-                StartLine = BreakStartLine,
-                StartColumn = BreakStartColumn,
-                EndLine = BreakEndLine,
-                EndColumn = BreakEndColumn
+                Type = "NewProgram",
+                Id = id,
+                FileName = debugInfo.FileName,
+                SourceCode = debugInfo.SourceCode,
+                FirstLine = Utility.FirstLineNumber(debugInfo)
             });
-
-            // block until an action is set
-            Break = new TaskCompletionSource<MondDebugAction>();
-            var result = Break.Task.Result;
-            Break = null;
-
-            Broadcast(new
-            {
-                Type = "State",
-                Running = true
-            });
-
-            return result;
         }
 
         private void Broadcast(object message)
@@ -155,13 +224,6 @@ namespace Mond.RemoteDebugger
                 debugInfo.Lines == null ||
                 debugInfo.Statements == null ||
                 debugInfo.Scopes == null;
-        }
-
-        internal static int FirstLineNumber(MondDebugInfo debugInfo)
-        {
-            var lines = debugInfo.Lines;
-            var firstLineNumber = lines.Count > 0 ? lines[0].LineNumber : 1;
-            return firstLineNumber;
         }
     }
 }

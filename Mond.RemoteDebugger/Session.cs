@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Mond.Debugger;
 using Newtonsoft.Json;
@@ -18,22 +19,28 @@ namespace Mond.RemoteDebugger
 
         protected override void OnOpen()
         {
+            bool isRunning;
+            List<Tuple<MondProgram, MondDebugInfo>> programs;
+            BreakPosition position;
+
+            _debugger.GetState(out isRunning, out programs, out position);
+
             Send(JsonConvert.SerializeObject(new
             {
                 Type = "InitialState",
-                Programs = _debugger.Programs.Select(t => new
+                Programs = programs.Select(t => new
                 {
                     FileName = t.Item2.FileName,
                     SourceCode = t.Item2.SourceCode,
-                    FirstLine = MondRemoteDebugger.FirstLineNumber(t.Item2)
+                    FirstLine = Utility.FirstLineNumber(t.Item2)
                 }),
 
-                Running = _debugger.Break == null,
-                Id = _debugger.BreakId,
-                StartLine = _debugger.BreakStartLine,
-                StartColumn = _debugger.BreakStartColumn,
-                EndLine = _debugger.BreakEndLine,
-                EndColumn = _debugger.BreakEndColumn
+                Running = isRunning,
+                Id = position.Id,
+                StartLine = position.StartLine,
+                StartColumn = position.StartColumn,
+                EndLine = position.EndLine,
+                EndColumn = position.EndColumn
             }));
         }
 
@@ -50,18 +57,14 @@ namespace Mond.RemoteDebugger
                 {
                     case "Action":
                         var value = (string)obj.Action;
-                        var breaker = _debugger.Break;
 
-                        if (breaker == null)
+                        if (value == "break")
                         {
-                            if (value != "break")
-                                throw new NotSupportedException("unhandled action: " + value);
-
                             _debugger.RequestBreak();
                             break;
                         }
 
-                        breaker.SetResult(ParseAction(value));
+                        _debugger.PerformAction(ParseAction(value));
                         break;
 
                     default:

@@ -41,9 +41,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BreakPosition.cs" />
     <Compile Include="MondRemoteDebugger.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Session.cs" />
+    <Compile Include="Utility.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Mond\Mond.csproj">
