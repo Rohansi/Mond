@@ -22,8 +22,9 @@ namespace Mond.RemoteDebugger
             bool isRunning;
             List<ProgramInfo> programs;
             BreakPosition position;
+            List<Watch> watches;
 
-            _debugger.GetState(out isRunning, out programs, out position);
+            _debugger.GetState(out isRunning, out programs, out position, out watches);
 
             Send(JsonConvert.SerializeObject(new
             {
@@ -41,7 +42,14 @@ namespace Mond.RemoteDebugger
                 StartLine = position.StartLine,
                 StartColumn = position.StartColumn,
                 EndLine = position.EndLine,
-                EndColumn = position.EndColumn
+                EndColumn = position.EndColumn,
+
+                Watches = watches.Select(w => new
+                {
+                    Id = w.Id,
+                    Expression = w.Expression,
+                    Value = w.Value
+                })
             }));
         }
 
@@ -87,6 +95,20 @@ namespace Mond.RemoteDebugger
                                 }));
                             }
 
+                            break;
+                        }
+
+                    case "AddWatch":
+                        {
+                            var expression = (string)obj.Expression;
+                            _debugger.AddWatch(expression);
+                            break;
+                        }
+
+                    case "RemoveWatch":
+                        {
+                            var id = (int)obj.Id;
+                            _debugger.RemoveWatch(id);
                             break;
                         }
 

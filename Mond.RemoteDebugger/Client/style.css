@@ -21,6 +21,7 @@ ol {
     width: 100%;
     height: 100%;
     display: flex;
+    -ms-flex-direction: column;
     flex-direction: column;
 }
 
@@ -84,8 +85,8 @@ ol {
     flex-grow: 10;
     flex-shrink: 1;
     flex-basis: 65%;
-
     display: flex;
+    -ms-flex-direction: column;
     flex-direction: column;
 }
 
@@ -109,6 +110,8 @@ ol {
     max-width: 150px;
     overflow: hidden;
     white-space: nowrap;
+    -ms-text-overflow: ellipsis;
+    -o-text-overflow: ellipsis;
     text-overflow: ellipsis;
     margin-bottom: -3px;
 }
@@ -165,13 +168,12 @@ ol {
     flex-shrink: 2;
     flex-basis: 35%;
     border-top: #ddd 2px solid;
-
     display: flex;
+    -ms-flex-direction: row;
     flex-direction: row;
 }
 
 #watch, #stack {
-    padding: 4px;
     overflow: auto;
 }
 
@@ -180,12 +182,83 @@ ol {
     width: 60%;
 }
 
+#watch-list {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+#watch-list td, #watch-list th {
+    border-bottom: #ddd 1px solid;
+    padding: 3px;
+    vertical-align: top;
+}
+
+#watch-list td:not(:last-child), #watch-list th:not(:last-child) {
+    border-right: #ddd 1px solid;
+}
+
+#watch-list th {
+    text-align: left;
+    font-weight: normal;
+    color: #444;
+    background: #f8f8f8;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+#watch-list th.expression {
+    width: 35%;
+}
+
+#watch-list tr > :first-child {
+    width: 35%;
+    -ms-word-wrap: break-word;
+    word-wrap: break-word;
+}
+
+#watch-list tr > :last-child {
+    -ms-word-wrap: break-word;
+    word-wrap: break-word;
+}
+
+#watch-list tr.watch a {
+    color: #aaa;
+    margin: 0 4px;
+    line-height: 0;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+#watch-list tr.watch a:hover {
+    cursor: pointer;
+    color: #000;
+}
+
+#watch-list tr.input > td {
+    padding: 0;
+}
+
+#watch-list tr.input > td > input {
+    width: 100%;
+    padding: 3px;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    border: 0;
+    outline: 0;
+}
+
 #stack {
     width: 40%;
 }
 
 .breakpoint {
-    background-color: rgba(249, 169, 169, 0.25);
+    background-color: rgba(249, 169, 169, 0.3);
 }
 
 .break {

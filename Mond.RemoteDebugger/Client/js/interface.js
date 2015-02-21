@@ -8,12 +8,15 @@ var stepOutBtn = $("#step-out");
 
 var sourceTabs = $("#source-tabs");
 var sourceView = $("#source-view");
+var watchList = $("#watch-list");
+var watchInput = $("#watch-input");
 
 var state = "disconnected";
 
 function resetInterface() {
     sourceTabs.html("");
     sourceView.html("");
+    watchList.find("tr.watch").remove();
 }
 
 function switchState(newState) {
@@ -156,4 +159,26 @@ function setBreakpoint(id, line, value) {
         $(sourceLines[line]).addClass("breakpoint");
     else
         $(sourceLines[line]).removeClass("breakpoint");
+}
+
+function addWatch(obj) {
+    var headers = watchList.find("tr.input");
+    headers.before("<tr class='watch' data-id='" + obj.Id + "'><td><a>✕</a><span>" + escapeHtml(obj.Expression) + "</span></td><td>" + escapeHtml(obj.Value) + "</td></tr>");
+
+    var remove = headers.prev().find("a");
+    remove.click(function () {
+        requestRemoveWatch(obj.Id);
+    });
+}
+
+function removeWatch(id) {
+    watchList.find("tr[data-id='" + id + "']").remove();
+}
+
+function updateWatches(watches) {
+    watchList.find("tr.watch").remove();
+
+    for (var i = 0; i < watches.length; i++) {
+        addWatch(watches[i]);
+    }
 }

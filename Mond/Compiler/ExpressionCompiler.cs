@@ -175,7 +175,7 @@ namespace Mond.Compiler
                     var depth = ((ImmediateOperand)s.Operands[1]).Value;
                     var parentId = ((ImmediateOperand)s.Operands[2]).Value;
                     var start = ((LabelOperand)s.Operands[3]).Position;
-                    var end = ((LabelOperand)s.Operands[4]).Position;
+                    var end = ((LabelOperand)s.Operands[4]).Position - 1;
                     var identOperands = ((DeferredOperand<ListOperand<DebugIdentifierOperand>>)s.Operands[5]).Value.Operands;
 
                     if (!start.HasValue || !end.HasValue)

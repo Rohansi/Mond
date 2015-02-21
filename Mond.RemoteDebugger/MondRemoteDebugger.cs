@@ -16,6 +16,10 @@ namespace Mond.RemoteDebugger
         private readonly object _sync = new object();
         private HashSet<MondProgram> _seenPrograms;
         private List<ProgramInfo> _programs;
+        private int _watchId;
+        private List<Watch> _watches;
+
+        private MondDebugContext _context;
         private TaskCompletionSource<MondDebugAction> _breaker;
         private BreakPosition _position;
 
@@ -52,6 +56,9 @@ namespace Mond.RemoteDebugger
         {
             _seenPrograms = new HashSet<MondProgram>();
             _programs = new List<ProgramInfo>();
+            _watchId = 0;
+            _watches = new List<Watch>();
+
             _breaker = null;
         }
 
@@ -83,11 +90,14 @@ namespace Mond.RemoteDebugger
             // update where we are in the source code
             UpdateBreakPosition(context, address);
 
+            // broadcast new watch values
+            UpdateWatches(context);
+
             // block until an action is set
-            return WaitForAction();
+            return WaitForAction(context);
         }
 
-        private MondDebugAction WaitForAction()
+        private MondDebugAction WaitForAction(MondDebugContext context)
         {
             TaskCompletionSource<MondDebugAction> breaker;
 
@@ -96,13 +106,17 @@ namespace Mond.RemoteDebugger
                 if (_breaker != null)
                     throw new InvalidOperationException("Debugger hit breakpoint while waiting on another");
 
+                _context = context;
                 _breaker = breaker = new TaskCompletionSource<MondDebugAction>();
             }
 
             var result = breaker.Task.Result;
 
             lock (_sync)
+            {
+                _context = null;
                 _breaker = null;
+            }
 
             Broadcast(new
             {
@@ -113,13 +127,14 @@ namespace Mond.RemoteDebugger
             return result;
         }
 
-        internal void GetState(out bool isRunning, out List<ProgramInfo> programs, out BreakPosition position)
+        internal void GetState(out bool isRunning, out List<ProgramInfo> programs, out BreakPosition position, out List<Watch> watches)
         {
             lock (_sync)
             {
                 isRunning = _breaker == null;
                 programs = _programs.ToList();
                 position = _position;
+                watches = _watches.ToList();
             }
         }
 
@@ -179,6 +194,68 @@ namespace Mond.RemoteDebugger
 
                 return true;
             }
+        }
+
+        internal void AddWatch(string expression)
+        {
+            Watch watch;
+
+            lock (_sync)
+            {
+                watch = new Watch(_watchId++, expression);
+                _watches.Add(watch);
+            }
+
+            watch.Refresh(_context);
+
+            Broadcast(new
+            {
+                Type = "AddedWatch",
+                Id = watch.Id,
+                Expression = watch.Expression,
+                Value = watch.Value
+            });
+        }
+
+        internal void RemoveWatch(int id)
+        {
+            int removed;
+
+            lock (_sync)
+                removed = _watches.RemoveAll(w => w.Id == id);
+
+            if (removed == 0)
+                return;
+
+            Broadcast(new
+            {
+                Type = "RemovedWatch",
+                Id = id
+            });
+        }
+
+        private void UpdateWatches(MondDebugContext context)
+        {
+            List<Watch> watches;
+
+            lock (_sync)
+                watches = _watches.ToList();
+
+            foreach (var watch in watches)
+            {
+                watch.Refresh(context);
+            }
+
+            Broadcast(new
+            {
+                Type = "Watches",
+                Watches = watches.Select(w => new
+                {
+                    Id = w.Id,
+                    Expression = w.Expression,
+                    Value = w.Value
+                })
+            });
         }
 
         private void UpdateBreakPosition(MondDebugContext context, int address)

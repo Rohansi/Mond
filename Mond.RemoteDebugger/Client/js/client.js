@@ -34,6 +34,7 @@ connectBtn.click(function () {
                     addProgram(i, obj.Programs[i]);
                 }
 
+                updateWatches(obj.Watches);
                 switchRunningState(obj);
                 break;
 
@@ -47,6 +48,18 @@ connectBtn.click(function () {
 
             case "Breakpoint":
                 setBreakpoint(obj.Id, obj.Line, obj.Value);
+                break;
+
+            case "AddedWatch":
+                addWatch(obj);
+                break;
+
+            case "RemovedWatch":
+                removeWatch(obj.Id);
+                break;
+
+            case "Watches":
+                updateWatches(obj.Watches);
                 break;
 
             default:
@@ -81,6 +94,21 @@ registerActionEvent(stepInBtn, "step-in", "break");
 registerActionEvent(stepOverBtn, "step-over", "break");
 registerActionEvent(stepOutBtn, "step-out", "break");
 
+watchInput.keydown(function (ev) {
+    if (socket === null || ev.keyCode !== 13)
+        return true;
+
+    var value = watchInput.val();
+    watchInput.val("");
+
+    socket.send(JSON.stringify({
+        Type: "AddWatch",
+        Expression: value
+    }));
+
+    return false;
+});
+
 function requestSetBreakpoint(id, line, value) {
     if (socket === null)
         return;
@@ -90,5 +118,15 @@ function requestSetBreakpoint(id, line, value) {
         Id: id,
         Line: line,
         Value: value
+    }));
+}
+
+function requestRemoveWatch(id) {
+    if (socket === null)
+        return;
+
+    socket.send(JSON.stringify({
+        Type: "RemoveWatch",
+        Id: id
     }));
 }
