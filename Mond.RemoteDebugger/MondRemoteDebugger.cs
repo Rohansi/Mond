@@ -71,17 +71,17 @@ namespace Mond.RemoteDebugger
                 breaker.SetResult(MondDebugAction.Run);
         }
 
-        protected override MondDebugAction OnBreak(MondProgram program, MondDebugInfo debugInfo, int address)
+        protected override MondDebugAction OnBreak(MondDebugContext context, int address)
         {
             // if missing debug info, leave the function
-            if (IsMissingDebugInfo(debugInfo))
+            if (IsMissingDebugInfo(context.DebugInfo))
                 return MondDebugAction.StepOut;
 
             // keep track of program instances
-            VisitProgram(program, debugInfo);
+            VisitProgram(context);
 
             // update where we are in the source code
-            UpdateBreakPosition(program, debugInfo, address);
+            UpdateBreakPosition(context, address);
 
             // block until an action is set
             return WaitForAction();
@@ -181,8 +181,11 @@ namespace Mond.RemoteDebugger
             }
         }
 
-        private void UpdateBreakPosition(MondProgram program, MondDebugInfo debugInfo, int address)
+        private void UpdateBreakPosition(MondDebugContext context, int address)
         {
+            var program = context.Program;
+            var debugInfo = context.DebugInfo;
+
             var statement = debugInfo.FindStatement(address);
 
             if (!statement.HasValue)
@@ -230,8 +233,11 @@ namespace Mond.RemoteDebugger
             Broadcast(message);
         }
 
-        private void VisitProgram(MondProgram program, MondDebugInfo debugInfo)
+        private void VisitProgram(MondDebugContext context)
         {
+            var program = context.Program;
+            var debugInfo = context.DebugInfo;
+
             int id;
 
             lock (_sync)

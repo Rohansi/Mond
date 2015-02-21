@@ -123,7 +123,7 @@ namespace Mond.VirtualMachine
                             (shouldStopAtStmt && program.DebugInfo != null && program.DebugInfo.IsStatementStart(ip));
 
                         if (!skip && shouldBreak)
-                            DebuggerBreak(program, ip);
+                            DebuggerBreak(program, locals, ip);
                     }
 
                     errorIp = ip;
@@ -758,7 +758,7 @@ namespace Mond.VirtualMachine
                                     return Pop();
 
                                 if (Debugger != null && DebuggerCheckReturn())
-                                    DebuggerBreak(program, ip);
+                                    DebuggerBreak(program, locals, ip);
 
                                 break;
                             }
@@ -858,7 +858,7 @@ namespace Mond.VirtualMachine
                                 if (Debugger == null)
                                     break;
 
-                                DebuggerBreak(program, ip);
+                                DebuggerBreak(program, locals, ip);
 
                                 // we stop for the statement *after* the debugger statement so we
                                 // skip the next break opportunity, otherwise we break twice
@@ -1015,9 +1015,11 @@ namespace Mond.VirtualMachine
             return false;
         }
 
-        private void DebuggerBreak(MondProgram program, int address)
+        private void DebuggerBreak(MondProgram program, Frame locals, int address)
         {
-            _debugAction = Debugger.Break(program, program.DebugInfo, address);
+            var context = new MondDebugContext(program, program.DebugInfo, address, Global, locals);
+
+            _debugAction = Debugger.Break(context, address);
             _debugAlign = false;
             _debugDepth = 0;
         }

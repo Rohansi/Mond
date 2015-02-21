@@ -202,6 +202,11 @@ namespace Mond.Debugger
 
                     _unpackedScopes[scope.Depth].Add(scope);
                 }
+
+                foreach (var d in _unpackedScopes)
+                {
+                    d.Sort(ScopeAddressSortComparer);
+                }
             }
 
             var target = new Scope(0, 0, 0, address, address, null);
@@ -237,6 +242,9 @@ namespace Mond.Debugger
 
         private static readonly GenericComparer<Statement> StatementAddressComparer =
             new GenericComparer<Statement>((x, y) => x.Address - y.Address);
+
+        private static readonly GenericComparer<Scope> ScopeAddressSortComparer =
+            new GenericComparer<Scope>((x, y) => x.StartAddress - y.StartAddress);
 
         private static readonly GenericComparer<Scope> ScopeAddressComparer =
             new GenericComparer<Scope>((x, y) =>

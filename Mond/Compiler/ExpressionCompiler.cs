@@ -11,7 +11,7 @@ namespace Mond.Compiler
     {
         private readonly List<FunctionContext> _contexts;
         private int _labelIndex;
-        private List<Instruction> _instructions; 
+        private List<Instruction> _instructions;
 
         public readonly MondCompilerOptions Options;
 
@@ -22,7 +22,7 @@ namespace Mond.Compiler
 
         public int ScopeId;
         public int ScopeDepth;
-         
+
         public ExpressionCompiler(MondCompilerOptions options)
         {
             _contexts = new List<FunctionContext>();
@@ -121,25 +121,25 @@ namespace Mond.Compiler
             var prevColumnNumber = -1;
 
             var lines = AllInstructions()
-                 .Where(i => i.Type == InstructionType.Position)
-                 .Select(i =>
-                 {
-                     var line = ((ImmediateOperand)i.Operands[0]).Value;
-                     var column = ((ImmediateOperand)i.Operands[1]).Value;
+                .Where(i => i.Type == InstructionType.Position)
+                .Select(i =>
+                {
+                    var line = ((ImmediateOperand)i.Operands[0]).Value;
+                    var column = ((ImmediateOperand)i.Operands[1]).Value;
 
-                     return new MondDebugInfo.Position(i.Offset, line, column);
-                 })
-                 .Where(l =>
-                 {
-                     if (l.LineNumber == prevLineNumber && l.ColumnNumber == prevColumnNumber)
-                         return false;
+                    return new MondDebugInfo.Position(i.Offset, line, column);
+                })
+                .Where(l =>
+                {
+                    if (l.LineNumber == prevLineNumber && l.ColumnNumber == prevColumnNumber)
+                        return false;
 
-                     prevLineNumber = l.LineNumber;
-                     prevColumnNumber = l.ColumnNumber;
+                    prevLineNumber = l.LineNumber;
+                    prevColumnNumber = l.ColumnNumber;
 
-                     return true;
-                 })
-                 .ToList();
+                    return true;
+                })
+                .ToList();
 
             if (Options.DebugInfo <= MondDebugInfoLevel.StackTrace)
                 return new MondDebugInfo(sourceFileName, sourceCode, functions, lines, null, null);
