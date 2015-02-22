@@ -268,6 +268,7 @@ namespace Mond.RemoteDebugger
                 watch.Refresh(context);
 
                 timer.Change(-1, -1);
+                _watchTimedOut = false;
             }
             finally
             {

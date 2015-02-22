@@ -29,16 +29,10 @@ namespace Mond.RemoteDebugger
                 return;
             }
 
-            MondValue value;
-            if (!context.TryGetLocal(Expression, out value))
-            {
-                _value = string.Format("`{0}` doesn't exist in the current context", Expression);
-                return;
-            }
-
             try
             {
-                _value = value.Serialize();
+                var result = context.Evaluate(Expression);
+                _value = result.Serialize();
             }
             catch (Exception e)
             {

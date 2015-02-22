@@ -4,8 +4,8 @@ namespace Mond.Compiler.Expressions.Statements
 {
     class SequenceExpression : FunctionExpression
     {
-        public SequenceExpression(Token token, string name, List<string> arguments, string otherArgs, ScopeExpression block)
-            : base(token, name, arguments, otherArgs, block)
+        public SequenceExpression(Token token, string name, List<string> arguments, string otherArgs, ScopeExpression block, string debugName = null)
+            : base(token, name, arguments, otherArgs, block, debugName)
         {
 
         }

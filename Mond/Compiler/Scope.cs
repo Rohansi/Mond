@@ -97,7 +97,7 @@ namespace Mond.Compiler
             return null;
         }
 
-        protected bool IsDefined(string name, bool inherit = true)
+        public bool IsDefined(string name, bool inherit = true)
         {
             return Get(name, inherit) != null;
         }

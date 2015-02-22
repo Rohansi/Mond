@@ -1,15 +1,21 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using Mond.Compiler;
 using Mond.VirtualMachine;
 
 namespace Mond.Debugger
 {
     public class MondDebugContext
     {
+        private const string LocalObjectName = "__local";
+
+        private readonly MondState _state;
         private readonly int _address;
-        private readonly MondValue _globals;
         private readonly Frame _locals;
         private readonly Frame _args;
+
+        private readonly MondValue _localObject;
 
         public readonly MondProgram Program;
         public readonly MondDebugInfo DebugInfo;
@@ -17,24 +23,95 @@ namespace Mond.Debugger
         public readonly ReadOnlyCollection<CallStackEntry> CallStack;
 
         internal MondDebugContext(
-            MondProgram program, MondDebugInfo debugInfo, int address,
-            MondValue globals, Frame locals, Frame args,
+            MondState state, MondProgram program, int address,
+            Frame locals, Frame args,
             ReturnAddress[] callStack,  int callStackTop, int callStackBottom)
         {
+            _state = state;
             _address = address;
-            _globals = globals;
             _locals = locals;
             _args = args;
 
             Program = program;
-            DebugInfo = debugInfo;
+            DebugInfo = program.DebugInfo;
 
             CallStack = GenerateCallStack(address, callStack, callStackTop, callStackBottom).AsReadOnly();
+
+            _localObject = CreateLocalObject();
         }
 
-        public bool TryGetLocal(string name, out MondValue value)
+        public MondValue Evaluate(string expression)
         {
-            value = null;
+            var options = new MondCompilerOptions();
+
+            var lexer = new Lexer("return " + expression, "debug", options);
+            var parser = new Parser(lexer);
+
+            var expr = parser.ParseStatement(false);
+
+            var rewriter = new DebugExpressionRewriter(LocalObjectName);
+
+            expr = expr.Accept(rewriter);
+
+            var oldLocal = _state[LocalObjectName];
+            _state[LocalObjectName] = _localObject;
+
+            var program = new ExpressionCompiler(options).Compile(expr);
+            var result = _state.Load(program);
+
+            _state[LocalObjectName] = oldLocal;
+
+            return result;
+        }
+
+        private MondValue CreateLocalObject()
+        {
+            var obj = new MondValue(_state);
+            obj.Prototype = MondValue.Null;
+
+            obj["__get"] = new MondFunction((_, args) =>
+            {
+                if (args.Length != 2)
+                    throw new MondRuntimeException("LocalObject.__get: requires 2 parameters");
+
+                var name = (string)args[1];
+
+                Func<MondValue> getter;
+                Action<MondValue> setter;
+
+                if (!TryGetLocalAccessor(name, out getter, out setter))
+                    throw new MondRuntimeException("`{0}` is not defined", name);
+
+                return getter();
+            });
+
+            obj["__set"] = new MondFunction((_, args) =>
+            {
+                if (args.Length != 3)
+                    throw new MondRuntimeException("LocalObject.__set: requires 3 parameters");
+
+                var name = (string)args[1];
+                var value = args[2];
+
+                Func<MondValue> getter;
+                Action<MondValue> setter;
+
+                if (!TryGetLocalAccessor(name, out getter, out setter))
+                    throw new MondRuntimeException("`{0}` is not defined", name);
+
+                setter(value);
+                return value;
+            });
+
+            obj.Lock();
+
+            return obj;
+        }
+
+        private bool TryGetLocalAccessor(string name, out Func<MondValue> getter, out Action<MondValue> setter)
+        {
+            getter = null;
+            setter = null;
 
             if (string.IsNullOrWhiteSpace(name) || DebugInfo == null || DebugInfo.Scopes == null || _locals == null)
                 return false;
@@ -57,10 +134,19 @@ namespace Mond.Debugger
                     if (Program.Strings[ident.Name] != name)
                         continue;
 
+                    var frameIndex = ident.FrameIndex;
+                    var localId = ident.Id;
+
                     if (ident.FrameIndex >= 0)
-                        value = _locals.Get(ident.FrameIndex, ident.Id);
+                    {
+                        getter = () => _locals.Get(frameIndex, localId);
+                        setter = value => _locals.Set(frameIndex, localId, value);
+                    }
                     else
-                        value = _args.Get(-ident.FrameIndex, ident.Id);
+                    {
+                        getter = () => _args.Get(-frameIndex, localId);
+                        setter = value => _args.Set(-frameIndex, localId, value);
+                    }
 
                     return true;
                 }

@@ -1018,7 +1018,7 @@ namespace Mond.VirtualMachine
         private void DebuggerBreak(MondProgram program, Frame locals,  Frame args, int address, int initialCallDepth)
         {
             var context = new MondDebugContext(
-                program, program.DebugInfo, address, Global, locals, args, _callStack, _callStackSize, initialCallDepth);
+                _state, program, address, locals, args, _callStack, _callStackSize, initialCallDepth);
 
             _debugAction = Debugger.Break(context, address);
             _debugAlign = false;
