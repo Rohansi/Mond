@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -80,6 +81,14 @@ namespace Mond.RemoteDebugger
 
         protected override MondDebugAction OnBreak(MondDebugContext context, int address)
         {
+            lock (_sync)
+            {
+                if (_breaker != null)
+                    throw new InvalidOperationException("Debugger hit breakpoint while waiting on another");
+
+                _context = context;
+            }
+
             // if missing debug info, leave the function
             if (IsMissingDebugInfo(context.DebugInfo))
                 return MondDebugAction.StepOut;
@@ -87,11 +96,8 @@ namespace Mond.RemoteDebugger
             // keep track of program instances
             VisitProgram(context);
 
-            // update where we are in the source code
-            UpdateBreakPosition(context, address);
-
-            // broadcast new watch values
-            UpdateWatches(context);
+            // update the current state
+            UpdateState(context, address);
 
             // block until an action is set
             return WaitForAction(context);
@@ -127,7 +133,12 @@ namespace Mond.RemoteDebugger
             return result;
         }
 
-        internal void GetState(out bool isRunning, out List<ProgramInfo> programs, out BreakPosition position, out List<Watch> watches)
+        internal void GetState(
+            out bool isRunning,
+            out List<ProgramInfo> programs,
+            out BreakPosition position,
+            out List<Watch> watches,
+            out ReadOnlyCollection<MondDebugContext.CallStackEntry> callStack)
         {
             lock (_sync)
             {
@@ -135,6 +146,7 @@ namespace Mond.RemoteDebugger
                 programs = _programs.ToList();
                 position = _position;
                 watches = _watches.ToList();
+                callStack = _context != null ? _context.CallStack : null;
             }
         }
 
@@ -234,37 +246,13 @@ namespace Mond.RemoteDebugger
             });
         }
 
-        private void UpdateWatches(MondDebugContext context)
-        {
-            List<Watch> watches;
-
-            lock (_sync)
-                watches = _watches.ToList();
-
-            foreach (var watch in watches)
-            {
-                watch.Refresh(context);
-            }
-
-            Broadcast(new
-            {
-                Type = "Watches",
-                Watches = watches.Select(w => new
-                {
-                    Id = w.Id,
-                    Expression = w.Expression,
-                    Value = w.Value
-                })
-            });
-        }
-
-        private void UpdateBreakPosition(MondDebugContext context, int address)
+        private void UpdateState(MondDebugContext context, int address)
         {
             var program = context.Program;
             var debugInfo = context.DebugInfo;
 
+            // find out where we are in the source code
             var statement = debugInfo.FindStatement(address);
-
             if (!statement.HasValue)
             {
                 var position = debugInfo.FindPosition(address);
@@ -281,8 +269,19 @@ namespace Mond.RemoteDebugger
                 }
             }
 
-            object message;
+            // refresh all watches
+            List<Watch> watches;
 
+            lock (_sync)
+                watches = _watches.ToList();
+
+            foreach (var watch in watches)
+            {
+                watch.Refresh(context);
+            }
+
+            // apply new state and broadcast it
+            object message;
             lock (_sync)
             {
                 var stmtValue = statement.Value;
@@ -303,7 +302,10 @@ namespace Mond.RemoteDebugger
                     StartLine = _position.StartLine,
                     StartColumn = _position.StartColumn,
                     EndLine = _position.EndLine,
-                    EndColumn = _position.EndColumn
+                    EndColumn = _position.EndColumn,
+
+                    Watches = _watches,
+                    CallStack = _context.CallStack
                 };
             }
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using Mond.Debugger;
 using Newtonsoft.Json;
@@ -23,8 +24,9 @@ namespace Mond.RemoteDebugger
             List<ProgramInfo> programs;
             BreakPosition position;
             List<Watch> watches;
+            ReadOnlyCollection<MondDebugContext.CallStackEntry> callStack;
 
-            _debugger.GetState(out isRunning, out programs, out position, out watches);
+            _debugger.GetState(out isRunning, out programs, out position, out watches, out callStack);
 
             Send(JsonConvert.SerializeObject(new
             {
@@ -44,12 +46,8 @@ namespace Mond.RemoteDebugger
                 EndLine = position.EndLine,
                 EndColumn = position.EndColumn,
 
-                Watches = watches.Select(w => new
-                {
-                    Id = w.Id,
-                    Expression = w.Expression,
-                    Value = w.Value
-                })
+                Watches = watches,
+                CallStack = callStack
             }));
         }
 

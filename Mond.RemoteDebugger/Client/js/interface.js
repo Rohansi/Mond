@@ -10,6 +10,7 @@ var sourceTabs = $("#source-tabs");
 var sourceView = $("#source-view");
 var watchList = $("#watch-list");
 var watchInput = $("#watch-input");
+var stackList = $("#stack-list");
 
 var state = "disconnected";
 
@@ -17,6 +18,7 @@ function resetInterface() {
     sourceTabs.html("");
     sourceView.html("");
     watchList.find("tr.watch").remove();
+    stackList.html("");
 }
 
 function switchState(newState) {
@@ -180,5 +182,29 @@ function updateWatches(watches) {
 
     for (var i = 0; i < watches.length; i++) {
         addWatch(watches[i]);
+    }
+}
+
+function updateCallStack(callStack) {
+    stackList.html("");
+
+    for (var i = 0; i < callStack.length; i++) {
+        var entry = callStack[i];
+
+        var str = "";
+
+        if (entry.Function != null)
+            str += entry.Function !== "" ? entry.Function : "main";
+
+        if (entry.FileName != null)
+            str += " [" + entry.FileName;
+
+        if (entry.ColumnNumber > 0)
+            str += " line " + entry.LineNumber + ":" + entry.ColumnNumber;
+
+        if (entry.FileName != null)
+            str += "]";
+
+        stackList.append("<li>" + escapeHtml(str) + "</li>");
     }
 }

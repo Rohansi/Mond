@@ -94,7 +94,7 @@ ol {
     flex-shrink: 0;
     flex-grow: 0;
     min-height: 24px;
-    border-bottom: #ddd 2px solid;
+    border-bottom: #ddd 3px solid;
     padding: 0 8px;
     margin-top: 4px;
     -moz-user-select: none;
@@ -113,7 +113,7 @@ ol {
     -ms-text-overflow: ellipsis;
     -o-text-overflow: ellipsis;
     text-overflow: ellipsis;
-    margin-bottom: -3px;
+    margin-bottom: -4px;
 }
 
 #source-tabs > li:hover {
@@ -167,7 +167,7 @@ ol {
     flex-grow: 5;
     flex-shrink: 2;
     flex-basis: 35%;
-    border-top: #ddd 2px solid;
+    border-top: #ddd 3px solid;
     display: flex;
     -ms-flex-direction: row;
     flex-direction: row;
@@ -178,8 +178,8 @@ ol {
 }
 
 #watch {
-    border-right: #ddd 2px solid;
-    width: 60%;
+    border-right: #ddd 3px solid;
+    width: 70%;
 }
 
 #watch-list {
@@ -254,7 +254,21 @@ ol {
 }
 
 #stack {
-    width: 40%;
+    width: 30%;
+}
+
+#stack > ul > li, #stack-title {
+    padding: 3px;
+    border-bottom: #ddd 1px solid;
+}
+
+#stack-title {
+    color: #444;
+    background: #f8f8f8;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 .breakpoint {

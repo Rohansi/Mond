@@ -34,8 +34,14 @@ connectBtn.click(function () {
                     addProgram(i, obj.Programs[i]);
                 }
 
-                updateWatches(obj.Watches);
                 switchRunningState(obj);
+
+                if (obj.Watches)
+                    updateWatches(obj.Watches);
+
+                if (obj.CallStack)
+                    updateCallStack(obj.CallStack);
+
                 break;
 
             case "NewProgram":
@@ -44,6 +50,13 @@ connectBtn.click(function () {
 
             case "State":
                 switchRunningState(obj);
+
+                if (obj.Watches)
+                    updateWatches(obj.Watches);
+
+                if (obj.CallStack)
+                    updateCallStack(obj.CallStack);
+
                 break;
 
             case "Breakpoint":
@@ -56,10 +69,6 @@ connectBtn.click(function () {
 
             case "RemovedWatch":
                 removeWatch(obj.Id);
-                break;
-
-            case "Watches":
-                updateWatches(obj.Watches);
                 break;
 
             default:
