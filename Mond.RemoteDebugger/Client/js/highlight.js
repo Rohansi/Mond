@@ -310,9 +310,9 @@ function syntaxHighlight(line, state) {
 
 function highlightSourceBackground(id, startLine, startColumn, endLine, endColumn) {
     sourceView.find("ol.background span").replaceWith(function () {
-        return $(this).text();
+        return escapeHtml($(this).text());
     });
-    
+
     var background = sourceView.find("> div[data-id='" + id + "'] > ol.background");
     var lines = background.find("> li");
 
@@ -336,7 +336,7 @@ function highlightSourceBackground(id, startLine, startColumn, endLine, endColum
         var mid = lineText.substring(startColumn, endColumn + 1);
         var right = lineText.substring(endColumn + 1, lineText.length);
 
-        line.html(left + "<span class='break'>" + mid + "</span>" + right);
+        line.html(escapeHtml(left) + "<span class='break'>" + escapeHtml(mid) + "</span>" + escapeHtml(right));
         return;
     }
 
@@ -350,13 +350,13 @@ function highlightSourceBackground(id, startLine, startColumn, endLine, endColum
         if (i == startLine) {
             normal = lineText.substr(0, startColumn);
             red = lineText.substr(startColumn, lineText.length - startColumn);
-            line.html(normal + "<span class='break'>" + red + "</span>");
+            line.html(escapeHtml(normal) + "<span class='break'>" + escapeHtml(red) + "</span>");
         } else if (i == endLine) {
             red = lineText.substr(0, endColumn + 1);
             normal = lineText.substr(endColumn, lineText.length - endColumn);
-            line.html("<span class='break'>" + red + "</span>" + normal);
+            line.html("<span class='break'>" + escapeHtml(red) + "</span>" + escapeHtml(normal));
         } else {
-            line.html("<span class='break'>" + lineText + "</span>");
+            line.html("<span class='break'>" + escapeHtml(lineText) + "</span>");
         }
     }
 }
