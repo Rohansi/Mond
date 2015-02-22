@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Mond.Compiler.Expressions;
 
 namespace Mond.Compiler
 {
@@ -13,12 +14,37 @@ namespace Mond.Compiler
             Emit(new Instruction(InstructionType.Function, String(name)));
         }
 
-        public void Position(string fileName, int line, int column)
+        public void Position(Token token)
         {
             if (Compiler.Options.DebugInfo < MondDebugInfoLevel.StackTrace)
                 return;
 
-            Emit(new Instruction(InstructionType.Position, String(fileName ?? "<unknown>"), new ImmediateOperand(line), new ImmediateOperand(column)));
+            Emit(new Instruction(InstructionType.Position, new ImmediateOperand(token.Line), new ImmediateOperand(token.Column)));
+        }
+
+        public void Statement(Token start, Token end)
+        {
+            if (Compiler.Options.DebugInfo < MondDebugInfoLevel.Full)
+                return;
+
+            Emit(new Instruction(InstructionType.Statement, new IInstructionOperand[]
+            {
+                new ImmediateOperand(start.Line),
+                new ImmediateOperand(start.Column),
+                new ImmediateOperand(end.Line),
+                new ImmediateOperand(end.Column + end.Contents.Length - 1)
+            }));
+        }
+
+        public void Statement(Expression expression)
+        {
+            Statement(expression.StartToken, expression.EndToken);
+        }
+
+        public int Breakpoint()
+        {
+            Emit(new Instruction(InstructionType.Breakpoint));
+            return 0;
         }
 
         public int Bind(LabelOperand label)

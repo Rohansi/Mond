@@ -49,7 +49,7 @@ namespace Mond.Compiler.Parselets.Statements
                     parser.Take(TokenType.Comma);
                 } while (true);
 
-                increment = new BlockExpression(token, statements);
+                increment = new BlockExpression(statements);
             }
 
             parser.Take(TokenType.RightParen);

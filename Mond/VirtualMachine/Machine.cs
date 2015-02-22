@@ -3,19 +3,32 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Mond.Compiler;
+using Mond.Debugger;
 
 namespace Mond.VirtualMachine
 {
     partial class Machine
     {
         private readonly MondState _state;
-        public MondValue Global;
+        internal MondValue Global;
+
+        private MondDebugAction _debugAction;
+        private bool _debugSkip;
+        private bool _debugAlign;
+        private int _debugDepth;
+        internal MondDebugger Debugger;
 
         public Machine(MondState state)
             : this()
         {
             _state = state;
             Global = new MondValue(MondValueType.Object);
+
+            _debugAction = MondDebugAction.Run;
+            _debugSkip = false;
+            _debugAlign = false;
+            _debugDepth = 0;
+            Debugger = null;
         }
 
         public MondValue Load(MondProgram program)
@@ -94,16 +107,26 @@ namespace Mond.VirtualMachine
             {
                 while (true)
                 {
-                    errorIp = ip;
-
-                    /*if (program.DebugInfo != null)
+                    if (Debugger != null)
                     {
-                        var line = program.DebugInfo.FindPosition(errorIp);
-                        if (line.HasValue)
-                            Console.WriteLine("{0:X4} {1} line {2}: {3}", errorIp, program.Strings[line.Value.FileName], line.Value.LineNumber, (InstructionType)code[ip]);
-                        else
-                            Console.WriteLine("{0:X4}: {1}", errorIp, (InstructionType)code[ip]);
-                    }*/
+                        var skip = _debugSkip;
+                        _debugSkip = false;
+
+                        var shouldStopAtStmt =
+                            (_debugAction == MondDebugAction.StepInto) ||
+                            (_debugAction == MondDebugAction.StepOver && _debugDepth == 0);
+
+                        var shouldBreak = 
+                            (_debugAlign && program.DebugInfo == null) ||
+                            (_debugAlign && program.DebugInfo.IsStatementStart(ip)) ||
+                            (Debugger.ShouldBreak(program, ip)) ||
+                            (shouldStopAtStmt && program.DebugInfo != null && program.DebugInfo.IsStatementStart(ip));
+
+                        if (!skip && shouldBreak)
+                            DebuggerBreak(program, locals, ip, initialCallDepth);
+                    }
+
+                    errorIp = ip;
 
                     switch (code[ip++])
                     {
@@ -623,6 +646,10 @@ namespace Mond.VirtualMachine
                                         ip = closure.Address;
                                         args = argFrame;
                                         locals = closure.Locals;
+
+                                        if (Debugger != null)
+                                            DebuggerCheckCall();
+
                                         break;
 
                                     case ClosureType.Native:
@@ -730,6 +757,9 @@ namespace Mond.VirtualMachine
                                 if (_callStackSize == initialCallDepth)
                                     return Pop();
 
+                                if (Debugger != null && DebuggerCheckReturn())
+                                    DebuggerBreak(program, locals, ip, initialCallDepth);
+
                                 break;
                             }
 
@@ -822,6 +852,19 @@ namespace Mond.VirtualMachine
                                 break;
                             }
                         #endregion
+
+                        case (int)InstructionType.Breakpoint:
+                            {
+                                if (Debugger == null)
+                                    break;
+
+                                DebuggerBreak(program, locals, ip, initialCallDepth);
+
+                                // we stop for the statement *after* the debugger statement so we
+                                // skip the next break opportunity, otherwise we break twice
+                                _debugSkip = true;
+                                break;
+                            }
 
                         default:
                             throw new MondRuntimeException(RuntimeError.UnhandledOpcode);
@@ -933,6 +976,55 @@ namespace Mond.VirtualMachine
             return unpackedArgs;
         }
 
+        private void DebuggerCheckCall()
+        {
+            switch (_debugAction)
+            {
+                case MondDebugAction.StepInto:
+                    _debugAlign = true;
+                    return;
+
+                case MondDebugAction.StepOver:
+                case MondDebugAction.StepOut:
+                    _debugDepth++;
+                    _debugAlign = false;
+                    return;
+            }
+        }
+
+        private bool DebuggerCheckReturn()
+        {
+            switch (_debugAction)
+            {
+                case MondDebugAction.StepInto:
+                    return !_debugAlign;
+
+                case MondDebugAction.StepOver:
+                    --_debugDepth;
+
+                    if (_debugDepth < 0)
+                        return true;
+
+                    _debugAlign = _debugDepth == 0;
+                    return false;
+
+                case MondDebugAction.StepOut:
+                    return --_debugDepth < 0;
+            }
+
+            return false;
+        }
+
+        private void DebuggerBreak(MondProgram program, Frame locals, int address, int initialCallDepth)
+        {
+            var context = new MondDebugContext(
+                program, program.DebugInfo, address, Global, locals, _callStack, _callStackSize, initialCallDepth);
+
+            _debugAction = Debugger.Break(context, address);
+            _debugAlign = false;
+            _debugDepth = 0;
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int ReadInt32(byte[] buffer, ref int offset)
         {
@@ -953,7 +1045,7 @@ namespace Mond.VirtualMachine
                 {
                     var prefix = "";
                     var funcName = program.Strings[func.Value.Name];
-                    var fileName = program.Strings[position.Value.FileName];
+                    var fileName = program.DebugInfo.FileName;
 
                     if (!string.IsNullOrEmpty(funcName))
                         prefix = string.Format("at {0} ", funcName);

@@ -43,6 +43,8 @@ namespace Mond.Compiler
         JmpTrue, JmpFalse,                  // jump if pop() == true/false
         JmpTable,                           // jump to one of multiple locations
 
+        Breakpoint,                         // break if a debugger is attached
+
         // ----------------- //
 
         Label = 200,                        // label binding
@@ -50,6 +52,7 @@ namespace Mond.Compiler
         DebugInfo,                          // debug info (shouldn't be used)
         Function,                           // debug info
         Position,                           // debug info
+        Statement,                          // debug info
         Scope,                              // debug info
     }
 

@@ -2,15 +2,17 @@
 {
     class BreakExpression : Expression, IStatementExpression
     {
+        public bool HasChildren { get { return false; } }
+
         public BreakExpression(Token token)
-            : base(token.FileName, token.Line, token.Column)
+            : base(token)
         {
-            
+
         }
 
         public override int Compile(FunctionContext context)
         {
-            context.Position(FileName, Line, Column);
+            context.Position(Token);
 
             var target = context.BreakLabel();
             if (target == null)

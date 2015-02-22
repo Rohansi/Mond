@@ -7,8 +7,13 @@ namespace Mond.Compiler.Expressions
         public TokenType Operation { get; private set; }
         public Expression Left { get; private set; }
 
+        public override Token StartToken
+        {
+            get { return Left.StartToken; }
+        }
+
         public PostfixOperatorExpression(Token token, Expression left)
-            : base(token.FileName, token.Line, token.Column)
+            : base(token)
         {
             Operation = token.Type;
             Left = left;
@@ -36,7 +41,7 @@ namespace Mond.Compiler.Expressions
                 stack += context.Load(context.Number(1));
             }
 
-            context.Position(FileName, Line, Column); // debug info
+            context.Position(Token); // debug info
 
             switch (Operation)
             {

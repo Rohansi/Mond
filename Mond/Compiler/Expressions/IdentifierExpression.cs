@@ -5,7 +5,7 @@
         public string Name { get; private set; }
 
         public IdentifierExpression(Token token)
-            : base(token.FileName, token.Line, token.Column)
+            : base(token)
         {
             Name = token.Contents;
         }
@@ -18,7 +18,7 @@
             if (!context.Compiler.Options.UseImplicitGlobals && identifier == null)
                 throw new MondCompilerException(this, CompilerError.UndefinedIdentifier, Name);
 
-            context.Position(FileName, Line, Column); // debug info
+            context.Position(Token); // debug info
 
             if (identifier == null)
             {
@@ -56,7 +56,7 @@
             {
                 stack += context.LoadGlobal();
 
-                context.Position(FileName, Line, Column); // debug info
+                context.Position(Token); // debug info
                 stack += context.StoreField(context.String(Name));
             }
             else
@@ -64,7 +64,7 @@
                 if (identifier.IsReadOnly)
                     throw new MondCompilerException(this, CompilerError.CantModifyReadonlyVar, Name);
 
-                context.Position(FileName, Line, Column); // debug info
+                context.Position(Token); // debug info
                 stack += context.Store(identifier);
             }
 

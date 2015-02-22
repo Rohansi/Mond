@@ -7,8 +7,10 @@ namespace Mond.Compiler.Expressions.Statements
         public BlockExpression Block { get; private set; }
         public Expression Condition { get; private set; }
 
+        public bool HasChildren { get { return true; } }
+
         public DoWhileExpression(Token token, BlockExpression block, Expression condition)
-            : base(token.FileName, token.Line, token.Column)
+            : base(token)
         {
             Block = block;
             Condition = condition;
@@ -16,7 +18,7 @@ namespace Mond.Compiler.Expressions.Statements
 
         public override int Compile(FunctionContext context)
         {
-            context.Position(FileName, Line, Column);
+            context.Position(Token);
 
             var stack = 0;
             var start = context.MakeLabel("doWhileStart");
@@ -47,6 +49,7 @@ namespace Mond.Compiler.Expressions.Statements
             if (containsFunction.Value)
                 stack += context.Leave();
 
+            context.Statement(Condition);
             stack += Condition.Compile(context);
             stack += context.JumpTrue(start);
 

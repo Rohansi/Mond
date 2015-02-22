@@ -2,6 +2,6 @@
 {
     interface IStatementExpression
     {
-        
+        bool HasChildren { get; }
     }
 }

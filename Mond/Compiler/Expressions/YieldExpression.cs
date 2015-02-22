@@ -2,19 +2,19 @@
 
 namespace Mond.Compiler.Expressions
 {
-    class YieldExpression : Expression, IStatementExpression
+    class YieldExpression : Expression
     {
         public Expression Value { get; private set; }
 
         public YieldExpression(Token token, Expression value)
-            : base(token.FileName, token.Line, token.Column)
+            : base(token)
         {
             Value = value;
         }
 
         public override int Compile(FunctionContext context)
         {
-            context.Position(FileName, Line, Column);
+            context.Position(Token);
 
             var sequenceContext = context.Root as SequenceBodyContext;
             if (sequenceContext == null)

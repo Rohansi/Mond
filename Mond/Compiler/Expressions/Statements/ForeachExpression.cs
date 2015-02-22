@@ -5,13 +5,17 @@ namespace Mond.Compiler.Expressions.Statements
 {
     class ForeachExpression : Expression, IStatementExpression
     {
+        public Token InToken { get; private set; }
         public string Identifier { get; private set; }
         public Expression Expression { get; private set; }
         public BlockExpression Block { get; private set; }
 
-        public ForeachExpression(Token token, string identifier, Expression expression, BlockExpression block)
-            : base(token.FileName, token.Line, token.Column)
+        public bool HasChildren { get { return true; } }
+
+        public ForeachExpression(Token token, Token inToken, string identifier, Expression expression, BlockExpression block)
+            : base(token)
         {
+            InToken = inToken;
             Identifier = identifier;
             Expression = expression;
             Block = block;
@@ -19,7 +23,7 @@ namespace Mond.Compiler.Expressions.Statements
 
         public override int Compile(FunctionContext context)
         {
-            context.Position(FileName, Line, Column);
+            context.Position(Token);
 
             var stack = 0;
             var start = context.MakeLabel("foreachStart");
@@ -33,6 +37,7 @@ namespace Mond.Compiler.Expressions.Statements
             var enumerator = context.DefineInternal("enumerator", true);
 
             // set enumerator
+            context.Statement(Expression);
             stack += Expression.Compile(context);
             stack += context.LoadField(context.String("getEnumerator"));
             stack += context.Call(0, new List<ImmediateOperand>());
@@ -56,6 +61,7 @@ namespace Mond.Compiler.Expressions.Statements
                 stack += loopContext.Enter();
 
             // loop while moveNext returns true
+            context.Statement(InToken, InToken);
             stack += loopContext.Load(enumerator);
             stack += loopContext.LoadField(context.String("moveNext"));
             stack += loopContext.Call(0, new List<ImmediateOperand>());

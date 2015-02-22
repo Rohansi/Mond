@@ -21,8 +21,10 @@ namespace Mond.Compiler.Expressions.Statements
         public ReadOnlyCollection<Branch> Branches { get; private set; }
         public Branch Else { get; private set; }
 
+        public bool HasChildren { get { return true; } }
+
         public IfExpression(Token token, List<Branch> branches, Branch elseBranch)
-            : base(token.FileName, token.Line, token.Column)
+            : base(token)
         {
             Branches = branches.AsReadOnly();
             Else = elseBranch;
@@ -30,7 +32,7 @@ namespace Mond.Compiler.Expressions.Statements
 
         public override int Compile(FunctionContext context)
         {
-            context.Position(FileName, Line, Column);
+            context.Position(Token);
 
             var stack = 0;
             var branchLabels = new List<LabelOperand>(Branches.Count);
@@ -49,6 +51,7 @@ namespace Mond.Compiler.Expressions.Statements
             {
                 var branch = Branches[i];
 
+                context.Statement(branch.Condition);
                 stack += branch.Condition.Compile(context);
                 stack += context.JumpTrue(branchLabels[i]);
             }

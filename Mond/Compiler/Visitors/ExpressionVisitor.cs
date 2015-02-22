@@ -18,6 +18,11 @@ namespace Mond.Compiler
             return default(T);
         }
 
+        public virtual T Visit(DebuggerExpression expression)
+        {
+            return default(T);
+        }
+
         public virtual T Visit(DoWhileExpression expression)
         {
             expression.Block.Accept(this);

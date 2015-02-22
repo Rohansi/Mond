@@ -2,17 +2,16 @@
 {
     abstract class Expression
     {
-        public string FileName { get; protected set; }
-        public int Line { get; protected set; }
-        public int Column { get; protected set; }
+        public Token Token { get; protected set; }
+        
+        public virtual Token StartToken { get { return Token; } }
+        public virtual Token EndToken { get; set; }
 
         public Expression Parent { get; private set; }
 
-        protected Expression(string fileName, int line, int column)
+        protected Expression(Token token)
         {
-            FileName = fileName;
-            Line = line;
-            Column = column;
+            Token = token;
         }
 
         public abstract int Compile(FunctionContext context);

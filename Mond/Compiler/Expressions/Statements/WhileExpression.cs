@@ -7,8 +7,10 @@ namespace Mond.Compiler.Expressions.Statements
         public Expression Condition { get; private set; }
         public BlockExpression Block { get; private set; }
 
+        public bool HasChildren { get { return true; } }
+
         public WhileExpression(Token token, Expression condition, BlockExpression block)
-            : base(token.FileName, token.Line, token.Column)
+            : base(token)
         {
             Condition = condition;
             Block = block;
@@ -16,7 +18,7 @@ namespace Mond.Compiler.Expressions.Statements
 
         public override int Compile(FunctionContext context)
         {
-            context.Position(FileName, Line, Column);
+            context.Position(Token);
 
             var stack = 0;
             var start = context.MakeLabel("whileStart");
@@ -38,6 +40,7 @@ namespace Mond.Compiler.Expressions.Statements
 
             if (!isInfinite)
             {
+                context.Statement(Condition);
                 stack += Condition.Compile(context);
                 stack += context.JumpFalse(end);
             }

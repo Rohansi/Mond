@@ -14,6 +14,7 @@ namespace Mond.Compiler.Parselets.Statements
 
             var identifier = parser.Take(TokenType.Identifier).Contents;
 
+            var inToken = parser.Peek();
             parser.Take(TokenType.In);
 
             var expression = parser.ParseExpression();
@@ -22,7 +23,7 @@ namespace Mond.Compiler.Parselets.Statements
 
             var block = parser.ParseBlock();
 
-            return new ForeachExpression(token, identifier, expression, block);
+            return new ForeachExpression(token, inToken, identifier, expression, block);
         }
     }
 }

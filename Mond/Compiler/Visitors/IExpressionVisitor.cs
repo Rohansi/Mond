@@ -7,6 +7,7 @@ namespace Mond.Compiler
     {
         T Visit(BreakExpression expression);
         T Visit(ContinueExpression expression);
+        T Visit(DebuggerExpression expression);
         T Visit(DoWhileExpression expression);
         T Visit(ForeachExpression expression);
         T Visit(ForExpression expression);

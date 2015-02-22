@@ -9,8 +9,13 @@ namespace Mond.Compiler.Expressions
         public Expression Method { get; private set; }
         public ReadOnlyCollection<Expression> Arguments { get; private set; }
 
+        public override Token StartToken
+        {
+            get { return Method.StartToken; }
+        }
+
         public CallExpression(Token token, Expression method, List<Expression> arguments)
-            : base(token.FileName, token.Line, token.Column)
+            : base(token)
         {
             Method = method;
             Arguments = arguments.AsReadOnly();
@@ -22,7 +27,7 @@ namespace Mond.Compiler.Expressions
 
             stack += Method.Compile(context);
 
-            context.Position(FileName, Line, Column); // debug info
+            context.Position(Token); // debug info
             stack += context.Call(Arguments.Count, GetUnpackIndices());
 
             CheckStack(stack, 1);
@@ -31,11 +36,9 @@ namespace Mond.Compiler.Expressions
 
         public int CompileTailCall(FunctionContext context)
         {
-            context.Position(FileName, Line, Column);
-
             var stack = Arguments.Sum(argument => argument.Compile(context));
 
-            context.Position(FileName, Line, Column); // debug info
+            context.Position(Token); // debug info
             stack += context.TailCall(Arguments.Count, context.Label, GetUnpackIndices());
 
             CheckStack(stack, 0);

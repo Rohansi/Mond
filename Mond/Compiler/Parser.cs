@@ -10,6 +10,7 @@ namespace Mond.Compiler
     {
         private IEnumerator<Token> _tokens;
         private List<Token> _read;
+        private Token _previous;
          
         public Parser(IEnumerable<Token> tokens)
         {
@@ -31,6 +32,7 @@ namespace Mond.Compiler
                 throw new MondCompilerException(token, CompilerError.ExpectedButFound, "Expression", token);
 
             var left = prefixParselet.Parse(this, token);
+            left.EndToken = _previous;
 
             while (GetPrecedence() > precendence) // swapped because resharper
             {
@@ -43,6 +45,7 @@ namespace Mond.Compiler
                     throw new Exception("probably can't happen");
 
                 left = infixParselet.Parse(this, left, token);
+                left.EndToken = _previous;
             }
 
             return left;
@@ -67,6 +70,7 @@ namespace Mond.Compiler
                 if (takeTrailingSemicolon)
                     Take(TokenType.Semicolon);
 
+                result.EndToken = _previous;
                 return result;
             }
 
@@ -78,6 +82,7 @@ namespace Mond.Compiler
             if (takeTrailingSemicolon && hasTrailingSemicolon)
                 Take(TokenType.Semicolon);
 
+            result.EndToken = _previous;
             return result;
         }
 
@@ -92,9 +97,14 @@ namespace Mond.Compiler
             if (allowSingle && !Match(TokenType.LeftBrace))
             {
                 statements.Add(ParseStatement());
-                return new BlockExpression(statements);
+
+                return new BlockExpression(statements)
+                {
+                    EndToken = _previous
+                };
             }
 
+            var openBrace = Peek();
             Take(TokenType.LeftBrace);
 
             while (!Match(TokenType.RightBrace))
@@ -103,7 +113,11 @@ namespace Mond.Compiler
             }
 
             Take(TokenType.RightBrace);
-            return new BlockExpression(statements);
+
+            return new BlockExpression(openBrace, statements)
+            {
+                EndToken = _previous
+            };
         }
 
         /// <summary>
@@ -118,7 +132,10 @@ namespace Mond.Compiler
                 statements.Add(ParseStatement());
             }
 
-            return new BlockExpression(statements);
+            return new BlockExpression(statements)
+            {
+                EndToken = _previous
+            };
         }
 
         /// <summary>
@@ -163,6 +180,9 @@ namespace Mond.Compiler
 
             var result = _read[0];
             _read.RemoveAt(0);
+
+            _previous = result;
+
             return result;
         }
 

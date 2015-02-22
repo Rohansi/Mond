@@ -4,15 +4,23 @@
     {
         public Expression Value { get; private set; }
 
+        public bool HasChildren { get { return false; } }
+
+        public override Token EndToken
+        {
+            get { return base.EndToken ?? Value.EndToken; }
+            set { base.EndToken = value; }
+        }
+
         public ReturnExpression(Token token, Expression value)
-            : base(token.FileName, token.Line, token.Column)
+            : base(token)
         {
             Value = value ?? new UndefinedExpression(token);
         }
 
         public override int Compile(FunctionContext context)
         {
-            context.Position(FileName, Line, Column);
+            context.Position(Token);
 
             var stack = 0;
 

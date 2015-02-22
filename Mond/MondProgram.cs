@@ -6,21 +6,21 @@ using System.Text;
 using Mond.Compiler;
 using Mond.Compiler.Expressions;
 using Mond.Compiler.Visitors;
-using Mond.VirtualMachine;
+using Mond.Debugger;
 
 namespace Mond
 {
     public sealed class MondProgram
     {
         private const uint MagicId = 0xFA57C0DE;
-        private const byte FormatVersion = 5;
+        private const byte FormatVersion = 6;
 
         internal readonly byte[] Bytecode;
         internal readonly List<MondValue> Numbers;
         internal readonly List<MondValue> Strings;
-        internal readonly DebugInfo DebugInfo;
+        internal readonly MondDebugInfo DebugInfo;
 
-        internal MondProgram(byte[] bytecode, IEnumerable<double> numbers, IEnumerable<string> strings, DebugInfo debugInfo = null)
+        internal MondProgram(byte[] bytecode, IEnumerable<double> numbers, IEnumerable<string> strings, MondDebugInfo debugInfo = null)
         {
             Bytecode = bytecode;
             Numbers = numbers.Select(n => new MondValue(n)).ToList();
@@ -69,6 +69,9 @@ namespace Mond
 
                 if (DebugInfo != null)
                 {
+                    writer.Write(DebugInfo.FileName ?? "");
+                    writer.Write(DebugInfo.SourceCode ?? "");
+
                     if (DebugInfo.Functions != null)
                     {
                         writer.Write(DebugInfo.Functions.Count);
@@ -80,7 +83,7 @@ namespace Mond
                     }
                     else
                     {
-                        writer.Write(0);
+                        writer.Write(-1);
                     }
 
                     if (DebugInfo.Lines != null)
@@ -89,14 +92,30 @@ namespace Mond
                         foreach (var line in DebugInfo.Lines)
                         {
                             writer.Write(line.Address);
-                            writer.Write(line.FileName);
                             writer.Write(line.LineNumber);
                             writer.Write(line.ColumnNumber);
                         }
                     }
                     else
                     {
-                        writer.Write(0);
+                        writer.Write(-1);
+                    }
+
+                    if (DebugInfo.Statements != null)
+                    {
+                        writer.Write(DebugInfo.Statements.Count);
+                        foreach (var statement in DebugInfo.Statements)
+                        {
+                            writer.Write(statement.Address);
+                            writer.Write(statement.StartLineNumber);
+                            writer.Write(statement.StartColumnNumber);
+                            writer.Write(statement.EndLineNumber);
+                            writer.Write(statement.EndColumnNumber);
+                        }
+                    }
+                    else
+                    {
+                        writer.Write(-1);
                     }
 
                     if (DebugInfo.Scopes != null)
@@ -122,7 +141,7 @@ namespace Mond
                     }
                     else
                     {
-                        writer.Write(0);
+                        writer.Write(-1);
                     }
                 }
 
@@ -188,62 +207,114 @@ namespace Mond
                 var bytecodeLength = reader.ReadInt32();
                 var bytecode = reader.ReadBytes(bytecodeLength);
 
-                DebugInfo debugInfo = null;
+                MondDebugInfo debugInfo = null;
                 if (hasDebugInfo)
                 {
+                    var fileName = reader.ReadString();
+                    var sourceCode = reader.ReadString();
+                    
                     var functionCount = reader.ReadInt32();
-                    var functions = new List<DebugInfo.Function>(functionCount);
-                    for (var i = 0; i < functionCount; ++i)
+                    List<MondDebugInfo.Function> functions = null;
+
+                    if (functionCount >= 0)
                     {
-                        var address = reader.ReadInt32();
-                        var name = reader.ReadInt32();
-                        var function = new DebugInfo.Function(address, name);
-                        functions.Add(function);
+                        functions = new List<MondDebugInfo.Function>(functionCount);
+                        for (var i = 0; i < functionCount; ++i)
+                        {
+                            var address = reader.ReadInt32();
+                            var name = reader.ReadInt32();
+                            var function = new MondDebugInfo.Function(address, name);
+                            functions.Add(function);
+                        }
                     }
 
                     var lineCount = reader.ReadInt32();
-                    var lines = new List<DebugInfo.Position>(lineCount);
-                    for (var i = 0; i < lineCount; ++i)
-                    {
-                        var address = reader.ReadInt32();
-                        var fileName = reader.ReadInt32();
-                        var lineNumber = reader.ReadInt32();
-                        var columnNumber = reader.ReadInt32();
+                    List<MondDebugInfo.Position> lines = null;
 
-                        var line = new DebugInfo.Position(address, fileName, lineNumber, columnNumber);
-                        lines.Add(line);
+                    if (lineCount >= 0)
+                    {
+                        lines = new List<MondDebugInfo.Position>(lineCount);
+                        for (var i = 0; i < lineCount; ++i)
+                        {
+                            var address = reader.ReadInt32();
+                            var lineNumber = reader.ReadInt32();
+                            var columnNumber = reader.ReadInt32();
+
+                            var line = new MondDebugInfo.Position(address, lineNumber, columnNumber);
+                            lines.Add(line);
+                        }
+                    }
+
+                    var statementCount = reader.ReadInt32();
+                    List<MondDebugInfo.Statement> statements = null;
+
+                    if (statementCount >= 0)
+                    {
+                        statements = new List<MondDebugInfo.Statement>(statementCount);
+                        for (var i = 0; i < statementCount; ++i)
+                        {
+                            var address = reader.ReadInt32();
+                            var startLine = reader.ReadInt32();
+                            var startColumn = reader.ReadInt32();
+                            var endLine = reader.ReadInt32();
+                            var endColumn = reader.ReadInt32();
+
+                            var statement = new MondDebugInfo.Statement(address, startLine, startColumn, endLine, endColumn);
+                            statements.Add(statement);
+                        }
                     }
 
                     var scopeCount = reader.ReadInt32();
-                    var scopes = new List<DebugInfo.Scope>(scopeCount);
-                    for (var i = 0; i < scopeCount; ++i)
+                    List<MondDebugInfo.Scope> scopes = null;
+
+                    if (scopeCount >= 0)
                     {
-                        var id = reader.ReadInt32();
-                        var depth = reader.ReadInt32();
-                        var parentId = reader.ReadInt32();
-                        var startAddress = reader.ReadInt32();
-                        var endAddress = reader.ReadInt32();
-
-                        var identCount = reader.ReadInt32();
-                        var idents = new List<DebugInfo.Identifier>(identCount);
-                        for (var j = 0; j < identCount; ++j)
+                        scopes = new List<MondDebugInfo.Scope>(scopeCount);
+                        for (var i = 0; i < scopeCount; ++i)
                         {
-                            var name = reader.ReadInt32();
-                            var isReadOnly = reader.ReadBoolean();
-                            var frameIndex = reader.ReadInt32();
-                            var idx = reader.ReadInt32();
+                            var id = reader.ReadInt32();
+                            var depth = reader.ReadInt32();
+                            var parentId = reader.ReadInt32();
+                            var startAddress = reader.ReadInt32();
+                            var endAddress = reader.ReadInt32();
 
-                            idents.Add(new DebugInfo.Identifier(name, isReadOnly, frameIndex, idx));
+                            var identCount = reader.ReadInt32();
+                            var idents = new List<MondDebugInfo.Identifier>(identCount);
+                            for (var j = 0; j < identCount; ++j)
+                            {
+                                var name = reader.ReadInt32();
+                                var isReadOnly = reader.ReadBoolean();
+                                var frameIndex = reader.ReadInt32();
+                                var idx = reader.ReadInt32();
+
+                                idents.Add(new MondDebugInfo.Identifier(name, isReadOnly, frameIndex, idx));
+                            }
+
+                            scopes.Add(new MondDebugInfo.Scope(id, depth, parentId, startAddress, endAddress, idents));
                         }
-
-                        scopes.Add(new DebugInfo.Scope(id, depth, parentId, startAddress, endAddress, idents));
                     }
 
-                    debugInfo = new DebugInfo(functions, lines, scopes);
+                    debugInfo = new MondDebugInfo(fileName, sourceCode, functions, lines, statements, scopes);
                 }
 
                 return new MondProgram(bytecode, numbers, strings, debugInfo);
             }
+        }
+
+        /// <summary>
+        /// Compile a Mond program from a string.
+        /// </summary>
+        /// <param name="source">Source code to compile</param>
+        /// <param name="fileName">Optional file name to use in errors</param>
+        /// <param name="options">Compiler options</param>
+        public static MondProgram Compile(string source, string fileName = null, MondCompilerOptions options = null)
+        {
+            options = options ?? new MondCompilerOptions();
+
+            var lexer = new Lexer(source, fileName, options);
+            var parser = new Parser(lexer);
+
+            return CompileImpl(parser.ParseAll(), options, source);
         }
 
         /// <summary>
@@ -254,9 +325,13 @@ namespace Mond
         /// <param name="options">Compiler options</param>
         public static MondProgram Compile(IEnumerable<char> source, string fileName = null, MondCompilerOptions options = null)
         {
-            var lexer = new Lexer(source, fileName, options);
+            options = options ?? new MondCompilerOptions();
+
+            var needSource = options.DebugInfo == MondDebugInfoLevel.Full;
+            var lexer = new Lexer(source, fileName, options, needSource);
             var parser = new Parser(lexer);
-            return CompileImpl(parser.ParseAll(), options);
+
+            return CompileImpl(parser.ParseAll(), options, lexer.SourceCode);
         }
 
         /// <summary>
@@ -268,7 +343,10 @@ namespace Mond
         /// <param name="options">Compiler options</param>
         public static IEnumerable<MondProgram> CompileStatements(IEnumerable<char> source, string fileName = null, MondCompilerOptions options = null)
         {
-            var lexer = new Lexer(source, fileName, options);
+            options = options ?? new MondCompilerOptions();
+
+            var needSource = options.DebugInfo == MondDebugInfoLevel.Full;
+            var lexer = new Lexer(source, fileName, options, needSource);
             var parser = new Parser(lexer);
 
             while (true)
@@ -278,14 +356,12 @@ namespace Mond
                     parser.ParseStatement()
                 });
 
-                yield return CompileImpl(expression, options);;
+                yield return CompileImpl(expression, options, lexer.SourceCode.TrimStart('\r', '\n'));
             }
         }
 
-        private static MondProgram CompileImpl(Expression expression, MondCompilerOptions options)
+        private static MondProgram CompileImpl(Expression expression, MondCompilerOptions options, string debugSourceCode = null)
         {
-            options = options ?? new MondCompilerOptions();
-
             expression.SetParent(null);
             expression.Simplify();
 
@@ -293,7 +369,7 @@ namespace Mond
             //    expression.Accept(printer);
 
             var compiler = new ExpressionCompiler(options);
-            return compiler.Compile(expression);
+            return compiler.Compile(expression, debugSourceCode);
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Mond.Compiler.Visitors;
+﻿using System.Linq;
+using Mond.Compiler.Visitors;
 
 namespace Mond.Compiler.Expressions.Statements
 {
@@ -9,8 +10,10 @@ namespace Mond.Compiler.Expressions.Statements
         public BlockExpression Increment { get; private set; }
         public BlockExpression Block { get; private set; }
 
+        public bool HasChildren { get { return true; } }
+
         public ForExpression(Token token, BlockExpression initializer, Expression condition, BlockExpression increment, BlockExpression block)
-            : base(token.FileName, token.Line, token.Column)
+            : base(token)
         {
             Initializer = initializer;
             Condition = condition;
@@ -20,7 +23,7 @@ namespace Mond.Compiler.Expressions.Statements
 
         public override int Compile(FunctionContext context)
         {
-            context.Position(FileName, Line, Column);
+            context.Position(Token);
 
             var stack = 0;
             var start = context.MakeLabel("forStart");
@@ -34,13 +37,28 @@ namespace Mond.Compiler.Expressions.Statements
             context.PushScope();
 
             if (Initializer != null)
+            {
+                var hasCode = true;
+
+                if (Initializer.Statements.Count > 0)
+                {
+                    var initializerVar = Initializer.Statements[0] as VarExpression;
+                    if (initializerVar != null && initializerVar.Declarations.All(d => d.Initializer == null))
+                        hasCode = false;
+                }
+
+                if (hasCode)
+                    context.Statement(Initializer);
+
                 stack += Initializer.Compile(context);
+            }
 
             // loop body
             context.Bind(start);
 
             if (Condition != null)
             {
+                context.Statement(Condition);
                 stack += Condition.Compile(context);
                 stack += context.JumpFalse(end);
             }
@@ -62,7 +80,10 @@ namespace Mond.Compiler.Expressions.Statements
             loopContext.PopLoop();
 
             if (Increment != null)
+            {
+                context.Statement(Increment);
                 stack += Increment.Compile(context);
+            }
 
             stack += context.Jump(start);
 

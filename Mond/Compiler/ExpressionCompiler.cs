@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Mond.Compiler.Expressions;
-using Mond.VirtualMachine;
+using Mond.Debugger;
 
 namespace Mond.Compiler
 {
@@ -11,7 +11,7 @@ namespace Mond.Compiler
     {
         private readonly List<FunctionContext> _contexts;
         private int _labelIndex;
-        private List<Instruction> _instructions; 
+        private List<Instruction> _instructions;
 
         public readonly MondCompilerOptions Options;
 
@@ -22,7 +22,7 @@ namespace Mond.Compiler
 
         public int ScopeId;
         public int ScopeDepth;
-         
+
         public ExpressionCompiler(MondCompilerOptions options)
         {
             _contexts = new List<FunctionContext>();
@@ -39,13 +39,13 @@ namespace Mond.Compiler
             ScopeDepth = -1;
         }
 
-        public MondProgram Compile(Expression expression)
+        public MondProgram Compile(Expression expression, string debugSourceCode = null)
         {
             var context = new FunctionContext(this, 0, 0, null, null, null);
             RegisterFunction(context);
 
             context.Function(context.FullName);
-            context.Position(expression.FileName, 1, 1);
+            context.Position(new Token(null, Options.FirstLineNumber, 1, TokenType.Eof, null));
 
             context.PushScope();
             context.Enter();
@@ -56,7 +56,7 @@ namespace Mond.Compiler
 
             var length = PatchLabels();
             var bytecode = GenerateBytecode(length);
-            var debugInfo = GenerateDebugInfo();
+            var debugInfo = GenerateDebugInfo(expression.Token.FileName, debugSourceCode);
 
             return new MondProgram(bytecode, NumberPool.Items, StringPool.Items, debugInfo);
         }
@@ -89,10 +89,13 @@ namespace Mond.Compiler
             return bytecode;
         }
 
-        private DebugInfo GenerateDebugInfo()
+        private MondDebugInfo GenerateDebugInfo(string sourceFileName, string sourceCode)
         {
             if (Options.DebugInfo == MondDebugInfoLevel.None)
                 return null;
+
+            if (Options.DebugInfo <= MondDebugInfoLevel.StackTrace)
+                sourceCode = null;
 
             var prevName = -1;
 
@@ -101,7 +104,7 @@ namespace Mond.Compiler
                 .Select(i =>
                 {
                     var name = ((ConstantOperand<string>)i.Operands[0]).Id;
-                    return new DebugInfo.Function(i.Offset, name);
+                    return new MondDebugInfo.Function(i.Offset, name);
                 })
                 .Where(f =>
                 {
@@ -114,35 +117,55 @@ namespace Mond.Compiler
                 })
                 .ToList();
 
-            var prevFileName = -1;
             var prevLineNumber = -1;
             var prevColumnNumber = -1;
 
             var lines = AllInstructions()
-                 .Where(i => i.Type == InstructionType.Position)
-                 .Select(i =>
-                 {
-                     var fileName = ((ConstantOperand<string>)i.Operands[0]).Id;
-                     var line = ((ImmediateOperand)i.Operands[1]).Value;
-                     var column = ((ImmediateOperand)i.Operands[2]).Value;
+                .Where(i => i.Type == InstructionType.Position)
+                .Select(i =>
+                {
+                    var line = ((ImmediateOperand)i.Operands[0]).Value;
+                    var column = ((ImmediateOperand)i.Operands[1]).Value;
 
-                     return new DebugInfo.Position(i.Offset, fileName, line, column);
-                 })
-                 .Where(l =>
-                 {
-                     if (l.FileName == prevFileName && l.LineNumber == prevLineNumber && l.ColumnNumber == prevColumnNumber)
-                         return false;
+                    return new MondDebugInfo.Position(i.Offset, line, column);
+                })
+                .Where(l =>
+                {
+                    if (l.LineNumber == prevLineNumber && l.ColumnNumber == prevColumnNumber)
+                        return false;
 
-                     prevFileName = l.FileName;
-                     prevLineNumber = l.LineNumber;
-                     prevColumnNumber = l.ColumnNumber;
+                    prevLineNumber = l.LineNumber;
+                    prevColumnNumber = l.ColumnNumber;
 
-                     return true;
-                 })
-                 .ToList();
+                    return true;
+                })
+                .ToList();
 
             if (Options.DebugInfo <= MondDebugInfoLevel.StackTrace)
-                return new DebugInfo(functions, lines, null);
+                return new MondDebugInfo(sourceFileName, sourceCode, functions, lines, null, null);
+
+            var prevAddress = -1;
+
+            var statements = AllInstructions()
+                .Where(i => i.Type == InstructionType.Statement)
+                .Select(s =>
+                {
+                    var startLine = ((ImmediateOperand)s.Operands[0]).Value;
+                    var startColumn = ((ImmediateOperand)s.Operands[1]).Value;
+                    var endLine = ((ImmediateOperand)s.Operands[2]).Value;
+                    var endColumn = ((ImmediateOperand)s.Operands[3]).Value;
+
+                    return new MondDebugInfo.Statement(s.Offset, startLine, startColumn, endLine, endColumn);
+                })
+                .Where(s =>
+                {
+                    if (s.Address == prevAddress)
+                        return false;
+
+                    prevAddress = s.Address;
+                    return true;
+                })
+                .ToList();
 
             var scopes = AllInstructions()
                 .Where(i => i.Type == InstructionType.Scope)
@@ -152,22 +175,22 @@ namespace Mond.Compiler
                     var depth = ((ImmediateOperand)s.Operands[1]).Value;
                     var parentId = ((ImmediateOperand)s.Operands[2]).Value;
                     var start = ((LabelOperand)s.Operands[3]).Position;
-                    var end = ((LabelOperand)s.Operands[4]).Position;
+                    var end = ((LabelOperand)s.Operands[4]).Position - 1;
                     var identOperands = ((DeferredOperand<ListOperand<DebugIdentifierOperand>>)s.Operands[5]).Value.Operands;
 
                     if (!start.HasValue || !end.HasValue)
                         throw new Exception("scope labels not bound");
 
                     var identifiers = identOperands
-                        .Select(i => new DebugInfo.Identifier(i.Name.Id, i.IsReadOnly, i.FrameIndex, i.Id))
+                        .Select(i => new MondDebugInfo.Identifier(i.Name.Id, i.IsReadOnly, i.FrameIndex, i.Id))
                         .ToList();
 
-                    return new DebugInfo.Scope(id, depth, parentId, start.Value, end.Value, identifiers);
+                    return new MondDebugInfo.Scope(id, depth, parentId, start.Value, end.Value, identifiers);
                 })
                 .OrderBy(s => s.Id)
                 .ToList();
 
-            return new DebugInfo(functions, lines, scopes);
+            return new MondDebugInfo(sourceFileName, sourceCode, functions, lines, statements, scopes);
         }
 
         private IEnumerable<Instruction> AllInstructions()

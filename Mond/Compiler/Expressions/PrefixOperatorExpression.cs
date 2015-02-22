@@ -8,7 +8,7 @@ namespace Mond.Compiler.Expressions
         public Expression Right { get; private set; }
 
         public PrefixOperatorExpression(Token token, Expression right)
-            : base(token.FileName, token.Line, token.Column)
+            : base(token)
         {
             Operation = token.Type;
             Right = right;
@@ -26,7 +26,7 @@ namespace Mond.Compiler.Expressions
                     stack += Right.Compile(context);
                     stack += context.Load(context.Number(1));
 
-                    context.Position(FileName, Line, Column); // debug info
+                    context.Position(Token); // debug info
                     stack += context.BinaryOperation(TokenType.Add);
                     isAssignment = true;
                     break;
@@ -35,7 +35,7 @@ namespace Mond.Compiler.Expressions
                     stack += Right.Compile(context);
                     stack += context.Load(context.Number(1));
 
-                    context.Position(FileName, Line, Column); // debug info
+                    context.Position(Token); // debug info
                     stack += context.BinaryOperation(TokenType.Subtract);
                     isAssignment = true;
                     break;
@@ -45,7 +45,7 @@ namespace Mond.Compiler.Expressions
                 case TokenType.BitNot:
                     stack += Right.Compile(context);
 
-                    context.Position(FileName, Line, Column); // debug info
+                    context.Position(Token); // debug info
                     stack += context.UnaryOperation(Operation);
                     break;
 
@@ -79,7 +79,7 @@ namespace Mond.Compiler.Expressions
                 var number = Right as NumberExpression;
                 if (number != null)
                 {
-                    var token = new Token(Right.FileName, Right.Line, Right.Column, TokenType.Number, null);
+                    var token = new Token(Right.Token, TokenType.Number, null);
                     return new NumberExpression(token, -number.Value);
                 }
             }
@@ -89,7 +89,7 @@ namespace Mond.Compiler.Expressions
                 var number = Right as NumberExpression;
                 if (number != null)
                 {
-                    var token = new Token(Right.FileName, Right.Line, Right.Column, TokenType.Number, null);
+                    var token = new Token(Right.Token, TokenType.Number, null);
                     return new NumberExpression(token, ~((int)number.Value));
                 }
             }

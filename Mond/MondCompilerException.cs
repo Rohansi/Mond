@@ -22,7 +22,7 @@ namespace Mond
 
         [StringFormatMethod("format")]
         internal MondCompilerException(Expression expression, string format, params object[] args)
-            : this(expression.FileName, expression.Line, expression.Column, format, args)
+            : this(expression.Token.FileName, expression.Token.Line, expression.Token.Column, format, args)
         {
 
         }

@@ -3,14 +3,14 @@
     class UndefinedExpression : Expression, IConstantExpression
     {
         public UndefinedExpression(Token token)
-            : base(token.FileName, token.Line, token.Column)
+            : base(token)
         {
             
         }
 
         public override int Compile(FunctionContext context)
         {
-            context.Position(FileName, Line, Column);
+            context.Position(Token);
 
             return context.LoadUndefined();
         }

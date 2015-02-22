@@ -1,4 +1,6 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Runtime.CompilerServices;
+using Mond.Debugger;
 using Mond.VirtualMachine;
 
 [assembly:InternalsVisibleTo("Mond.Tests")]
@@ -21,6 +23,21 @@ namespace Mond
         {
             get { return _machine.Global[index]; }
             set { _machine.Global[index] = value; }
+        }
+
+        public MondDebugger Debugger
+        {
+            get { return _machine.Debugger; }
+            set
+            {
+                if (_machine.Debugger != null)
+                    _machine.Debugger.Detach();
+
+                if (!value.TryAttach())
+                    throw new InvalidOperationException("Debuggers cannot be attached to more than one state at a time");
+
+                _machine.Debugger = value;
+            }
         }
 
         public MondValue Load(MondProgram program)

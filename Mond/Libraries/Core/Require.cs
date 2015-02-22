@@ -65,6 +65,14 @@ namespace Mond.Libraries.Core
                     FirstLineNumber = -1
                 };
 
+                var requireOptions = _require.Options;
+                if (requireOptions != null)
+                {
+                    options.DebugInfo = requireOptions.DebugInfo;
+                    options.MakeRootDeclarationsGlobal = requireOptions.MakeRootDeclarationsGlobal;
+                    options.UseImplicitGlobals = requireOptions.UseImplicitGlobals;
+                }
+
                 var program = MondProgram.Compile(source, fileName, options);
                 var initializer = state.Load(program);
 

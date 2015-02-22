@@ -5,15 +5,14 @@
         public double Value { get; private set; }
 
         public NumberExpression(Token token, double value)
-            : base(token.FileName, token.Line, token.Column)
+            : base(token)
         {
             Value = value;
         }
 
         public override int Compile(FunctionContext context)
         {
-            context.Position(FileName, Line, Column);
-
+            context.Position(Token);
             return context.Load(context.Number(Value));
         }
 
