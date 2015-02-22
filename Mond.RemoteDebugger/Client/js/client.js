@@ -36,6 +36,9 @@ connectBtn.click(function () {
 
                 switchRunningState(obj);
 
+                if (obj.Running)
+                    switchToTab(0);
+
                 if (obj.Watches)
                     updateWatches(obj.Watches);
 

@@ -123,7 +123,7 @@ namespace Mond.VirtualMachine
                             (shouldStopAtStmt && program.DebugInfo != null && program.DebugInfo.IsStatementStart(ip));
 
                         if (!skip && shouldBreak)
-                            DebuggerBreak(program, locals, ip, initialCallDepth);
+                            DebuggerBreak(program, locals, args, ip, initialCallDepth);
                     }
 
                     errorIp = ip;
@@ -758,7 +758,7 @@ namespace Mond.VirtualMachine
                                     return Pop();
 
                                 if (Debugger != null && DebuggerCheckReturn())
-                                    DebuggerBreak(program, locals, ip, initialCallDepth);
+                                    DebuggerBreak(program, locals, args, ip, initialCallDepth);
 
                                 break;
                             }
@@ -858,7 +858,7 @@ namespace Mond.VirtualMachine
                                 if (Debugger == null)
                                     break;
 
-                                DebuggerBreak(program, locals, ip, initialCallDepth);
+                                DebuggerBreak(program, locals, args, ip, initialCallDepth);
 
                                 // we stop for the statement *after* the debugger statement so we
                                 // skip the next break opportunity, otherwise we break twice
@@ -1015,10 +1015,10 @@ namespace Mond.VirtualMachine
             return false;
         }
 
-        private void DebuggerBreak(MondProgram program, Frame locals, int address, int initialCallDepth)
+        private void DebuggerBreak(MondProgram program, Frame locals,  Frame args, int address, int initialCallDepth)
         {
             var context = new MondDebugContext(
-                program, program.DebugInfo, address, Global, locals, _callStack, _callStackSize, initialCallDepth);
+                program, program.DebugInfo, address, Global, locals, args, _callStack, _callStackSize, initialCallDepth);
 
             _debugAction = Debugger.Break(context, address);
             _debugAlign = false;

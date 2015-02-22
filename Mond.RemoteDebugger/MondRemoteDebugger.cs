@@ -95,6 +95,10 @@ namespace Mond.RemoteDebugger
             if (_watchSemaphore.CurrentCount == 0)
                 return MondDebugAction.Run;
 
+            // if missing debug info, leave the function
+            if (IsMissingDebugInfo(context.DebugInfo))
+                return MondDebugAction.StepOut;
+
             lock (_sync)
             {
                 if (_breaker != null)
@@ -103,10 +107,6 @@ namespace Mond.RemoteDebugger
                 _context = context;
                 _breaker = new TaskCompletionSource<MondDebugAction>();
             }
-
-            // if missing debug info, leave the function
-            if (IsMissingDebugInfo(context.DebugInfo))
-                return MondDebugAction.StepOut;
 
             // keep track of program instances
             VisitProgram(context);

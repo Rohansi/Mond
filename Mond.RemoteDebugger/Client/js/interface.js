@@ -56,8 +56,10 @@ function switchState(newState) {
 function switchRunningState(obj) {
     switchState(obj.Running ? "running" : "break");
 
-    if (obj.Running)
+    if (obj.Running) {
+        highlightSourceBackground(0, -1, -1, -1, -1);
         return;
+    }
 
     highlightSourceBackground(obj.Id, obj.StartLine, obj.StartColumn, obj.EndLine, obj.EndColumn);
     switchToTab(obj.Id);
@@ -88,7 +90,7 @@ function generateSourceHtml(id, firstLine, code) {
     backgroundHtml += "</ol>";
     sourceHtml += "</ol>";
 
-    var html = "<div data-id='" + id + "' start='" + firstLine + "'>";
+    var html = "<div data-id='" + id + "'>";
 
     html += backgroundHtml;
     html += sourceHtml;
@@ -143,7 +145,8 @@ function switchToTab(id) {
 function scrollToLine(line) {
     var sourceDiv = sourceView.find("> div").filter(":visible");
     var sourceList = sourceDiv.find("> ol.source");
-    var lineElem = sourceList.children()[line];
+    var firstLine = sourceList.attr("start") | 0;
+    var lineElem = sourceList.children()[line - firstLine];
 
     lineElem.scrollIntoViewIfNeeded();
 }

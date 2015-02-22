@@ -9,6 +9,7 @@ namespace Mond.Debugger
         private readonly int _address;
         private readonly MondValue _globals;
         private readonly Frame _locals;
+        private readonly Frame _args;
 
         public readonly MondProgram Program;
         public readonly MondDebugInfo DebugInfo;
@@ -17,12 +18,13 @@ namespace Mond.Debugger
 
         internal MondDebugContext(
             MondProgram program, MondDebugInfo debugInfo, int address,
-            MondValue globals, Frame locals,
+            MondValue globals, Frame locals, Frame args,
             ReturnAddress[] callStack,  int callStackTop, int callStackBottom)
         {
             _address = address;
             _globals = globals;
             _locals = locals;
+            _args = args;
 
             Program = program;
             DebugInfo = debugInfo;
@@ -55,7 +57,11 @@ namespace Mond.Debugger
                     if (Program.Strings[ident.Name] != name)
                         continue;
 
-                    value = _locals.Get(ident.FrameIndex, ident.Id);
+                    if (ident.FrameIndex >= 0)
+                        value = _locals.Get(ident.FrameIndex, ident.Id);
+                    else
+                        value = _args.Get(-ident.FrameIndex, ident.Id);
+
                     return true;
                 }
 
