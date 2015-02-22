@@ -34,7 +34,7 @@ namespace Mond.Debugger
         {
             value = null;
 
-            if (string.IsNullOrWhiteSpace(name) || DebugInfo == null || DebugInfo.Scopes == null)
+            if (string.IsNullOrWhiteSpace(name) || DebugInfo == null || DebugInfo.Scopes == null || _locals == null)
                 return false;
 
             var scope = DebugInfo.FindScope(_address);

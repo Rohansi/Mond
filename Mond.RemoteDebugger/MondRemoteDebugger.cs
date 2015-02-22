@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using Mond.Debugger;
 using Newtonsoft.Json;
@@ -19,6 +20,8 @@ namespace Mond.RemoteDebugger
         private List<ProgramInfo> _programs;
         private int _watchId;
         private List<Watch> _watches;
+        private SemaphoreSlim _watchSemaphore;
+        private bool _watchTimedOut;
 
         private MondDebugContext _context;
         private TaskCompletionSource<MondDebugAction> _breaker;
@@ -59,6 +62,8 @@ namespace Mond.RemoteDebugger
             _programs = new List<ProgramInfo>();
             _watchId = 0;
             _watches = new List<Watch>();
+            _watchSemaphore = new SemaphoreSlim(1);
+            _watchTimedOut = false;
 
             _breaker = null;
         }
@@ -81,12 +86,22 @@ namespace Mond.RemoteDebugger
 
         protected override MondDebugAction OnBreak(MondDebugContext context, int address)
         {
+            if (_watchTimedOut)
+            {
+                _watchTimedOut = false;
+                throw new MondRuntimeException("Execution timed out");
+            }
+
+            if (_watchSemaphore.CurrentCount == 0)
+                return MondDebugAction.Run;
+
             lock (_sync)
             {
                 if (_breaker != null)
                     throw new InvalidOperationException("Debugger hit breakpoint while waiting on another");
 
                 _context = context;
+                _breaker = new TaskCompletionSource<MondDebugAction>();
             }
 
             // if missing debug info, leave the function
@@ -100,23 +115,12 @@ namespace Mond.RemoteDebugger
             UpdateState(context, address);
 
             // block until an action is set
-            return WaitForAction(context);
+            return WaitForAction();
         }
 
-        private MondDebugAction WaitForAction(MondDebugContext context)
+        private MondDebugAction WaitForAction()
         {
-            TaskCompletionSource<MondDebugAction> breaker;
-
-            lock (_sync)
-            {
-                if (_breaker != null)
-                    throw new InvalidOperationException("Debugger hit breakpoint while waiting on another");
-
-                _context = context;
-                _breaker = breaker = new TaskCompletionSource<MondDebugAction>();
-            }
-
-            var result = breaker.Task.Result;
+            var result = _breaker.Task.Result;
 
             lock (_sync)
             {
@@ -218,7 +222,7 @@ namespace Mond.RemoteDebugger
                 _watches.Add(watch);
             }
 
-            watch.Refresh(_context);
+            RefreshWatch(_context, watch);
 
             Broadcast(new
             {
@@ -244,6 +248,31 @@ namespace Mond.RemoteDebugger
                 Type = "RemovedWatch",
                 Id = id
             });
+        }
+
+        private void RefreshWatch(MondDebugContext context, Watch watch)
+        {
+            _watchSemaphore.Wait();
+
+            try
+            {
+                var timer = new Timer(state =>
+                {
+                    _watchTimedOut = true;
+                    IsBreakRequested = true;
+                });
+
+                _watchTimedOut = false;
+                timer.Change(500, -1);
+
+                watch.Refresh(context);
+
+                timer.Change(-1, -1);
+            }
+            finally
+            {
+                _watchSemaphore.Release();
+            }
         }
 
         private void UpdateState(MondDebugContext context, int address)
@@ -277,7 +306,7 @@ namespace Mond.RemoteDebugger
 
             foreach (var watch in watches)
             {
-                watch.Refresh(context);
+                RefreshWatch(_context, watch);
             }
 
             // apply new state and broadcast it

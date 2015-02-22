@@ -1,4 +1,5 @@
-﻿using Mond.Debugger;
+﻿using System;
+using Mond.Debugger;
 
 namespace Mond.RemoteDebugger
 {
@@ -35,7 +36,14 @@ namespace Mond.RemoteDebugger
                 return;
             }
 
-            _value = value.Serialize();
+            try
+            {
+                _value = value.Serialize();
+            }
+            catch (Exception e)
+            {
+                _value = e.Message;
+            }
         }
     }
 }

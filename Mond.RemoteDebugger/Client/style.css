@@ -219,9 +219,11 @@ ol {
     word-wrap: break-word;
 }
 
-#watch-list tr > :last-child {
+#watch-list tr:not(:last-child):not(:first-child) > :last-child {
     -ms-word-wrap: break-word;
     word-wrap: break-word;
+    font-family: monospace;
+    white-space: pre-wrap;
 }
 
 #watch-list tr.watch a {
