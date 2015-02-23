@@ -99,11 +99,12 @@ namespace Mond.Debugger
                 if (!TryGetLocalAccessor(name, out getter, out setter))
                     throw new MondRuntimeException("`{0}` is not defined", name);
 
+                if (setter == null)
+                    throw new MondRuntimeException("`{0}` is read-only", name);
+
                 setter(value);
                 return value;
             });
-
-            obj.Lock();
 
             return obj;
         }
@@ -147,6 +148,9 @@ namespace Mond.Debugger
                         getter = () => _args.Get(-frameIndex, localId);
                         setter = value => _args.Set(-frameIndex, localId, value);
                     }
+
+                    if (ident.IsReadOnly)
+                        setter = null;
 
                     return true;
                 }
