@@ -5,45 +5,39 @@
 * [prototype-based inheritance](https://github.com/Rohansi/Mond/wiki/Prototypes)
 * [metamethods](https://github.com/Rohansi/Mond/wiki/Metamethods)
 * [simple embedding](https://github.com/Rohansi/Mond/wiki/Basic-Usage) with a [great binding API](https://github.com/Rohansi/Mond/wiki/Binding-API)
+* and a [useful debugger](https://github.com/Rohansi/Mond/wiki/Debugging)
 
 [Try it in your browser!](https://fpp.literallybrian.com/mond/)
 
 ### Example
 ```
-seq range(start, end) {
-    for (var i = start; i <= end; i++)
-        yield i;
-}
+const Seq = require("Seq.mnd");
 
-seq where(list, filter) {
-    foreach (var x in list) {
-        if (filter(x))
-            yield x;
-    }
-}
+const randomApi =
+    "https://www.random.org/decimal-fractions/?num=1&dec=9&col=1&format=plain";
 
-seq select(list, transform) {
-    foreach (var x in list)
-        yield transform(x);
-}
+Async.start(seq() {
+    var numberTasks = Seq.range(0, 10)
+        |> Seq.select(() -> Http.get(randomApi))
+        |> Seq.toArray();
 
-fun toArray(list) {
-    var array = [];
-    foreach (var value in list) {
-        array.add(value);
-    }
-    return array;
-}
+    var numbers = yield Task.whenAll(numberTasks);
 
-return range(0, 1000)
-       |> where(x -> x % 2 == 0)
-       |> select(x -> x / 2)
-       |> toArray();
+    var total = numbers
+        |> Seq.select(s -> Json.deserialize(s))
+        |> Seq.aggregate(0, (acc, n) -> acc + n);
+        
+    printLn("average = {0}".format(total / 10));
+});
+
+Async.runToCompletion();
 ```
 
 ### Documentation
 Please check the [wiki](https://github.com/Rohansi/Mond/wiki) for documentation. If you have any questions, try asking someone on [Gitter](https://gitter.im/Rohansi/Mond).
 
+
+### Build Status
 | .NET | Mono |
 |------|------|
 | [![Build status](https://ci.appveyor.com/api/projects/status/di5tqqt73bu6aire)](https://ci.appveyor.com/project/Rohansi/mond) | [![Build Status](https://travis-ci.org/Rohansi/Mond.svg?branch=master)](https://travis-ci.org/Rohansi/Mond)
