@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using Mond.Debugger;
+using Mond.Libraries;
 using Mond.VirtualMachine;
 
-[assembly:InternalsVisibleTo("Mond.Tests")]
+[assembly: InternalsVisibleTo("Mond.Tests")]
 
 namespace Mond
 {
@@ -12,19 +13,46 @@ namespace Mond
 
     public class MondState
     {
-        private Machine _machine;
+        private readonly Machine _machine;
+        private MondLibraryManager _libraries;
+        private bool _librariesLoaded;
 
         public MondState()
         {
             _machine = new Machine(this);
+            _librariesLoaded = false;
+
+            Options = new MondCompilerOptions();
+
+            Libraries = new MondLibraryManager
+            {
+                new StandardLibraries()
+            };
         }
 
-        public MondValue this[MondValue index]
+        /// <summary>
+        /// Gets or sets the options to use when compiling scripts with <c>Run</c>.
+        /// </summary>
+        public MondCompilerOptions Options { get; set; }
+
+        /// <summary>
+        /// Gets or sets the libraries to load into the state.
+        /// </summary>
+        public MondLibraryManager Libraries
         {
-            get { return _machine.Global[index]; }
-            set { _machine.Global[index] = value; }
+            get { return _libraries; }
+            set
+            {
+                if (_librariesLoaded)
+                    throw new InvalidOperationException("Libraries have already been loaded");
+
+                _libraries = value;
+            }
         }
 
+        /// <summary>
+        /// Gets or sets the debugger that is currently attached to the state.
+        /// </summary>
         public MondDebugger Debugger
         {
             get { return _machine.Debugger; }
@@ -40,14 +68,65 @@ namespace Mond
             }
         }
 
+        /// <summary>
+        /// Gets or sets global values in the state.
+        /// </summary>
+        public MondValue this[MondValue index]
+        {
+            get { return _machine.Global[index]; }
+            set { _machine.Global[index] = value; }
+        }
+
+        /// <summary>
+        /// Compiles and runs a Mond script from source code.
+        /// </summary>
+        public MondValue Run(string sourceCode, string fileName = null)
+        {
+            EnsureLibrariesLoaded();
+
+            if (Libraries != null)
+            {
+                Options.FirstLineNumber = 0;
+                sourceCode = Libraries.Definitions + sourceCode;
+            }
+
+            var program = MondProgram.Compile(sourceCode, fileName, Options);
+
+            return Load(program);
+        }
+
+        /// <summary>
+        /// Runs a precompiled Mond script.
+        /// </summary>
         public MondValue Load(MondProgram program)
         {
+            EnsureLibrariesLoaded();
+
             return _machine.Load(program);
         }
 
+        /// <summary>
+        /// Calls a Mond function.
+        /// </summary>
         public MondValue Call(MondValue function, params MondValue[] arguments)
         {
             return _machine.Call(function, arguments);
+        }
+
+        private void EnsureLibrariesLoaded()
+        {
+            if (Libraries == null || _librariesLoaded)
+                return;
+
+            Libraries.Load(this, libs =>
+            {
+                var requireLib = libs.Get<RequireLibrary>();
+
+                if (requireLib != null)
+                    requireLib.Options = Options;
+            });
+
+            _librariesLoaded = true;
         }
     }
 }

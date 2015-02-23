@@ -9,15 +9,8 @@ namespace Mond.Repl
 {
     class Program
     {
-        private static MondLibraryManager _libraries;
-
         static void Main(string[] args)
         {
-            _libraries = new MondLibraryManager
-            {
-                new StandardLibraries()
-            };
-
             var fileName = args.FirstOrDefault(s => s.Length > 0 && s[0] != '-');
 
             if (fileName != null)
@@ -49,7 +42,6 @@ namespace Mond.Repl
         static void ScriptMain(TextReader input, string fileName)
         {
             var state = new MondState();
-            _libraries.Load(state);
 
             string source;
 
@@ -66,13 +58,7 @@ namespace Mond.Repl
 
             try
             {
-                var options = new MondCompilerOptions
-                {
-                    FirstLineNumber = 0
-                };
-
-                var program = MondProgram.Compile(_libraries.Definitions + source, Path.GetFileName(fileName), options);
-                var result = state.Load(program);
+                var result = state.Run(source, Path.GetFileName(fileName));
 
                 if (result == MondValue.Undefined)
                     return;
@@ -110,14 +96,19 @@ namespace Mond.Repl
             _input = new Queue<char>();
             _first = true;
 
+            var libraries = new MondLibraryManager
+            {
+                new StandardLibraries()
+            };
+
             var state = new MondState();
             var options = new MondCompilerOptions
             {
                 MakeRootDeclarationsGlobal = true,
                 UseImplicitGlobals = true
             };
-            
-            _libraries.Load(state);
+
+            libraries.Load(state);
 
             while (true)
             {

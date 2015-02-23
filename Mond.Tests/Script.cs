@@ -32,14 +32,6 @@ namespace Mond.Tests
             return state.Load(program);
         }
 
-        public static MondValue Run(this MondState state, string source)
-        {
-            Libraries.Load(state);
-
-            var program = MondProgram.Compile(Libraries.Definitions + source, null, Options);
-            return state.Load(program);
-        }
-
         public static MondState Load(params string[] sources)
         {
             var state = new MondState();

@@ -24,7 +24,8 @@ namespace Mond.Libraries
         }
 
         /// <summary>
-        /// Gets the definition string for the libraries
+        /// Gets the definition string for the libraries. Will only be
+        /// set after the first call to <c>Load</c>.
         /// </summary>
         public string Definitions { get; private set; }
 
