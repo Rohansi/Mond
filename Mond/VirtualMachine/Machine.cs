@@ -873,8 +873,6 @@ namespace Mond.VirtualMachine
             }
             catch (Exception e)
             {
-                var errorBuilder = new StringBuilder();
-
                 var message = e.Message.Trim();
 
                 if (e is IndexOutOfRangeException)
@@ -889,25 +887,26 @@ namespace Mond.VirtualMachine
                     }
                 }
 
-                errorBuilder.AppendLine(message);
+                StringBuilder stackTraceBuilder;
 
                 var runtimeException = e as MondRuntimeException;
-                if (runtimeException != null && runtimeException.HasStackTrace)
+                if (runtimeException != null && runtimeException.InternalStackTrace != null)
                 {
-                    errorBuilder.AppendLine("[... native ...]");
+                    stackTraceBuilder = new StringBuilder(runtimeException.InternalStackTrace);
+                    stackTraceBuilder.AppendLine("[... native ...]");
                 }
                 else
                 {
-                    errorBuilder.AppendLine();
+                    stackTraceBuilder = new StringBuilder();
                 }
 
-                errorBuilder.AppendLine(GetAddressDebugInfo(program, errorIp));
+                stackTraceBuilder.AppendLine(GetAddressDebugInfo(program, errorIp));
 
                 // generate stack trace and reset stacks
                 for (var i = Math.Min(_callStackSize - 1, CallStackCapacity - 1); i > initialCallDepth; i--)
                 {
                     var returnAddress = _callStack[i];
-                    errorBuilder.AppendLine(GetAddressDebugInfo(returnAddress.Program, returnAddress.Address));
+                    stackTraceBuilder.AppendLine(GetAddressDebugInfo(returnAddress.Program, returnAddress.Address));
                 }
 
                 _callStackSize = initialCallDepth;
@@ -928,7 +927,10 @@ namespace Mond.VirtualMachine
                     _evalStack[i] = default(MondValue);
                 }
 
-                throw new MondRuntimeException(errorBuilder.ToString(), e, true);
+                throw new MondRuntimeException(message, e, true)
+                {
+                    InternalStackTrace = stackTraceBuilder.ToString()
+                };
             }
         }
 

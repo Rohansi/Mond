@@ -5,31 +5,44 @@ namespace Mond
 {
     public class MondRuntimeException : MondException
     {
-        public bool HasStackTrace { get; internal set; }
+        internal string InternalStackTrace;
+
+        public override string StackTrace
+        {
+            get { return InternalStackTrace; }
+        }
 
         public MondRuntimeException(string message)
             : base(message)
         {
-            HasStackTrace = false;
+
         }
 
         public MondRuntimeException(string message, Exception innerException)
             : base(message, innerException)
         {
-            HasStackTrace = false;
+
         }
 
         [StringFormatMethod("format")]
         public MondRuntimeException(string format, params object[] args)
             : base(string.Format(format, args))
         {
-            HasStackTrace = false;
+
         }
 
         internal MondRuntimeException(string message, Exception innerException, bool hasStackTrace)
             : base(message, innerException)
         {
-            HasStackTrace = hasStackTrace;
+
+        }
+
+        public override string ToString()
+        {
+            if (StackTrace == null)
+                return Message;
+
+            return Message + Environment.NewLine + StackTrace;
         }
     }
 }

@@ -217,12 +217,20 @@ namespace Mond.Repl
         static void PrintException(Exception e)
         {
             string message = e is MondException ? e.Message : e.ToString();
+            string stackTrace = null;
+
+            var runtimeException = e as MondRuntimeException;
+            if (runtimeException != null)
+                stackTrace = runtimeException.StackTrace;
 
             Console.WriteLine();
             Console.WriteLine(message);
 
             if (!message.EndsWith("\n"))
                 Console.WriteLine();
+
+            if (stackTrace != null)
+                Console.WriteLine(stackTrace);
 
             _first = true;
             _input.Clear();

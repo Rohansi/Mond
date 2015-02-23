@@ -100,14 +100,14 @@ namespace Mond.Tests.Expressions
             Assert.True(obj["seq456"].Type == MondValueType.Function);
 
             var funEx = Assert.Throws<MondRuntimeException>(() => state.Call(obj["fun123"]));
-            Assert.True(funEx.Message.Contains("fun123"));
+            Assert.True(funEx.ToString().Contains("fun123"));
 
             var seqEx = Assert.Throws<MondRuntimeException>(() =>
             {
                 var enumerator = state.Call(obj["seq456"]);
                 state.Call(enumerator["moveNext"]);
             });
-            Assert.True(seqEx.Message.Contains("seq456"));
+            Assert.True(seqEx.ToString().Contains("seq456"));
         }
     }
 }
