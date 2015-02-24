@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<package>
+  <metadata>
+    <id>$id$</id>
+    <version>0.1.0-pre</version>
+    <title>$title$</title>
+    <authors>Rohans</authors>
+    <licenseUrl>https://raw.githubusercontent.com/Rohansi/Mond/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/Rohansi/Mond</projectUrl>
+    <iconUrl>http://i.imgur.com/zbqVSaz.png</iconUrl>
+    <description>A scripting language for C# .NET/Mono.</description>
+    <tags>Mond Scripting</tags>
+  </metadata>
+</package>

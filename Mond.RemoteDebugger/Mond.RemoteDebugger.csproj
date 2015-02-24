@@ -56,20 +56,20 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Client\js\client.js" />
-    <Content Include="Client\img\break.png" />
-    <Content Include="Client\img\connect.png" />
-    <Content Include="Client\img\continue.png" />
-    <Content Include="Client\img\disconnect.png" />
-    <Content Include="Client\img\step-in.png" />
-    <Content Include="Client\img\step-out.png" />
-    <Content Include="Client\img\step-over.png" />
-    <Content Include="Client\index.htm" />
-    <Content Include="Client\js\interface.js" />
-    <Content Include="Client\js\highlight.js" />
-    <Content Include="Client\style.css" />
-    <Content Include="Client\js\jquery-2.1.3.intellisense.js" />
-    <Content Include="Client\js\jquery-2.1.3.min.js" />
+    <Content Include="DebuggerClient\js\client.js" />
+    <Content Include="DebuggerClient\img\break.png" />
+    <Content Include="DebuggerClient\img\connect.png" />
+    <Content Include="DebuggerClient\img\continue.png" />
+    <Content Include="DebuggerClient\img\disconnect.png" />
+    <Content Include="DebuggerClient\img\step-in.png" />
+    <Content Include="DebuggerClient\img\step-out.png" />
+    <Content Include="DebuggerClient\img\step-over.png" />
+    <Content Include="DebuggerClient\index.htm" />
+    <Content Include="DebuggerClient\js\interface.js" />
+    <Content Include="DebuggerClient\js\highlight.js" />
+    <Content Include="DebuggerClient\style.css" />
+    <None Include="DebuggerClient\js\jquery-2.1.3.intellisense.js" />
+    <Content Include="DebuggerClient\js\jquery-2.1.3.min.js" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup />
