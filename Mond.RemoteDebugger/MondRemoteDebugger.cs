@@ -354,6 +354,7 @@ namespace Mond.RemoteDebugger
             var debugInfo = context.DebugInfo;
 
             int id;
+            ProgramInfo programInfo;
 
             lock (_sync)
             {
@@ -363,17 +364,19 @@ namespace Mond.RemoteDebugger
                 _seenPrograms.Add(program);
 
                 id = _programs.Count;
-                _programs.Add(new ProgramInfo(program, debugInfo));
+                programInfo = new ProgramInfo(program, debugInfo);
+
+                _programs.Add(programInfo);
             }
 
             Broadcast(new
             {
                 Type = "NewProgram",
                 Id = id,
-                FileName = debugInfo.FileName,
+                FileName = programInfo.FileName,
                 SourceCode = debugInfo.SourceCode,
                 FirstLine = Utility.FirstLineNumber(debugInfo),
-                Breakpoints = _programs[id].Breakpoints
+                Breakpoints = programInfo.Breakpoints
             });
         }
 
@@ -387,7 +390,6 @@ namespace Mond.RemoteDebugger
         {
             return
                 debugInfo == null ||
-                debugInfo.FileName == null ||
                 debugInfo.SourceCode == null ||
                 debugInfo.Functions == null ||
                 debugInfo.Lines == null ||

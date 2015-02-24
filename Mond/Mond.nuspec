@@ -2,7 +2,7 @@
 <package>
   <metadata>
     <id>$id$</id>
-    <version>0.1.0-pre</version>
+    <version>0.1.1-pre</version>
     <title>$title$</title>
     <authors>Rohans</authors>
     <licenseUrl>https://raw.githubusercontent.com/Rohansi/Mond/master/LICENSE</licenseUrl>

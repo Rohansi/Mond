@@ -8,8 +8,9 @@ namespace Mond.RemoteDebugger
     internal class ProgramInfo
     {
         private readonly object _sync = new object();
-        private readonly List<int> _breakpoints; 
+        private readonly List<int> _breakpoints;
 
+        public readonly string FileName;
         public readonly MondProgram Program;
         public readonly MondDebugInfo DebugInfo;
 
@@ -28,6 +29,8 @@ namespace Mond.RemoteDebugger
 
             Program = program;
             DebugInfo = debugInfo;
+
+            FileName = debugInfo.FileName ?? Program.GetHashCode().ToString("X8");
         }
 
         public void AddBreakpoint(int line)

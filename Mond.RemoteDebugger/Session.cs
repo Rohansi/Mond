@@ -33,7 +33,7 @@ namespace Mond.RemoteDebugger
                 Type = "InitialState",
                 Programs = programs.Select(t => new
                 {
-                    FileName = t.DebugInfo.FileName,
+                    FileName = t.FileName,
                     SourceCode = t.DebugInfo.SourceCode,
                     FirstLine = Utility.FirstLineNumber(t.DebugInfo),
                     Breakpoints = t.Breakpoints

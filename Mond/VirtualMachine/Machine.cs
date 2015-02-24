@@ -1047,7 +1047,7 @@ namespace Mond.VirtualMachine
                 {
                     var prefix = "";
                     var funcName = program.Strings[func.Value.Name];
-                    var fileName = program.DebugInfo.FileName;
+                    var fileName = program.DebugInfo.FileName ?? program.GetHashCode().ToString("X8");
 
                     if (!string.IsNullOrEmpty(funcName))
                         prefix = string.Format("at {0} ", funcName);
