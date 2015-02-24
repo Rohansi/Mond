@@ -37,6 +37,12 @@ namespace Mond.RemoteDebugger
             _server.Start();
         }
 
+        public MondRemoteDebugger(IPAddress address, int port)
+            : this(new IPEndPoint(address, port))
+        {
+            
+        }
+
         public void RequestBreak()
         {
             IsBreakRequested = true;
