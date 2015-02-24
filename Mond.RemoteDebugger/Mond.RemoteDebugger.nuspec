@@ -2,7 +2,7 @@
 <package>
   <metadata>
     <id>$id$</id>
-    <version>0.1.1-pre</version>
+    <version>0.1.2-pre</version>
     <title>$title$</title>
     <authors>Rohans</authors>
     <licenseUrl>https://raw.githubusercontent.com/Rohansi/Mond/master/LICENSE</licenseUrl>
@@ -11,7 +11,7 @@
     <description>A remote debugger for Mond scripts.</description>
     <tags>Mond Scripting Debugger</tags>
     <dependencies>
-      <dependency id="Mond" version="0.1.1-pre" />
+      <dependency id="Mond" version="0.1.2-pre" />
     </dependencies>
   </metadata>
 </package>
