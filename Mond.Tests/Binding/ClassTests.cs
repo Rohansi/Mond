@@ -14,11 +14,9 @@ namespace Mond.Tests.Binding
             _state = new MondState();
             _state["Person"] = MondClassBinder.Bind<Person>();
 
-            var program = MondProgram.Compile(@"
+            _state.Run(@"
                 global.brian = global.Person('Brian');
             ");
-
-            _state.Load(program);
         }
 
         [Test]

@@ -363,8 +363,8 @@ namespace Mond.Tests
         {
             var array = new MondValue(MondValueType.Array);
 
-            array.ArrayValue.Add("test");
-            array.ArrayValue.Add(123);
+            array.Array.Add("test");
+            array.Array.Add(123);
 
             Assert.True(array[0] == "test");
             Assert.True(array[1] == 123);

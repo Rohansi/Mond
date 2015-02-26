@@ -14,7 +14,7 @@ namespace Mond.Tests.Expressions
             ");
 
             Assert.AreEqual(empty.Type, MondValueType.Array);
-            Assert.True(empty.ArrayValue.SequenceEqual(Enumerable.Empty<MondValue>()));
+            Assert.True(empty.Array.SequenceEqual(Enumerable.Empty<MondValue>()));
 
             var array = Script.Run(@"
                 var a = 'test';
@@ -27,7 +27,7 @@ namespace Mond.Tests.Expressions
             };
 
             Assert.AreEqual(array.Type, MondValueType.Array);
-            Assert.True(array.ArrayValue.SequenceEqual(expected));
+            Assert.True(array.Array.SequenceEqual(expected));
 
             array = Script.Run(@"
                 return [ 1, 2, 3, ];
@@ -39,7 +39,7 @@ namespace Mond.Tests.Expressions
             };
 
             Assert.AreEqual(array.Type, MondValueType.Array);
-            Assert.True(array.ArrayValue.SequenceEqual(expected));
+            Assert.True(array.Array.SequenceEqual(expected));
         }
 
         [Test]
@@ -102,7 +102,7 @@ namespace Mond.Tests.Expressions
             };
 
             Assert.AreEqual(array.Type, MondValueType.Array);
-            Assert.True(array.ArrayValue.SequenceEqual(expected));
+            Assert.True(array.Array.SequenceEqual(expected));
         }
 
         [Test]

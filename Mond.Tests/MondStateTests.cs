@@ -36,11 +36,9 @@ namespace Mond.Tests
 
             state["function"] = new MondFunction((_, args) => args[0]);
 
-            var program = MondProgram.Compile(@"
+            var result = state.Run(@"
                 return global.function('arg');
             ");
-
-            var result = state.Load(program);
 
             Assert.True(result == "arg");
         }
@@ -53,11 +51,9 @@ namespace Mond.Tests
             state["value"] = 123;
             state["function"] = new MondInstanceFunction((_, instance, arguments) => instance[arguments[0]]);
 
-            var program = MondProgram.Compile(@"
+            var result = state.Run(@"
                 return global.function('value');
             ");
-
-            var result = state.Load(program);
 
             Assert.True(result == 123);
         }

@@ -166,7 +166,7 @@ namespace Mond.Tests.Expressions
                 return array(1, 2, 3, ...[4, 5, 6], 7, ...[8, 9, 10]);
             ");
 
-            Assert.True(result.ArrayValue.SequenceEqual(new MondValue[]
+            Assert.True(result.Array.SequenceEqual(new MondValue[]
             {
                 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
             }), "multiple unpack");
