@@ -66,6 +66,10 @@ namespace Mond.Repl
                 result.Serialize(Console.Out);
                 Console.WriteLine();
             }
+            catch (MondRuntimeException e)
+            {
+                Console.WriteLine(e);
+            }
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
