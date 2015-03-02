@@ -881,7 +881,7 @@ namespace Mond.VirtualMachine
                     {
                         message = RuntimeError.StackOverflow;
                     }
-                    else if (_callStackSize <= 0 || _localStackSize <= 0 || _evalStackSize <= 0)
+                    else if (_callStackSize < 0 || _localStackSize < 0 || _evalStackSize < 0)
                     {
                         message = RuntimeError.StackEmpty;
                     }

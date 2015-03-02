@@ -45,6 +45,9 @@ namespace Mond.VirtualMachine
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private ReturnAddress PeekCall()
         {
+            if (_callStackSize == 0)
+                throw new MondRuntimeException(RuntimeError.StackEmpty);
+
             return _callStack[_callStackSize - 1];
         }
 
@@ -65,6 +68,9 @@ namespace Mond.VirtualMachine
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private Frame PeekLocal()
         {
+            if (_localStackSize == 0)
+                throw new MondRuntimeException(RuntimeError.StackEmpty);
+
             return _localStack[_localStackSize - 1];
         }
 
@@ -85,6 +91,9 @@ namespace Mond.VirtualMachine
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private MondValue Peek()
         {
+            if (_evalStackSize == 0)
+                throw new MondRuntimeException(RuntimeError.StackEmpty);
+
             return _evalStack[_evalStackSize - 1];
         }
     }
