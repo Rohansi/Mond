@@ -61,7 +61,7 @@ namespace Mond
                 if (_machine.Debugger != null)
                     _machine.Debugger.Detach();
 
-                if (!value.TryAttach())
+                if (value != null && !value.TryAttach())
                     throw new InvalidOperationException("Debuggers cannot be attached to more than one state at a time");
 
                 _machine.Debugger = value;

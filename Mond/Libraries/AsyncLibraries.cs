@@ -116,6 +116,13 @@ namespace Mond.Libraries
             };
         }
 
+        [Obsolete("Mond tasks must return MondValue", true)]
+        public static void ToObject<T>(Task<T> task)
+        {
+            // this is just a dummy function that prevents the implicit
+            // conversion from Task<T> to Task when T is not MondValue
+        }
+
         /// <summary>
         /// Converts an array of MondValues to an array of Tasks.
         /// </summary>
