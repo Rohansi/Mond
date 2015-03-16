@@ -4,10 +4,12 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net;
 using System.Threading;
-using System.Threading.Tasks;
 using Mond.Debugger;
-using Newtonsoft.Json;
 using WebSocketSharp.Server;
+
+#if !UNITY
+using System.Threading.Tasks;
+#endif
 
 namespace Mond.RemoteDebugger
 {
@@ -134,11 +136,11 @@ namespace Mond.RemoteDebugger
                 _breaker = null;
             }
 
-            Broadcast(new
-            {
-                Type = "State",
-                Running = true
-            });
+            var message = new MondValue(MondValueType.Object);
+            message["Type"] = "State";
+            message["Running"] = true;
+
+            Broadcast(message);
 
             return result;
         }
@@ -230,13 +232,13 @@ namespace Mond.RemoteDebugger
 
             RefreshWatch(_context, watch);
 
-            Broadcast(new
-            {
-                Type = "AddedWatch",
-                Id = watch.Id,
-                Expression = watch.Expression,
-                Value = watch.Value
-            });
+            var message = new MondValue(MondValueType.Object);
+            message["Type"] = "AddedWatch";
+            message["Id"] = watch.Id;
+            message["Expression"] = watch.Expression;
+            message["Value"] = watch.Value;
+
+            Broadcast(message);
         }
 
         internal void RemoveWatch(int id)
@@ -249,11 +251,11 @@ namespace Mond.RemoteDebugger
             if (removed == 0)
                 return;
 
-            Broadcast(new
-            {
-                Type = "RemovedWatch",
-                Id = id
-            });
+            var message = new MondValue(MondValueType.Object);
+            message["Type"] = "RemovedWatch";
+            message["Id"] = id;
+
+            Broadcast(message);
         }
 
         private void RefreshWatch(MondDebugContext context, Watch watch)
@@ -317,7 +319,7 @@ namespace Mond.RemoteDebugger
             }
 
             // apply new state and broadcast it
-            object message;
+            MondValue message;
             lock (_sync)
             {
                 var stmtValue = statement.Value;
@@ -330,19 +332,16 @@ namespace Mond.RemoteDebugger
                     stmtValue.EndLineNumber,
                     stmtValue.EndColumnNumber);
 
-                message = new
-                {
-                    Type = "State",
-                    Running = false,
-                    Id = _position.Id,
-                    StartLine = _position.StartLine,
-                    StartColumn = _position.StartColumn,
-                    EndLine = _position.EndLine,
-                    EndColumn = _position.EndColumn,
-
-                    Watches = _watches,
-                    CallStack = _context.CallStack
-                };
+                message = new MondValue(MondValueType.Object);
+                message["Type"] = "State";
+                message["Running"] = false;
+                message["Id"] = _position.Id;
+                message["StartLine"] = _position.StartLine;
+                message["StartColumn"] = _position.StartColumn;
+                message["EndLine"] = _position.EndLine;
+                message["EndColumn"] = _position.EndColumn;
+                message["Watches"] = new MondValue(watches.Select(Utility.JsonWatch));
+                message["CallStack"] = new MondValue(_context.CallStack.Select(Utility.JsonCallStackEntry));
             }
 
             Broadcast(message);
@@ -369,20 +368,20 @@ namespace Mond.RemoteDebugger
                 _programs.Add(programInfo);
             }
 
-            Broadcast(new
-            {
-                Type = "NewProgram",
-                Id = id,
-                FileName = programInfo.FileName,
-                SourceCode = debugInfo.SourceCode,
-                FirstLine = Utility.FirstLineNumber(debugInfo),
-                Breakpoints = programInfo.Breakpoints
-            });
+            var message = new MondValue(MondValueType.Object);
+            message["Type"] = "MondProgram";
+            message["Id"] = id;
+            message["FileName"] = programInfo.FileName;
+            message["SourceCode"] = debugInfo.SourceCode;
+            message["FirstLine"] = Utility.FirstLineNumber(debugInfo);
+            message["Breakpoints"] = new MondValue(programInfo.Breakpoints.Select(e => new MondValue(e)));
+
+            Broadcast(message);
         }
 
-        private void Broadcast(object message)
+        private void Broadcast(MondValue obj)
         {
-            var data = JsonConvert.SerializeObject(message);
+            var data = Json.Serialize(obj);
             _server.WebSocketServices["/"].Sessions.Broadcast(data);
         }
 

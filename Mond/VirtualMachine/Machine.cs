@@ -1027,7 +1027,9 @@ namespace Mond.VirtualMachine
             _debugDepth = 0;
         }
 
+#if !UNITY
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         private static int ReadInt32(byte[] buffer, ref int offset)
         {
             return buffer[offset++] <<  0 |

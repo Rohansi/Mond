@@ -46,103 +46,102 @@ namespace Mond
         /// <param name="output">Stream to write to.</param>
         public void SaveBytecode(Stream output)
         {
-            using (var writer = new BinaryWriter(output, Encoding.UTF8, true))
+            var writer = new BinaryWriter(output, Encoding.UTF8);
+
+            writer.Write(MagicId);
+            writer.Write(FormatVersion);
+            writer.Write(DebugInfo != null);
+
+            writer.Write(Strings.Count);
+            foreach (var str in Strings)
             {
-                writer.Write(MagicId);
-                writer.Write(FormatVersion);
-                writer.Write(DebugInfo != null);
+                writer.Write(str.ToString());
+            }
 
-                writer.Write(Strings.Count);
-                foreach (var str in Strings)
+            writer.Write(Numbers.Count);
+            foreach (var num in Numbers)
+            {
+                writer.Write((double)num);
+            }
+
+            writer.Write(Bytecode.Length);
+            writer.Write(Bytecode, 0, Bytecode.Length);
+
+            if (DebugInfo != null)
+            {
+                writer.Write(DebugInfo.FileName ?? "");
+                writer.Write(DebugInfo.SourceCode ?? "");
+
+                if (DebugInfo.Functions != null)
                 {
-                    writer.Write(str.ToString());
+                    writer.Write(DebugInfo.Functions.Count);
+                    foreach (var function in DebugInfo.Functions)
+                    {
+                        writer.Write(function.Address);
+                        writer.Write(function.Name);
+                    }
+                }
+                else
+                {
+                    writer.Write(-1);
                 }
 
-                writer.Write(Numbers.Count);
-                foreach (var num in Numbers)
+                if (DebugInfo.Lines != null)
                 {
-                    writer.Write((double)num);
+                    writer.Write(DebugInfo.Lines.Count);
+                    foreach (var line in DebugInfo.Lines)
+                    {
+                        writer.Write(line.Address);
+                        writer.Write(line.LineNumber);
+                        writer.Write(line.ColumnNumber);
+                    }
+                }
+                else
+                {
+                    writer.Write(-1);
                 }
 
-                writer.Write(Bytecode.Length);
-                writer.Write(Bytecode, 0, Bytecode.Length);
-
-                if (DebugInfo != null)
+                if (DebugInfo.Statements != null)
                 {
-                    writer.Write(DebugInfo.FileName ?? "");
-                    writer.Write(DebugInfo.SourceCode ?? "");
-
-                    if (DebugInfo.Functions != null)
+                    writer.Write(DebugInfo.Statements.Count);
+                    foreach (var statement in DebugInfo.Statements)
                     {
-                        writer.Write(DebugInfo.Functions.Count);
-                        foreach (var function in DebugInfo.Functions)
+                        writer.Write(statement.Address);
+                        writer.Write(statement.StartLineNumber);
+                        writer.Write(statement.StartColumnNumber);
+                        writer.Write(statement.EndLineNumber);
+                        writer.Write(statement.EndColumnNumber);
+                    }
+                }
+                else
+                {
+                    writer.Write(-1);
+                }
+
+                if (DebugInfo.Scopes != null)
+                {
+                    writer.Write(DebugInfo.Scopes.Count);
+                    foreach (var scope in DebugInfo.Scopes)
+                    {
+                        writer.Write(scope.Id);
+                        writer.Write(scope.Depth);
+                        writer.Write(scope.ParentId);
+                        writer.Write(scope.StartAddress);
+                        writer.Write(scope.EndAddress);
+
+                        writer.Write(scope.Identifiers.Count);
+                        foreach (var ident in scope.Identifiers)
                         {
-                            writer.Write(function.Address);
-                            writer.Write(function.Name);
+                            writer.Write(ident.Name);
+                            writer.Write(ident.IsReadOnly);
+                            writer.Write(ident.FrameIndex);
+                            writer.Write(ident.Id);
                         }
                     }
-                    else
-                    {
-                        writer.Write(-1);
-                    }
-
-                    if (DebugInfo.Lines != null)
-                    {
-                        writer.Write(DebugInfo.Lines.Count);
-                        foreach (var line in DebugInfo.Lines)
-                        {
-                            writer.Write(line.Address);
-                            writer.Write(line.LineNumber);
-                            writer.Write(line.ColumnNumber);
-                        }
-                    }
-                    else
-                    {
-                        writer.Write(-1);
-                    }
-
-                    if (DebugInfo.Statements != null)
-                    {
-                        writer.Write(DebugInfo.Statements.Count);
-                        foreach (var statement in DebugInfo.Statements)
-                        {
-                            writer.Write(statement.Address);
-                            writer.Write(statement.StartLineNumber);
-                            writer.Write(statement.StartColumnNumber);
-                            writer.Write(statement.EndLineNumber);
-                            writer.Write(statement.EndColumnNumber);
-                        }
-                    }
-                    else
-                    {
-                        writer.Write(-1);
-                    }
-
-                    if (DebugInfo.Scopes != null)
-                    {
-                        writer.Write(DebugInfo.Scopes.Count);
-                        foreach (var scope in DebugInfo.Scopes)
-                        {
-                            writer.Write(scope.Id);
-                            writer.Write(scope.Depth);
-                            writer.Write(scope.ParentId);
-                            writer.Write(scope.StartAddress);
-                            writer.Write(scope.EndAddress);
-
-                            writer.Write(scope.Identifiers.Count);
-                            foreach (var ident in scope.Identifiers)
-                            {
-                                writer.Write(ident.Name);
-                                writer.Write(ident.IsReadOnly);
-                                writer.Write(ident.FrameIndex);
-                                writer.Write(ident.Id);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        writer.Write(-1);
-                    }
+                }
+                else
+                {
+                    writer.Write(-1);
                 }
 
                 writer.Flush();
@@ -179,126 +178,125 @@ namespace Mond
         /// <param name="stream">Stream to read from.</param>
         public static MondProgram LoadBytecode(Stream stream)
         {
-            using (var reader = new BinaryReader(stream, Encoding.UTF8, true))
+            var reader = new BinaryReader(stream, Encoding.UTF8);
+
+            if (reader.ReadUInt32() != MagicId)
+                throw new NotSupportedException("Stream data is not valid Mond bytecode.");
+
+            byte version;
+            if ((version = reader.ReadByte()) != FormatVersion)
+                throw new NotSupportedException(string.Format("Wrong bytecode version. Expected 0x{0:X2}, got 0x{1:X2}.", FormatVersion, version));
+
+            var hasDebugInfo = reader.ReadBoolean();
+
+            var stringCount = reader.ReadInt32();
+            var strings = new List<string>(stringCount);
+            for (var i = 0; i < stringCount; ++i)
             {
-                if (reader.ReadUInt32() != MagicId)
-                    throw new NotSupportedException("Stream data is not valid Mond bytecode.");
-
-                byte version;
-                if ((version = reader.ReadByte()) != FormatVersion)
-                    throw new NotSupportedException(string.Format("Wrong bytecode version. Expected 0x{0:X2}, got 0x{1:X2}.", FormatVersion, version));
-
-                var hasDebugInfo = reader.ReadBoolean();
-
-                var stringCount = reader.ReadInt32();
-                var strings = new List<string>(stringCount);
-                for (var i = 0; i < stringCount; ++i)
-                {
-                    strings.Add(reader.ReadString());
-                }
-
-                var numberCount = reader.ReadInt32();
-                var numbers = new List<double>(numberCount);
-                for (var i = 0; i < numberCount; ++i)
-                {
-                    numbers.Add(reader.ReadDouble());
-                }
-
-                var bytecodeLength = reader.ReadInt32();
-                var bytecode = reader.ReadBytes(bytecodeLength);
-
-                MondDebugInfo debugInfo = null;
-                if (hasDebugInfo)
-                {
-                    var fileName = reader.ReadString();
-                    var sourceCode = reader.ReadString();
-                    
-                    var functionCount = reader.ReadInt32();
-                    List<MondDebugInfo.Function> functions = null;
-
-                    if (functionCount >= 0)
-                    {
-                        functions = new List<MondDebugInfo.Function>(functionCount);
-                        for (var i = 0; i < functionCount; ++i)
-                        {
-                            var address = reader.ReadInt32();
-                            var name = reader.ReadInt32();
-                            var function = new MondDebugInfo.Function(address, name);
-                            functions.Add(function);
-                        }
-                    }
-
-                    var lineCount = reader.ReadInt32();
-                    List<MondDebugInfo.Position> lines = null;
-
-                    if (lineCount >= 0)
-                    {
-                        lines = new List<MondDebugInfo.Position>(lineCount);
-                        for (var i = 0; i < lineCount; ++i)
-                        {
-                            var address = reader.ReadInt32();
-                            var lineNumber = reader.ReadInt32();
-                            var columnNumber = reader.ReadInt32();
-
-                            var line = new MondDebugInfo.Position(address, lineNumber, columnNumber);
-                            lines.Add(line);
-                        }
-                    }
-
-                    var statementCount = reader.ReadInt32();
-                    List<MondDebugInfo.Statement> statements = null;
-
-                    if (statementCount >= 0)
-                    {
-                        statements = new List<MondDebugInfo.Statement>(statementCount);
-                        for (var i = 0; i < statementCount; ++i)
-                        {
-                            var address = reader.ReadInt32();
-                            var startLine = reader.ReadInt32();
-                            var startColumn = reader.ReadInt32();
-                            var endLine = reader.ReadInt32();
-                            var endColumn = reader.ReadInt32();
-
-                            var statement = new MondDebugInfo.Statement(address, startLine, startColumn, endLine, endColumn);
-                            statements.Add(statement);
-                        }
-                    }
-
-                    var scopeCount = reader.ReadInt32();
-                    List<MondDebugInfo.Scope> scopes = null;
-
-                    if (scopeCount >= 0)
-                    {
-                        scopes = new List<MondDebugInfo.Scope>(scopeCount);
-                        for (var i = 0; i < scopeCount; ++i)
-                        {
-                            var id = reader.ReadInt32();
-                            var depth = reader.ReadInt32();
-                            var parentId = reader.ReadInt32();
-                            var startAddress = reader.ReadInt32();
-                            var endAddress = reader.ReadInt32();
-
-                            var identCount = reader.ReadInt32();
-                            var idents = new List<MondDebugInfo.Identifier>(identCount);
-                            for (var j = 0; j < identCount; ++j)
-                            {
-                                var name = reader.ReadInt32();
-                                var isReadOnly = reader.ReadBoolean();
-                                var frameIndex = reader.ReadInt32();
-                                var idx = reader.ReadInt32();
-
-                                idents.Add(new MondDebugInfo.Identifier(name, isReadOnly, frameIndex, idx));
-                            }
-
-                            scopes.Add(new MondDebugInfo.Scope(id, depth, parentId, startAddress, endAddress, idents));
-                        }
-                    }
-
-                    debugInfo = new MondDebugInfo(fileName, sourceCode, functions, lines, statements, scopes);
-                }
-
-                return new MondProgram(bytecode, numbers, strings, debugInfo);
+                strings.Add(reader.ReadString());
             }
+
+            var numberCount = reader.ReadInt32();
+            var numbers = new List<double>(numberCount);
+            for (var i = 0; i < numberCount; ++i)
+            {
+                numbers.Add(reader.ReadDouble());
+            }
+
+            var bytecodeLength = reader.ReadInt32();
+            var bytecode = reader.ReadBytes(bytecodeLength);
+
+            MondDebugInfo debugInfo = null;
+            if (hasDebugInfo)
+            {
+                var fileName = reader.ReadString();
+                var sourceCode = reader.ReadString();
+                    
+                var functionCount = reader.ReadInt32();
+                List<MondDebugInfo.Function> functions = null;
+
+                if (functionCount >= 0)
+                {
+                    functions = new List<MondDebugInfo.Function>(functionCount);
+                    for (var i = 0; i < functionCount; ++i)
+                    {
+                        var address = reader.ReadInt32();
+                        var name = reader.ReadInt32();
+                        var function = new MondDebugInfo.Function(address, name);
+                        functions.Add(function);
+                    }
+                }
+
+                var lineCount = reader.ReadInt32();
+                List<MondDebugInfo.Position> lines = null;
+
+                if (lineCount >= 0)
+                {
+                    lines = new List<MondDebugInfo.Position>(lineCount);
+                    for (var i = 0; i < lineCount; ++i)
+                    {
+                        var address = reader.ReadInt32();
+                        var lineNumber = reader.ReadInt32();
+                        var columnNumber = reader.ReadInt32();
+
+                        var line = new MondDebugInfo.Position(address, lineNumber, columnNumber);
+                        lines.Add(line);
+                    }
+                }
+
+                var statementCount = reader.ReadInt32();
+                List<MondDebugInfo.Statement> statements = null;
+
+                if (statementCount >= 0)
+                {
+                    statements = new List<MondDebugInfo.Statement>(statementCount);
+                    for (var i = 0; i < statementCount; ++i)
+                    {
+                        var address = reader.ReadInt32();
+                        var startLine = reader.ReadInt32();
+                        var startColumn = reader.ReadInt32();
+                        var endLine = reader.ReadInt32();
+                        var endColumn = reader.ReadInt32();
+
+                        var statement = new MondDebugInfo.Statement(address, startLine, startColumn, endLine, endColumn);
+                        statements.Add(statement);
+                    }
+                }
+
+                var scopeCount = reader.ReadInt32();
+                List<MondDebugInfo.Scope> scopes = null;
+
+                if (scopeCount >= 0)
+                {
+                    scopes = new List<MondDebugInfo.Scope>(scopeCount);
+                    for (var i = 0; i < scopeCount; ++i)
+                    {
+                        var id = reader.ReadInt32();
+                        var depth = reader.ReadInt32();
+                        var parentId = reader.ReadInt32();
+                        var startAddress = reader.ReadInt32();
+                        var endAddress = reader.ReadInt32();
+
+                        var identCount = reader.ReadInt32();
+                        var idents = new List<MondDebugInfo.Identifier>(identCount);
+                        for (var j = 0; j < identCount; ++j)
+                        {
+                            var name = reader.ReadInt32();
+                            var isReadOnly = reader.ReadBoolean();
+                            var frameIndex = reader.ReadInt32();
+                            var idx = reader.ReadInt32();
+
+                            idents.Add(new MondDebugInfo.Identifier(name, isReadOnly, frameIndex, idx));
+                        }
+
+                        scopes.Add(new MondDebugInfo.Scope(id, depth, parentId, startAddress, endAddress, idents));
+                    }
+                }
+
+                debugInfo = new MondDebugInfo(fileName, sourceCode, functions, lines, statements, scopes);
+            }
+
+            return new MondProgram(bytecode, numbers, strings, debugInfo);
         }
 
         /// <summary>

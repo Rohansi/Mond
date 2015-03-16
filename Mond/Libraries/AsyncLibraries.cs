@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if !UNITY
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -164,3 +166,5 @@ namespace Mond.Libraries
         }
     }
 }
+
+#endif

@@ -37,7 +37,7 @@ namespace Mond.Binding
             if (methods.Any(m => !m.IsStatic))
                 throw new MondBindingException("BindStatic only supports static methods");
 
-            var methodTables = BuildMethodTables(methods, methodType, nameOverride);
+            var methodTables = BuildMethodTables((IEnumerable<MethodBase>)methods, methodType, nameOverride);
 
             foreach (var table in methodTables)
             {
@@ -66,7 +66,7 @@ namespace Mond.Binding
             if (type == null && methods.Any(m => !m.IsStatic))
                 throw new MondBindingException("BindInstance requires a type for non-static methods");
 
-            var methodTables = BuildMethodTables(methods, methodType, nameOverride);
+            var methodTables = BuildMethodTables((IEnumerable<MethodBase>)methods, methodType, nameOverride);
 
             foreach (var table in methodTables)
             {
@@ -87,7 +87,7 @@ namespace Mond.Binding
             if (className == null)
                 throw new ArgumentNullException("className");
 
-            var methodTable = BuildMethodTables(constructors, MethodType.Constructor).FirstOrDefault();
+            var methodTable = BuildMethodTables((IEnumerable<MethodBase>)constructors, MethodType.Constructor).FirstOrDefault();
 
             if (methodTable == null || (methodTable.Methods.Count == 0 && methodTable.ParamsMethods.Count == 0))
                 return null;

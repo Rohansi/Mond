@@ -1,35 +1,52 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using Mond.VirtualMachine;
 using Mond.VirtualMachine.Prototypes;
 
+#if !UNITY
+using System.Runtime.InteropServices;
+#endif
+
 namespace Mond
 {
+#if !UNITY
     [StructLayout(LayoutKind.Explicit)]
+#endif
     public sealed partial class MondValue : IEquatable<MondValue>
     {
         public static readonly MondValue Undefined = new MondValue(MondValueType.Undefined);
         public static readonly MondValue Null = new MondValue(MondValueType.Null);
         public static readonly MondValue True = new MondValue(MondValueType.True);
         public static readonly MondValue False = new MondValue(MondValueType.False);
-
+        
+#if !UNITY
         [FieldOffset(0)]
+#endif
         public readonly MondValueType Type;
-
+        
+#if !UNITY
         [FieldOffset(8)]
+#endif
         private readonly double _numberValue;
-
+        
+#if !UNITY
         [FieldOffset(16)]
+#endif
         internal readonly VirtualMachine.Object ObjectValue;
-
+        
+#if !UNITY
         [FieldOffset(16)]
+#endif
         internal readonly List<MondValue> ArrayValue;
-
+        
+#if !UNITY
         [FieldOffset(16)]
+#endif
         private readonly string _stringValue;
-
+        
+#if !UNITY
         [FieldOffset(16)]
+#endif
         internal readonly Closure FunctionValue;
 
         /// <summary>
@@ -114,6 +131,33 @@ namespace Mond
 
             Type = MondValueType.Function;
             FunctionValue = new Closure(function);
+        }
+
+        /// <summary>
+        /// Construct a new Array MondValue with the specified values.
+        /// </summary>
+        public MondValue(IEnumerable<MondValue> values)
+        {
+            if (ReferenceEquals(values, null))
+                throw new ArgumentNullException("values");
+
+            Type = MondValueType.Array;
+            ArrayValue = new List<MondValue>(values);
+        }
+
+        /// <summary>
+        /// Construct a new Object MondValue with the specified values.
+        /// </summary>
+        public MondValue(IEnumerable<KeyValuePair<MondValue, MondValue>> values)
+        {
+            Type = MondValueType.Object;
+            ObjectValue = new VirtualMachine.Object();
+
+            var obj = Object;
+            foreach (var kvp in values)
+            {
+                obj.Add(kvp.Key, kvp.Value);
+            }
         }
 
         internal MondValue(Closure closure)

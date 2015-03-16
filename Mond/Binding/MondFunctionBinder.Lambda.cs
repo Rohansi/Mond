@@ -2,9 +2,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Runtime.ExceptionServices;
 using System.Linq;
 using System.Reflection;
+
+#if !UNITY
+using System.Runtime.ExceptionServices;
+#endif
 
 namespace Mond.Binding
 {
@@ -76,8 +79,11 @@ namespace Mond.Binding
                 if (e.InnerException == null)
                     throw;
 
+#if !UNITY
                 ExceptionDispatchInfo.Capture(e.InnerException).Throw();
-                return default(T); // wont reach this
+#endif
+
+                throw e.InnerException; // shouldnt reach this
             }
         }
 
@@ -230,7 +236,7 @@ namespace Mond.Binding
             if (NumberTypes.Contains(returnType))
                 return o => Convert.ToDouble(o);
 
-            var classAttrib = returnType.GetCustomAttribute<MondClassAttribute>();
+            var classAttrib = returnType.Attribute<MondClassAttribute>();
             if (classAttrib != null && classAttrib.AllowReturn)
             {
                 MondValue prototype;
@@ -249,4 +255,5 @@ namespace Mond.Binding
         }
     }
 }
+
 #endif

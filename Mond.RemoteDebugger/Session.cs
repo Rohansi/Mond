@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using Mond.Debugger;
-using Newtonsoft.Json;
 using WebSocketSharp;
 using WebSocketSharp.Server;
 
@@ -28,27 +27,19 @@ namespace Mond.RemoteDebugger
 
             _debugger.GetState(out isRunning, out programs, out position, out watches, out callStack);
 
-            Send(JsonConvert.SerializeObject(new
-            {
-                Type = "InitialState",
-                Programs = programs.Select(t => new
-                {
-                    FileName = t.FileName,
-                    SourceCode = t.DebugInfo.SourceCode,
-                    FirstLine = Utility.FirstLineNumber(t.DebugInfo),
-                    Breakpoints = t.Breakpoints
-                }),
+            var message = new MondValue(MondValueType.Object);
+            message["Type"] = "InitialState";
+            message["Programs"] = new MondValue(programs.Select(Utility.JsonProgram));
+            message["Running"] = isRunning;
+            message["Id"] = position.Id;
+            message["StartLine"] = position.StartLine;
+            message["StartColumn"] = position.StartColumn;
+            message["EndLine"] = position.EndLine;
+            message["EndColumn"] = position.EndColumn;
+            message["Watches"] = new MondValue(watches.Select(Utility.JsonWatch));
+            message["CallStack"] = new MondValue(callStack.Select(Utility.JsonCallStackEntry));
 
-                Running = isRunning,
-                Id = position.Id,
-                StartLine = position.StartLine,
-                StartColumn = position.StartColumn,
-                EndLine = position.EndLine,
-                EndColumn = position.EndColumn,
-
-                Watches = watches,
-                CallStack = callStack
-            }));
+            Send(Json.Serialize(message));
         }
 
         protected override void OnMessage(MessageEventArgs args)
@@ -58,13 +49,13 @@ namespace Mond.RemoteDebugger
 
             try
             {
-                var obj = JsonConvert.DeserializeObject<dynamic>(args.Data);
+                var obj = Json.Deserialize(args.Data);
 
-                switch ((string)obj.Type)
+                switch ((string)obj["Type"])
                 {
                     case "Action":
                         {
-                            var value = (string)obj.Action;
+                            var value = (string)obj["Action"];
 
                             if (value == "break")
                             {
@@ -78,19 +69,19 @@ namespace Mond.RemoteDebugger
 
                     case "SetBreakpoint":
                         {
-                            var id = (int)obj.Id;
-                            var line = (int)obj.Line;
-                            var value = (bool)obj.Value;
+                            var id = (int)obj["Id"];
+                            var line = (int)obj["Line"];
+                            var value = (bool)obj["Value"];
 
                             if (_debugger.SetBreakpoint(id, line, value))
                             {
-                                Sessions.Broadcast(JsonConvert.SerializeObject(new
-                                {
-                                    Type = "Breakpoint",
-                                    Id = id,
-                                    Line = line,
-                                    Value = value
-                                }));
+                                var message = new MondValue(MondValueType.Object);
+                                message["Type"] = "Breakpoint";
+                                message["Id"] = id;
+                                message["Line"] = line;
+                                message["Value"] = value;
+
+                                Sessions.Broadcast(Json.Serialize(message));
                             }
 
                             break;
@@ -98,14 +89,14 @@ namespace Mond.RemoteDebugger
 
                     case "AddWatch":
                         {
-                            var expression = (string)obj.Expression;
+                            var expression = (string)obj["Expression"];
                             _debugger.AddWatch(expression);
                             break;
                         }
 
                     case "RemoveWatch":
                         {
-                            var id = (int)obj.Id;
+                            var id = (int)obj["Id"];
                             _debugger.RemoveWatch(id);
                             break;
                         }

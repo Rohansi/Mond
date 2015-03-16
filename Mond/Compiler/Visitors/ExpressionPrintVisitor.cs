@@ -154,7 +154,14 @@ namespace Mond.Compiler.Visitors
         public int Visit(FunctionExpression expression)
         {
             _writer.Write("fun {0}(", expression.Name);
-            _writer.Write(string.Join(", ", expression.Arguments));
+
+            for (var i = 0; i < expression.Arguments.Count; i++)
+            {
+                if (i > 0)
+                    _writer.Write(", ");
+
+                _writer.Write(expression.Arguments[i]);
+            }
 
             if (expression.OtherArguments != null)
             {
@@ -213,7 +220,14 @@ namespace Mond.Compiler.Visitors
         public int Visit(SequenceExpression expression)
         {
             _writer.Write("seq {0}(", expression.Name);
-            _writer.Write(string.Join(", ", expression.Arguments));
+
+            for (var i = 0; i < expression.Arguments.Count; i++)
+            {
+                if (i > 0)
+                    _writer.Write(", ");
+
+                _writer.Write(expression.Arguments[i]);
+            }
 
             if (expression.OtherArguments != null)
             {

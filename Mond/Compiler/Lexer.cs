@@ -60,7 +60,7 @@ namespace Mond.Compiler
                     return null;
 
                 var result = _sourceCode.ToString();
-                _sourceCode.Clear();
+                _sourceCode.Length = 0;
                 return result;
             }
         }
@@ -81,7 +81,7 @@ namespace Mond.Compiler
             _currentColumn = 1;
 
             if (_sourceCode != null)
-                _sourceCode.Clear();
+                _sourceCode.Length = 0;
 
             while (!AtEof)
             {

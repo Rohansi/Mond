@@ -1,4 +1,6 @@
-﻿using System.Threading;
+﻿#if !UNITY
+
+using System.Threading;
 using Mond.Binding;
 
 namespace Mond.Libraries.Async
@@ -41,3 +43,5 @@ namespace Mond.Libraries.Async
         }
     }
 }
+
+#endif

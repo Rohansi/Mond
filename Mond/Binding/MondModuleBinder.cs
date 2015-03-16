@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -20,7 +19,7 @@ namespace Mond.Binding
             }
         }
 
-        private static ConcurrentDictionary<Type, ModuleBinding> _cache = new ConcurrentDictionary<Type, ModuleBinding>();
+        private static Dictionary<Type, ModuleBinding> _cache = new Dictionary<Type, ModuleBinding>();
 
         /// <summary>
         /// Generates module bindings for T. Returns an object containing the bound methods.
@@ -44,7 +43,7 @@ namespace Mond.Binding
         /// <summary>
         /// Generates module bindings for T. Returns a dictionary containing the bindings.
         /// </summary>
-        public static ReadOnlyDictionary<string, MondFunction> BindFunctions<T>()
+        public static IReadOnlyDictionary<string, MondFunction> BindFunctions<T>()
         {
             return new ReadOnlyDictionary<string, MondFunction>(BindImpl(typeof(T)));
         }
@@ -52,7 +51,7 @@ namespace Mond.Binding
         /// <summary>
         /// Generates module bindings for a type. Returns a dictionary containing the bindings.
         /// </summary>
-        public static ReadOnlyDictionary<string, MondFunction> BindFunctions(Type type)
+        public static IReadOnlyDictionary<string, MondFunction> BindFunctions(Type type)
         {
             return new ReadOnlyDictionary<string, MondFunction>(BindImpl(type));
         }
@@ -74,9 +73,13 @@ namespace Mond.Binding
         private static Dictionary<string, MondFunction> BindImpl(Type type)
         {
             ModuleBinding binding;
-            if (_cache.TryGetValue(type, out binding))
+
+            lock (_cache)
             {
-                return binding.Functions;
+                if (_cache.TryGetValue(type, out binding))
+                {
+                    return binding.Functions;
+                }
             }
 
             var moduleAttrib = type.Attribute<MondModuleAttribute>();
@@ -117,7 +120,9 @@ namespace Mond.Binding
             }
 
             binding = new ModuleBinding(result);
-            _cache.TryAdd(type, binding);
+
+            lock (_cache)
+                _cache[type] = binding;
 
             return result;
         }

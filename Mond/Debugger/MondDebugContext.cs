@@ -114,7 +114,7 @@ namespace Mond.Debugger
             getter = null;
             setter = null;
 
-            if (string.IsNullOrWhiteSpace(name) || DebugInfo == null || DebugInfo.Scopes == null || _locals == null)
+            if (string.IsNullOrEmpty(name) || DebugInfo == null || DebugInfo.Scopes == null || _locals == null)
                 return false;
 
             var scope = DebugInfo.FindScope(_address);

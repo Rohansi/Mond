@@ -8,7 +8,7 @@ namespace Mond.Libraries
 {
     public class MondLibraryManager : IEnumerable<IMondLibraryCollection>
     {
-        private const string LockedError = "The instance can no longer be modified";
+        public const string LockedError = "Libraries have been loaded and can no longer be changed";
 
         private readonly List<IMondLibraryCollection> _factories;
         private bool _locked;
@@ -38,7 +38,7 @@ namespace Mond.Libraries
                 throw new ArgumentNullException("configAction");
 
             if (_locked)
-                throw new Exception(LockedError);
+                throw new InvalidOperationException(LockedError);
 
             if (_configAction == null)
             {
@@ -145,7 +145,7 @@ namespace Mond.Libraries
                 throw new ArgumentNullException("item");
 
             if (_locked)
-                throw new Exception(LockedError);
+                throw new InvalidOperationException(LockedError);
 
             _factories.Add(item);
         }

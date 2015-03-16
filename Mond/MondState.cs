@@ -44,7 +44,7 @@ namespace Mond
             set
             {
                 if (_librariesLoaded)
-                    throw new InvalidOperationException("Libraries have already been loaded");
+                    throw new InvalidOperationException(MondLibraryManager.LockedError);
 
                 _libraries = value;
             }
@@ -113,10 +113,19 @@ namespace Mond
             return _machine.Call(function, arguments);
         }
 
-        private void EnsureLibrariesLoaded()
+        /// <summary>
+        /// Loads the libraries if they weren't already loaded.
+        /// </summary>
+        public void EnsureLibrariesLoaded()
         {
-            if (Libraries == null || _librariesLoaded)
+            if (_librariesLoaded)
                 return;
+
+            if (Libraries == null)
+            {
+                _librariesLoaded = true;
+                return;
+            }
 
             Libraries.Load(this, libs =>
             {

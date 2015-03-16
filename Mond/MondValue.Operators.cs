@@ -18,16 +18,25 @@ namespace Mond
 
         public static implicit operator MondValue(string value)
         {
+            if (ReferenceEquals(value, null))
+                return Null;
+
             return new MondValue(value);
         }
 
         public static implicit operator MondValue(MondFunction function)
         {
+            if (ReferenceEquals(function, null))
+                return Null;
+
             return new MondValue(new Closure(function));
         }
 
         public static implicit operator MondValue(MondInstanceFunction function)
         {
+            if (ReferenceEquals(function, null))
+                return Null;
+
             return new MondValue(new Closure(function));
         }
 

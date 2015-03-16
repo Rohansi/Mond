@@ -12,7 +12,9 @@ namespace Mond.Libraries.Json
         [MondFunction("deserialize")]
         public static MondValue Deserialize(string text)
         {
-            if (string.IsNullOrWhiteSpace(text))
+            text = text.Trim();
+
+            if (string.IsNullOrEmpty(text))
                 return MondValue.Undefined;
 
             var parser = new Parser(text);

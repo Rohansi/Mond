@@ -209,16 +209,16 @@ namespace Mond.Debugger
                 }
             }
 
-            var target = new Scope(0, 0, 0, address, address, null);
-
+            // TODO: this can be faster
             for (var i = _unpackedScopes.Count - 1; i >= 0; i--)
             {
-                var idx = _unpackedScopes[i].BinarySearch(target, ScopeAddressComparer);
+                var scopes = _unpackedScopes[i];
 
-                if (idx < 0)
-                    continue;
-
-                return _unpackedScopes[i][idx];
+                for (var j = 0; j < scopes.Count; j++)
+                {
+                    if (address >= scopes[j].StartAddress && address <= scopes[j].EndAddress)
+                        return scopes[j];
+                }
             }
 
             return null;
@@ -245,17 +245,5 @@ namespace Mond.Debugger
 
         private static readonly GenericComparer<Scope> ScopeAddressSortComparer =
             new GenericComparer<Scope>((x, y) => x.StartAddress - y.StartAddress);
-
-        private static readonly GenericComparer<Scope> ScopeAddressComparer =
-            new GenericComparer<Scope>((x, y) =>
-            {
-                if (x.StartAddress <= y.StartAddress && x.EndAddress >= y.EndAddress)
-                    return 0;
-
-                if (x.EndAddress < y.StartAddress)
-                    return -1;
-
-                return 1;
-            });
     }
 }
