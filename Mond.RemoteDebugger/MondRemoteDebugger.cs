@@ -20,7 +20,6 @@ namespace Mond.RemoteDebugger
         private readonly object _sync = new object();
         private HashSet<MondProgram> _seenPrograms;
         private List<ProgramInfo> _programs;
-        private int _watchId;
         private List<Watch> _watches;
         private SemaphoreSlim _watchSemaphore;
         private bool _watchTimedOut;
@@ -35,6 +34,10 @@ namespace Mond.RemoteDebugger
             _server.KeepClean = true;
 
             _server.AddWebSocketService("/", () => new Session(this));
+
+            _seenPrograms = new HashSet<MondProgram>();
+            _programs = new List<ProgramInfo>();
+            _watches = new List<Watch>();
 
             _server.Start();
         }
@@ -58,13 +61,8 @@ namespace Mond.RemoteDebugger
 
         protected override void OnAttached()
         {
-            _seenPrograms = new HashSet<MondProgram>();
-            _programs = new List<ProgramInfo>();
-            _watchId = 0;
-            _watches = new List<Watch>();
             _watchSemaphore = new SemaphoreSlim(1);
             _watchTimedOut = false;
-
             _breaker = null;
         }
 
@@ -74,8 +72,8 @@ namespace Mond.RemoteDebugger
 
             lock (_sync)
             {
-                _seenPrograms = null;
-                _programs = null;
+                _seenPrograms.Clear();
+                _programs.Clear();
 
                 breaker = _breaker;
             }
@@ -218,7 +216,7 @@ namespace Mond.RemoteDebugger
 
             lock (_sync)
             {
-                watch = new Watch(_watchId++, expression);
+                watch = new Watch(_watches.Count, expression);
                 _watches.Add(watch);
             }
 

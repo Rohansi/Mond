@@ -37,7 +37,9 @@ namespace Mond.RemoteDebugger
             message["EndLine"] = position.EndLine;
             message["EndColumn"] = position.EndColumn;
             message["Watches"] = new MondValue(watches.Select(Utility.JsonWatch));
-            message["CallStack"] = new MondValue(callStack.Select(Utility.JsonCallStackEntry));
+
+            if (callStack != null)
+                message["CallStack"] = new MondValue(callStack.Select(Utility.JsonCallStackEntry));
 
             Send(Json.Serialize(message));
         }
