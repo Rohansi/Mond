@@ -53,14 +53,6 @@ namespace Mond.RemoteDebugger
         public void Dispose()
         {
             _server.Stop();
-
-            var service = _server.WebSocketServices["/"];
-
-            foreach (var sessionId in service.Sessions.IDs)
-            {
-                service.Sessions.CloseSession(sessionId);
-            }
-
             _server = null;
         }
 
