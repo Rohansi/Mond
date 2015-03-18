@@ -26,6 +26,9 @@ namespace Mond.Libraries.Core
         [MondFunction("require")]
         public MondValue Require(MondState state, string fileName)
         {
+            if (_require.Loader == null)
+                throw new MondRuntimeException("require: module loader is not set");
+
             const string cacheObjectName = "__modules";
 
             MondValue cacheObject;
@@ -79,7 +82,7 @@ namespace Mond.Libraries.Core
                 var result = state.Call(initializer, exports);
 
                 if (result.Type != MondValueType.Object)
-                    throw new MondRuntimeException("Modules must return an Object");
+                    throw new MondRuntimeException("require: module must return an object (`{0}`)", fileName);
 
                 if (!ReferenceEquals(exports, result))
                 {
