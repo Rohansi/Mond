@@ -4,7 +4,7 @@ connectBtn.click(function () {
     if (socket !== null)
         return;
 
-    socket = new WebSocket(debugConfig.address);
+    socket = new WebSocket("ws://" + window.location.host);
 
     socket.onopen = function () {
         switchState("connected");

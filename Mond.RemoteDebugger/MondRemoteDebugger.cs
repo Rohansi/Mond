@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Net;
 using System.Threading;
 using Mond.Debugger;
-using WebSocketSharp.Server;
 
 #if !UNITY
 using System.Threading.Tasks;
@@ -15,7 +13,7 @@ namespace Mond.RemoteDebugger
 {
     public class MondRemoteDebugger : MondDebugger, IDisposable
     {
-        private WebSocketServer _server;
+        private Server _server;
 
         private readonly object _sync = new object();
         private HashSet<MondProgram> _seenPrograms;
@@ -28,24 +26,13 @@ namespace Mond.RemoteDebugger
         private TaskCompletionSource<MondDebugAction> _breaker;
         private BreakPosition _position;
 
-        public MondRemoteDebugger(IPEndPoint endPoint)
+        public MondRemoteDebugger(int port)
         {
-            _server = new WebSocketServer(endPoint.Address, endPoint.Port);
-            _server.KeepClean = true;
-
-            _server.AddWebSocketService("/", () => new Session(this));
+            _server = new Server(this, port);
 
             _seenPrograms = new HashSet<MondProgram>();
             _programs = new List<ProgramInfo>();
             _watches = new List<Watch>();
-
-            _server.Start();
-        }
-
-        public MondRemoteDebugger(IPAddress address, int port)
-            : this(new IPEndPoint(address, port))
-        {
-            
         }
 
         public void RequestBreak()
@@ -55,8 +42,7 @@ namespace Mond.RemoteDebugger
 
         public void Dispose()
         {
-            _server.Stop();
-            _server = null;
+            _server.Dispose();
         }
 
         protected override void OnAttached()
@@ -372,7 +358,7 @@ namespace Mond.RemoteDebugger
         private void Broadcast(MondValue obj)
         {
             var data = Json.Serialize(obj);
-            _server.WebSocketServices["/"].Sessions.Broadcast(data);
+            _server.Broadcast(data);
         }
 
         private static bool IsMissingDebugInfo(MondDebugInfo debugInfo)
