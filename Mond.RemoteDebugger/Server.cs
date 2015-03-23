@@ -48,7 +48,12 @@ namespace Mond.RemoteDebugger
                 res.StatusCode = (int)HttpStatusCode.OK;
                 res.ContentType = GetMimeType(path);
 
-                stream.CopyTo(res.OutputStream);
+                int bytesRead;
+                var buffer = new byte[4096];
+                while ((bytesRead = stream.Read(buffer, 0, buffer.Length)) != 0)
+                {
+                    res.OutputStream.Write(buffer, 0, bytesRead);
+                }
             };
 
             _server.AddWebSocketService("/", () => new Session(debugger));
