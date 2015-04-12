@@ -19,27 +19,25 @@ namespace Mond.VirtualMachine.Prototypes
         private const string IndexOutOfBounds = "Array.{0}: index out of bounds";
 
         /// <summary>
-        /// add(item): array
+        /// add(item)
         /// </summary>
         [MondFunction("add")]
-        public static MondValue Add([MondInstance] MondValue instance, MondValue item)
+        public static void Add([MondInstance] MondValue instance, MondValue item)
         {
             EnsureArray("add", instance);
 
             instance.ArrayValue.Add(item);
-            return instance;
         }
 
         /// <summary>
-        /// clear(): array
+        /// clear()
         /// </summary>
         [MondFunction("clear")]
-        public static MondValue Clear([MondInstance] MondValue instance)
+        public static void Clear([MondInstance] MondValue instance)
         {
             EnsureArray("clear", instance);
 
             instance.ArrayValue.Clear();
-            return instance;
         }
 
         /// <summary>
@@ -65,10 +63,10 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// insert(index: number, item): array
+        /// insert(index: number, item)
         /// </summary>
         [MondFunction("insert")]
-        public static MondValue Insert([MondInstance] MondValue instance, int index, MondValue item)
+        public static void Insert([MondInstance] MondValue instance, int index, MondValue item)
         {
             EnsureArray("insert", instance);
 
@@ -76,7 +74,6 @@ namespace Mond.VirtualMachine.Prototypes
                 throw new MondRuntimeException(IndexOutOfBounds, "insert");
 
             instance.ArrayValue.Insert(index, item);
-            return instance;
         }
 
         /// <summary>
@@ -91,22 +88,21 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// remove(item): array
+        /// remove(item): bool
         /// </summary>
         [MondFunction("remove")]
         public static MondValue Remove([MondInstance] MondValue instance, MondValue item)
         {
             EnsureArray("remove", instance);
 
-            instance.ArrayValue.Remove(item);
-            return instance;
+            return instance.ArrayValue.Remove(item);
         }
 
         /// <summary>
-        /// removeAt(index: number): array
+        /// removeAt(index: number)
         /// </summary>
         [MondFunction("removeAt")]
-        public static MondValue RemoveAt([MondInstance] MondValue instance, int index)
+        public static void RemoveAt([MondInstance] MondValue instance, int index)
         {
             EnsureArray("removeAt", instance);
 
@@ -114,7 +110,6 @@ namespace Mond.VirtualMachine.Prototypes
                 throw new MondRuntimeException(IndexOutOfBounds, "removeAt");
 
             instance.ArrayValue.RemoveAt(index);
-            return instance;
         }
 
         /// <summary>

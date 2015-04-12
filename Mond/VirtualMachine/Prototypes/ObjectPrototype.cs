@@ -20,10 +20,10 @@ namespace Mond.VirtualMachine.Prototypes
         private const string LockedError = "Object.{0}: " + RuntimeError.ObjectIsLocked;
 
         /// <summary>
-        /// add(key, value): object
+        /// add(key, value)
         /// </summary>
         [MondFunction("add")]
-        public static MondValue Add([MondInstance] MondValue instance, MondValue key, MondValue value)
+        public static void Add([MondInstance] MondValue instance, MondValue key, MondValue value)
         {
             EnsureObject("add", instance);
 
@@ -31,14 +31,13 @@ namespace Mond.VirtualMachine.Prototypes
                 throw new MondRuntimeException(LockedError, "add");
 
             instance.ObjectValue.Values[key] = value;
-            return instance;
         }
 
         /// <summary>
-        /// clear(): object
+        /// clear()
         /// </summary>
         [MondFunction("clear")]
-        public static MondValue Clear([MondInstance] MondValue instance)
+        public static void Clear([MondInstance] MondValue instance)
         {
             EnsureObject("clear", instance);
 
@@ -46,7 +45,6 @@ namespace Mond.VirtualMachine.Prototypes
                 throw new MondRuntimeException(LockedError, "clear");
 
             instance.ObjectValue.Values.Clear();
-            return instance;
         }
 
         /// <summary>
@@ -87,18 +85,17 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// remove(key): object
+        /// remove(key): bool
         /// </summary>
         [MondFunction("remove")]
-        public static MondValue Remove([MondInstance] MondValue instance, MondValue key)
+        public static bool Remove([MondInstance] MondValue instance, MondValue key)
         {
             EnsureObject("remove", instance);
 
             if (instance.ObjectValue.Locked)
                 throw new MondRuntimeException(LockedError, "remove");
 
-            instance.ObjectValue.Values.Remove(key);
-            return instance;
+            return instance.ObjectValue.Values.Remove(key);
         }
 
         /// <summary>
