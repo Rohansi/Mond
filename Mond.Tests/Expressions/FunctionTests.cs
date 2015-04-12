@@ -182,8 +182,11 @@ namespace Mond.Tests.Expressions
         
                     if (args.length() == 0)
                         return x + y;
-        
-                    return sum(x + y, args[0], ...args.removeAt(0));
+
+                    var head = args[0];
+                    args.removeAt(0);
+
+                    return sum(x + y, head, ...args);
                 }
 
                 return sum(100, 50, 10, 5, 1);
