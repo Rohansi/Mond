@@ -13,6 +13,9 @@
         public const string ExpectedButFound2 = "Expected {0} or {1} but found {2}";
         public const string CrMustBeFollowedByLf = "\\r must be followed by \\n";
 
+        public const string IncorrectOperatorArity = "Incorrect operator arity ({0}). User defined operators may only accept 1 (prefix) or 2 (infix) arguments";
+        public const string EllipsisInOperator = "User defined operators may not have ellipsis arguments";
+
         public const string UndefinedIdentifier = "Undefined identifier '{0}'";
         public const string IdentifierAlreadyDefined = "Identifier '{0}' was previously defined in this scope";
         public const string CantModifyReadonlyVar = "Cannot modify '{0}' because it is readonly";

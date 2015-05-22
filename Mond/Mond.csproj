@@ -86,6 +86,8 @@
     <Compile Include="Compiler\Expressions\Statements\DebuggerExpression.cs" />
     <Compile Include="Compiler\Expressions\Statements\ForeachExpression.cs" />
     <Compile Include="Compiler\Expressions\Statements\SequenceExpression.cs" />
+    <Compile Include="Compiler\Expressions\UserDefinedBinaryOperatorExpression.cs" />
+    <Compile Include="Compiler\Expressions\UserDefinedUnaryOperator.cs" />
     <Compile Include="Compiler\Expressions\YieldExpression.cs" />
     <Compile Include="Compiler\Expressions\UnpackExpression.cs" />
     <Compile Include="Compiler\LoopContext.cs" />

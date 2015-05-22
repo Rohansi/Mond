@@ -1,4 +1,5 @@
-﻿using Mond.Compiler.Expressions;
+﻿using System.Text;
+using Mond.Compiler.Expressions;
 
 namespace Mond.Compiler.Parselets
 {
@@ -13,7 +14,21 @@ namespace Mond.Compiler.Parselets
 
         public Expression Parse(Parser parser, Token token)
         {
-            var right = parser.ParseExpression(_precedence);
+            Expression right;
+
+            if (token.SubType == TokenSubType.Operator)
+            {
+                var @operator = new StringBuilder(token.Contents);
+
+                while (parser.Match(TokenSubType.Operator))
+                    @operator.Append(parser.Take().Contents);
+
+                token = new Token(token, TokenType.UserDefinedOperator, @operator.ToString());
+                right = parser.ParseExpression((int)PrecedenceValue.Prefix);
+                return new UserDefinedUnaryOperator(token, right, token.Contents);
+            }
+
+            right = parser.ParseExpression(_precedence);
             return new PrefixOperatorExpression(token, right);
         }
     }

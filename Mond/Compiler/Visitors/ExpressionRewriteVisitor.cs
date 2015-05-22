@@ -347,5 +347,22 @@ namespace Mond.Compiler.Visitors
                 EndToken = expression.EndToken
             };
         }
+
+
+        public Expression Visit(UserDefinedUnaryOperator expression)
+        {
+            return new UserDefinedUnaryOperator(expression.Token, expression.Right.Accept(this), expression.Operator)
+            {
+                EndToken = expression.EndToken
+            };
+        }
+
+        public Expression Visit(UserDefinedBinaryOperatorExpression expression)
+        {
+            return new UserDefinedBinaryOperatorExpression(expression.Token, expression.Left.Accept(this), expression.Right.Accept(this), expression.Operator)
+            {
+                EndToken = expression.EndToken
+            };
+        }
     }
 }

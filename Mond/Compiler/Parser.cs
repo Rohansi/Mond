@@ -151,11 +151,31 @@ namespace Mond.Compiler
         }
 
         /// <summary>
+        /// Check if the next token matches the given subtype. If they match, take the token.
+        /// </summary>
+        public bool MatchAndTake(TokenSubType subType)
+        {
+            var isMatch = Match(subType);
+            if (isMatch)
+                Take();
+
+            return isMatch;
+        }
+
+        /// <summary>
         /// Check if the next token matches the given type.
         /// </summary>
         public bool Match(TokenType type, int distance = 0)
         {
             return Peek(distance).Type == type;
+        }
+
+        /// <summary>
+        /// Check if the next token matches the given subtype.
+        /// </summary>
+        public bool Match(TokenSubType subType, int distance = 0)
+        {
+            return Peek(distance).SubType == subType;
         }
 
         /// <summary>
@@ -167,6 +187,19 @@ namespace Mond.Compiler
 
             if (token.Type != type)
                 throw new MondCompilerException(token, CompilerError.ExpectedButFound, type, token);
+
+            return token;
+        }
+
+        /// <summary>
+        /// Take a token from the stream. Throws an exception if the given subtype does not match the token subtype.
+        /// </summary>
+        public Token Take(TokenSubType subType)
+        {
+            var token = Take();
+
+            if (token.SubType != subType)
+                throw new MondCompilerException(token, CompilerError.ExpectedButFound, subType, token);
 
             return token;
         }

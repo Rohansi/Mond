@@ -122,7 +122,7 @@ namespace Mond.Compiler
                 if (op != null)
                 {
                     var start = _positions.Pop();
-                    token = new Token(_fileName, start.Line, start.Column, op.Item2, op.Item1);
+                    token = new Token(_fileName, start.Line, start.Column, op.Item2, op.Item1, op.Item3);
                     return true;
                 }
 
@@ -256,7 +256,7 @@ namespace Mond.Compiler
             var isKeyword = _keywords.TryGetValue(wordContents, out keywordType);
 
             var start = _positions.Pop();
-            token = new Token(_fileName, start.Line, start.Column, isKeyword ? keywordType : TokenType.Identifier, wordContents);
+            token = new Token(_fileName, start.Line, start.Column, isKeyword ? keywordType : TokenType.Identifier, wordContents, isKeyword ? TokenSubType.Keyword : TokenSubType.None);
             return true;
         }
 
@@ -292,7 +292,7 @@ namespace Mond.Compiler
                     {
                         TakeChar(); // '0'
 
-                        token = new Token(_fileName, _currentLine, _currentColumn, TokenType.Number, "0", format);
+                        token = new Token(_fileName, _currentLine, _currentColumn, TokenType.Number, "0", tag: format);
                         return true;
                     }
 
@@ -358,7 +358,7 @@ namespace Mond.Compiler
             if (string.IsNullOrEmpty(numberContents))
                 throw new MondCompilerException(_fileName, start.Line, start.Column, CompilerError.EmptyNumber, format.GetName());
 
-            token =  new Token(_fileName, start.Line, start.Column, TokenType.Number, numberContents, format);
+            token =  new Token(_fileName, start.Line, start.Column, TokenType.Number, numberContents, tag: format);
             return true;
         }
 

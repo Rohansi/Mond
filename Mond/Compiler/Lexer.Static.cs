@@ -14,63 +14,63 @@ namespace Mond.Compiler
         {
             _operators = new OperatorDictionary
             {
-                { ";", TokenType.Semicolon },
-                { ",", TokenType.Comma },
-                { ".", TokenType.Dot },
-                { "=", TokenType.Assign },
+                { ";", TokenType.Semicolon, TokenSubType.None },
+                { ",", TokenType.Comma, TokenSubType.None },
+                { ".", TokenType.Dot, TokenSubType.Operator },
+                { "=", TokenType.Assign, TokenSubType.Operator },
 
-                { "(", TokenType.LeftParen },
-                { ")", TokenType.RightParen },
+                { "(", TokenType.LeftParen, TokenSubType.None },
+                { ")", TokenType.RightParen, TokenSubType.None },
 
-                { "{", TokenType.LeftBrace },
-                { "}", TokenType.RightBrace },
+                { "{", TokenType.LeftBrace, TokenSubType.None },
+                { "}", TokenType.RightBrace, TokenSubType.None },
 
-                { "[", TokenType.LeftSquare },
-                { "]", TokenType.RightSquare },
+                { "[", TokenType.LeftSquare, TokenSubType.None },
+                { "]", TokenType.RightSquare, TokenSubType.None },
 
-                { "+", TokenType.Add },
-                { "-", TokenType.Subtract },
-                { "*", TokenType.Multiply },
-                { "/", TokenType.Divide },
-                { "%", TokenType.Modulo },
-                { "**", TokenType.Exponent },
-                { "&", TokenType.BitAnd },
-                { "|", TokenType.BitOr },
-                { "^", TokenType.BitXor },
-                { "~", TokenType.BitNot },
-                { "<<", TokenType.BitLeftShift },
-                { ">>", TokenType.BitRightShift },
-                { "++", TokenType.Increment },
-                { "--", TokenType.Decrement },
+                { "+", TokenType.Add, TokenSubType.Operator },
+                { "-", TokenType.Subtract, TokenSubType.Operator },
+                { "*", TokenType.Multiply, TokenSubType.Operator },
+                { "/", TokenType.Divide, TokenSubType.Operator },
+                { "%", TokenType.Modulo, TokenSubType.Operator },
+                { "**", TokenType.Exponent, TokenSubType.Operator },
+                { "&", TokenType.BitAnd, TokenSubType.Operator },
+                { "|", TokenType.BitOr, TokenSubType.Operator },
+                { "^", TokenType.BitXor, TokenSubType.Operator },
+                { "~", TokenType.BitNot, TokenSubType.Operator },
+                { "<<", TokenType.BitLeftShift, TokenSubType.Operator },
+                { ">>", TokenType.BitRightShift, TokenSubType.Operator },
+                { "++", TokenType.Increment, TokenSubType.Operator },
+                { "--", TokenType.Decrement, TokenSubType.Operator },
 
-                { "+=", TokenType.AddAssign },
-                { "-=", TokenType.SubtractAssign },
-                { "*=", TokenType.MultiplyAssign },
-                { "/=", TokenType.DivideAssign },
-                { "%=", TokenType.ModuloAssign },
-                { "**=", TokenType.ExponentAssign },
-                { "&=", TokenType.BitAndAssign },
-                { "|=", TokenType.BitOrAssign },
-                { "^=", TokenType.BitXorAssign },
-                { "<<=", TokenType.BitLeftShiftAssign },
-                { ">>=", TokenType.BitRightShiftAssign },
+                { "+=", TokenType.AddAssign, TokenSubType.Operator },
+                { "-=", TokenType.SubtractAssign, TokenSubType.Operator },
+                { "*=", TokenType.MultiplyAssign, TokenSubType.Operator },
+                { "/=", TokenType.DivideAssign, TokenSubType.Operator },
+                { "%=", TokenType.ModuloAssign, TokenSubType.Operator },
+                { "**=", TokenType.ExponentAssign, TokenSubType.Operator },
+                { "&=", TokenType.BitAndAssign, TokenSubType.Operator },
+                { "|=", TokenType.BitOrAssign, TokenSubType.Operator },
+                { "^=", TokenType.BitXorAssign, TokenSubType.Operator },
+                { "<<=", TokenType.BitLeftShiftAssign, TokenSubType.Operator },
+                { ">>=", TokenType.BitRightShiftAssign, TokenSubType.Operator },
                 
-                { "==", TokenType.EqualTo },
-                { "!=", TokenType.NotEqualTo },
-                { ">", TokenType.GreaterThan },
-                { ">=", TokenType.GreaterThanOrEqual },
-                { "<", TokenType.LessThan },
-                { "<=", TokenType.LessThanOrEqual },
-                { "!", TokenType.Not },
-                { "&&", TokenType.ConditionalAnd },
-                { "||", TokenType.ConditionalOr },
+                { "==", TokenType.EqualTo, TokenSubType.Operator },
+                { "!=", TokenType.NotEqualTo, TokenSubType.Operator },
+                { ">", TokenType.GreaterThan, TokenSubType.Operator },
+                { ">=", TokenType.GreaterThanOrEqual, TokenSubType.Operator },
+                { "<", TokenType.LessThan, TokenSubType.Operator },
+                { "<=", TokenType.LessThanOrEqual, TokenSubType.Operator },
+                { "!", TokenType.Not, TokenSubType.Operator },
+                { "&&", TokenType.ConditionalAnd, TokenSubType.Operator },
+                { "||", TokenType.ConditionalOr, TokenSubType.Operator },
 
-                { "?", TokenType.QuestionMark },
-                { ":", TokenType.Colon },
-                { "->", TokenType.Pointy },
-                { "|>", TokenType.Pipeline },
-                { "...", TokenType.Ellipsis },
-                { "!in", TokenType.NotIn }
+                { "?", TokenType.QuestionMark, TokenSubType.Operator },
+                { ":", TokenType.Colon, TokenSubType.Operator },
+                { "->", TokenType.Pointy, TokenSubType.Operator },
+                { "|>", TokenType.Pipeline, TokenSubType.Operator },
+                { "...", TokenType.Ellipsis, TokenSubType.Operator },
+                { "!in", TokenType.NotIn, TokenSubType.None }
             };
 
             _keywords = new Dictionary<string, TokenType>
@@ -114,31 +114,31 @@ namespace Mond.Compiler
 
         class OperatorDictionary : IEnumerable<object>
         {
-            private readonly GenericComparer<Tuple<string, TokenType>> _comparer; 
-            private Dictionary<char, List<Tuple<string, TokenType>>> _operatorDictionary;
+            private readonly GenericComparer<Tuple<string, TokenType, TokenSubType>> _comparer; 
+            private Dictionary<char, List<Tuple<string, TokenType, TokenSubType>>> _operatorDictionary;
 
             public OperatorDictionary()
             {
-                _comparer = new GenericComparer<Tuple<string, TokenType>>((a, b) => b.Item1.Length - a.Item1.Length);
-                _operatorDictionary = new Dictionary<char, List<Tuple<string, TokenType>>>();
+                _comparer = new GenericComparer<Tuple<string, TokenType, TokenSubType>>((a, b) => b.Item1.Length - a.Item1.Length);
+                _operatorDictionary = new Dictionary<char, List<Tuple<string, TokenType, TokenSubType>>>();
             }
 
-            public void Add(string op, TokenType type)
+            public void Add(string op, TokenType type, TokenSubType subType)
             {
-                List<Tuple<string, TokenType>> list;
+                List<Tuple<string, TokenType, TokenSubType>> list;
                 if (!_operatorDictionary.TryGetValue(op[0], out list))
                 {
-                    list = new List<Tuple<string, TokenType>>();
+                    list = new List<Tuple<string, TokenType, TokenSubType>>();
                     _operatorDictionary.Add(op[0], list);
                 }
 
-                list.Add(Tuple.Create(op, type));
+                list.Add(Tuple.Create(op, type, subType));
                 list.Sort(_comparer);
             }
 
-            public IEnumerable<Tuple<string, TokenType>> Lookup(char ch)
+            public IEnumerable<Tuple<string, TokenType, TokenSubType>> Lookup(char ch)
             {
-                List<Tuple<string, TokenType>> list;
+                List<Tuple<string, TokenType, TokenSubType>> list;
                 if (!_operatorDictionary.TryGetValue(ch, out list))
                     return null;
 
