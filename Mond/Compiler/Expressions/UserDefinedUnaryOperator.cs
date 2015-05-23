@@ -21,7 +21,7 @@ namespace Mond.Compiler.Expressions
 
             stack += Right.Compile(context);
             stack += context.LoadGlobal();
-            stack += context.LoadField(context.String("$ops"));
+            stack += context.LoadField(context.String("__ops"));
             stack += context.LoadField(context.String(Operator));
             stack += context.Call(1, new List<ImmediateOperand>());
 

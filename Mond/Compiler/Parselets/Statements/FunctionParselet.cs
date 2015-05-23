@@ -16,7 +16,7 @@ namespace Mond.Compiler.Parselets.Statements
             ScopeExpression body;
 
             ParseFunction(parser, token, true, out trailingSemicolon, out name, out arguments, out otherArgs, out isOperator, out body);
-            var function = new FunctionExpression(token, isOperator ? null : name, arguments, otherArgs, body);
+            var function = new FunctionExpression(token, name, arguments, otherArgs, isOperator, body);
 
             return isOperator ? MakeOperator(name, function) : function;
         }
@@ -31,7 +31,7 @@ namespace Mond.Compiler.Parselets.Statements
             bool trailingSemicolon;
 
             ParseFunction(parser, token, false, out trailingSemicolon, out name, out arguments, out otherArgs, out isOperator, out body);
-            var function = new FunctionExpression(token, isOperator ? null : name, arguments, otherArgs, body);
+            var function = new FunctionExpression(token, name, arguments, otherArgs, isOperator, body);
 
             return isOperator ? MakeOperator(name, function) : function;
         }
@@ -61,15 +61,8 @@ namespace Mond.Compiler.Parselets.Statements
                 {
                     var @operator = new StringBuilder();
 
-                    do
-                    {
-                        @operator.Append(parser.Take(TokenSubType.Operator).Contents);
-
-                        if (parser.Match(TokenType.RightParen))
-                            break;
-
-                        parser.Take(TokenType.Comma);
-                    } while (!parser.Match(TokenType.RightParen));
+                    do @operator.Append(parser.Take(TokenSubType.Operator).Contents);
+                    while (!parser.Match(TokenType.RightParen));
 
                     parser.Take(TokenType.RightParen);
 
@@ -107,11 +100,22 @@ namespace Mond.Compiler.Parselets.Statements
 
             parser.Take(TokenType.RightParen);
 
-            if (isOperator && arguments.Count != 1 && arguments.Count != 2)
-                throw new MondCompilerException(token, CompilerError.IncorrectOperatorArity, arguments.Count);
+            if (isOperator)
+            {
+                if (arguments.Count != 1 && arguments.Count != 2)
+                    throw new MondCompilerException(token, CompilerError.IncorrectOperatorArity, arguments.Count);
 
-            if (isOperator && otherArgs != null)
-                throw new MondCompilerException(token, CompilerError.EllipsisInOperator);
+                if (otherArgs != null)
+                    throw new MondCompilerException(token, CompilerError.EllipsisInOperator);
+
+                // Check to see if we're trying to override any built-in unary prefix operators
+                if (arguments.Count == 1 && Lexer.OperatorExists(name) && (name == "++" || name == "--" || name == "+" || name == "-" || name == "!" || name == "~"))
+                    throw new MondCompilerException(token, CompilerError.CantOverrideBuiltInOperator, name);
+
+                // Check to see if we're trying to override any built-in unary postfix or binary operators
+                if (arguments.Count == 2 && Lexer.OperatorExists(name.ToString()) && name != "...")
+                    throw new MondCompilerException(token, CompilerError.CantOverrideBuiltInOperator, name);
+            }
 
             // parse body
             if (parser.MatchAndTake(TokenType.Pointy))
@@ -145,13 +149,11 @@ namespace Mond.Compiler.Parselets.Statements
             var token = new Token(function.Token, TokenType.Global, "global", TokenSubType.Keyword);
             var global = new GlobalExpression(token);
 
-            token = new Token(function.Token, TokenType.String, "$ops", TokenSubType.None);
-            var opsString = new StringExpression(token, token.Contents);
-            var opsField = new IndexerExpression(token, global, opsString);
+            token = new Token(function.Token, TokenType.Identifier, "__ops", TokenSubType.None);
+            var opsField = new FieldExpression(token, global);
 
             token = new Token(function.Token, TokenType.String, @operator, TokenSubType.Operator);
-            var opIndex = new StringExpression(token, token.Contents);
-            var opField = new IndexerExpression(token, opsField, opIndex);
+            var opField = new FieldExpression(token, opsField);
 
             token = new Token(function.Token, TokenType.Assign, "=", TokenSubType.Operator);
             return new BinaryOperatorExpression(token, opField, function);

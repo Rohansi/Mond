@@ -27,7 +27,14 @@ namespace Mond.Compiler.Parselets
                 while (parser.Match(TokenSubType.Operator))
                     @operator.Append(parser.Take().Contents);
 
-                token = new Token(token, TokenType.UserDefinedOperator, @operator.ToString(), TokenSubType.Operator);
+                var opStr = @operator.ToString();
+                if (opStr != "...")
+                {
+                    right = parser.ParseExpression(Precedence - (_isRight ? 1 : 0));
+                    return new BinaryOperatorExpression(token, left, right);
+                }
+
+                token = new Token(token, TokenType.UserDefinedOperator, opStr, TokenSubType.Operator);
                 right = parser.ParseExpression((int)PrecedenceValue.Relational);
                 return new UserDefinedBinaryOperatorExpression(token, left, right, token.Contents);
             }

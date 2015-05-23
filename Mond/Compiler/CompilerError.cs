@@ -15,6 +15,8 @@
 
         public const string IncorrectOperatorArity = "Incorrect operator arity ({0}). User defined operators may only accept 1 (prefix) or 2 (infix) arguments";
         public const string EllipsisInOperator = "User defined operators may not have ellipsis arguments";
+        public const string CantNestOperatorDecl = "User defined operators may only be declared in the top-level scope";
+        public const string CantOverrideBuiltInOperator = "Cannot define operator '{0}', as it would shadow the built-in '{0}' operator";
 
         public const string UndefinedIdentifier = "Undefined identifier '{0}'";
         public const string IdentifierAlreadyDefined = "Identifier '{0}' was previously defined in this scope";

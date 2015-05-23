@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -14,19 +15,19 @@ namespace Mond.Compiler
         {
             _operators = new OperatorDictionary
             {
-                { ";", TokenType.Semicolon, TokenSubType.None },
-                { ",", TokenType.Comma, TokenSubType.None },
+                { ";", TokenType.Semicolon, TokenSubType.Punctuation },
+                { ",", TokenType.Comma, TokenSubType.Punctuation },
                 { ".", TokenType.Dot, TokenSubType.Operator },
                 { "=", TokenType.Assign, TokenSubType.Operator },
 
-                { "(", TokenType.LeftParen, TokenSubType.None },
-                { ")", TokenType.RightParen, TokenSubType.None },
+                { "(", TokenType.LeftParen, TokenSubType.Punctuation },
+                { ")", TokenType.RightParen, TokenSubType.Punctuation },
 
-                { "{", TokenType.LeftBrace, TokenSubType.None },
-                { "}", TokenType.RightBrace, TokenSubType.None },
+                { "{", TokenType.LeftBrace, TokenSubType.Punctuation },
+                { "}", TokenType.RightBrace, TokenSubType.Punctuation },
 
-                { "[", TokenType.LeftSquare, TokenSubType.None },
-                { "]", TokenType.RightSquare, TokenSubType.None },
+                { "[", TokenType.LeftSquare, TokenSubType.Punctuation },
+                { "]", TokenType.RightSquare, TokenSubType.Punctuation },
 
                 { "+", TokenType.Add, TokenSubType.Operator },
                 { "-", TokenType.Subtract, TokenSubType.Operator },
@@ -70,7 +71,7 @@ namespace Mond.Compiler
                 { "->", TokenType.Pointy, TokenSubType.Operator },
                 { "|>", TokenType.Pipeline, TokenSubType.Operator },
                 { "...", TokenType.Ellipsis, TokenSubType.Operator },
-                { "!in", TokenType.NotIn, TokenSubType.None }
+                { "!in", TokenType.NotIn, TokenSubType.Punctuation }
             };
 
             _keywords = new Dictionary<string, TokenType>
@@ -112,7 +113,17 @@ namespace Mond.Compiler
             };
         }
 
-        class OperatorDictionary : IEnumerable<object>
+        public static bool OperatorExists(string @operator)
+        {
+            return _operators.Where(kvp => kvp.Value.Where(tup => tup.Item1 == @operator && tup.Item3 == TokenSubType.Operator).Any()).Any();
+        }
+
+        public static bool OperatorExists(TokenType type)
+        {
+            return _operators.Where(kvp => kvp.Value.Where(tup => tup.Item2 == type && tup.Item3 == TokenSubType.Operator).Any()).Any();
+        }
+
+        class OperatorDictionary : IEnumerable<KeyValuePair<char, List<Tuple<string, TokenType, TokenSubType>>>>
         {
             private readonly GenericComparer<Tuple<string, TokenType, TokenSubType>> _comparer; 
             private Dictionary<char, List<Tuple<string, TokenType, TokenSubType>>> _operatorDictionary;
@@ -145,9 +156,14 @@ namespace Mond.Compiler
                 return list;
             }
 
-            public IEnumerator<object> GetEnumerator()
+            public IEnumerator<KeyValuePair<char, List<Tuple<string, TokenType, TokenSubType>>>> GetEnumerator()
             {
-                throw new NotSupportedException();
+                var enumerator = _operatorDictionary.GetEnumerator();
+
+                while (enumerator.MoveNext())
+                    yield return enumerator.Current;
+
+                enumerator.Dispose();
             }
 
             IEnumerator IEnumerable.GetEnumerator()

@@ -69,6 +69,7 @@ namespace Mond.Compiler.Visitors
                 expression.Name,
                 expression.Arguments.ToList(),
                 expression.OtherArguments,
+                expression.IsOperator,
                 (ScopeExpression)expression.Block.Accept(this),
                 expression.DebugName)
             {
@@ -109,6 +110,7 @@ namespace Mond.Compiler.Visitors
                 expression.Name,
                 expression.Arguments.ToList(),
                 expression.OtherArguments,
+                expression.IsOperator,
                 (ScopeExpression)expression.Block.Accept(this),
                 expression.DebugName)
             {

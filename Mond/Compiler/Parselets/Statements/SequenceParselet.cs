@@ -15,7 +15,7 @@ namespace Mond.Compiler.Parselets.Statements
             ScopeExpression body;
 
             FunctionParselet.ParseFunction(parser, token, true, out trailingSemicolon, out name, out arguments, out otherArgs, out isOperator, out body);
-            var sequence = new SequenceExpression(token, isOperator ? null : name, arguments, otherArgs, body);
+            var sequence = new SequenceExpression(token, name, arguments, otherArgs, isOperator, body);
 
             return isOperator ? FunctionParselet.MakeOperator(name, sequence) : sequence;
         }
@@ -30,7 +30,7 @@ namespace Mond.Compiler.Parselets.Statements
             bool trailingSemicolon;
 
             FunctionParselet.ParseFunction(parser, token, false, out trailingSemicolon, out name, out arguments, out otherArgs, out isOperator, out body);
-            var sequence = new SequenceExpression(token, isOperator ? null : name, arguments, otherArgs, body);
+            var sequence = new SequenceExpression(token, name, arguments, otherArgs, isOperator, body);
 
             return isOperator ? FunctionParselet.MakeOperator(name, sequence) : sequence;
         }

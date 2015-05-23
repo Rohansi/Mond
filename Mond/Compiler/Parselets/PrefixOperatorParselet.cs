@@ -23,7 +23,14 @@ namespace Mond.Compiler.Parselets
                 while (parser.Match(TokenSubType.Operator))
                     @operator.Append(parser.Take().Contents);
 
-                token = new Token(token, TokenType.UserDefinedOperator, @operator.ToString());
+                var opStr = @operator.ToString();
+                if (opStr == "++" || opStr == "--" || opStr == "-" || opStr == "+" || opStr == "!" || opStr == "~")
+                {
+                    right = parser.ParseExpression(_precedence);
+                    return new PrefixOperatorExpression(token, right);
+                }
+
+                token = new Token(token, TokenType.UserDefinedOperator, opStr);
                 right = parser.ParseExpression((int)PrecedenceValue.Prefix);
                 return new UserDefinedUnaryOperator(token, right, token.Contents);
             }
