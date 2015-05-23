@@ -19,12 +19,16 @@ namespace Mond.Compiler.Parselets
             if (token.SubType == TokenSubType.Operator)
             {
                 var @operator = new StringBuilder(token.Contents);
+                var tokenCount = 1;
 
                 while (parser.Match(TokenSubType.Operator))
-                    @operator.Append(parser.Take().Contents);
+                {
+                    @operator.Append( parser.Take().Contents );
+                    ++tokenCount;
+                }
 
                 var opStr = @operator.ToString();
-                if (opStr == "++" || opStr == "--" || opStr == "-" || opStr == "+" || opStr == "!" || opStr == "~")
+                if (tokenCount == 1 && (opStr == "++" || opStr == "--" || opStr == "-" || opStr == "+" || opStr == "!" || opStr == "~"))
                 {
                     right = parser.ParseExpression(_precedence);
                     return new PrefixOperatorExpression(token, right);

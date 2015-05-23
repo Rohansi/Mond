@@ -59,7 +59,39 @@ namespace Mond.Compiler
             RegisterInfix(TokenType.LessThanOrEqual, new BinaryOperatorParselet((int)PrecedenceValue.Relational, false));
             RegisterInfix(TokenType.In, new BinaryOperatorParselet((int)PrecedenceValue.Relational, false));
             RegisterInfix(TokenType.NotIn, new BinaryOperatorParselet((int)PrecedenceValue.Relational, false));
+
+            // UDO stuff. We need to add all these so UDOs can parse correctly
             RegisterInfix(TokenType.Ellipsis, new BinaryOperatorParselet((int)PrecedenceValue.Relational, false));
+            RegisterInfix(TokenType.BitNot, new BinaryOperatorParselet((int)PrecedenceValue.Relational, false));
+            RegisterPrefix(TokenType.Modulo, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));
+            RegisterPrefix(TokenType.Exponent, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));
+            RegisterPrefix(TokenType.Multiply, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));
+            RegisterPrefix(TokenType.Divide, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));
+            RegisterPrefix(TokenType.BitAnd, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));
+            RegisterPrefix(TokenType.BitOr, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));
+            RegisterPrefix(TokenType.BitXor, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));
+            RegisterPrefix(TokenType.BitLeftShift, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));
+            RegisterPrefix(TokenType.BitRightShift, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));
+            RegisterPrefix(TokenType.Dot, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));
+            RegisterPrefix(TokenType.Pipeline, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));
+            RegisterPrefix(TokenType.EqualTo, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));
+            RegisterPrefix(TokenType.NotEqualTo, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));
+            RegisterPrefix(TokenType.GreaterThan, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));
+            RegisterPrefix(TokenType.GreaterThanOrEqual, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));
+            RegisterPrefix(TokenType.LessThan, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));
+            RegisterPrefix(TokenType.LessThanOrEqual, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));
+            RegisterPrefix(TokenType.ConditionalAnd, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));
+            RegisterPrefix(TokenType.ConditionalOr, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));
+            RegisterPrefix(TokenType.QuestionMark, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));
+            RegisterPrefix(TokenType.ModuloAssign, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));
+            RegisterPrefix(TokenType.ExponentAssign, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));
+            RegisterPrefix(TokenType.MultiplyAssign, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));
+            RegisterPrefix(TokenType.DivideAssign, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));
+            RegisterPrefix(TokenType.BitAndAssign, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));
+            RegisterPrefix(TokenType.BitOrAssign, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));
+            RegisterPrefix(TokenType.BitXorAssign, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));
+            RegisterPrefix(TokenType.BitLeftShiftAssign, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));
+            RegisterPrefix(TokenType.BitRightShiftAssign, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));
 
             // prefix inc/decrement
             RegisterPrefix(TokenType.Increment, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));

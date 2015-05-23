@@ -67,8 +67,8 @@ namespace Mond.Compiler
                 { "||", TokenType.ConditionalOr, TokenSubType.Operator },
 
                 { "?", TokenType.QuestionMark, TokenSubType.Operator },
-                { ":", TokenType.Colon, TokenSubType.Operator },
-                { "->", TokenType.Pointy, TokenSubType.Operator },
+                { ":", TokenType.Colon, TokenSubType.Punctuation },
+                { "->", TokenType.Pointy, TokenSubType.Punctuation },
                 { "|>", TokenType.Pipeline, TokenSubType.Operator },
                 { "...", TokenType.Ellipsis, TokenSubType.Operator },
                 { "!in", TokenType.NotIn, TokenSubType.Punctuation }

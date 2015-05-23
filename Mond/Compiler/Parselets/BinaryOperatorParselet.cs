@@ -23,12 +23,16 @@ namespace Mond.Compiler.Parselets
             if (token.SubType == TokenSubType.Operator)
             {
                 var @operator = new StringBuilder(token.Contents);
+                var tokenCount = 1;
 
-                while (parser.Match(TokenSubType.Operator))
-                    @operator.Append(parser.Take().Contents);
+                while( parser.Match( TokenSubType.Operator ) )
+                {
+                    @operator.Append( parser.Take().Contents );
+                    ++tokenCount;
+                }
 
                 var opStr = @operator.ToString();
-                if (opStr != "...")
+                if (tokenCount == 1 && opStr != "..." && opStr != "~")
                 {
                     right = parser.ParseExpression(Precedence - (_isRight ? 1 : 0));
                     return new BinaryOperatorExpression(token, left, right);

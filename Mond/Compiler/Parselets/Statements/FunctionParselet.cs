@@ -113,7 +113,7 @@ namespace Mond.Compiler.Parselets.Statements
                     throw new MondCompilerException(token, CompilerError.CantOverrideBuiltInOperator, name);
 
                 // Check to see if we're trying to override any built-in unary postfix or binary operators
-                if (arguments.Count == 2 && Lexer.OperatorExists(name.ToString()) && name != "...")
+                if (arguments.Count == 2 && Lexer.OperatorExists(name.ToString()) && name != "..." && name != "~")
                     throw new MondCompilerException(token, CompilerError.CantOverrideBuiltInOperator, name);
             }
 
