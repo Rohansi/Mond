@@ -46,7 +46,7 @@ namespace Mond.Compiler.Expressions.Statements
 
         public override int Compile(FunctionContext context)
         {
-            if (IsOperator && !(Parent is BinaryOperatorExpression && Parent.Parent is BlockExpression && !(Parent.Parent is ScopeExpression)))
+            if (IsOperator && Lexer.IsOperatorToken(Name) && !(Parent is BinaryOperatorExpression && Parent.Parent is BlockExpression && !(Parent.Parent is ScopeExpression)))
                 throw new MondCompilerException(Token, CompilerError.CantNestOperatorDecl);
 
             var isStatement = Parent is IBlockExpression;
