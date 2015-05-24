@@ -71,6 +71,14 @@
             Left = Left.Simplify();
             Index = Index.Simplify();
 
+            // optimize x["y"] to x.y
+            var indexStr = Index as StringExpression;
+            if (indexStr != null)
+            {
+                var token = new Token(indexStr.Token, TokenType.String, indexStr.Value);
+                return new FieldExpression(token, Left);
+            }
+
             return this;
         }
 
