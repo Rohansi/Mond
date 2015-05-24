@@ -1,4 +1,5 @@
 ﻿using System;
+using Mond.Compiler;
 
 namespace Mond.Binding
 {
@@ -9,8 +10,11 @@ namespace Mond.Binding
 
         public MondOperatorAttribute(string @operator)
         {
-            if (string.IsNullOrWhiteSpace(@operator))
-                throw new ArgumentNullException("@operator");
+            if (!Lexer.IsOperatorToken(@operator))
+                throw new MondBindingException(BindingError.NameIsntValidOperator, @operator);
+
+            if (Lexer.OperatorExists(@operator))
+                throw new MondBindingException(CompilerError.CantOverrideBuiltInOperator, @operator);
 
             Operator = @operator;
         }

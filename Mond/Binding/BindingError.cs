@@ -14,6 +14,8 @@ namespace Mond.Binding
 
         public const string DuplicateDefinition = "Duplicate definition of '{0}'";
 
+        public const string NameIsntValidOperator = "'{0}' is not a valid operator name";
+
         public static string MethodsHiddenError(IEnumerable<MethodBase> methods)
         {
             var sb = new StringBuilder();
