@@ -27,12 +27,12 @@ namespace Mond.Tests.Binding
             }
 
             [MondOperator("%%")]
-            public static double RandomNumber(MondValue range)
+            public static double SumOrDouble(MondState state, MondValue range)
             {
-                if(range.Type == MondValueType.Number)
-                    return _rng.Next(0, (int)range);
+                if (range.Type == MondValueType.Number)
+                    return range * 2d;
 
-                return _rng.Next((int)range["begin"], (int)range["end"] + (range["inclusive"] ? 1 : 0));
+                return range.Enumerate(state).Sum(n => (double)n);
             }
 
             private static MondValue CreateGenerator(double begin, double end, bool inclusive)
@@ -72,7 +72,7 @@ namespace Mond.Tests.Binding
         {
             var result = _state.Run("return %% 5;");
 
-            Assert.True(NumberBetween(result, 0, 5));
+            Assert.True(result == 10);
         }
 
         [Test]
@@ -100,13 +100,8 @@ namespace Mond.Tests.Binding
                     b: %%(6 <...> 10)
                 };");
 
-            Assert.True(NumberBetween(result["a"], 0, 5));
-            Assert.True(NumberBetween(result["b"], 6, 9));
-        }
-
-        private static bool NumberBetween(double n, double lo, double hi)
-        {
-            return n >= lo && n <= hi;
+            Assert.True(result["a"] == 16);
+            Assert.True(result["b"] == 30);
         }
     }
 }
