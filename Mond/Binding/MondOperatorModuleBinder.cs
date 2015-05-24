@@ -6,7 +6,7 @@ namespace Mond.Binding
 {
     public static class MondOperatorModuleBinder
     {
-        private static HashSet<Type> _cache = new HashSet<Type>();
+        private static Dictionary<Type, IEnumerable<Tuple<string, MondFunction>>> _cache = new Dictionary<Type, IEnumerable<Tuple<string, MondFunction>>>();
 
         public static void Bind<T>(MondState state)
         {
@@ -18,22 +18,24 @@ namespace Mond.Binding
             if (state == null)
                 throw new ArgumentNullException("state");
 
-            lock (_cache)
+            IEnumerable<Tuple<string, MondFunction>> bindings;
+            lock (_cache) { bindings = _cache.ContainsKey( type ) ? _cache[type] : null; }
+
+            if (bindings == null)
             {
-                if (!_cache.Add(type))
-                    return;
+                var operatorModuleAttr = type.Attribute<MondOperatorModuleAttribute>();
+
+                if (operatorModuleAttr == null)
+                    throw new MondBindingException(BindingError.TypeMissingAttribute, "MondOperatorModule");
+
+                var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Static);
+                bindings = MondFunctionBinder.BindStatic(type.Name, methods, MondFunctionBinder.MethodType.Operator);
+
+                lock (_cache) { _cache.Add(type, bindings); }
             }
 
-            var operatorModuleAttr = type.Attribute<MondOperatorModuleAttribute>();
-
-            if (operatorModuleAttr == null)
-                throw new MondBindingException(BindingError.TypeMissingAttribute, "MondOperatorModule");
-
-            var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Static);
-            var boundMethods = MondFunctionBinder.BindStatic(type.Name, methods);
             var opsObject = state["__ops"];
-
-            foreach (var method in boundMethods)
+            foreach (var method in bindings)
                 opsObject[method.Item1] = method.Item2;
         }
     }
