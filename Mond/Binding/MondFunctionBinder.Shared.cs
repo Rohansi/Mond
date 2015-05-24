@@ -21,9 +21,10 @@ namespace Mond.Binding
                 case MethodType.Normal:
                     {
                         return source
-                            .Select(m => new { Method = m, FunctionAttribute = m.Attribute<MondFunctionAttribute>() })
-                            .Where(m => m.FunctionAttribute != null)
-                            .GroupBy(m => nameOverride ?? m.FunctionAttribute.Name ?? m.Method.Name)
+                            .Select(m => new { Method = m, FunctionAttribute = m.Attribute<MondFunctionAttribute>(), OperatorAttribute = m.Attribute<MondOperatorAttribute>() })
+                            .Where(m => m.FunctionAttribute != null || m.OperatorAttribute != null)
+                            .GroupBy(m => nameOverride ?? (m.FunctionAttribute == null ? null : m.FunctionAttribute.Name) ??
+                                         (m.OperatorAttribute == null ? null : m.OperatorAttribute.Operator) ?? m.Method.Name)
                             .Select(g => BuildMethodTable(g.Select(m => new Method(g.Key, m.Method))))
                             .ToList();
                     }
