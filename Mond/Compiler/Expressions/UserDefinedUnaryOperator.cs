@@ -5,14 +5,13 @@ namespace Mond.Compiler.Expressions
 {
     class UserDefinedUnaryOperator : Expression
     {
-        public string Operator { get; private set; }
+        public string Operator { get { return Token.Contents; } }
         public Expression Right { get; private set; }
 
-        public UserDefinedUnaryOperator(Token token, Expression right, string @operator)
+        public UserDefinedUnaryOperator(Token token, Expression right)
             : base(token)
         {
             Right = right;
-            Operator = @operator;
         }
 
         public override int Compile(FunctionContext context)

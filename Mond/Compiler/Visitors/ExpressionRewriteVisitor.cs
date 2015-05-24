@@ -353,7 +353,7 @@ namespace Mond.Compiler.Visitors
 
         public Expression Visit(UserDefinedUnaryOperator expression)
         {
-            return new UserDefinedUnaryOperator(expression.Token, expression.Right.Accept(this), expression.Operator)
+            return new UserDefinedUnaryOperator(expression.Token, expression.Right.Accept(this))
             {
                 EndToken = expression.EndToken
             };
@@ -361,7 +361,7 @@ namespace Mond.Compiler.Visitors
 
         public Expression Visit(UserDefinedBinaryOperatorExpression expression)
         {
-            return new UserDefinedBinaryOperatorExpression(expression.Token, expression.Left.Accept(this), expression.Right.Accept(this), expression.Operator)
+            return new UserDefinedBinaryOperatorExpression(expression.Token, expression.Left.Accept(this), expression.Right.Accept(this))
             {
                 EndToken = expression.EndToken
             };

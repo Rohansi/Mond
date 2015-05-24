@@ -14,33 +14,12 @@ namespace Mond.Compiler.Parselets
 
         public Expression Parse(Parser parser, Token token)
         {
-            Expression right;
+            var right = parser.ParseExpression(_precedence);
 
-            if (token.SubType == TokenSubType.Operator)
-            {
-                var @operator = new StringBuilder(token.Contents);
-                var tokenCount = 1;
-
-                while (parser.Match(TokenSubType.Operator))
-                {
-                    @operator.Append( parser.Take().Contents );
-                    ++tokenCount;
-                }
-
-                var opStr = @operator.ToString();
-                if (tokenCount == 1 && (opStr == "++" || opStr == "--" || opStr == "-" || opStr == "+" || opStr == "!" || opStr == "~"))
-                {
-                    right = parser.ParseExpression(_precedence);
-                    return new PrefixOperatorExpression(token, right);
-                }
-
-                token = new Token(token, TokenType.UserDefinedOperator, opStr);
-                right = parser.ParseExpression((int)PrecedenceValue.Prefix);
-                return new UserDefinedUnaryOperator(token, right, token.Contents);
-            }
-
-            right = parser.ParseExpression(_precedence);
-            return new PrefixOperatorExpression(token, right);
+            if (token.Type == TokenType.UserDefinedOperator)
+                return new UserDefinedUnaryOperator(token, right);
+            else
+                return new PrefixOperatorExpression(token, right);
         }
     }
 }

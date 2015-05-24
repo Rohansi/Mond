@@ -5,16 +5,15 @@ namespace Mond.Compiler.Expressions
 {
     class UserDefinedBinaryOperatorExpression : Expression
     {
-        public string Operator { get; private set; }
+        public string Operator { get { return Token.Contents; } }
         public Expression Left { get; private set; }
         public Expression Right { get; private set; }
 
-        public UserDefinedBinaryOperatorExpression(Token token, Expression left, Expression right, string @operator)
+        public UserDefinedBinaryOperatorExpression(Token token, Expression left, Expression right)
             : base(token)
         {
             Left = left;
             Right = right;
-            Operator = @operator;
         }
 
         public override int Compile(FunctionContext context)

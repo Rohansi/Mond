@@ -59,15 +59,11 @@ namespace Mond.Compiler.Parselets.Statements
             {
                 if (parser.MatchAndTake(TokenType.LeftParen))
                 {
-                    var @operator = new StringBuilder();
-
-                    do @operator.Append(parser.Take(TokenSubType.Operator).Contents);
-                    while (!parser.Match(TokenType.RightParen));
-
+                    var operatorToken = parser.Take( TokenType.UserDefinedOperator );
                     parser.Take(TokenType.RightParen);
 
                     isOperator = true;
-                    name = @operator.ToString();
+                    name = operatorToken.Contents;
                 }
                 else
                 {

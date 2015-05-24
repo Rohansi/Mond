@@ -7,18 +7,18 @@ namespace Mond.Compiler
 {
     partial class Lexer
     {
-        private static OperatorDictionary _operators;
+        private static OperatorDictionary _punctuation;
+        private static Dictionary<string, TokenType> _operators;
         private static Dictionary<string, TokenType> _keywords;
         private static HashSet<char> _hexChars;
+        private static HashSet<char> _operatorChars;
 
         static Lexer()
         {
-            _operators = new OperatorDictionary
+            _punctuation = new OperatorDictionary
             {
                 { ";", TokenType.Semicolon, TokenSubType.Punctuation },
                 { ",", TokenType.Comma, TokenSubType.Punctuation },
-                { ".", TokenType.Dot, TokenSubType.Operator },
-                { "=", TokenType.Assign, TokenSubType.Operator },
 
                 { "(", TokenType.LeftParen, TokenSubType.Punctuation },
                 { ")", TokenType.RightParen, TokenSubType.Punctuation },
@@ -28,50 +28,58 @@ namespace Mond.Compiler
 
                 { "[", TokenType.LeftSquare, TokenSubType.Punctuation },
                 { "]", TokenType.RightSquare, TokenSubType.Punctuation },
-
-                { "+", TokenType.Add, TokenSubType.Operator },
-                { "-", TokenType.Subtract, TokenSubType.Operator },
-                { "*", TokenType.Multiply, TokenSubType.Operator },
-                { "/", TokenType.Divide, TokenSubType.Operator },
-                { "%", TokenType.Modulo, TokenSubType.Operator },
-                { "**", TokenType.Exponent, TokenSubType.Operator },
-                { "&", TokenType.BitAnd, TokenSubType.Operator },
-                { "|", TokenType.BitOr, TokenSubType.Operator },
-                { "^", TokenType.BitXor, TokenSubType.Operator },
-                { "~", TokenType.BitNot, TokenSubType.Operator },
-                { "<<", TokenType.BitLeftShift, TokenSubType.Operator },
-                { ">>", TokenType.BitRightShift, TokenSubType.Operator },
-                { "++", TokenType.Increment, TokenSubType.Operator },
-                { "--", TokenType.Decrement, TokenSubType.Operator },
-
-                { "+=", TokenType.AddAssign, TokenSubType.Operator },
-                { "-=", TokenType.SubtractAssign, TokenSubType.Operator },
-                { "*=", TokenType.MultiplyAssign, TokenSubType.Operator },
-                { "/=", TokenType.DivideAssign, TokenSubType.Operator },
-                { "%=", TokenType.ModuloAssign, TokenSubType.Operator },
-                { "**=", TokenType.ExponentAssign, TokenSubType.Operator },
-                { "&=", TokenType.BitAndAssign, TokenSubType.Operator },
-                { "|=", TokenType.BitOrAssign, TokenSubType.Operator },
-                { "^=", TokenType.BitXorAssign, TokenSubType.Operator },
-                { "<<=", TokenType.BitLeftShiftAssign, TokenSubType.Operator },
-                { ">>=", TokenType.BitRightShiftAssign, TokenSubType.Operator },
                 
-                { "==", TokenType.EqualTo, TokenSubType.Operator },
-                { "!=", TokenType.NotEqualTo, TokenSubType.Operator },
-                { ">", TokenType.GreaterThan, TokenSubType.Operator },
-                { ">=", TokenType.GreaterThanOrEqual, TokenSubType.Operator },
-                { "<", TokenType.LessThan, TokenSubType.Operator },
-                { "<=", TokenType.LessThanOrEqual, TokenSubType.Operator },
-                { "!", TokenType.Not, TokenSubType.Operator },
-                { "&&", TokenType.ConditionalAnd, TokenSubType.Operator },
-                { "||", TokenType.ConditionalOr, TokenSubType.Operator },
-
-                { "?", TokenType.QuestionMark, TokenSubType.Operator },
                 { ":", TokenType.Colon, TokenSubType.Punctuation },
+
+                // Because of the way UDOs work, and how the lexer handles operators and punctuation
+                // These two will never will never be returned by OperatorDictionary.Lookup()
+                // But they are still lexed properly in Lexer.TryLexOperator().
+                // They have been left in for clarity.
                 { "->", TokenType.Pointy, TokenSubType.Punctuation },
-                { "|>", TokenType.Pipeline, TokenSubType.Operator },
-                { "...", TokenType.Ellipsis, TokenSubType.Operator },
-                { "!in", TokenType.NotIn, TokenSubType.Punctuation }
+                { "!in", TokenType.NotIn, TokenSubType.Operator }
+            };
+
+            _operators = new Dictionary<string, TokenType>
+            {
+                { ".", TokenType.Dot },
+                { "=", TokenType.Assign },
+                { "+", TokenType.Add },
+                { "-", TokenType.Subtract },
+                { "*", TokenType.Multiply },
+                { "/", TokenType.Divide },
+                { "%", TokenType.Modulo },
+                { "**", TokenType.Exponent },
+                { "&", TokenType.BitAnd },
+                { "|", TokenType.BitOr },
+                { "^", TokenType.BitXor },
+                { "~", TokenType.BitNot },
+                { "<<", TokenType.BitLeftShift },
+                { ">>", TokenType.BitRightShift },
+                { "++", TokenType.Increment },
+                { "--", TokenType.Decrement },
+                { "+=", TokenType.AddAssign },
+                { "-=", TokenType.SubtractAssign },
+                { "*=", TokenType.MultiplyAssign },
+                { "/=", TokenType.DivideAssign },
+                { "%=", TokenType.ModuloAssign },
+                { "**=", TokenType.ExponentAssign },
+                { "&=", TokenType.BitAndAssign },
+                { "|=", TokenType.BitOrAssign },
+                { "^=", TokenType.BitXorAssign },
+                { "<<=", TokenType.BitLeftShiftAssign },
+                { ">>=", TokenType.BitRightShiftAssign },
+                { "==", TokenType.EqualTo },
+                { "!=", TokenType.NotEqualTo },
+                { ">", TokenType.GreaterThan },
+                { ">=", TokenType.GreaterThanOrEqual },
+                { "<", TokenType.LessThan },
+                { "<=", TokenType.LessThanOrEqual },
+                { "!", TokenType.Not },
+                { "&&", TokenType.ConditionalAnd },
+                { "||", TokenType.ConditionalOr },
+                { "?", TokenType.QuestionMark },
+                { "|>", TokenType.Pipeline },
+                { "...", TokenType.Ellipsis },
             };
 
             _keywords = new Dictionary<string, TokenType>
@@ -111,16 +119,22 @@ namespace Mond.Compiler
                 'a', 'b', 'c', 'd', 'e', 'f',
                 'A', 'B', 'C', 'D', 'E', 'F',
             };
+
+            _operatorChars = new HashSet<char>
+            {
+                '.', '=', '+', '-', '*', '/', '%',
+                '&', '|', '^', '~', '<', '>', '!', '?'
+            };
         }
 
         public static bool OperatorExists(string @operator)
         {
-            return _operators.Where(kvp => kvp.Value.Where(tup => tup.Item1 == @operator && tup.Item3 == TokenSubType.Operator).Any()).Any();
+            return _punctuation.Where(kvp => kvp.Value.Where(tup => tup.Item1 == @operator && tup.Item3 == TokenSubType.Operator).Any()).Any();
         }
 
         public static bool OperatorExists(TokenType type)
         {
-            return _operators.Where(kvp => kvp.Value.Where(tup => tup.Item2 == type && tup.Item3 == TokenSubType.Operator).Any()).Any();
+            return _punctuation.Where(kvp => kvp.Value.Where(tup => tup.Item2 == type && tup.Item3 == TokenSubType.Operator).Any()).Any();
         }
 
         class OperatorDictionary : IEnumerable<KeyValuePair<char, List<Tuple<string, TokenType, TokenSubType>>>>

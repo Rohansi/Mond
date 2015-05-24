@@ -18,33 +18,12 @@ namespace Mond.Compiler.Parselets
 
         public Expression Parse(Parser parser, Expression left, Token token)
         {
-            Expression right;
+            var right = parser.ParseExpression(Precedence - (_isRight ? 1 : 0));
 
-            if (token.SubType == TokenSubType.Operator)
-            {
-                var @operator = new StringBuilder(token.Contents);
-                var tokenCount = 1;
-
-                while( parser.Match( TokenSubType.Operator ) )
-                {
-                    @operator.Append( parser.Take().Contents );
-                    ++tokenCount;
-                }
-
-                var opStr = @operator.ToString();
-                if (tokenCount == 1 && opStr != "..." && opStr != "~")
-                {
-                    right = parser.ParseExpression(Precedence - (_isRight ? 1 : 0));
-                    return new BinaryOperatorExpression(token, left, right);
-                }
-
-                token = new Token(token, TokenType.UserDefinedOperator, opStr, TokenSubType.Operator);
-                right = parser.ParseExpression((int)PrecedenceValue.Relational);
-                return new UserDefinedBinaryOperatorExpression(token, left, right, token.Contents);
-            }
-
-            right = parser.ParseExpression(Precedence - (_isRight ? 1 : 0));
-            return new BinaryOperatorExpression(token, left, right);
+            if (token.Type == TokenType.UserDefinedOperator)
+                return new UserDefinedBinaryOperatorExpression(token, left, right);
+            else
+                return new BinaryOperatorExpression(token, left, right);
         }
     }
 }
