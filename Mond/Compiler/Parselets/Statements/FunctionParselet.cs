@@ -103,14 +103,6 @@ namespace Mond.Compiler.Parselets.Statements
 
                 if (otherArgs != null)
                     throw new MondCompilerException(token, CompilerError.EllipsisInOperator);
-
-                // Check to see if we're trying to override any built-in unary prefix operators
-                if (arguments.Count == 1 && Lexer.OperatorExists(name) && (name == "++" || name == "--" || name == "+" || name == "-" || name == "!" || name == "~"))
-                    throw new MondCompilerException(token, CompilerError.CantOverrideBuiltInOperator, name);
-
-                // Check to see if we're trying to override any built-in unary postfix or binary operators
-                if (arguments.Count == 2 && Lexer.OperatorExists(name.ToString()) && name != "..." && name != "~")
-                    throw new MondCompilerException(token, CompilerError.CantOverrideBuiltInOperator, name);
             }
 
             // parse body

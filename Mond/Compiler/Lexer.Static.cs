@@ -127,16 +127,6 @@ namespace Mond.Compiler
             };
         }
 
-        public static bool OperatorExists(string @operator)
-        {
-            return _punctuation.Where(kvp => kvp.Value.Where(tup => tup.Item1 == @operator && tup.Item3 == TokenSubType.Operator).Any()).Any();
-        }
-
-        public static bool OperatorExists(TokenType type)
-        {
-            return _punctuation.Where(kvp => kvp.Value.Where(tup => tup.Item2 == type && tup.Item3 == TokenSubType.Operator).Any()).Any();
-        }
-
         class OperatorDictionary : IEnumerable<KeyValuePair<char, List<Tuple<string, TokenType, TokenSubType>>>>
         {
             private readonly GenericComparer<Tuple<string, TokenType, TokenSubType>> _comparer; 
