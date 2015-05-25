@@ -1,5 +1,4 @@
-﻿using System.Text;
-using Mond.Compiler.Expressions;
+﻿using Mond.Compiler.Expressions;
 
 namespace Mond.Compiler.Parselets
 {
@@ -22,8 +21,8 @@ namespace Mond.Compiler.Parselets
 
             if (token.Type == TokenType.UserDefinedOperator)
                 return new UserDefinedBinaryOperatorExpression(token, left, right);
-            else
-                return new BinaryOperatorExpression(token, left, right);
+
+            return new BinaryOperatorExpression(token, left, right);
         }
     }
 }

@@ -117,7 +117,7 @@ namespace Mond.VirtualMachine
                             (_debugAction == MondDebugAction.StepInto) ||
                             (_debugAction == MondDebugAction.StepOver && _debugDepth == 0);
 
-                        var shouldBreak = 
+                        var shouldBreak =
                             (_debugAlign && program.DebugInfo == null) ||
                             (_debugAlign && program.DebugInfo.IsStatementStart(ip)) ||
                             (Debugger.ShouldBreak(program, ip)) ||
@@ -1018,7 +1018,7 @@ namespace Mond.VirtualMachine
             return false;
         }
 
-        private void DebuggerBreak(MondProgram program, Frame locals,  Frame args, int address, int initialCallDepth)
+        private void DebuggerBreak(MondProgram program, Frame locals, Frame args, int address, int initialCallDepth)
         {
             var context = new MondDebugContext(
                 _state, program, address, locals, args, _callStack, _callStackSize, initialCallDepth);

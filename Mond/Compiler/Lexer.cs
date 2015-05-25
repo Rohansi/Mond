@@ -399,7 +399,7 @@ namespace Mond.Compiler
             if (string.IsNullOrEmpty(numberContents))
                 throw new MondCompilerException(_fileName, start.Line, start.Column, CompilerError.EmptyNumber, format.GetName());
 
-            token =  new Token(_fileName, start.Line, start.Column, TokenType.Number, numberContents, tag: format);
+            token = new Token(_fileName, start.Line, start.Column, TokenType.Number, numberContents, tag: format);
             return true;
         }
 

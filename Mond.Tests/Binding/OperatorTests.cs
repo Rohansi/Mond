@@ -10,10 +10,8 @@ namespace Mond.Tests.Binding
     public class OperatorTests
     {
         [MondOperatorModule]
-        class MyOperators
+        public class MyOperators
         {
-            private static Random _rng = new Random();
-
             [MondOperator("<..>")]
             public static MondValue InclusiveRange(double begin, double end)
             {
@@ -50,10 +48,10 @@ namespace Mond.Tests.Binding
             private static IEnumerable<MondValue> Generate(double begin, double end, bool inclusive)
             {
                 var i = begin;
-                for(; i < end; ++i)
+                for (; i < end; ++i)
                     yield return i;
 
-                if(inclusive)
+                if (inclusive)
                     yield return ++i;
             }
         }
@@ -90,7 +88,7 @@ namespace Mond.Tests.Binding
             Assert.True(a["inclusive"] == true && a["begin"] == 0 && a["end"] == 5);
             Assert.True(b["inclusive"] == false && b["begin"] == 6 && b["end"] == 10);
         }
-        
+
         [Test]
         public void Mixed()
         {

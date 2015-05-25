@@ -1,5 +1,4 @@
-﻿using System.Text;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Mond.Compiler.Expressions;
 using Mond.Compiler.Expressions.Statements;
 
@@ -59,7 +58,7 @@ namespace Mond.Compiler.Parselets.Statements
             {
                 if (parser.MatchAndTake(TokenType.LeftParen))
                 {
-                    var operatorToken = parser.Take( TokenType.UserDefinedOperator );
+                    var operatorToken = parser.Take(TokenType.UserDefinedOperator);
                     parser.Take(TokenType.RightParen);
 
                     isOperator = true;

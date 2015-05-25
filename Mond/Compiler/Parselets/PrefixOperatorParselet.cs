@@ -1,5 +1,4 @@
-﻿using System.Text;
-using Mond.Compiler.Expressions;
+﻿using Mond.Compiler.Expressions;
 
 namespace Mond.Compiler.Parselets
 {
@@ -18,8 +17,8 @@ namespace Mond.Compiler.Parselets
 
             if (token.Type == TokenType.UserDefinedOperator)
                 return new UserDefinedUnaryOperator(token, right);
-            else
-                return new PrefixOperatorExpression(token, right);
+
+            return new PrefixOperatorExpression(token, right);
         }
     }
 }

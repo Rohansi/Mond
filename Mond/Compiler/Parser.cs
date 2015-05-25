@@ -11,7 +11,7 @@ namespace Mond.Compiler
         private IEnumerator<Token> _tokens;
         private List<Token> _read;
         private Token _previous;
-         
+
         public Parser(IEnumerable<Token> tokens)
         {
             _tokens = tokens.GetEnumerator();
