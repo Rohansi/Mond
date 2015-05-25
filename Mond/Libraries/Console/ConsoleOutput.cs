@@ -35,14 +35,12 @@ namespace Mond.Libraries.Console
         [MondFunction("printLn")]
         public void PrintLn(params MondValue[] arguments)
         {
-            if (arguments.Length == 0)
-                _consoleOutput.Out.WriteLine();
-
             foreach (var v in arguments)
             {
                 _consoleOutput.Out.Write((string)v);
-                _consoleOutput.Out.WriteLine();
             }
+
+            _consoleOutput.Out.WriteLine();
         }
     }
 }
