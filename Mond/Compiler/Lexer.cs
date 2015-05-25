@@ -97,6 +97,7 @@ namespace Mond.Compiler
                 Token token;
 
                 if (!TryLexOperator(ch, out token) &&
+                    !TryLexPunctuation(ch, out token) &&
                     !TryLexString(ch, out token) &&
                     !TryLexWord(ch, out token) &&
                     !TryLexNumber(ch, out token))
@@ -113,7 +114,47 @@ namespace Mond.Compiler
 
         private bool TryLexOperator(char ch, out Token token)
         {
-            var opList = _operators.Lookup(ch);
+            if (_operatorChars.Contains(ch))
+            {
+                MarkPosition();
+                var builder = new StringBuilder().Append(TakeChar());
+                Position start;
+
+                // Lex the '!in' operator
+                if (ch == '!' && TakeIfNext("in"))
+                {
+                    start = _positions.Pop();
+                    token = new Token(_fileName, start.Line, start.Column, TokenType.NotIn, "!in", TokenSubType.Operator);
+                    return true;
+                }
+
+                // Lex the lambda arrow '->'
+                if (ch == '-' && PeekChar() == '>')
+                {
+                    TakeChar();
+                    start = _positions.Pop();
+                    token = new Token(_fileName, start.Line, start.Column, TokenType.Pointy, "->", TokenSubType.Punctuation);
+                    return true;
+                }
+
+                var rest = TakeWhile(_operatorChars.Contains);
+                builder.Append(rest);
+
+                var operatorString = builder.ToString();
+                var operatorType = _operators.ContainsKey(operatorString) ? _operators[operatorString] : TokenType.UserDefinedOperator;
+
+                start = _positions.Pop();
+                token = new Token(_fileName, start.Line, start.Column, operatorType, operatorString, TokenSubType.Operator);
+                return true;
+            }
+
+            token = null;
+            return false;
+        }
+
+        private bool TryLexPunctuation(char ch, out Token token)
+        {
+            var opList = _punctuation.Lookup(ch);
             if (opList != null)
             {
                 MarkPosition();
@@ -122,7 +163,7 @@ namespace Mond.Compiler
                 if (op != null)
                 {
                     var start = _positions.Pop();
-                    token = new Token(_fileName, start.Line, start.Column, op.Item2, op.Item1);
+                    token = new Token(_fileName, start.Line, start.Column, op.Item2, op.Item1, op.Item3);
                     return true;
                 }
 
@@ -256,7 +297,7 @@ namespace Mond.Compiler
             var isKeyword = _keywords.TryGetValue(wordContents, out keywordType);
 
             var start = _positions.Pop();
-            token = new Token(_fileName, start.Line, start.Column, isKeyword ? keywordType : TokenType.Identifier, wordContents);
+            token = new Token(_fileName, start.Line, start.Column, isKeyword ? keywordType : TokenType.Identifier, wordContents, isKeyword ? TokenSubType.Keyword : TokenSubType.None);
             return true;
         }
 
@@ -292,7 +333,7 @@ namespace Mond.Compiler
                     {
                         TakeChar(); // '0'
 
-                        token = new Token(_fileName, _currentLine, _currentColumn, TokenType.Number, "0", format);
+                        token = new Token(_fileName, _currentLine, _currentColumn, TokenType.Number, "0", tag: format);
                         return true;
                     }
 
@@ -358,7 +399,7 @@ namespace Mond.Compiler
             if (string.IsNullOrEmpty(numberContents))
                 throw new MondCompilerException(_fileName, start.Line, start.Column, CompilerError.EmptyNumber, format.GetName());
 
-            token =  new Token(_fileName, start.Line, start.Column, TokenType.Number, numberContents, format);
+            token =  new Token(_fileName, start.Line, start.Column, TokenType.Number, numberContents, tag: format);
             return true;
         }
 

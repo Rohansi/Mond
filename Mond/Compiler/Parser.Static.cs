@@ -42,6 +42,7 @@ namespace Mond.Compiler
             RegisterInfix(TokenType.BitOr, new BinaryOperatorParselet((int)PrecedenceValue.BitOr, false));
             RegisterInfix(TokenType.BitXor, new BinaryOperatorParselet((int)PrecedenceValue.BitXor, false));
             RegisterPrefix(TokenType.Subtract, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));
+            RegisterPrefix(TokenType.Add, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));
             RegisterPrefix(TokenType.BitNot, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));
 
             // conditional operations
@@ -58,6 +59,10 @@ namespace Mond.Compiler
             RegisterInfix(TokenType.LessThanOrEqual, new BinaryOperatorParselet((int)PrecedenceValue.Relational, false));
             RegisterInfix(TokenType.In, new BinaryOperatorParselet((int)PrecedenceValue.Relational, false));
             RegisterInfix(TokenType.NotIn, new BinaryOperatorParselet((int)PrecedenceValue.Relational, false));
+
+            // UDO stuff. We need to add all these so UDOs can parse correctly
+            RegisterInfix(TokenType.UserDefinedOperator, new BinaryOperatorParselet((int)PrecedenceValue.Relational, false));
+            RegisterPrefix(TokenType.UserDefinedOperator, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));
 
             // prefix inc/decrement
             RegisterPrefix(TokenType.Increment, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));

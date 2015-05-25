@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -6,28 +7,42 @@ namespace Mond.Compiler
 {
     partial class Lexer
     {
-        private static OperatorDictionary _operators;
+        private static OperatorDictionary _punctuation;
+        private static Dictionary<string, TokenType> _operators;
         private static Dictionary<string, TokenType> _keywords;
         private static HashSet<char> _hexChars;
+        private static HashSet<char> _operatorChars;
 
         static Lexer()
         {
-            _operators = new OperatorDictionary
+            _punctuation = new OperatorDictionary
             {
-                { ";", TokenType.Semicolon },
-                { ",", TokenType.Comma },
+                { ";", TokenType.Semicolon, TokenSubType.Punctuation },
+                { ",", TokenType.Comma, TokenSubType.Punctuation },
+
+                { "(", TokenType.LeftParen, TokenSubType.Punctuation },
+                { ")", TokenType.RightParen, TokenSubType.Punctuation },
+
+                { "{", TokenType.LeftBrace, TokenSubType.Punctuation },
+                { "}", TokenType.RightBrace, TokenSubType.Punctuation },
+
+                { "[", TokenType.LeftSquare, TokenSubType.Punctuation },
+                { "]", TokenType.RightSquare, TokenSubType.Punctuation },
+                
+                { ":", TokenType.Colon, TokenSubType.Punctuation },
+
+                // Because of the way UDOs work, and how the lexer handles operators and punctuation
+                // These two will never will never be returned by OperatorDictionary.Lookup()
+                // But they are still lexed properly in Lexer.TryLexOperator().
+                // They have been left in for clarity.
+                { "->", TokenType.Pointy, TokenSubType.Punctuation },
+                { "!in", TokenType.NotIn, TokenSubType.Operator }
+            };
+
+            _operators = new Dictionary<string, TokenType>
+            {
                 { ".", TokenType.Dot },
                 { "=", TokenType.Assign },
-
-                { "(", TokenType.LeftParen },
-                { ")", TokenType.RightParen },
-
-                { "{", TokenType.LeftBrace },
-                { "}", TokenType.RightBrace },
-
-                { "[", TokenType.LeftSquare },
-                { "]", TokenType.RightSquare },
-
                 { "+", TokenType.Add },
                 { "-", TokenType.Subtract },
                 { "*", TokenType.Multiply },
@@ -42,7 +57,6 @@ namespace Mond.Compiler
                 { ">>", TokenType.BitRightShift },
                 { "++", TokenType.Increment },
                 { "--", TokenType.Decrement },
-
                 { "+=", TokenType.AddAssign },
                 { "-=", TokenType.SubtractAssign },
                 { "*=", TokenType.MultiplyAssign },
@@ -54,7 +68,6 @@ namespace Mond.Compiler
                 { "^=", TokenType.BitXorAssign },
                 { "<<=", TokenType.BitLeftShiftAssign },
                 { ">>=", TokenType.BitRightShiftAssign },
-                
                 { "==", TokenType.EqualTo },
                 { "!=", TokenType.NotEqualTo },
                 { ">", TokenType.GreaterThan },
@@ -64,13 +77,9 @@ namespace Mond.Compiler
                 { "!", TokenType.Not },
                 { "&&", TokenType.ConditionalAnd },
                 { "||", TokenType.ConditionalOr },
-
                 { "?", TokenType.QuestionMark },
-                { ":", TokenType.Colon },
-                { "->", TokenType.Pointy },
                 { "|>", TokenType.Pipeline },
                 { "...", TokenType.Ellipsis },
-                { "!in", TokenType.NotIn }
             };
 
             _keywords = new Dictionary<string, TokenType>
@@ -110,44 +119,65 @@ namespace Mond.Compiler
                 'a', 'b', 'c', 'd', 'e', 'f',
                 'A', 'B', 'C', 'D', 'E', 'F',
             };
+
+            _operatorChars = new HashSet<char>
+            {
+                '.', '=', '+', '-', '*', '/', '%',
+                '&', '|', '^', '~', '<', '>', '!', '?'
+            };
         }
 
-        class OperatorDictionary : IEnumerable<object>
+        public static bool IsOperatorToken(string s)
         {
-            private readonly GenericComparer<Tuple<string, TokenType>> _comparer; 
-            private Dictionary<char, List<Tuple<string, TokenType>>> _operatorDictionary;
+            return !string.IsNullOrWhiteSpace(s) && s.All(_operatorChars.Contains);
+        }
+
+        public static bool OperatorExists(string s)
+        {
+            return IsOperatorToken(s) && _operators.ContainsKey(s);
+        }
+
+        class OperatorDictionary : IEnumerable<KeyValuePair<char, List<Tuple<string, TokenType, TokenSubType>>>>
+        {
+            private readonly GenericComparer<Tuple<string, TokenType, TokenSubType>> _comparer; 
+            private Dictionary<char, List<Tuple<string, TokenType, TokenSubType>>> _operatorDictionary;
 
             public OperatorDictionary()
             {
-                _comparer = new GenericComparer<Tuple<string, TokenType>>((a, b) => b.Item1.Length - a.Item1.Length);
-                _operatorDictionary = new Dictionary<char, List<Tuple<string, TokenType>>>();
+                _comparer = new GenericComparer<Tuple<string, TokenType, TokenSubType>>((a, b) => b.Item1.Length - a.Item1.Length);
+                _operatorDictionary = new Dictionary<char, List<Tuple<string, TokenType, TokenSubType>>>();
             }
 
-            public void Add(string op, TokenType type)
+            public void Add(string op, TokenType type, TokenSubType subType)
             {
-                List<Tuple<string, TokenType>> list;
+                List<Tuple<string, TokenType, TokenSubType>> list;
                 if (!_operatorDictionary.TryGetValue(op[0], out list))
                 {
-                    list = new List<Tuple<string, TokenType>>();
+                    list = new List<Tuple<string, TokenType, TokenSubType>>();
                     _operatorDictionary.Add(op[0], list);
                 }
 
-                list.Add(Tuple.Create(op, type));
+                list.Add(Tuple.Create(op, type, subType));
                 list.Sort(_comparer);
             }
 
-            public IEnumerable<Tuple<string, TokenType>> Lookup(char ch)
+            public IEnumerable<Tuple<string, TokenType, TokenSubType>> Lookup(char ch)
             {
-                List<Tuple<string, TokenType>> list;
+                List<Tuple<string, TokenType, TokenSubType>> list;
                 if (!_operatorDictionary.TryGetValue(ch, out list))
                     return null;
 
                 return list;
             }
 
-            public IEnumerator<object> GetEnumerator()
+            public IEnumerator<KeyValuePair<char, List<Tuple<string, TokenType, TokenSubType>>>> GetEnumerator()
             {
-                throw new NotSupportedException();
+                var enumerator = _operatorDictionary.GetEnumerator();
+
+                while (enumerator.MoveNext())
+                    yield return enumerator.Current;
+
+                enumerator.Dispose();
             }
 
             IEnumerator IEnumerable.GetEnumerator()

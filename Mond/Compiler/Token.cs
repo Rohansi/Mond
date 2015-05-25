@@ -1,5 +1,13 @@
 ﻿namespace Mond.Compiler
 {
+    enum TokenSubType
+    {
+        None,
+        Keyword,
+        Operator,
+        Punctuation,
+    }
+
     enum TokenType
     {
         Identifier,
@@ -91,6 +99,7 @@
         Pointy,
         Pipeline,
         Ellipsis,
+        UserDefinedOperator,
 
         Eof
     }
@@ -101,21 +110,23 @@
         public readonly int Line;
         public readonly int Column;
         public readonly TokenType Type;
+        public readonly TokenSubType SubType;
         public readonly string Contents;
         public readonly object Tag;
 
-        public Token(string fileName, int line, int column, TokenType type, string contents, object tag = null)
+        public Token(string fileName, int line, int column, TokenType type, string contents, TokenSubType subType = TokenSubType.None, object tag = null)
         {
             FileName = fileName;
             Line = line;
             Column = column;
             Type = type;
+            SubType = subType;
             Contents = contents;
             Tag = tag;
         }
 
-        public Token(Token token, TokenType type, string contents, object tag = null)
-            : this(token.FileName, token.Line, token.Column, type, contents, tag)
+        public Token(Token token, TokenType type, string contents, TokenSubType subType = TokenSubType.None, object tag = null)
+            : this(token.FileName, token.Line, token.Column, type, contents, subType, tag)
         {
 
         }
@@ -134,7 +145,7 @@
                     return string.Format("{0}('{1}')", Type, contentsStr);
 
                 default:
-                    return Type.ToString();
+                    return string.Format("{0}({1})", Type, SubType);
             }
         }
     }

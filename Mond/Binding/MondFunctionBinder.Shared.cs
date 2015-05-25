@@ -11,7 +11,7 @@ namespace Mond.Binding
 
         internal enum MethodType
         {
-            Normal, Property, Constructor
+            Normal, Property, Constructor, Operator
         }
 
         internal static List<MethodTable> BuildMethodTables(IEnumerable<MethodBase> source, MethodType methodType, string nameOverride = null)
@@ -49,6 +49,16 @@ namespace Mond.Binding
                         {
                             BuildMethodTable(methods.Select(m => new Method("#ctor", m)))
                         };
+                    }
+
+                case MethodType.Operator:
+                    {
+                        return source
+                            .Select(m => new { Method = m, OperatorAttribute = m.Attribute<MondOperatorAttribute>() })
+                            .Where(m => m.OperatorAttribute != null)
+                            .GroupBy(m => m.OperatorAttribute.Operator)
+                            .Select(g => BuildMethodTable(g.Select(m => new Method(g.Key, m.Method))))
+                            .ToList();
                     }
 
                 default:

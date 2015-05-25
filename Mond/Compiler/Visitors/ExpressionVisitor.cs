@@ -295,5 +295,21 @@ namespace Mond.Compiler
 
             return default(T);
         }
+
+
+        public T Visit(UserDefinedUnaryOperator expression)
+        {
+            expression.Right.Accept(this);
+
+            return default(T);
+        }
+
+        public T Visit(UserDefinedBinaryOperatorExpression expression)
+        {
+            expression.Left.Accept(this);
+            expression.Right.Accept(this);
+
+            return default(T);
+        }
     }
 }

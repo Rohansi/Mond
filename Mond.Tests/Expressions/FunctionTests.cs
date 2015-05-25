@@ -285,5 +285,53 @@ namespace Mond.Tests.Expressions
 
             Assert.True(result == 2);
         }
+
+        [Test]
+        public void UnaryUserDefinedOperator()
+        {
+            var state = Script.Load(@"
+                seq (%%)(n) {
+                    if (n == 0) {
+                        yield 0;
+                        return;
+                    }
+
+                    var a = 1;
+                    var b = 1;
+
+                    for (var i = 3; i <= n; i++) {
+                        var c = a + b;
+                        a = b;
+                        b = c;
+
+                        yield b;
+                    }
+                }
+
+                global.test = %% 10;
+            ");
+
+            var expected = new[] { 2, 3, 5, 8, 13, 21, 34, 55 }.Select(n => new MondValue(n));
+            Assert.True(state["test"].Enumerate(state).SequenceEqual(expected));
+        }
+
+        [Test]
+        public void BinaryUserDefinedOperator()
+        {
+            var result = Script.Run(@"
+                fun (>>>)(fun1, fun2) {
+                    return fun(... args) {
+                        return fun1(... args) |> fun2();
+                    };
+                }
+
+                fun double(n) -> n *  2;
+                fun square(n) -> n ** 2;
+
+                return (square >>> double)(5);
+            ");
+
+            Assert.True(result == 50);
+        }
     }
 }

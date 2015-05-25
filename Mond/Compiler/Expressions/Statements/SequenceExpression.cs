@@ -4,8 +4,8 @@ namespace Mond.Compiler.Expressions.Statements
 {
     class SequenceExpression : FunctionExpression
     {
-        public SequenceExpression(Token token, string name, List<string> arguments, string otherArgs, ScopeExpression block, string debugName = null)
-            : base(token, name, arguments, otherArgs, block, debugName)
+        public SequenceExpression(Token token, string name, List<string> arguments, string otherArgs, bool isOperator, ScopeExpression block, string debugName = null)
+            : base(token, name, arguments, otherArgs, isOperator, block, debugName)
         {
 
         }
@@ -17,7 +17,7 @@ namespace Mond.Compiler.Expressions.Statements
 
             var stack = 0;
             var bodyToken = new Token(Token, TokenType.Fun, null);
-            var body = new SequenceBodyExpression(bodyToken, null, Block, "moveNext", state, enumerable);
+            var body = new SequenceBodyExpression(bodyToken, null, IsOperator, Block, "moveNext", state, enumerable);
             var seqContext = new SequenceContext(context.Compiler, "moveNext", body, context);
 
             var getEnumerator = context.MakeFunction("getEnumerator");
@@ -89,9 +89,9 @@ namespace Mond.Compiler.Expressions.Statements
         public int NextState { get { return _stateLabels.Count; } }
         public LabelOperand EndLabel { get; private set; }
 
-        public SequenceBodyExpression(Token token, string name, ScopeExpression block, string debugName,
+        public SequenceBodyExpression(Token token, string name, bool isOperator, ScopeExpression block, string debugName,
                                       IdentifierOperand state, IdentifierOperand enumerable)
-            : base(token, name, new List<string> { "#input" }, null, block, debugName)
+            : base(token, name, new List<string> { "#input" }, null, isOperator, block, debugName)
         {
             _stateLabels = new List<LabelOperand>();
 

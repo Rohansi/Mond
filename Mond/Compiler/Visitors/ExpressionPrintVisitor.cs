@@ -584,6 +584,24 @@ namespace Mond.Compiler.Visitors
             return 0;
         }
 
+        public int Visit(UserDefinedUnaryOperator expression)
+        {
+            _writer.Write(expression.Operator);
+            expression.Right.Accept(this);
+
+            return 0;
+        }
+
+        public int Visit(UserDefinedBinaryOperatorExpression expression)
+        {
+            expression.Left.Accept(this);
+            _writer.Write(expression.Operator);
+            expression.Right.Accept(this);
+
+            return 0;
+        }
+
         #endregion
+
     }
 }

@@ -46,6 +46,7 @@
     <Compile Include="Binding\FunctionOverloadingTests.cs" />
     <Compile Include="Binding\FunctionTests.cs" />
     <Compile Include="Binding\ModuleTests.cs" />
+    <Compile Include="Binding\OperatorTests.cs" />
     <Compile Include="Expressions\ArrayTests.cs" />
     <Compile Include="Expressions\ExpressionTests.cs" />
     <Compile Include="Expressions\FunctionTests.cs" />

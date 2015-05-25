@@ -42,5 +42,7 @@ namespace Mond.Compiler
         T Visit(TernaryExpression expression);
         T Visit(UndefinedExpression expression);
         T Visit(UnpackExpression expression);
+        T Visit(UserDefinedUnaryOperator expression);
+        T Visit(UserDefinedBinaryOperatorExpression expression);
     }
 }

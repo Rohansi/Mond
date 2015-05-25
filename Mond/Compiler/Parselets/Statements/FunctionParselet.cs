@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Text;
+using System.Collections.Generic;
 using Mond.Compiler.Expressions;
 using Mond.Compiler.Expressions.Statements;
 
@@ -11,11 +12,13 @@ namespace Mond.Compiler.Parselets.Statements
             string name;
             List<string> arguments;
             string otherArgs;
+            bool isOperator;
             ScopeExpression body;
 
-            ParseFunction(parser, token, true, out trailingSemicolon, out name, out arguments, out otherArgs, out body);
+            ParseFunction(parser, token, true, out trailingSemicolon, out name, out arguments, out otherArgs, out isOperator, out body);
+            var function = new FunctionExpression(token, name, arguments, otherArgs, isOperator, body);
 
-            return new FunctionExpression(token, name, arguments, otherArgs, body);
+            return isOperator ? MakeOperator(name, function) : function;
         }
 
         public Expression Parse(Parser parser, Token token)
@@ -24,11 +27,13 @@ namespace Mond.Compiler.Parselets.Statements
             List<string> arguments;
             string otherArgs;
             ScopeExpression body;
+            bool isOperator;
             bool trailingSemicolon;
 
-            ParseFunction(parser, token, false, out trailingSemicolon, out name, out arguments, out otherArgs, out body);
+            ParseFunction(parser, token, false, out trailingSemicolon, out name, out arguments, out otherArgs, out isOperator, out body);
+            var function = new FunctionExpression(token, name, arguments, otherArgs, isOperator, body);
 
-            return new FunctionExpression(token, name, arguments, otherArgs, body);
+            return isOperator ? MakeOperator(name, function) : function;
         }
 
         public static void ParseFunction(
@@ -39,6 +44,7 @@ namespace Mond.Compiler.Parselets.Statements
             out string name,
             out List<string> arguments,
             out string otherArgs,
+            out bool isOperator,
             out ScopeExpression body)
         {
             trailingSemicolon = false;
@@ -46,10 +52,24 @@ namespace Mond.Compiler.Parselets.Statements
             name = null;
             arguments = new List<string>();
             otherArgs = null;
+            isOperator = false;
 
             // only statements can be named
             if (isStatement)
-                name = parser.Take(TokenType.Identifier).Contents;
+            {
+                if (parser.MatchAndTake(TokenType.LeftParen))
+                {
+                    var operatorToken = parser.Take( TokenType.UserDefinedOperator );
+                    parser.Take(TokenType.RightParen);
+
+                    isOperator = true;
+                    name = operatorToken.Contents;
+                }
+                else
+                {
+                    name = parser.Take(TokenType.Identifier).Contents;
+                }
+            }
 
             // parse argument list
             parser.Take(TokenType.LeftParen);
@@ -76,6 +96,15 @@ namespace Mond.Compiler.Parselets.Statements
 
             parser.Take(TokenType.RightParen);
 
+            if (isOperator)
+            {
+                if (arguments.Count != 1 && arguments.Count != 2)
+                    throw new MondCompilerException(token, CompilerError.IncorrectOperatorArity, arguments.Count);
+
+                if (otherArgs != null)
+                    throw new MondCompilerException(token, CompilerError.EllipsisInOperator);
+            }
+
             // parse body
             if (parser.MatchAndTake(TokenType.Pointy))
             {
@@ -101,6 +130,21 @@ namespace Mond.Compiler.Parselets.Statements
             {
                 new ReturnExpression(parser.Peek(), parser.ParseExpression())
             });
+        }
+
+        public static Expression MakeOperator(string @operator, FunctionExpression function)
+        {
+            var token = new Token(function.Token, TokenType.Global, "global", TokenSubType.Keyword);
+            var global = new GlobalExpression(token);
+
+            token = new Token(function.Token, TokenType.Identifier, "__ops", TokenSubType.None);
+            var opsField = new FieldExpression(token, global);
+
+            token = new Token(function.Token, TokenType.String, @operator, TokenSubType.Operator);
+            var opField = new FieldExpression(token, opsField);
+
+            token = new Token(function.Token, TokenType.Assign, "=", TokenSubType.Operator);
+            return new BinaryOperatorExpression(token, opField, function);
         }
     }
 }

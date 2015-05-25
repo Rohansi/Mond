@@ -1,4 +1,5 @@
-﻿using Mond.Compiler.Expressions;
+﻿using System.Text;
+using Mond.Compiler.Expressions;
 
 namespace Mond.Compiler.Parselets
 {
@@ -18,7 +19,11 @@ namespace Mond.Compiler.Parselets
         public Expression Parse(Parser parser, Expression left, Token token)
         {
             var right = parser.ParseExpression(Precedence - (_isRight ? 1 : 0));
-            return new BinaryOperatorExpression(token, left, right);
+
+            if (token.Type == TokenType.UserDefinedOperator)
+                return new UserDefinedBinaryOperatorExpression(token, left, right);
+            else
+                return new BinaryOperatorExpression(token, left, right);
         }
     }
 }
