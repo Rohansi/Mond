@@ -68,7 +68,7 @@ namespace Mond.Repl
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                PrintException(e);
             }
         }
 
@@ -233,7 +233,9 @@ namespace Mond.Repl
                 Console.WriteLine(stackTrace);
 
             _first = true;
-            _input.Clear();
+
+            if (_input != null)
+                _input.Clear();
 
             _highlighter = null;
         }
