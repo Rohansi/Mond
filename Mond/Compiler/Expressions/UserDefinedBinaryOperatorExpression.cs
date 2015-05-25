@@ -22,6 +22,7 @@ namespace Mond.Compiler.Expressions
 
             stack += Left.Compile(context);
             stack += Right.Compile(context);
+            context.Position(Token); // debug info
             stack += context.LoadGlobal();
             stack += context.LoadField(context.String("__ops"));
             stack += context.LoadField(context.String(Operator));
