@@ -928,7 +928,7 @@ namespace Mond.VirtualMachine
                     _evalStack[i] = default(MondValue);
                 }
 
-                throw new MondRuntimeException(message, e, true)
+                throw new MondRuntimeException(message, e)
                 {
                     InternalStackTrace = stackTraceBuilder.ToString()
                 };

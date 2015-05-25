@@ -31,12 +31,6 @@ namespace Mond
 
         }
 
-        internal MondRuntimeException(string message, Exception innerException, bool hasStackTrace)
-            : base(message, innerException)
-        {
-
-        }
-
         public override string ToString()
         {
             if (StackTrace == null)
