@@ -7,7 +7,7 @@
 * [simple embedding](https://github.com/Rohansi/Mond/wiki/Basic-Usage) with a [great binding API](https://github.com/Rohansi/Mond/wiki/Binding-API)
 * and a [useful debugger](https://github.com/Rohansi/Mond/wiki/Debugging)
 
-[Try it in your browser!](https://fpp.literallybrian.com/mond/)
+[Try it in your browser!](https://rohbot.net/mond/)
 
 ### Example
 ```
