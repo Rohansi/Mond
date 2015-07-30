@@ -73,35 +73,6 @@ namespace Mond.Tests.Expressions
         }
 
         [Test]
-        public void Classes()
-        {
-            var result = Script.Run(@"
-                fun Base() {
-                    return {
-                        number: fun () -> 10,
-                        add: fun (x, y) -> x + y
-                    };
-                }
-
-                fun Class() {
-                    var base, this = {
-                        number: fun () -> this.add(base.number(), 5)
-                    };
-
-                    base = Base();
-                    this.setPrototype(base);
-
-                    return this;
-                }
-
-                var a = Class();
-                return a.number();
-            ");
-
-            Assert.True(result == 15);
-        }
-
-        [Test]
         public void TailCall()
         {
             // will cause stack overflow if not tail call optimized

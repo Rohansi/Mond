@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using System;
+using NUnit.Framework;
 
 namespace Mond.Tests.Expressions
 {
@@ -108,6 +109,72 @@ namespace Mond.Tests.Expressions
                 state.Call(enumerator["moveNext"]);
             });
             Assert.True(seqEx.ToString().Contains("seq456"));
+        }
+
+        [Test]
+        public void Classes()
+        {
+            var result = Script.Run(@"
+                fun Base() {
+                    return {
+                        number: fun () -> 10,
+                        add: fun (x, y) -> x + y
+                    };
+                }
+
+                fun Class() {
+                    var base, this = {
+                        number: fun () -> this.add(base.number(), 5)
+                    };
+
+                    base = Base();
+                    this.setPrototype(base);
+
+                    return this;
+                }
+
+                var a = Class();
+                return a.number();
+            ");
+
+            Assert.True(result == 15);
+        }
+
+        [Test]
+        public void EnableThis()
+        {
+            var result = Script.Run(@"
+                var obj = {
+                    method: fun (this) -> this
+                }.enableThis();
+
+                var method = obj.method;
+                return method() == obj;
+            ");
+
+            Assert.True(result == MondValue.True);
+        }
+
+        [Test]
+        [Ignore]
+        public void EnableThisStackTrace()
+        {
+            var state = new MondState();
+
+            state["error1"] = new MondValue((_, args) => { throw new MondRuntimeException(""); });
+            state["error2"] = new MondValue((_, args) => { throw new Exception(); });
+
+            const string test = @"
+                return {{
+                    method: () -> global.error{0}()
+                }}.enableThis().method();
+            ";
+
+            for (var i = 1; i <= 2; i++)
+            {
+                var ex = Assert.Throws<MondRuntimeException>(() => state.Run(string.Format(test, 1)));
+                Assert.False(ex.ToString().Contains("[... native ...]"), string.Format("error{0}", i));
+            }
         }
     }
 }
