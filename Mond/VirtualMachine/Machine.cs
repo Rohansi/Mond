@@ -901,8 +901,6 @@ namespace Mond.VirtualMachine
                     var stackTrace = new System.Diagnostics.StackTrace(e);
                     var foundWrapper = false;
 
-                    Console.WriteLine(stackTrace);
-
                     // skip the first frame because it's this method? need to verify
                     for (var i = 1; i < stackTrace.FrameCount; i++)
                     {
@@ -912,9 +910,17 @@ namespace Mond.VirtualMachine
                         // stop at the next call to Machine.Run because it can be recursive
                         if (type == typeof(Machine) && method.Name == "Run")
                             break;
-                        
-                        // the wrapper is a lambda so it's in a compiler generated type and has a special name
-                        if (type.DeclaringType == typeof(MondValue) && method.Name.StartsWith("<CheckWrapFunction>"))
+
+                        // the wrapper is a lambda so it's in a compiler generated type, which will be nested
+                        var parentType = type.DeclaringType;
+                        if (parentType == null)
+                            continue;
+
+                        // the type and method are compiler generated so they have a weird (and compiler specific) name
+                        const string wrapperMagic = "<CheckWrapFunction>";
+
+                        // make sure the type is nested in MondValue and check both the type and method name
+                        if (parentType == typeof(MondValue) && (method.Name.Contains(wrapperMagic) || type.Name.Contains(wrapperMagic)))
                         {
                             foundWrapper = true;
                             break;

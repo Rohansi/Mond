@@ -177,7 +177,7 @@ namespace Mond.Tests.Expressions
 
             var program = string.Format(programTemplate, testName);
             var exception = Assert.Throws<MondRuntimeException>(() => state.Run(program));
-            Assert.AreEqual(exception.ToString().Contains("[... native ...]"), hasNativeTransition, testName);
+            Assert.AreEqual(hasNativeTransition, exception.ToString().Contains("[... native ...]"), testName);
         }
     }
 }
