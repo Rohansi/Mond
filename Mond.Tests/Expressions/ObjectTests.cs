@@ -156,25 +156,28 @@ namespace Mond.Tests.Expressions
         }
 
         [Test]
-        [Ignore]
-        public void EnableThisStackTrace()
+        [TestCase("runtime", false)]
+        [TestCase("generic", false)]
+        [TestCase("indirect", true)]
+        public void EnableThisStackTrace(string testName, bool hasNativeTransition)
         {
             var state = new MondState();
 
-            state["error1"] = new MondValue((_, args) => { throw new MondRuntimeException(""); });
-            state["error2"] = new MondValue((_, args) => { throw new Exception(); });
+            state["runtimeEx"] = new MondValue((_, args) => { throw new MondRuntimeException("runtime"); });
+            state["genericEx"] = new MondValue((_, args) => { throw new Exception("generic"); });
+            state["call"] = new MondValue((_, args) => state.Call(args[0]));
 
-            const string test = @"
+            const string programTemplate = @"
                 return {{
-                    method: () -> global.error{0}()
-                }}.enableThis().method();
+                    runtime: () -> global.runtimeEx(),
+                    generic: () -> global.genericEx(),
+                    indirect: () -> global.call(() -> global.runtimeEx())
+                }}.enableThis().{0}();
             ";
 
-            for (var i = 1; i <= 2; i++)
-            {
-                var ex = Assert.Throws<MondRuntimeException>(() => state.Run(string.Format(test, 1)));
-                Assert.False(ex.ToString().Contains("[... native ...]"), string.Format("error{0}", i));
-            }
+            var program = string.Format(programTemplate, testName);
+            var exception = Assert.Throws<MondRuntimeException>(() => state.Run(program));
+            Assert.AreEqual(exception.ToString().Contains("[... native ...]"), hasNativeTransition, testName);
         }
     }
 }

@@ -876,6 +876,8 @@ namespace Mond.VirtualMachine
             {
                 var message = e.Message.Trim();
 
+                // we skip the OOB checks in the stack methods because the CLR has issues eliminating 
+                // its own checks, so we let it throw and check here for a bit of a speed boost
                 if (e is IndexOutOfRangeException)
                 {
                     if (_callStackSize >= CallStackCapacity || _localStackSize >= CallStackCapacity || _evalStackSize >= EvalStackCapacity)
@@ -894,13 +896,41 @@ namespace Mond.VirtualMachine
                 if (runtimeException != null && runtimeException.InternalStackTrace != null)
                 {
                     stackTraceBuilder = new StringBuilder(runtimeException.InternalStackTrace);
-                    stackTraceBuilder.AppendLine("[... native ...]");
+
+                    // check if we are running in a wrapped function
+                    var stackTrace = new System.Diagnostics.StackTrace(e);
+                    var foundWrapper = false;
+
+                    Console.WriteLine(stackTrace);
+
+                    // skip the first frame because it's this method? need to verify
+                    for (var i = 1; i < stackTrace.FrameCount; i++)
+                    {
+                        var method = stackTrace.GetFrame(i).GetMethod();
+                        var type = method.DeclaringType;
+
+                        // stop at the next call to Machine.Run because it can be recursive
+                        if (type == typeof(Machine) && method.Name == "Run")
+                            break;
+                        
+                        // the wrapper is a lambda so it's in a compiler generated type and has a special name
+                        if (type.DeclaringType == typeof(MondValue) && method.Name.StartsWith("<CheckWrapFunction>"))
+                        {
+                            foundWrapper = true;
+                            break;
+                        }
+                    }
+                    
+                    // don't show a native transition for wrappers
+                    if (!foundWrapper)
+                        stackTraceBuilder.AppendLine("[... native ...]");
                 }
                 else
                 {
                     stackTraceBuilder = new StringBuilder();
                 }
 
+                // first line of the stack trace is where we are running
                 stackTraceBuilder.AppendLine(GetAddressDebugInfo(program, errorIp));
 
                 // generate stack trace and reset stacks
