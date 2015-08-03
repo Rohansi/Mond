@@ -51,7 +51,7 @@ namespace Mond.VirtualMachine
                 arguments[0] = function;
 
                 MondValue result;
-                if (function.ObjectValue.TryDispatch("__call", out result, arguments))
+                if (function.TryDispatch("__call", out result, arguments))
                     return result;
             }
 
@@ -600,7 +600,7 @@ namespace Mond.VirtualMachine
                                     }
 
                                     MondValue result;
-                                    if (function.ObjectValue.TryDispatch("__call", out result, argArr))
+                                    if (function.TryDispatch("__call", out result, argArr))
                                     {
                                         Push(result);
                                         break;

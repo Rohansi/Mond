@@ -14,6 +14,7 @@ namespace Mond.VirtualMachine
 
         public MondState State
         {
+            get { return _dispatcherState; }
             set
             {
                 if (_dispatcherState == null)
@@ -28,43 +29,6 @@ namespace Mond.VirtualMachine
             Prototype = null;
             UserData = null;
             ThisEnabled = false;
-        }
-
-        public bool TryDispatch(string name, out MondValue result, params MondValue[] args)
-        {
-            MondState state = null;
-            MondValue callable;
-
-            var current = this;
-
-            while (true)
-            {
-                if (current.Values.TryGetValue(name, out callable))
-                {
-                    // we need to use the state from the metamethod's object
-                    state = current._dispatcherState;
-                    break;
-                }
-
-                var currentValue = current.Prototype;
-
-                if (currentValue == null || currentValue.Type != MondValueType.Object)
-                    break;
-
-                current = currentValue.ObjectValue;
-            }
-
-            if (callable == null)
-            {
-                result = MondValue.Undefined;
-                return false;
-            }
-
-            if (state == null)
-                throw new MondRuntimeException("MondValue must have an attached state to use metamethods");
-
-            result = state.Call(callable, args);
-            return true;
         }
     }
 }

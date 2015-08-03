@@ -669,24 +669,61 @@ namespace Mond
             
             return value;
         }
-
-        // Convenience function on VirtualMachine.Object.TryDispatch
-        private bool TryDispatch(string name, out MondValue result, params MondValue[] args)
+        
+        internal bool TryDispatch(string name, out MondValue result, params MondValue[] args)
         {
-            if (Type == MondValueType.Object)
-                return ObjectValue.TryDispatch(name, out result, args);
+            if (Type != MondValueType.Object)
+            {
+                result = Undefined;
+                return false;
+            }
+            
+            // we can't use the indexer for metamethod lookups because that
+            // could lead to infinite recursion, so we have a simplified
+            // lookup here
 
-            result = Undefined;
-            return false;
+            MondState state = null;
+            MondValue callable;
+
+            var current = this;
+            while (true)
+            {
+                if (current.Object.TryGetValue(name, out callable))
+                {
+                    // we need to use the state from the metamethod's object
+                    state = current.ObjectValue.State;
+
+                    // and we need to wrap functions if needed
+                    callable = CheckWrapFunction(callable, current.ObjectValue.ThisEnabled);
+                    break;
+                }
+
+                current = current.Prototype;
+
+                if (current == null || current.Type != MondValueType.Object)
+                    break;
+            }
+
+            if (callable == null)
+            {
+                result = Undefined;
+                return false;
+            }
+
+            if (state == null)
+                throw new MondRuntimeException("MondValue must have an attached state to use metamethods");
+
+            result = state.Call(callable, args);
+            return true;
         }
 
         private static bool TryDispatchBinary(string name, out MondValue result, MondValue left, MondValue right)
         {
             if (left.Type == MondValueType.Object)
-                return left.ObjectValue.TryDispatch(name, out result, left, right, false);
+                return left.TryDispatch(name, out result, left, right, false);
 
             if (right.Type == MondValueType.Object)
-                return right.ObjectValue.TryDispatch(name, out result, left, right, true);
+                return right.TryDispatch(name, out result, left, right, true);
 
             result = Undefined;
             return false;
