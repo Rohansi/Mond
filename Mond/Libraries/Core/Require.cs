@@ -1,4 +1,5 @@
-﻿using Mond.Binding;
+﻿using System.IO;
+using Mond.Binding;
 
 namespace Mond.Libraries.Core
 {
@@ -59,8 +60,10 @@ namespace Mond.Libraries.Core
 
             try
             {
+                var searchDirectories = new[] { Path.GetDirectoryName(state.CurrentScript), "" };
+                var moduleSource = _require.Loader(fileName, searchDirectories);
+
                 // wrap the module script in a function so we can pass out exports object to it
-                var moduleSource = _require.Loader(fileName);
                 var source = _require.Definitions + "return fun (exports) {\n" + moduleSource + " return exports; };";
 
                 var options = new MondCompilerOptions

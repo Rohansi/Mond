@@ -32,6 +32,17 @@ namespace Mond.VirtualMachine
             Debugger = null;
         }
 
+        public string CurrentScript
+        {
+            get
+            {
+                if (_callStackSize == 0)
+                    throw new InvalidOperationException("No scripts are running");
+
+                return _callStack[_callStackSize - 1].Program.DebugInfo.FileName;
+            }
+        }
+
         public MondValue Load(MondProgram program)
         {
             if (program == null)

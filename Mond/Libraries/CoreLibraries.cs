@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Mond.Binding;
 using Mond.Libraries.Core;
 using Mond.Libraries.Math;
@@ -42,6 +43,8 @@ namespace Mond.Libraries
     /// </summary>
     public class RequireLibrary : IMondLibrary
     {
+        public delegate string ModuleLoader(string name, IReadOnlyList<string> searchDirectories);
+
         /// <summary>
         /// The options to use when compiling modules. <c>FirstLineNumber</c> will be set to its proper value.
         /// </summary>
@@ -55,13 +58,24 @@ namespace Mond.Libraries
         /// <summary>
         /// The function used to load modules.
         /// </summary>
-        public Func<string, string> Loader { get; set; }
+        public ModuleLoader Loader { get; set; }
 
         public RequireLibrary()
         {
             Definitions = "\n";
 
-            Loader = File.ReadAllText;
+            Loader = (name, searchDirectories) =>
+            {
+                var foundModule = searchDirectories
+                    .Where(p => p != null)
+                    .Select(p => Path.Combine(p, name))
+                    .FirstOrDefault(File.Exists);
+
+                if (foundModule == null)
+                    throw new MondRuntimeException("require: module could not be found: {0}", name);
+                
+                return File.ReadAllText(foundModule);
+            };
         } 
 
         public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions()

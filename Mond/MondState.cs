@@ -137,5 +137,13 @@ namespace Mond
 
             _librariesLoaded = true;
         }
+
+        /// <summary>
+        /// Gets the file name of the currently running script.
+        /// </summary>
+        public string CurrentScript
+        {
+            get { return _machine.CurrentScript; }
+        } 
     }
 }
