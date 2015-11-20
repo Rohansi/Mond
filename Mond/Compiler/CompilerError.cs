@@ -27,6 +27,8 @@
         public const string DuplicateCase = "Duplicate case value";
         public const string DuplicateDefault = "Cannot have more than one default case";
 
+        public const string MultipleDestructuringSlices = "Cannot have multiple ellipses in array destructuring";
+
         public const string BadForLoopInitializer = "For loop initializer cannot be statement";
 
         public const string ObjectFunctionNotNamed = "Object literal functions must be named";
