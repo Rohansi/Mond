@@ -43,7 +43,8 @@ namespace Mond.Compiler.Visitors
                 expression.InToken,
                 expression.Identifier,
                 expression.Expression.Accept(this),
-                (ScopeExpression)expression.Block.Accept(this))
+                (ScopeExpression)expression.Block.Accept(this),
+                (VarExpression)expression.DestructureExpression.Accept(this))
             {
                 EndToken = expression.EndToken
             };

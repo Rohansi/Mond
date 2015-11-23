@@ -180,7 +180,10 @@ namespace Mond
                 {
                     var n = (int)index._numberValue;
 
-                    if (n < 0 || n >= ArrayValue.Count)
+                    if (n < 0)
+                        n += ArrayValue.Count;
+
+                    if (n >= ArrayValue.Count)
                         throw new MondRuntimeException(RuntimeError.IndexOutOfBounds);
 
                     return ArrayValue[n];

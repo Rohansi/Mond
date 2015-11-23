@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Mond.Compiler.Expressions;
 using Mond.Compiler.Expressions.Statements;
 
@@ -110,7 +111,23 @@ namespace Mond.Compiler.Visitors
 
         public int Visit(ForeachExpression expression)
         {
-            _writer.Write("foreach (var {0} in ", expression.Identifier);
+            _writer.Write("foreach (var ");
+            if (expression.IsDestructuring)
+            {
+                var declarations = expression.DestructureExpression.Declarations;
+                bool isObject = declarations.All(d => d.Initializer is FieldExpression);
+                _writer.Write(isObject ? "{ " : "[ ");
+
+                var names = declarations.Select(d => (d.Initializer is SliceExpression ? "..." : "") + d.Name);
+                _writer.Write(String.Join(", ", names));
+                _writer.Write(isObject ? " }" : " ]");
+            }
+            else
+            {
+                _writer.Write(expression.Identifier);
+            }
+
+            _writer.Write(" in ");
             expression.Expression.Accept(this);
             _writer.WriteLine(")");
 

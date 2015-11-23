@@ -9,16 +9,19 @@ namespace Mond.Compiler.Expressions.Statements
         public string Identifier { get; private set; }
         public Expression Expression { get; private set; }
         public BlockExpression Block { get; private set; }
+        public bool IsDestructuring { get { return DestructureExpression != null; } }
+        public VarExpression DestructureExpression { get; private set; }
 
         public bool HasChildren { get { return true; } }
 
-        public ForeachExpression(Token token, Token inToken, string identifier, Expression expression, BlockExpression block)
+        public ForeachExpression(Token token, Token inToken, string identifier, Expression expression, BlockExpression block, VarExpression destructure = null)
             : base(token)
         {
             InToken = inToken;
             Identifier = identifier;
             Expression = expression;
             Block = block;
+            DestructureExpression = destructure;
         }
 
         public override int Compile(FunctionContext context)
@@ -49,12 +52,20 @@ namespace Mond.Compiler.Expressions.Statements
             loopContext.PushScope();
             loopContext.PushLoop(containsFunction.Value ? cont : start, containsFunction.Value ? brk : end);
 
-            // create the loop variable outside of the loop context (but inside of its scope!)
-            if (!context.DefineIdentifier(Identifier))
-                throw new MondCompilerException(this, CompilerError.IdentifierAlreadyDefined, Identifier);
+            var identifier = default(IdentifierOperand);
 
-            var identifier = context.Identifier(Identifier);
+            if (IsDestructuring)
+            {
+                identifier = context.DefineInternal(Identifier);
+            }
+            else
+            {
+                // create the loop variable outside of the loop context (but inside of its scope!)
+                if (!context.DefineIdentifier(Identifier))
+                    throw new MondCompilerException(this, CompilerError.IdentifierAlreadyDefined, Identifier);
 
+                identifier = context.Identifier(Identifier);
+            }
             stack += loopContext.Bind(start); // continue (without function)
 
             if (containsFunction.Value)
@@ -70,6 +81,57 @@ namespace Mond.Compiler.Expressions.Statements
             stack += loopContext.Load(enumerator);
             stack += loopContext.LoadField(context.String("current"));
             stack += loopContext.Store(identifier);
+
+            if (IsDestructuring)
+            {
+                loopContext.Position(DestructureExpression.Token);
+                foreach (var declaration in DestructureExpression.Declarations)
+                {
+                    if (!loopContext.DefineIdentifier(declaration.Name, DestructureExpression.IsReadOnly))
+                        throw new MondCompilerException(declaration.Initializer, CompilerError.IdentifierAlreadyDefined, declaration.Name);
+
+                    var destructureIdent = context.Identifier(declaration.Name);
+                    var initializer = declaration.Initializer;
+               
+                    if (initializer is FieldExpression)
+                    {
+                        var field = initializer as FieldExpression;
+
+                        stack += loopContext.Load(identifier);
+                        loopContext.Position(field.Token);
+                        stack += loopContext.LoadField(context.String(field.Name));
+                    }
+                    else if (initializer is IndexerExpression)
+                    {
+                        var index = initializer as IndexerExpression;
+
+                        stack += loopContext.Load(identifier);
+                        stack += index.Index.Compile(loopContext);
+                        loopContext.Position(index.Token);
+                        stack += loopContext.LoadArray();
+                    }
+                    else if (initializer is SliceExpression)
+                    {
+                        var slice = initializer as SliceExpression;
+
+                        stack += loopContext.Load(identifier);
+                        stack += slice.Start.Compile(loopContext);
+                        stack += slice.End.Compile(loopContext);
+
+
+
+                        stack += loopContext.LoadUndefined();
+                        loopContext.Position(slice.Token);
+                        stack += loopContext.Slice();
+                    }
+                    else
+                    {
+                        throw new System.NotSupportedException();
+                    }
+
+                    stack += loopContext.Store(destructureIdent);
+                }
+            }
 
             stack += Block.Compile(loopContext);
 
