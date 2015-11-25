@@ -689,38 +689,26 @@ namespace Mond.VirtualMachine
 
                                 var returnAddress = PopCall();
                                 var argFrame = returnAddress.Arguments;
-                                int last;
+                                var argFrameCount = unpackedArgs == null ? argCount : unpackedArgs.Count;
+
+                                // make sure we have the correct number of values
+                                if (argFrameCount != argFrame.Values.Length)
+                                    argFrame.Values = new MondValue[argFrameCount];
 
                                 // copy arguments into frame
                                 if (unpackedArgs == null)
                                 {
-                                    last = argCount;
-
-                                    // make sure the array is the right size
-                                    argFrame.Set(argFrame.Depth, last - 1, MondValue.Undefined);
-
-                                    for (var i = last - 1; i >= 0; i--)
+                                    for (var i = argFrameCount - 1; i >= 0; i--)
                                     {
                                         argFrame.Values[i] = Pop();
                                     }
                                 }
                                 else
                                 {
-                                    last = unpackedArgs.Count;
-
-                                    // make sure the array is the right size
-                                    argFrame.Set(argFrame.Depth, last - 1, MondValue.Undefined);
-
-                                    for (var i = last - 1; i >= 0; i--)
+                                    for (var i = 0; i < argFrameCount; i++)
                                     {
                                         argFrame.Values[i] = unpackedArgs[i];
                                     }
-                                }
-
-                                // clear other arguments
-                                for (var i = last; i < argFrame.Values.Length; i++)
-                                {
-                                    argFrame.Values[i] = MondValue.Undefined;
                                 }
 
                                 // get rid of old locals

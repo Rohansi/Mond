@@ -147,17 +147,14 @@ namespace Mond.Tests.Expressions
         public void UnpackTailCall()
         {
             var result = Script.Run(@"
-                fun sum(x, y, ...args) {
-                    if (y == undefined)
-                        return x;
-        
-                    if (args.length() == 0)
-                        return x + y;
+                fun sum(...args) {
+                    switch (args.length()) {
+                        case 0: return 0;
+                        case 1: return args[0];
+                        case 2: return args[0] + args[1];
+                    }
 
-                    var head = args[0];
-                    args.removeAt(0);
-
-                    return sum(x + y, head, ...args);
+                    return sum(args[0] + args[1], ...args[2:]);
                 }
 
                 return sum(100, 50, 10, 5, 1);
