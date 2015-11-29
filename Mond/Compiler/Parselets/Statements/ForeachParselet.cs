@@ -15,7 +15,7 @@ namespace Mond.Compiler.Parselets.Statements
             var varToken = parser.Take(TokenType.Var);
             var inToken = default(Token);
             var destructuring = false;
-            var declaration = default(VarExpression);
+            var declaration = default(Expression);
             var expression = default(Expression);
             var block = default(BlockExpression);
 
@@ -25,7 +25,7 @@ namespace Mond.Compiler.Parselets.Statements
                 inToken = parser.Take(TokenType.In);
 
                 expression = parser.ParseExpression();
-                declaration = VarParselet.DestructureObject(varToken, fields, null, false);
+                declaration = new DestructuredObjectExpression(varToken, fields, null, false);
                 destructuring = true;
             }
 
@@ -35,7 +35,7 @@ namespace Mond.Compiler.Parselets.Statements
                 inToken = parser.Take(TokenType.In);
 
                 expression = parser.ParseExpression();
-                declaration = VarParselet.DestructureArray(varToken, indecies, null, false);
+                declaration = new DestructuredArrayExpression(varToken, indecies, null, false);
                 destructuring = true;
             }
 

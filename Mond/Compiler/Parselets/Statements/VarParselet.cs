@@ -50,7 +50,7 @@ namespace Mond.Compiler.Parselets.Statements
                 var fields = ParseObjectDestructuring(parser);
                 parser.Take(TokenType.Assign);
 
-                return DestructureObject(token, fields, parser.ParseExpression(), _isReadOnly);
+                return new DestructuredObjectExpression(token, fields, parser.ParseExpression(), _isReadOnly);
             }
 
             if (parser.MatchAndTake(TokenType.LeftSquare))
@@ -58,7 +58,7 @@ namespace Mond.Compiler.Parselets.Statements
                 var indecies = ParseArrayDestructuring(parser);
                 parser.Take(TokenType.Assign);
 
-                return DestructureArray(token, indecies, parser.ParseExpression(), _isReadOnly);
+                return new DestructuredArrayExpression(token, indecies, parser.ParseExpression(), _isReadOnly);
             }
 
             var declarations = new List<VarExpression.Declaration>();
@@ -80,24 +80,24 @@ namespace Mond.Compiler.Parselets.Statements
             return new VarExpression(token, declarations, _isReadOnly);
         }
 
-        internal static ReadOnlyCollection<DestructuringField> ParseObjectDestructuring(Parser parser)
+        internal static List<DestructuredObjectExpression.Field> ParseObjectDestructuring(Parser parser)
         {
-            var fields = new List<DestructuringField>();
+            var fields = new List<DestructuredObjectExpression.Field>();
             do
             {
                 var field = parser.Take(TokenType.Identifier);
-                var name = parser.MatchAndTake(TokenType.Colon) ? parser.Take(TokenType.Identifier) : field;
-                fields.Add(new DestructuringField(field, name));
+                var alias = parser.MatchAndTake(TokenType.Colon) ? parser.Take(TokenType.Identifier).Contents : null;
+                fields.Add(new DestructuredObjectExpression.Field(field.Contents, alias));
             } while (parser.MatchAndTake(TokenType.Comma));
 
             parser.Take(TokenType.RightBrace);
 
-            return fields.AsReadOnly();
+            return fields;
         }
 
-        internal static ReadOnlyCollection<DestructuringIndex> ParseArrayDestructuring(Parser parser)
+        internal static List<DestructuredArrayExpression.Index> ParseArrayDestructuring(Parser parser)
         {
-            var indecies = new List<DestructuringIndex>();
+            var indecies = new List<DestructuredArrayExpression.Index>();
             var hasEllipsis = false;
             do
             {
@@ -110,51 +110,12 @@ namespace Mond.Compiler.Parselets.Statements
                 if (slice && !hasEllipsis)
                     hasEllipsis = true;
 
-                indecies.Add(new DestructuringIndex(name, slice));
+                indecies.Add(new DestructuredArrayExpression.Index(name.Contents, slice));
             } while (parser.MatchAndTake(TokenType.Comma));
 
             parser.Take(TokenType.RightSquare);
 
-            return indecies.AsReadOnly();
-        }
-
-        internal static VarExpression DestructureObject(Token baseToken, IList<DestructuringField> fields, Expression obj, bool isReadOnly)
-        {
-            var declatations = fields.Select(delegate (DestructuringField field)
-             {
-                 var initializer = new FieldExpression(field.FieldName, obj);
-                 return new VarExpression.Declaration(field.AliasName.Contents, initializer);
-             });
-
-            return new VarExpression(baseToken, declatations.ToList(), isReadOnly);
-        }
-
-        internal static VarExpression DestructureArray(Token baseToken, IList<DestructuringIndex> indecies, Expression array, bool isReadOnly)
-        {
-            var arrayToken = array != null ? array.Token : baseToken;
-            var startIndex = default(NumberExpression);
-            var declarations = indecies.Select(delegate (DestructuringIndex index, int i)
-            {
-                index.StartIndex = startIndex ?? new NumberExpression(arrayToken, i);
-                var indexer = default(Expression);
-
-                if (index.IsSlice)
-                {
-                    var remaining = indecies.Skip(i + 1).Count();
-                    index.EndIndex = new NumberExpression(index.StartIndex.Token, -remaining - 1);
-                    startIndex = new NumberExpression(index.StartIndex.Token, -remaining);
-
-                    indexer = new SliceExpression(arrayToken, array, index.StartIndex, index.EndIndex, null);
-                }
-                else
-                {
-                    indexer = new IndexerExpression(arrayToken, array, index.StartIndex);
-                }
-
-                return new VarExpression.Declaration(index.Name.Contents, indexer);
-            });
-
-            return new VarExpression(baseToken, declarations.ToList());
+            return indecies;
         }
     }
 }

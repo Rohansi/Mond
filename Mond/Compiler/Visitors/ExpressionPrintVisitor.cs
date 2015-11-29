@@ -111,21 +111,12 @@ namespace Mond.Compiler.Visitors
 
         public int Visit(ForeachExpression expression)
         {
-            _writer.Write("foreach (var ");
-            if (expression.IsDestructuring)
-            {
-                var declarations = expression.DestructureExpression.Declarations;
-                bool isObject = declarations.All(d => d.Initializer is FieldExpression);
-                _writer.Write(isObject ? "{ " : "[ ");
+            _writer.Write("foreach (");
 
-                var names = declarations.Select(d => (d.Initializer is SliceExpression ? "..." : "") + d.Name);
-                _writer.Write(String.Join(", ", names));
-                _writer.Write(isObject ? " }" : " ]");
-            }
+            if (expression.DestructureExpression != null)
+                expression.DestructureExpression.Accept(this);
             else
-            {
-                _writer.Write(expression.Identifier);
-            }
+                _writer.Write("var {0}", expression.Identifier);
 
             _writer.Write(" in ");
             expression.Expression.Accept(this);
@@ -347,6 +338,40 @@ namespace Mond.Compiler.Visitors
 
             if (needParens)
                 _writer.Write(')');
+
+            return 0;
+        }
+
+        public int Visit(DestructuredObjectExpression expression)
+        {
+            _writer.Write("{0} {{ ", expression.IsReadOnly ? "const" : "var");
+
+            var fields = expression.Fields.Select(field => field.Alias != null ? string.Format("{0}: {1}", field.Name, field.Alias) : field.Name);
+            _writer.Write(string.Join(", ", fields));
+            _writer.Write(" }");
+
+            if (expression.Initializer != null)
+            {
+                _writer.Write(" = ");
+                expression.Initializer.Accept(this);
+            }
+
+            return 0;
+        }
+
+        public int Visit(DestructuredArrayExpression expression)
+        {
+            _writer.Write("{0} [", expression.IsReadOnly ? "const" : "var");
+
+            var indecies = expression.Indecies.Select(index => (index.IsSlice ? "..." : "") + index.Name);
+            _writer.Write(string.Join(", ", indecies));
+            _writer.Write(" ]");
+
+            if (expression.Initializer != null)
+            {
+                _writer.Write(" = ");
+                expression.Initializer.Accept(this);
+            }
 
             return 0;
         }

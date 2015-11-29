@@ -311,5 +311,21 @@ namespace Mond.Compiler
 
             return default(T);
         }
+
+        public T Visit(DestructuredObjectExpression expression)
+        {
+            if (expression.Initializer != null)
+                expression.Initializer.Accept(this);
+
+            return default(T);
+        }
+
+        public T Visit(DestructuredArrayExpression expression)
+        {
+            if (expression.Initializer != null)
+                expression.Initializer.Accept(this);
+
+            return default(T);
+        }
     }
 }

@@ -367,5 +367,23 @@ namespace Mond.Compiler.Visitors
                 EndToken = expression.EndToken
             };
         }
+
+        public virtual Expression Visit(DestructuredObjectExpression expression)
+        {
+            var initializer = expression.Initializer != null ? expression.Initializer.Accept(this) : null;
+            return new DestructuredObjectExpression(expression.Token, expression.Fields, initializer, expression.IsReadOnly)
+            {
+                EndToken = expression.EndToken
+            };
+        }
+
+        public virtual Expression Visit(DestructuredArrayExpression expression)
+        {
+            var initializer = expression.Initializer != null ? expression.Initializer.Accept(this) : null;
+            return new DestructuredArrayExpression(expression.Token, expression.Indecies, initializer, expression.IsReadOnly)
+            {
+                EndToken = expression.EndToken
+            };
+        }
     }
 }
