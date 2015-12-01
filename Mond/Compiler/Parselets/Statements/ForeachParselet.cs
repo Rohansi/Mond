@@ -13,11 +13,10 @@ namespace Mond.Compiler.Parselets.Statements
 
             parser.Take(TokenType.LeftParen);
             var varToken = parser.Take(TokenType.Var);
-            var inToken = default(Token);
-            var destructuring = false;
-            var declaration = default(Expression);
-            var expression = default(Expression);
-            var block = default(BlockExpression);
+            Token inToken;
+            Expression declaration;
+            Expression expression;
+            BlockExpression block;
 
             if (parser.MatchAndTake(TokenType.LeftBrace))
             {
@@ -26,7 +25,11 @@ namespace Mond.Compiler.Parselets.Statements
 
                 expression = parser.ParseExpression();
                 declaration = new DestructuredObjectExpression(varToken, fields, null, false);
-                destructuring = true;
+
+                parser.Take(TokenType.RightParen);
+                block = parser.ParseBlock();
+
+                return new ForeachExpression(token, inToken, "input", expression, block, declaration);
             }
 
             if (parser.MatchAndTake(TokenType.LeftSquare))
@@ -36,12 +39,7 @@ namespace Mond.Compiler.Parselets.Statements
 
                 expression = parser.ParseExpression();
                 declaration = new DestructuredArrayExpression(varToken, indecies, null, false);
-                destructuring = true;
-            }
 
-
-            if (destructuring)
-            {
                 parser.Take(TokenType.RightParen);
                 block = parser.ParseBlock();
 
@@ -50,9 +48,7 @@ namespace Mond.Compiler.Parselets.Statements
 
             var identifier = parser.Take(TokenType.Identifier).Contents;
 
-            inToken = parser.Peek();
-            parser.Take(TokenType.In);
-
+            inToken = parser.Take(TokenType.In);
             expression = parser.ParseExpression();
 
             parser.Take(TokenType.RightParen);

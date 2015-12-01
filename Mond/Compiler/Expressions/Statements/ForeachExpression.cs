@@ -51,11 +51,11 @@ namespace Mond.Compiler.Expressions.Statements
             loopContext.PushScope();
             loopContext.PushLoop(containsFunction.Value ? cont : start, containsFunction.Value ? brk : end);
 
-            var identifier = default(IdentifierOperand);
+            IdentifierOperand identifier;
 
             if (DestructureExpression != null)
             {
-                identifier = context.DefineInternal(Identifier);
+                identifier = context.DefineInternal(Identifier, true);
             }
             else
             {
