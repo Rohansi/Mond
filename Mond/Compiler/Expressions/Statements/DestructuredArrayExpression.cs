@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Collections.ObjectModel;
+﻿using System;
 using System.Linq;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace Mond.Compiler.Expressions.Statements
 {
@@ -49,20 +50,30 @@ namespace Mond.Compiler.Expressions.Statements
             {
                 var assign = context.MakeLabel("arrayDestructureAssign");
                 var destruct = context.MakeLabel("arrayDestructureIndex");
-                
-                // var name = array.length() - 1 >= i ? array[i] : undefined;
+                var remaining = Indecies.Skip(i + 1).Count();
+               
                 stack += context.Dup();
                 stack += context.Dup();
                 stack += context.LoadField(context.String("length"));
                 stack += context.Call(0, new List<ImmediateOperand>());
                 stack += context.Load(context.Number(1));
                 stack += context.BinaryOperation(TokenType.Subtract);
-                stack += context.Load(context.Number(i));
-                stack += context.BinaryOperation(TokenType.GreaterThanOrEqual);
 
-                stack += context.JumpTrue(destruct);
+                if (index.IsSlice)
+                {
+                    stack += context.Load(context.Number(Math.Abs(startIndex)));
+                    stack += context.BinaryOperation(TokenType.Subtract);
+                    stack += context.Load(context.Number(remaining));
+                }
+                else
+                {
+                    stack += context.Load(context.Number(Math.Abs(startIndex)));
+                }
+
+                stack += context.BinaryOperation( TokenType.GreaterThanOrEqual );
+                stack += context.JumpTrue( destruct );
                 stack += context.Drop();
-                stack += context.LoadUndefined();
+                stack += index.IsSlice ? context.NewArray(0) : context.LoadUndefined();
                 stack += context.Jump(assign);
 
                 stack += context.Bind(destruct);
@@ -70,10 +81,9 @@ namespace Mond.Compiler.Expressions.Statements
 
                 if (index.IsSlice)
                 {
-                    var remaining = Indecies.Skip(i + 1).Count();
                     startIndex = -remaining;
 
-                    stack += context.Load(context.Number(-remaining - 1));
+                    stack += context.Load(context.Number(startIndex - 1));
                     stack += context.LoadUndefined();
                     stack += context.Slice();
                 }

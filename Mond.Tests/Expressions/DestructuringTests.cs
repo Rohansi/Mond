@@ -41,6 +41,19 @@ namespace Mond.Tests.Expressions
             Assert.True(result[1].Array.SequenceEqual(expectMiddle));
             Assert.True(result[2].Array.SequenceEqual(expectEnd));
 
+            result = Script.Run(@"
+                var array = [ 1, 2 ];
+                var [ x, ...y, z ] = array;
+
+                return [ x, y, z ];
+            ");
+
+            var emptyArray = new MondValue[0];
+
+            Assert.AreEqual((int)result[0], 1);
+            Assert.True(result[1].Array.SequenceEqual(emptyArray));
+            Assert.AreEqual((int)result[2], 2);
+
             var multipleEllipsis = @"
                 var array = [ 1, 2, 3, 4, 5 ];
                 var [ ...head, middle, ...tail ] = array;
