@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Mond.Compiler.Expressions;
 using Mond.Compiler.Expressions.Statements;
 
@@ -110,7 +111,14 @@ namespace Mond.Compiler.Visitors
 
         public int Visit(ForeachExpression expression)
         {
-            _writer.Write("foreach (var {0} in ", expression.Identifier);
+            _writer.Write("foreach (");
+
+            if (expression.DestructureExpression != null)
+                expression.DestructureExpression.Accept(this);
+            else
+                _writer.Write("var {0}", expression.Identifier);
+
+            _writer.Write(" in ");
             expression.Expression.Accept(this);
             _writer.WriteLine(")");
 
@@ -330,6 +338,40 @@ namespace Mond.Compiler.Visitors
 
             if (needParens)
                 _writer.Write(')');
+
+            return 0;
+        }
+
+        public int Visit(DestructuredObjectExpression expression)
+        {
+            _writer.Write("{0} {{ ", expression.IsReadOnly ? "const" : "var");
+
+            var fields = expression.Fields.Select(field => field.Alias != null ? string.Format("{0}: {1}", field.Name, field.Alias) : field.Name);
+            _writer.Write(string.Join(", ", fields));
+            _writer.Write(" }");
+
+            if (expression.Initializer != null)
+            {
+                _writer.Write(" = ");
+                expression.Initializer.Accept(this);
+            }
+
+            return 0;
+        }
+
+        public int Visit(DestructuredArrayExpression expression)
+        {
+            _writer.Write("{0} [", expression.IsReadOnly ? "const" : "var");
+
+            var indecies = expression.Indecies.Select(index => (index.IsSlice ? "..." : "") + index.Name);
+            _writer.Write(string.Join(", ", indecies));
+            _writer.Write(" ]");
+
+            if (expression.Initializer != null)
+            {
+                _writer.Write(" = ");
+                expression.Initializer.Accept(this);
+            }
 
             return 0;
         }

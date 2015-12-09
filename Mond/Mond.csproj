@@ -87,6 +87,8 @@
     <Compile Include="Compiler\Expressions\PipelineExpression.cs" />
     <Compile Include="Compiler\Expressions\SliceExpression.cs" />
     <Compile Include="Compiler\Expressions\Statements\DebuggerExpression.cs" />
+    <Compile Include="Compiler\Expressions\Statements\DestructuredArrayExpression.cs" />
+    <Compile Include="Compiler\Expressions\Statements\DestructuredObjectExpression.cs" />
     <Compile Include="Compiler\Expressions\Statements\ForeachExpression.cs" />
     <Compile Include="Compiler\Expressions\Statements\SequenceExpression.cs" />
     <Compile Include="Compiler\Expressions\UserDefinedBinaryOperatorExpression.cs" />

@@ -9,16 +9,18 @@ namespace Mond.Compiler.Expressions.Statements
         public string Identifier { get; private set; }
         public Expression Expression { get; private set; }
         public BlockExpression Block { get; private set; }
+        public Expression DestructureExpression { get; private set; }
 
         public bool HasChildren { get { return true; } }
 
-        public ForeachExpression(Token token, Token inToken, string identifier, Expression expression, BlockExpression block)
+        public ForeachExpression(Token token, Token inToken, string identifier, Expression expression, BlockExpression block, Expression destructure = null)
             : base(token)
         {
             InToken = inToken;
             Identifier = identifier;
             Expression = expression;
             Block = block;
+            DestructureExpression = destructure;
         }
 
         public override int Compile(FunctionContext context)
@@ -49,12 +51,20 @@ namespace Mond.Compiler.Expressions.Statements
             loopContext.PushScope();
             loopContext.PushLoop(containsFunction.Value ? cont : start, containsFunction.Value ? brk : end);
 
-            // create the loop variable outside of the loop context (but inside of its scope!)
-            if (!context.DefineIdentifier(Identifier))
-                throw new MondCompilerException(this, CompilerError.IdentifierAlreadyDefined, Identifier);
+            IdentifierOperand identifier;
 
-            var identifier = context.Identifier(Identifier);
+            if (DestructureExpression != null)
+            {
+                identifier = context.DefineInternal(Identifier, true);
+            }
+            else
+            {
+                // create the loop variable outside of the loop context (but inside of its scope!)
+                if (!context.DefineIdentifier(Identifier))
+                    throw new MondCompilerException(this, CompilerError.IdentifierAlreadyDefined, Identifier);
 
+                identifier = context.Identifier(Identifier);
+            }
             stack += loopContext.Bind(start); // continue (without function)
 
             if (containsFunction.Value)
@@ -70,6 +80,12 @@ namespace Mond.Compiler.Expressions.Statements
             stack += loopContext.Load(enumerator);
             stack += loopContext.LoadField(context.String("current"));
             stack += loopContext.Store(identifier);
+
+            if (DestructureExpression != null)
+            {
+                stack += loopContext.Load(identifier);
+                stack += DestructureExpression.Compile(loopContext);
+            }
 
             stack += Block.Compile(loopContext);
 
@@ -105,6 +121,9 @@ namespace Mond.Compiler.Expressions.Statements
         {
             Expression = Expression.Simplify();
             Block = (BlockExpression)Block.Simplify();
+
+            if (DestructureExpression != null)
+                DestructureExpression = DestructureExpression.Simplify();
 
             return this;
         }

@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System.Linq;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using Mond.Compiler.Expressions;
 using Mond.Compiler.Expressions.Statements;
 
@@ -6,6 +8,32 @@ namespace Mond.Compiler.Parselets.Statements
 {
     class VarParselet : IStatementParselet
     {
+        public class DestructuringField
+        {
+            public Token FieldName { get; private set; }
+            public Token AliasName { get; private set; }
+
+            internal DestructuringField(Token field, Token alias)
+            {
+                FieldName = field;
+                AliasName = alias;
+            }
+        }
+
+        public class DestructuringIndex
+        {
+            public Token Name { get; private set; }
+            public bool IsSlice { get; private set; }
+            public Expression StartIndex { get; internal set; }
+            public Expression EndIndex { get; internal set; }
+
+            internal DestructuringIndex(Token name, bool slice)
+            {
+                Name = name;
+                IsSlice = slice;
+            }
+        }
+
         private readonly bool _isReadOnly;
 
         public VarParselet(bool isReadOnly)
@@ -17,8 +45,23 @@ namespace Mond.Compiler.Parselets.Statements
         {
             trailingSemicolon = true;
 
-            var declarations = new List<VarExpression.Declaration>();
+            if (parser.MatchAndTake(TokenType.LeftBrace))
+            {
+                var fields = ParseObjectDestructuring(parser);
+                parser.Take(TokenType.Assign);
 
+                return new DestructuredObjectExpression(token, fields, parser.ParseExpression(), _isReadOnly);
+            }
+
+            if (parser.MatchAndTake(TokenType.LeftSquare))
+            {
+                var indecies = ParseArrayDestructuring(parser);
+                parser.Take(TokenType.Assign);
+
+                return new DestructuredArrayExpression(token, indecies, parser.ParseExpression(), _isReadOnly);
+            }
+
+            var declarations = new List<VarExpression.Declaration>();
             do
             {
                 var identifier = parser.Take(TokenType.Identifier);
@@ -35,6 +78,44 @@ namespace Mond.Compiler.Parselets.Statements
             } while (parser.MatchAndTake(TokenType.Comma));
 
             return new VarExpression(token, declarations, _isReadOnly);
+        }
+
+        internal static List<DestructuredObjectExpression.Field> ParseObjectDestructuring(Parser parser)
+        {
+            var fields = new List<DestructuredObjectExpression.Field>();
+            do
+            {
+                var field = parser.Take(TokenType.Identifier);
+                var alias = parser.MatchAndTake(TokenType.Colon) ? parser.Take(TokenType.Identifier).Contents : null;
+                fields.Add(new DestructuredObjectExpression.Field(field.Contents, alias));
+            } while (parser.MatchAndTake(TokenType.Comma));
+
+            parser.Take(TokenType.RightBrace);
+
+            return fields;
+        }
+
+        internal static List<DestructuredArrayExpression.Index> ParseArrayDestructuring(Parser parser)
+        {
+            var indecies = new List<DestructuredArrayExpression.Index>();
+            var hasEllipsis = false;
+            do
+            {
+                var slice = parser.MatchAndTake(TokenType.Ellipsis);
+                var name = parser.Take(TokenType.Identifier);
+
+                if (hasEllipsis && slice)
+                    throw new MondCompilerException(name, CompilerError.MultipleDestructuringSlices);
+
+                if (slice && !hasEllipsis)
+                    hasEllipsis = true;
+
+                indecies.Add(new DestructuredArrayExpression.Index(name.Contents, slice));
+            } while (parser.MatchAndTake(TokenType.Comma));
+
+            parser.Take(TokenType.RightSquare);
+
+            return indecies;
         }
     }
 }

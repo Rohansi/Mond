@@ -43,7 +43,8 @@ namespace Mond.Compiler.Visitors
                 expression.InToken,
                 expression.Identifier,
                 expression.Expression.Accept(this),
-                (ScopeExpression)expression.Block.Accept(this))
+                (ScopeExpression)expression.Block.Accept(this),
+                (VarExpression)expression.DestructureExpression.Accept(this))
             {
                 EndToken = expression.EndToken
             };
@@ -362,6 +363,24 @@ namespace Mond.Compiler.Visitors
         public Expression Visit(UserDefinedBinaryOperatorExpression expression)
         {
             return new UserDefinedBinaryOperatorExpression(expression.Token, expression.Left.Accept(this), expression.Right.Accept(this))
+            {
+                EndToken = expression.EndToken
+            };
+        }
+
+        public virtual Expression Visit(DestructuredObjectExpression expression)
+        {
+            var initializer = expression.Initializer != null ? expression.Initializer.Accept(this) : null;
+            return new DestructuredObjectExpression(expression.Token, expression.Fields, initializer, expression.IsReadOnly)
+            {
+                EndToken = expression.EndToken
+            };
+        }
+
+        public virtual Expression Visit(DestructuredArrayExpression expression)
+        {
+            var initializer = expression.Initializer != null ? expression.Initializer.Accept(this) : null;
+            return new DestructuredArrayExpression(expression.Token, expression.Indecies, initializer, expression.IsReadOnly)
             {
                 EndToken = expression.EndToken
             };
