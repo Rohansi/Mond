@@ -380,7 +380,7 @@ namespace Mond.Compiler.Visitors
         public virtual Expression Visit(DestructuredArrayExpression expression)
         {
             var initializer = expression.Initializer != null ? expression.Initializer.Accept(this) : null;
-            return new DestructuredArrayExpression(expression.Token, expression.Indecies, initializer, expression.IsReadOnly)
+            return new DestructuredArrayExpression(expression.Token, expression.Indices, initializer, expression.IsReadOnly)
             {
                 EndToken = expression.EndToken
             };

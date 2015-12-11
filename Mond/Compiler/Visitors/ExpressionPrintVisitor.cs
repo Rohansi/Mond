@@ -363,8 +363,8 @@ namespace Mond.Compiler.Visitors
         {
             _writer.Write("{0} [", expression.IsReadOnly ? "const" : "var");
 
-            var indecies = expression.Indecies.Select(index => (index.IsSlice ? "..." : "") + index.Name).ToArray();
-            _writer.Write(string.Join(", ", indecies));
+            var indices = expression.Indices.Select(index => (index.IsSlice ? "..." : "") + index.Name).ToArray();
+            _writer.Write(string.Join(", ", indices));
             _writer.Write(" ]");
 
             if (expression.Initializer != null)

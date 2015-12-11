@@ -19,15 +19,15 @@ namespace Mond.Compiler.Expressions.Statements
             }
         }
 
-        public ReadOnlyCollection<Index> Indecies { get; private set; }
+        public ReadOnlyCollection<Index> Indices { get; private set; }
         public Expression Initializer { get; private set; }
         public bool IsReadOnly { get; private set; }
         public bool HasChildren { get { return false; } }
 
-        public DestructuredArrayExpression(Token token, IList<Index> indecies, Expression initializer, bool isReadOnly)
+        public DestructuredArrayExpression(Token token, IList<Index> indices, Expression initializer, bool isReadOnly)
             : base(token)
         {
-            Indecies = new ReadOnlyCollection<Index>(indecies);
+            Indices = new ReadOnlyCollection<Index>(indices);
             Initializer = initializer;
             IsReadOnly = isReadOnly;
         }
@@ -46,12 +46,12 @@ namespace Mond.Compiler.Expressions.Statements
             var stack = Initializer == null ? 1 : Initializer.Compile(context);
             var global = context.ArgIndex == 0 && context.Compiler.Options.MakeRootDeclarationsGlobal;
 
-            foreach (var index in Indecies)
+            foreach (var index in Indices)
             {
                 var assign = context.MakeLabel("arrayDestructureAssign");
                 var destruct = context.MakeLabel("arrayDestructureIndex");
-                var remaining = Indecies.Skip(i + 1).Count();
-               
+                var remaining = Indices.Skip(i + 1).Count();
+
                 stack += context.Dup();
                 stack += context.Dup();
                 stack += context.LoadField(context.String("length"));
@@ -70,8 +70,8 @@ namespace Mond.Compiler.Expressions.Statements
                     stack += context.Load(context.Number(Math.Abs(startIndex)));
                 }
 
-                stack += context.BinaryOperation( TokenType.GreaterThanOrEqual );
-                stack += context.JumpTrue( destruct );
+                stack += context.BinaryOperation(TokenType.GreaterThanOrEqual);
+                stack += context.JumpTrue(destruct);
                 stack += context.Drop();
                 stack += index.IsSlice ? context.NewArray(0) : context.LoadUndefined();
                 stack += context.Jump(assign);
@@ -112,7 +112,7 @@ namespace Mond.Compiler.Expressions.Statements
             }
 
             stack += context.Drop();
-            
+
             CheckStack(stack, 0);
             return -1;
         }

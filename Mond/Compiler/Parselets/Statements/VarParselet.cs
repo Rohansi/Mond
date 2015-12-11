@@ -1,6 +1,4 @@
-﻿using System.Linq;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
+﻿using System.Collections.Generic;
 using Mond.Compiler.Expressions;
 using Mond.Compiler.Expressions.Statements;
 
@@ -55,10 +53,10 @@ namespace Mond.Compiler.Parselets.Statements
 
             if (parser.MatchAndTake(TokenType.LeftSquare))
             {
-                var indecies = ParseArrayDestructuring(parser);
+                var indices = ParseArrayDestructuring(parser);
                 parser.Take(TokenType.Assign);
 
-                return new DestructuredArrayExpression(token, indecies, parser.ParseExpression(), _isReadOnly);
+                return new DestructuredArrayExpression(token, indices, parser.ParseExpression(), _isReadOnly);
             }
 
             var declarations = new List<VarExpression.Declaration>();
@@ -97,7 +95,7 @@ namespace Mond.Compiler.Parselets.Statements
 
         internal static List<DestructuredArrayExpression.Index> ParseArrayDestructuring(Parser parser)
         {
-            var indecies = new List<DestructuredArrayExpression.Index>();
+            var indices = new List<DestructuredArrayExpression.Index>();
             var hasEllipsis = false;
             do
             {
@@ -107,15 +105,15 @@ namespace Mond.Compiler.Parselets.Statements
                 if (hasEllipsis && slice)
                     throw new MondCompilerException(name, CompilerError.MultipleDestructuringSlices);
 
-                if (slice && !hasEllipsis)
+                if (slice)
                     hasEllipsis = true;
 
-                indecies.Add(new DestructuredArrayExpression.Index(name.Contents, slice));
+                indices.Add(new DestructuredArrayExpression.Index(name.Contents, slice));
             } while (parser.MatchAndTake(TokenType.Comma));
 
             parser.Take(TokenType.RightSquare);
 
-            return indecies;
+            return indices;
         }
     }
 }

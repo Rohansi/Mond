@@ -1,6 +1,4 @@
-﻿using System.Linq;
-using System.Collections.Generic;
-using Mond.Compiler.Expressions;
+﻿using Mond.Compiler.Expressions;
 using Mond.Compiler.Expressions.Statements;
 
 namespace Mond.Compiler.Parselets.Statements
@@ -34,11 +32,11 @@ namespace Mond.Compiler.Parselets.Statements
 
             if (parser.MatchAndTake(TokenType.LeftSquare))
             {
-                var indecies = VarParselet.ParseArrayDestructuring(parser);
+                var indices = VarParselet.ParseArrayDestructuring(parser);
                 inToken = parser.Take(TokenType.In);
 
                 expression = parser.ParseExpression();
-                declaration = new DestructuredArrayExpression(varToken, indecies, null, false);
+                declaration = new DestructuredArrayExpression(varToken, indices, null, false);
 
                 parser.Take(TokenType.RightParen);
                 block = parser.ParseBlock();
