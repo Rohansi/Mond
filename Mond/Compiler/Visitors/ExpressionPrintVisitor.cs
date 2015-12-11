@@ -346,7 +346,7 @@ namespace Mond.Compiler.Visitors
         {
             _writer.Write("{0} {{ ", expression.IsReadOnly ? "const" : "var");
 
-            var fields = expression.Fields.Select(field => field.Alias != null ? string.Format("{0}: {1}", field.Name, field.Alias) : field.Name);
+            var fields = expression.Fields.Select(field => field.Alias != null ? string.Format("{0}: {1}", field.Name, field.Alias) : field.Name).ToArray();
             _writer.Write(string.Join(", ", fields));
             _writer.Write(" }");
 
@@ -363,7 +363,7 @@ namespace Mond.Compiler.Visitors
         {
             _writer.Write("{0} [", expression.IsReadOnly ? "const" : "var");
 
-            var indecies = expression.Indecies.Select(index => (index.IsSlice ? "..." : "") + index.Name);
+            var indecies = expression.Indecies.Select(index => (index.IsSlice ? "..." : "") + index.Name).ToArray();
             _writer.Write(string.Join(", ", indecies));
             _writer.Write(" ]");
 

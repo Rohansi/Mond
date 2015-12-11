@@ -59,7 +59,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="websocket-sharp">
-      <HintPath>..\packages\WebSocketSharp.1.0.3-rc6\lib\websocket-sharp.dll</HintPath>
+      <HintPath>..\packages\WebSocketSharp.1.0.3-rc9\lib\websocket-sharp.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

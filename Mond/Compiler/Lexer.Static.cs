@@ -129,7 +129,7 @@ namespace Mond.Compiler
 
         public static bool IsOperatorToken(string s)
         {
-            return !string.IsNullOrWhiteSpace(s) && s.All(_operatorChars.Contains);
+            return s != null && s.All(_operatorChars.Contains);
         }
 
         public static bool OperatorExists(string s)
