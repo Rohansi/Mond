@@ -12,6 +12,7 @@ namespace Mond.Compiler
         private static Dictionary<string, TokenType> _keywords;
         private static HashSet<char> _hexChars;
         private static HashSet<char> _operatorChars;
+        private static HashSet<char> _endOfLineChars;
 
         static Lexer()
         {
@@ -124,6 +125,15 @@ namespace Mond.Compiler
             {
                 '.', '=', '+', '-', '*', '/', '%',
                 '&', '|', '^', '~', '<', '>', '!', '?'
+            };
+
+            _endOfLineChars = new HashSet<char>
+            {
+                '\u000B', // vertical tab (VT)
+                '\u000C', // form feed (FF)
+                '\u0085', // next line (NEL)
+                '\u2028', // line separator (LS)
+                '\u2029', // paragraph separator (PS)
             };
         }
 
