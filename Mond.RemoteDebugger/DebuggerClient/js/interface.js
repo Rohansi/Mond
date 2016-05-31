@@ -25,7 +25,7 @@ function switchState(newState) {
     $("#menu > li").hide();
     state = newState;
 
-    if (newState == "disconnected") {
+    if (newState === "disconnected") {
         connectBtn.show();
         return;
     }
@@ -80,7 +80,7 @@ function generateSourceHtml(id, firstLine, code) {
         var line = lines[i];
 
         // fixes line number click issues
-        if (line == "")
+        if (line === "")
             line = " ";
 
         backgroundHtml += "<li><div>" + escapeHtml(line) + "</div></li>";
@@ -124,7 +124,8 @@ function addProgram(id, data) {
 
     var sourceLines = sourceList.children();
 
-    for (var i = 0, l = firstLine; i < sourceLines.length; i++, l++) {
+    var i, l;
+    for (i = 0, l = firstLine; i < sourceLines.length; i++, l++) {
         var e = $(sourceLines[i]);
         e.click(makeClickEvent(l, e));
     }

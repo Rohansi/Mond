@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
+using WebSocketSharp;
 using WebSocketSharp.Net;
 using WebSocketSharp.Server;
 
@@ -48,12 +49,9 @@ namespace Mond.RemoteDebugger
                 res.StatusCode = (int)HttpStatusCode.OK;
                 res.ContentType = GetMimeType(path);
 
-                int bytesRead;
-                var buffer = new byte[4096];
-                while ((bytesRead = stream.Read(buffer, 0, buffer.Length)) != 0)
-                {
-                    res.OutputStream.Write(buffer, 0, bytesRead);
-                }
+                var buffer = new byte[stream.Length];
+                stream.Read(buffer, 0, buffer.Length);
+                res.WriteContent(buffer);
             };
 
             _server.AddWebSocketService("/", () => new Session(debugger));

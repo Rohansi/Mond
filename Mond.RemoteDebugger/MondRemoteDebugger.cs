@@ -345,7 +345,7 @@ namespace Mond.RemoteDebugger
             }
 
             var message = new MondValue(MondValueType.Object);
-            message["Type"] = "MondProgram";
+            message["Type"] = "NewProgram";
             message["Id"] = id;
             message["FileName"] = programInfo.FileName;
             message["SourceCode"] = debugInfo.SourceCode;

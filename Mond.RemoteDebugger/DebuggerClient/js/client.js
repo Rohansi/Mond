@@ -12,7 +12,7 @@ connectBtn.click(function () {
     };
 
     socket.onclose = function () {
-        if (state == "disconnected")
+        if (state === "disconnected")
             alert("failed to connect");
 
         socket = null;
@@ -90,7 +90,7 @@ disconnectBtn.click(function () {
 
 function registerActionEvent(elem, action, requiredState) {
     elem.click(function () {
-        if (state != requiredState || socket === null)
+        if (state !== requiredState || socket === null)
             return;
 
         socket.send(JSON.stringify({

@@ -82,7 +82,7 @@ function syntaxHighlight(line, state) {
             if (index >= line.length)
                 return false;
 
-            if (line[index] != value[j])
+            if (line[index] !== value[j])
                 return false;
         }
 
@@ -106,7 +106,7 @@ function syntaxHighlight(line, state) {
 
             var ch = line[i];
 
-            if (ch == "\"" || ch == "\'") {
+            if (ch === "\"" || ch === "\'") {
                 state.state = "string";
                 state.first = true;
                 state.stringTerminator = ch;
@@ -143,17 +143,17 @@ function syntaxHighlight(line, state) {
                 var hasExp = false;
                 var justTake = false;
 
-                if (ch == "0" && i + 1 < line.length) {
+                if (ch === "0" && i + 1 < line.length) {
                     var nextChar = line[i + 1];
 
-                    if (nextChar == "x" || nextChar == "X")
+                    if (nextChar === "x" || nextChar === "X")
                         format = "hexadecimal";
 
-                    if (nextChar == "b" || nextChar == "B")
+                    if (nextChar === "b" || nextChar === "B")
                         format = "binary";
 
-                    if (format != "decimal") {
-                        if (i + 2 < line.length && line[i + 2] == "_") {
+                    if (format !== "decimal") {
+                        if (i + 2 < line.length && line[i + 2] === "_") {
                             i++;
                             return "<span class='number'>0</span>";
                         }
@@ -163,7 +163,7 @@ function syntaxHighlight(line, state) {
                 }
 
                 function isDigit(value) {
-                    return value.match(/[0-9]/) || (format == "hexadecimal" && value.match(/[a-f]/i));
+                    return value.match(/[0-9]/) || (format === "hexadecimal" && value.match(/[a-f]/i));
                 }
 
                 while (i < line.length) {
@@ -179,8 +179,8 @@ function syntaxHighlight(line, state) {
                         continue;
                     }
 
-                    if (format == "decimal") {
-                        if (c == "." && !hasDecimal && !hasExp) {
+                    if (format === "decimal") {
+                        if (c === "." && !hasDecimal && !hasExp) {
                             hasDecimal = true;
 
                             if (i + 1 >= line.length || !isDigit(line[i + 1]))
@@ -190,10 +190,10 @@ function syntaxHighlight(line, state) {
                             continue;
                         }
 
-                        if ((c == "e" || c == "E") && !hasExp) {
+                        if ((c === "e" || c === "E") && !hasExp) {
                             if (i + 1 < line.length) {
                                 var next = line[i + 1];
-                                if (next == "+" || next == "-")
+                                if (next === "+" || next === "-")
                                     justTake = true;
                             }
 
@@ -265,14 +265,14 @@ function syntaxHighlight(line, state) {
         while (i < line.length) {
             var ch = line[i];
 
-            if (ch == "\\" && i + 1 < line.length && line[i + 1] == state.stringTerminator) {
+            if (ch === "\\" && i + 1 < line.length && line[i + 1] === state.stringTerminator) {
                 i += 2;
                 continue;
             }
 
             i++;
 
-            if (ch == state.stringTerminator) {
+            if (ch === state.stringTerminator) {
                 state.state = "normal";
                 break;
             }
@@ -328,7 +328,7 @@ function highlightSourceBackground(id, startLine, startColumn, endLine, endColum
 
     var line, lineText;
 
-    if (startLine == endLine) {
+    if (startLine === endLine) {
         line = $(lines[startLine]);
         lineText = line.text();
 
@@ -347,11 +347,11 @@ function highlightSourceBackground(id, startLine, startColumn, endLine, endColum
         var normal;
         var red;
 
-        if (i == startLine) {
+        if (i === startLine) {
             normal = lineText.substr(0, startColumn);
             red = lineText.substr(startColumn, lineText.length - startColumn);
             line.html(escapeHtml(normal) + "<span class='break'>" + escapeHtml(red) + "</span>");
-        } else if (i == endLine) {
+        } else if (i === endLine) {
             red = lineText.substr(0, endColumn + 1);
             normal = lineText.substr(endColumn, lineText.length - endColumn);
             line.html("<span class='break'>" + escapeHtml(red) + "</span>" + escapeHtml(normal));
