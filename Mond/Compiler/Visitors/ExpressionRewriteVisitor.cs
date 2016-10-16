@@ -38,13 +38,14 @@ namespace Mond.Compiler.Visitors
 
         public virtual Expression Visit(ForeachExpression expression)
         {
+            var destructure = expression.DestructureExpression != null ? expression.DestructureExpression.Accept(this) : null;
             return new ForeachExpression(
                 expression.Token,
                 expression.InToken,
                 expression.Identifier,
                 expression.Expression.Accept(this),
-                (ScopeExpression)expression.Block.Accept(this),
-                (VarExpression)expression.DestructureExpression.Accept(this))
+                (BlockExpression)expression.Block.Accept(this),
+                destructure)
             {
                 EndToken = expression.EndToken
             };
@@ -54,9 +55,9 @@ namespace Mond.Compiler.Visitors
         {
             return new ForExpression(
                 expression.Token,
-                (BlockExpression)expression.Initializer.Accept(this),
-                expression.Condition.Accept(this),
-                (BlockExpression)expression.Increment.Accept(this),
+                expression.Initializer != null ? (BlockExpression)expression.Initializer.Accept(this) : null,
+                expression.Condition != null ? expression.Condition.Accept(this) : null,
+                expression.Increment != null ? (BlockExpression)expression.Increment.Accept(this) : null,
                 (ScopeExpression)expression.Block.Accept(this))
             {
                 EndToken = expression.EndToken

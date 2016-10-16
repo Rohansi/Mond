@@ -48,6 +48,26 @@ namespace Mond.Debugger
             return base.Visit(expression);
         }
 
+        public override Expression Visit(DestructuredArrayExpression expression)
+        {
+            foreach (var index in expression.Indices)
+            {
+                _scope.Define(index.Name, false);
+            }
+
+            return base.Visit(expression);
+        }
+
+        public override Expression Visit(DestructuredObjectExpression expression)
+        {
+            foreach (var field in expression.Fields)
+            {
+                _scope.Define(field.Alias ?? field.Name, false);
+            }
+
+            return base.Visit(expression);
+        }
+
         public override Expression Visit(FunctionExpression expression)
         {
             if (expression.Name != null)
@@ -93,7 +113,10 @@ namespace Mond.Debugger
         public override Expression Visit(ForeachExpression expression)
         {
             PushScope();
-            _scope.Define(expression.Identifier, false);
+
+            if (expression.DestructureExpression == null)
+                _scope.Define(expression.Identifier, false);
+
             var result = base.Visit(expression);
             PopScope();
 
