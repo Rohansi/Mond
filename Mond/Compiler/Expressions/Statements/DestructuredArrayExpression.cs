@@ -32,11 +32,6 @@ namespace Mond.Compiler.Expressions.Statements
             IsReadOnly = isReadOnly;
         }
 
-        public override T Accept<T>(IExpressionVisitor<T> visitor)
-        {
-            return visitor.Visit(this);
-        }
-
         public override int Compile(FunctionContext context)
         {
             context.Position(Token);
@@ -123,6 +118,19 @@ namespace Mond.Compiler.Expressions.Statements
                 Initializer = Initializer.Simplify();
 
             return this;
+        }
+
+        public override void SetParent(Expression parent)
+        {
+            base.SetParent(parent);
+
+            if (Initializer != null)
+                Initializer.SetParent(this);
+        }
+
+        public override T Accept<T>(IExpressionVisitor<T> visitor)
+        {
+            return visitor.Visit(this);
         }
     }
 }

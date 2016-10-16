@@ -365,8 +365,8 @@ namespace Mond
 
         private static MondProgram CompileImpl(Expression expression, MondCompilerOptions options, string debugSourceCode = null)
         {
+            expression = expression.Simplify();
             expression.SetParent(null);
-            expression.Simplify();
 
             //using (var printer = new ExpressionPrintVisitor(Console.Out))
             //    expression.Accept(printer);

@@ -35,6 +35,13 @@ namespace Mond.Compiler.Expressions
             return this;
         }
 
+        public override void SetParent(Expression parent)
+        {
+            base.SetParent(parent);
+
+            Right.SetParent(this);
+        }
+
         public override T Accept<T>(IExpressionVisitor<T> visitor)
         {
             return visitor.Visit(this);

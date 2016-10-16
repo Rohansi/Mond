@@ -50,8 +50,8 @@ namespace Mond.Debugger
             var expr = parser.ParseStatement(false);
 
             var rewriter = new DebugExpressionRewriter(LocalObjectName);
-
-            expr = expr.Accept(rewriter);
+            expr = expr.Accept(rewriter).Simplify();
+            expr.SetParent(null);
 
             var oldLocal = _state[LocalObjectName];
             _state[LocalObjectName] = _localObject;
