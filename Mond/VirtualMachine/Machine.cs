@@ -22,7 +22,7 @@ namespace Mond.VirtualMachine
             : this()
         {
             _state = state;
-            Global = new MondValue(MondValueType.Object);
+            Global = new MondValue(state);
             Global["__ops"] = new MondValue(MondValueType.Object);
 
             _debugAction = MondDebugAction.Run;
