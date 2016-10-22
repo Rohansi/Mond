@@ -86,7 +86,8 @@ namespace Mond.Compiler.Visitors
                 if (b == null)
                     return null;
 
-                return new IfExpression.Branch(b.Condition.Accept(this), (BlockExpression)b.Block.Accept(this));
+                var condition = b.Condition != null ? b.Condition.Accept(this) : null;
+                return new IfExpression.Branch(condition, (BlockExpression)b.Block.Accept(this));
             };
 
             var branches = expression.Branches.Select(visit).ToList();
