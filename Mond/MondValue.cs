@@ -361,13 +361,15 @@ namespace Mond
                 if (ObjectValue.Locked)
                     throw new MondRuntimeException(RuntimeError.ObjectIsLocked);
 
-                if (value == Undefined)
-                    value = null;
-                else if (value == Null)
-                    value = ValuePrototype.Value;
-
-                if (value != null && value.Type != MondValueType.Object && value.Type != MondValueType.Null)
-                    throw new MondRuntimeException("Prototypes must be an object or null");
+                if (!ReferenceEquals(value, null))
+                {
+                    if (value.Type == MondValueType.Undefined)
+                        value = null;
+                    else if (value.Type == MondValueType.Null)
+                        value = ValuePrototype.Value;
+                    else if (value.Type != MondValueType.Object)
+                        throw new MondRuntimeException("Prototypes must be an object, null, or undefined");
+                }
 
                 ObjectValue.Prototype = value;
             }

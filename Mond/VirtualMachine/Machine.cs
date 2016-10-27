@@ -904,6 +904,9 @@ namespace Mond.VirtualMachine
                     for (var i = 1; i < stackTrace.FrameCount; i++)
                     {
                         var method = stackTrace.GetFrame(i).GetMethod();
+                        if (method == null)
+                            continue; // ???
+
                         var type = method.DeclaringType;
 
                         // stop at the next call to Machine.Run because it can be recursive
