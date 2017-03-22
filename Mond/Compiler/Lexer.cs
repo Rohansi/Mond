@@ -96,8 +96,8 @@ namespace Mond.Compiler
                 var ch = PeekChar();
                 Token token;
 
-                if (!TryLexOperator(ch, out token) &&
-                    !TryLexPunctuation(ch, out token) &&
+                if (!TryLexPunctuation(ch, out token) &&
+                    !TryLexOperator(ch, out token) &&
                     !TryLexString(ch, out token) &&
                     !TryLexWord(ch, out token) &&
                     !TryLexNumber(ch, out token))

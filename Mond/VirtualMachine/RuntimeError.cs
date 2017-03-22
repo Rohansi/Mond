@@ -16,6 +16,7 @@
         public const string CircularPrototype = "Circular prototype definition";
 
         public const string ValueNotCallable = "Value of type {0} is not callable";
+        public const string FieldNotCallable = "Field '{0}' is not callable";
 
         public const string NumberCastWrongType = "__number must return a number";
         public const string StringCastWrongType = "__string must return a string";

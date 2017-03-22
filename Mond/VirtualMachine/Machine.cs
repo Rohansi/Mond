@@ -619,7 +619,22 @@ namespace Mond.VirtualMachine
                                 }
 
                                 if (function.Type != MondValueType.Function)
+                                {
+                                    var ldFldBase = ip - 1 - 4 - 1 - 4 - 1;
+                                    if (ldFldBase >= 0 && code[ldFldBase] == (int)InstructionType.LdFld)
+                                    {
+                                        var ldFldIdx = ldFldBase + 1;
+                                        var fieldNameIdx = ReadInt32(code, ref ldFldIdx);
+
+                                        if (fieldNameIdx >= 0 && fieldNameIdx < program.Strings.Count)
+                                        {
+                                            var fieldName = program.Strings[fieldNameIdx];
+                                            throw new MondRuntimeException(RuntimeError.FieldNotCallable, (string)fieldName);
+                                        }
+                                    }
+
                                     throw new MondRuntimeException(RuntimeError.ValueNotCallable, function.Type.GetName());
+                                }
 
                                 var closure = function.FunctionValue;
 
