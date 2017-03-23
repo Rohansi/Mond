@@ -97,6 +97,7 @@
     <Compile Include="Compiler\Expressions\UnpackExpression.cs" />
     <Compile Include="Compiler\LoopContext.cs" />
     <Compile Include="Compiler\Parselets\Statements\DebuggerParselet.cs" />
+    <Compile Include="Compiler\Parselets\Statements\DecoratorParselet.cs" />
     <Compile Include="Compiler\Visitors\ExpressionRewriteVisitor.cs" />
     <Compile Include="Compiler\Visitors\LoopContainsFunctionVisitor.cs" />
     <Compile Include="Compiler\Visitors\ExpressionPrintVisitor.cs" />

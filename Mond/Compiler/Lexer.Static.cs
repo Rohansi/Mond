@@ -80,6 +80,7 @@ namespace Mond.Compiler
                 { "?", TokenType.QuestionMark },
                 { "|>", TokenType.Pipeline },
                 { "...", TokenType.Ellipsis },
+                { "@", TokenType.Decorator }
             };
 
             _keywords = new Dictionary<string, TokenType>

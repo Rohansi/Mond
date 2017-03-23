@@ -100,6 +100,7 @@
         Pipeline,
         Ellipsis,
         UserDefinedOperator,
+        Decorator,
 
         Eof
     }

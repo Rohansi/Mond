@@ -23,6 +23,10 @@
         public const string CantModifyReadonlyVar = "Cannot modify '{0}' because it is readonly";
         public const string LeftSideMustBeStorable = "The left side of an assignment must be storable";
 
+        public const string DecoratorMustBeCallable = "A decorator expression must be callable";
+        public const string DecoratorOnlyOnFuncs = "Decorators are only valid on functions/sequences";
+        public const string NoDecoratorsOnOperatos = "Decorators are not valid on user defined operators";
+
         public const string ExpectedConstant = "Expected a constant value";
         public const string DuplicateCase = "Duplicate case value";
         public const string DuplicateDefault = "Cannot have more than one default case";
