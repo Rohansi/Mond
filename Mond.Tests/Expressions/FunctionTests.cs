@@ -324,6 +324,22 @@ namespace Mond.Tests.Expressions
 
             var expected = new[] { 1, 2 }.Select(n => new MondValue(n));
             Assert.True(state["result"].Enumerate(state).SequenceEqual(expected));
+
+            // test nesting
+            var result = Script.Run(@"
+                fun mult(func, x) -> fun(... args) -> func(... args) * x;
+
+                fun add( x, y ) {
+                    @mult( 2 )
+                    fun test( z ) -> z;
+
+                    return test( x + y );
+                }
+
+                return add( 5, 10 );
+            ");
+
+            Assert.AreEqual((int)result, 30);
         }
     }
 }
