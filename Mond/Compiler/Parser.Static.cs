@@ -42,7 +42,6 @@ namespace Mond.Compiler
             RegisterInfix(TokenType.BitOr, new BinaryOperatorParselet((int)PrecedenceValue.BitOr, false));
             RegisterInfix(TokenType.BitXor, new BinaryOperatorParselet((int)PrecedenceValue.BitXor, false));
             RegisterPrefix(TokenType.Subtract, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));
-            RegisterPrefix(TokenType.Add, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));
             RegisterPrefix(TokenType.BitNot, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));
 
             // conditional operations

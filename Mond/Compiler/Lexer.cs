@@ -94,9 +94,8 @@ namespace Mond.Compiler
                     break;
 
                 var ch = PeekChar();
-                Token token;
 
-                if (!TryLexPunctuation(ch, out token) &&
+                if (!TryLexPunctuation(ch, out var token) &&
                     !TryLexOperator(ch, out token) &&
                     !TryLexString(ch, out token) &&
                     !TryLexWord(ch, out token) &&
@@ -293,11 +292,18 @@ namespace Mond.Compiler
 
             MarkPosition();
             var wordContents = TakeWhile(c => char.IsLetterOrDigit(c) || c == '_');
-            TokenType keywordType;
-            var isKeyword = _keywords.TryGetValue(wordContents, out keywordType);
+            var isKeyword = _keywords.TryGetValue(wordContents, out var keywordType);
 
             var start = _positions.Pop();
-            token = new Token(_fileName, start.Line, start.Column, isKeyword ? keywordType : TokenType.Identifier, wordContents, isKeyword ? TokenSubType.Keyword : TokenSubType.None);
+
+            token = new Token(
+                _fileName,
+                start.Line,
+                start.Column,
+                isKeyword ? keywordType : TokenType.Identifier,
+                wordContents,
+                isKeyword ? TokenSubType.Keyword : TokenSubType.None);
+
             return true;
         }
 

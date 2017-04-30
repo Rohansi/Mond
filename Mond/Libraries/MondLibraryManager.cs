@@ -100,16 +100,10 @@ namespace Mond.Libraries
             }
 
             // call instance config action
-            if (_configAction != null)
-            {
-                _configAction(libraryCollection);
-            }
+            _configAction?.Invoke(libraryCollection);
 
             // call config action
-            if (configAction != null)
-            {
-                configAction(libraryCollection);
-            }
+            configAction?.Invoke(libraryCollection);
         }
 
         private static string MakeDefinitionString(ICollection<string> definitions)

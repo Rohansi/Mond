@@ -64,8 +64,7 @@ namespace Mond.Debugger
         {
             lock (_sync)
             {
-                List<int> breakpoints;
-                if (!_programBreakpoints.TryGetValue(program, out breakpoints))
+                if (!_programBreakpoints.TryGetValue(program, out var breakpoints))
                 {
                     breakpoints = new List<int>();
                     _programBreakpoints.Add(program, breakpoints);
@@ -87,8 +86,7 @@ namespace Mond.Debugger
         {
             lock (_sync)
             {
-                List<int> breakpoints;
-                if (!_programBreakpoints.TryGetValue(program, out breakpoints))
+                if (!_programBreakpoints.TryGetValue(program, out var breakpoints))
                     return;
 
                 breakpoints.Remove(address);
@@ -112,8 +110,7 @@ namespace Mond.Debugger
                     return true;
                 }
 
-                List<int> breakpoints;
-                if (!_programBreakpoints.TryGetValue(program, out breakpoints))
+                if (!_programBreakpoints.TryGetValue(program, out var breakpoints))
                     return false;
 
                 return breakpoints.Contains(address);

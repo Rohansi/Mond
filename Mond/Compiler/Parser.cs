@@ -25,9 +25,7 @@ namespace Mond.Compiler
         {
             var token = Take();
 
-            IPrefixParselet prefixParselet;
-            _prefixParselets.TryGetValue(token.Type, out prefixParselet);
-
+            _prefixParselets.TryGetValue(token.Type, out var prefixParselet);
             if (prefixParselet == null)
                 throw new MondCompilerException(token, CompilerError.ExpectedButFound, "Expression", token);
 
@@ -38,9 +36,7 @@ namespace Mond.Compiler
             {
                 token = Take();
 
-                IInfixParselet infixParselet;
-                _infixParselets.TryGetValue(token.Type, out infixParselet);
-
+                _infixParselets.TryGetValue(token.Type, out var infixParselet);
                 if (infixParselet == null)
                     throw new Exception("probably can't happen");
 
@@ -58,8 +54,7 @@ namespace Mond.Compiler
         {
             var token = Peek();
 
-            IStatementParselet statementParselet;
-            _statementParselets.TryGetValue(token.Type, out statementParselet);
+            _statementParselets.TryGetValue(token.Type, out var statementParselet);
 
             Expression result;
 
@@ -76,8 +71,7 @@ namespace Mond.Compiler
 
             token = Take();
 
-            bool hasTrailingSemicolon;
-            result = statementParselet.Parse(this, token, out hasTrailingSemicolon);
+            result = statementParselet.Parse(this, token, out var hasTrailingSemicolon);
 
             if (takeTrailingSemicolon && hasTrailingSemicolon)
                 Take(TokenType.Semicolon);
@@ -240,9 +234,7 @@ namespace Mond.Compiler
 
         private int GetPrecedence()
         {
-            IInfixParselet infixParselet;
-            _infixParselets.TryGetValue(Peek().Type, out infixParselet);
-
+            _infixParselets.TryGetValue(Peek().Type, out var infixParselet);
             return infixParselet != null ? infixParselet.Precedence : 0;
         }
     }

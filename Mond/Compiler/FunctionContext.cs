@@ -110,9 +110,7 @@ namespace Mond.Compiler
 
         public virtual void PopScope()
         {
-            var popAction = Scope.PopAction;
-            if (popAction != null)
-                popAction();
+            Scope.PopAction?.Invoke();
 
             Scope = Scope.Previous;
             Compiler.ScopeDepth--;

@@ -61,8 +61,7 @@ namespace Mond.VirtualMachine
                 Array.Copy(arguments, 0, arguments, 1, arguments.Length - 1);
                 arguments[0] = function;
 
-                MondValue result;
-                if (function.TryDispatch("__call", out result, arguments))
+                if (function.TryDispatch("__call", out var result, arguments))
                     return result;
             }
 
@@ -610,8 +609,7 @@ namespace Mond.VirtualMachine
                                         argArr = unpackedArgs.ToArray();
                                     }
 
-                                    MondValue result;
-                                    if (function.TryDispatch("__call", out result, argArr))
+                                    if (function.TryDispatch("__call", out var result, argArr))
                                     {
                                         Push(result);
                                         break;
@@ -906,19 +904,20 @@ namespace Mond.VirtualMachine
 
                 StringBuilder stackTraceBuilder;
 
-                var runtimeException = e as MondRuntimeException;
-                if (runtimeException != null && runtimeException.InternalStackTrace != null)
+                if (e is MondRuntimeException runtimeException &&
+                    runtimeException.InternalStackTrace != null)
                 {
                     stackTraceBuilder = new StringBuilder(runtimeException.InternalStackTrace);
 
                     // check if we are running in a wrapped function
-                    var stackTrace = new System.Diagnostics.StackTrace(e);
+                    var stackTrace = new System.Diagnostics.StackTrace(e, false);
+                    var frames = stackTrace.GetFrames();
                     var foundWrapper = false;
 
                     // skip the first frame because it's this method? need to verify
-                    for (var i = 1; i < stackTrace.FrameCount; i++)
+                    for (var i = 1; i < frames.Length; i++)
                     {
-                        var method = stackTrace.GetFrame(i).GetMethod();
+                        var method = frames[i].GetMethod();
                         if (method == null)
                             continue; // ???
 

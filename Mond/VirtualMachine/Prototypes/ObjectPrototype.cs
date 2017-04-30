@@ -77,8 +77,7 @@ namespace Mond.VirtualMachine.Prototypes
         {
             EnsureObject("get", instance);
 
-            MondValue value;
-            if (!instance.ObjectValue.Values.TryGetValue(key, out value))
+            if (!instance.ObjectValue.Values.TryGetValue(key, out var value))
                 return MondValue.Undefined;
 
             return value;

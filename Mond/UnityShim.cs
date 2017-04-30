@@ -178,7 +178,7 @@ namespace Mond
             if (array == null)
                 throw new ArgumentNullException("array");
 
-            return Array.AsReadOnly(array);
+            return array.AsReadOnly();
         }
     }
 #endif

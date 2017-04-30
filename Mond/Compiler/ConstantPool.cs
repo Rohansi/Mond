@@ -35,8 +35,7 @@ namespace Mond.Compiler
 
         public ConstantOperand<T> GetOperand(T value)
         {
-            ConstantOperand<T> operand;
-            if (_operands.TryGetValue(value, out operand))
+            if (_operands.TryGetValue(value, out var operand))
                 return operand;
 
             operand = new ConstantOperand<T>(_nextId++, value);

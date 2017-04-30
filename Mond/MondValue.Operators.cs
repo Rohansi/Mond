@@ -84,8 +84,7 @@ namespace Mond
             if (value.Type == MondValueType.Number)
                 return value._numberValue;
 
-            MondValue result;
-            if (value.TryDispatch("__number", out result, value))
+            if (value.TryDispatch("__number", out var result, value))
             {
                 if (result.Type != MondValueType.Number)
                     throw new MondRuntimeException(RuntimeError.NumberCastWrongType);
@@ -108,8 +107,7 @@ namespace Mond
 
             if (left.Type == MondValueType.String || right.Type == MondValueType.String)
             {
-                MondValue result;
-                if (TryDispatchBinary("__add", out result, left, right))
+                if (TryDispatchBinary("__add", out var result, left, right))
                     return result;
 
                 return new MondValue(left.ToString() + right.ToString());
@@ -117,8 +115,7 @@ namespace Mond
 
             if (left.Type == MondValueType.Object || right.Type == MondValueType.Object)
             {
-                MondValue result;
-                if (TryDispatchBinary("__add", out result, left, right))
+                if (TryDispatchBinary("__add", out var result, left, right))
                     return result;
 
                 return new MondValue((double)left + (double)right);
@@ -134,8 +131,7 @@ namespace Mond
 
             if (left.Type == MondValueType.Object || right.Type == MondValueType.Object)
             {
-                MondValue result;
-                if (TryDispatchBinary("__sub", out result, left, right))
+                if (TryDispatchBinary("__sub", out var result, left, right))
                     return result;
 
                 return new MondValue((double)left - (double)right);
@@ -151,8 +147,7 @@ namespace Mond
 
             if (left.Type == MondValueType.Object || right.Type == MondValueType.Object)
             {
-                MondValue result;
-                if (TryDispatchBinary("__mul", out result, left, right))
+                if (TryDispatchBinary("__mul", out var result, left, right))
                     return result;
 
                 return new MondValue((double)left * (double)right);
@@ -168,8 +163,7 @@ namespace Mond
 
             if (left.Type == MondValueType.Object || right.Type == MondValueType.Object)
             {
-                MondValue result;
-                if (TryDispatchBinary("__div", out result, left, right))
+                if (TryDispatchBinary("__div", out var result, left, right))
                     return result;
 
                 return new MondValue((double)left / (double)right);
@@ -185,8 +179,7 @@ namespace Mond
 
             if (left.Type == MondValueType.Object || right.Type == MondValueType.Object)
             {
-                MondValue result;
-                if (TryDispatchBinary("__mod", out result, left, right))
+                if (TryDispatchBinary("__mod", out var result, left, right))
                     return result;
 
                 return new MondValue((double)left % (double)right);
@@ -202,8 +195,7 @@ namespace Mond
 
             if (Type == MondValueType.Object || right.Type == MondValueType.Object)
             {
-                MondValue result;
-                if (TryDispatchBinary("__pow", out result, this, right))
+                if (TryDispatchBinary("__pow", out var result, this, right))
                     return result;
 
                 return new MondValue(Math.Pow(this, right));
@@ -216,8 +208,7 @@ namespace Mond
         {
             if (Type == MondValueType.Object || right.Type == MondValueType.Object)
             {
-                MondValue result;
-                if (TryDispatchBinary("__lshift", out result, this, right))
+                if (TryDispatchBinary("__lshift", out var result, this, right))
                     return result;
 
                 return new MondValue((int)this << (int)right);
@@ -230,8 +221,7 @@ namespace Mond
         {
             if (Type == MondValueType.Object || right.Type == MondValueType.Object)
             {
-                MondValue result;
-                if (TryDispatchBinary("__rshift", out result, this, right))
+                if (TryDispatchBinary("__rshift", out var result, this, right))
                     return result;
 
                 return new MondValue((int)this >> (int)right);
@@ -247,8 +237,7 @@ namespace Mond
 
             if (left.Type == MondValueType.Object)
             {
-                MondValue result;
-                if (left.TryDispatch("__lshift", out result, left, right))
+                if (left.TryDispatch("__lshift", out var result, left, right))
                     return result;
 
                 return new MondValue((int)left << right);
@@ -264,8 +253,7 @@ namespace Mond
 
             if (left.Type == MondValueType.Object)
             {
-                MondValue result;
-                if (left.TryDispatch("__rshift", out result, left, right))
+                if (left.TryDispatch("__rshift", out var result, left, right))
                     return result;
 
                 return new MondValue((int)left >> right);
@@ -281,8 +269,7 @@ namespace Mond
 
             if (left.Type == MondValueType.Object || right.Type == MondValueType.Object)
             {
-                MondValue result;
-                if (TryDispatchBinary("__and", out result, left, right))
+                if (TryDispatchBinary("__and", out var result, left, right))
                     return result;
 
                 return new MondValue((int)left & (int)right);
@@ -298,8 +285,7 @@ namespace Mond
 
             if (left.Type == MondValueType.Object || right.Type == MondValueType.Object)
             {
-                MondValue result;
-                if (TryDispatchBinary("__or", out result, left, right))
+                if (TryDispatchBinary("__or", out var result, left, right))
                     return result;
 
                 return new MondValue((int)left | (int)right);
@@ -315,8 +301,7 @@ namespace Mond
 
             if (left.Type == MondValueType.Object || right.Type == MondValueType.Object)
             {
-                MondValue result;
-                if (TryDispatchBinary("__xor", out result, left, right))
+                if (TryDispatchBinary("__xor", out var result, left, right))
                     return result;
 
                 return new MondValue((int)left ^ (int)right);
@@ -332,8 +317,7 @@ namespace Mond
 
             if (value.Type == MondValueType.Object)
             {
-                MondValue result;
-                if (value.TryDispatch("__neg", out result, value))
+                if (value.TryDispatch("__neg", out var result, value))
                     return result;
 
                 return new MondValue(-(double)value);
@@ -349,8 +333,7 @@ namespace Mond
 
             if (value.Type == MondValueType.Object)
             {
-                MondValue result;
-                if (value.TryDispatch("__not", out result, value))
+                if (value.TryDispatch("__not", out var result, value))
                     return result;
 
                 return new MondValue(~(int)value);
@@ -381,12 +364,11 @@ namespace Mond
                 return left._numberValue > right._numberValue;
 
             if (left.Type == MondValueType.String && right.Type == MondValueType.String)
-                return string.Compare(left._stringValue, right._stringValue, CultureInfo.InvariantCulture, CompareOptions.None) > 0;
+                return string.Compare(left._stringValue, right._stringValue, StringComparison.Ordinal) > 0;
 
             if (left.Type == MondValueType.Object)
             {
-                MondValue result;
-                if (left.TryDispatch("__gt", out result, left, right))
+                if (left.TryDispatch("__gt", out var result, left, right))
                     return result;
             }
 
@@ -395,8 +377,7 @@ namespace Mond
                 if (right.Equals(left))
                     return false;
 
-                MondValue result;
-                if (right.TryDispatch("__gt", out result, right, left))
+                if (right.TryDispatch("__gt", out var result, right, left))
                     return !result;
             }
 

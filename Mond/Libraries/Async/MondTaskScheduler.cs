@@ -35,12 +35,10 @@ namespace Mond.Libraries.Async
 
                 while (count-- > 0)
                 {
-                    Tuple<SendOrPostCallback, object> callback;
-                    if (_callbacks.TryDequeue(out callback))
+                    if (_callbacks.TryDequeue(out var callback))
                         callback.Item1(callback.Item2);
 
-                    Task task;
-                    if (!_tasks.TryDequeue(out task))
+                    if (!_tasks.TryDequeue(out var task))
                         break;
 
                     TryExecuteTask(task);

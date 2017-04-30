@@ -66,8 +66,7 @@ namespace Mond.Binding
 
             HasParams = Parameters.Any(p => p.Type == ParameterType.Params);
             
-            var methodInfo = info as MethodInfo;
-            if (methodInfo != null)
+            if (info is MethodInfo methodInfo)
                 ReturnConversion = MondFunctionBinder.MakeReturnConversion(methodInfo.ReturnType);
         }
 
@@ -162,8 +161,7 @@ namespace Mond.Binding
 
             var paramType = info.ParameterType;
 
-            MondValueType[] mondTypes;
-            if (MondFunctionBinder.TypeCheckMap.TryGetValue(paramType, out mondTypes))
+            if (MondFunctionBinder.TypeCheckMap.TryGetValue(paramType, out var mondTypes))
             {
                 Type = ParameterType.Value;
                 TypeName = mondTypes[0].GetName();

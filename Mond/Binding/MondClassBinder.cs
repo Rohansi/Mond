@@ -28,8 +28,7 @@ namespace Mond.Binding
         /// </summary>
         public static MondFunction Bind<T>(MondState state = null)
         {
-            MondValue prototype;
-            var ctor = Bind<T>(out prototype, state);
+            var ctor = Bind<T>(out var prototype, state);
             prototype.Lock();
             return ctor;
         }
@@ -49,8 +48,7 @@ namespace Mond.Binding
         /// </summary>
         public static MondFunction Bind(Type type, out MondValue prototype, MondState state = null)
         {
-            Dictionary<string, MondInstanceFunction> functions;
-            var constructor = BindImpl(type, out functions);
+            var constructor = BindImpl(type, out var functions);
             var prototypeObj = CopyToObject(functions, state);
 
             prototype = prototypeObj;

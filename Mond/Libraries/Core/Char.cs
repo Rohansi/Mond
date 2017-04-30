@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using Mond.Binding;
 
 namespace Mond.Libraries.Core
@@ -42,7 +43,7 @@ namespace Mond.Libraries.Core
         [MondFunction("getUnicodeCategory")]
         public static string GetUnicodeCategory(string s, int index = 0)
         {
-            return char.GetUnicodeCategory(s, index).ToString();
+            return CharUnicodeInfo.GetUnicodeCategory(s, index).ToString();
         }
 
         [MondFunction("isControl")]

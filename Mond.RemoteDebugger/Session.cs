@@ -19,13 +19,8 @@ namespace Mond.RemoteDebugger
 
         protected override void OnOpen()
         {
-            bool isRunning;
-            List<ProgramInfo> programs;
-            BreakPosition position;
-            List<Watch> watches;
-            ReadOnlyCollection<MondDebugContext.CallStackEntry> callStack;
-
-            _debugger.GetState(out isRunning, out programs, out position, out watches, out callStack);
+            _debugger.GetState(
+                out var isRunning, out var programs, out var position, out var watches, out var callStack);
 
             var message = new MondValue(MondValueType.Object);
             message["Type"] = "InitialState";

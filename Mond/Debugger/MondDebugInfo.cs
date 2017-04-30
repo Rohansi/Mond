@@ -66,7 +66,7 @@ namespace Mond.Debugger
                 ParentId = parentId;
                 StartAddress = startAddress;
                 EndAddress = endAddress;
-                Identifiers = identifiers != null ? identifiers.AsReadOnly() : null;
+                Identifiers = identifiers?.AsReadOnly();
             }
         }
 
@@ -96,25 +96,10 @@ namespace Mond.Debugger
         public readonly string FileName;
         public readonly string SourceCode;
 
-        public ReadOnlyCollection<Function> Functions
-        {
-            get { return _functions != null ? _functions.AsReadOnly() : null; }
-        }
-
-        public ReadOnlyCollection<Position> Lines
-        {
-            get { return _lines != null ? _lines.AsReadOnly() : null; }
-        }
-
-        public ReadOnlyCollection<Statement> Statements
-        {
-            get { return _statements != null ? _statements.AsReadOnly() : null; }
-        }
-
-        public ReadOnlyCollection<Scope> Scopes
-        {
-            get { return _scopes != null ? _scopes.AsReadOnly() : null; }
-        }
+        public ReadOnlyCollection<Function> Functions => _functions?.AsReadOnly();
+        public ReadOnlyCollection<Position> Lines => _lines?.AsReadOnly();
+        public ReadOnlyCollection<Statement> Statements => _statements?.AsReadOnly();
+        public ReadOnlyCollection<Scope> Scopes => _scopes?.AsReadOnly();
 
         internal MondDebugInfo(string fileName, string sourceCode, List<Function> functions, List<Position> lines, List<Statement> statements, List<Scope> scopes)
         {
