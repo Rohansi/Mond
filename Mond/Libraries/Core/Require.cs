@@ -1,4 +1,7 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using Mond.Binding;
 
 namespace Mond.Libraries.Core
@@ -10,8 +13,7 @@ namespace Mond.Libraries.Core
 
         public static MondValue Create(RequireLibrary require)
         {
-            MondValue prototype;
-            MondClassBinder.Bind<RequireClass>(out prototype);
+            MondClassBinder.Bind<RequireClass>(out var prototype);
 
             var instance = new RequireClass();
             instance._require = require;
@@ -60,8 +62,17 @@ namespace Mond.Libraries.Core
 
             try
             {
-                var searchDirectories = new[] { Path.GetDirectoryName(state.CurrentScript), "" };
-                var moduleSource = _require.Loader(fileName, searchDirectories.AsReadOnly());
+                IEnumerable<string> searchDirectories =
+                    _require.SearchDirectories ?? Array.Empty<string>();
+
+                if (_require.SearchBesideScript)
+                {
+                    var currentDir = Path.GetDirectoryName(state.CurrentScript);
+                    searchDirectories = Enumerable.Repeat(currentDir, 1)
+                        .Concat(searchDirectories);
+                }
+
+                var moduleSource = _require.Loader(fileName, searchDirectories);
 
                 // wrap the module script in a function so we can pass out exports object to it
                 var source = _require.Definitions + "return fun (exports) {\n" + moduleSource + " return exports; };";

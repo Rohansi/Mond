@@ -39,14 +39,14 @@ namespace Mond.VirtualMachine
                 if (_callStackSize == 0)
                     throw new InvalidOperationException("No scripts are running");
 
-                return _callStack[_callStackSize - 1].Program.DebugInfo.FileName;
+                return _callStack[_callStackSize - 1].Program.DebugInfo?.FileName;
             }
         }
 
         public MondValue Load(MondProgram program)
         {
             if (program == null)
-                throw new ArgumentNullException("program");
+                throw new ArgumentNullException(nameof(program));
 
             var function = new MondValue(new Closure(program, 0, null, null));
             return Call(function);
@@ -637,7 +637,7 @@ namespace Mond.VirtualMachine
                                 var closure = function.FunctionValue;
 
                                 var argFrame = function.FunctionValue.Arguments;
-                                var argFrameCount = unpackedArgs == null ? argCount : unpackedArgs.Count;
+                                var argFrameCount = unpackedArgs?.Count ?? argCount;
 
                                 if (argFrame == null)
                                     argFrame = new Frame(1, null, argFrameCount);
@@ -702,7 +702,7 @@ namespace Mond.VirtualMachine
 
                                 var returnAddress = PopCall();
                                 var argFrame = returnAddress.Arguments;
-                                var argFrameCount = unpackedArgs == null ? argCount : unpackedArgs.Count;
+                                var argFrameCount = unpackedArgs?.Count ?? argCount;
 
                                 // make sure we have the correct number of values
                                 if (argFrameCount != argFrame.Values.Length)
@@ -738,7 +738,7 @@ namespace Mond.VirtualMachine
                                 var localCount = ReadInt32(code, ref ip);
 
                                 var frame = PopLocal();
-                                frame = new Frame(frame != null ? frame.Depth + 1 : 0, frame, localCount);
+                                frame = new Frame(frame?.Depth + 1 ?? 0, frame, localCount);
 
                                 PushLocal(frame);
                                 locals = frame;

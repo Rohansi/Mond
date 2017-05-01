@@ -40,7 +40,7 @@ namespace Mond
         /// </summary>
         public MondLibraryManager Libraries
         {
-            get { return _libraries; }
+            get => _libraries;
             set
             {
                 if (_librariesLoaded)
@@ -55,11 +55,10 @@ namespace Mond
         /// </summary>
         public MondDebugger Debugger
         {
-            get { return _machine.Debugger; }
+            get => _machine.Debugger;
             set
             {
-                if (_machine.Debugger != null)
-                    _machine.Debugger.Detach();
+                _machine.Debugger?.Detach();
 
                 if (value != null && !value.TryAttach())
                     throw new InvalidOperationException("Debuggers cannot be attached to more than one state at a time");
@@ -73,8 +72,8 @@ namespace Mond
         /// </summary>
         public MondValue this[MondValue index]
         {
-            get { return _machine.Global[index]; }
-            set { _machine.Global[index] = value; }
+            get => _machine.Global[index];
+            set => _machine.Global[index] = value;
         }
 
         /// <summary>
@@ -141,9 +140,6 @@ namespace Mond
         /// <summary>
         /// Gets the file name of the currently running script.
         /// </summary>
-        public string CurrentScript
-        {
-            get { return _machine.CurrentScript; }
-        } 
+        public string CurrentScript => _machine.CurrentScript;
     }
 }
