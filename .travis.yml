@@ -1,9 +1,11 @@
 language: csharp
 sudo: false
 solution: Mond.sln
+mono: none
+dotnet: 1.0.1
+dist: trusty
 install:
-  - nuget restore Mond.sln
-  - nuget install NUnit.Runners -Version 2.6.4 -OutputDirectory testrunner
+  - dotnet restore
+  - dotnet build -c Release
 script:
-  - xbuild /p:Configuration=Release Mond.sln
-  - mono ./testrunner/NUnit.Runners.2.6.4/tools/nunit-console.exe ./Mond.Tests/bin/Release/Mond.Tests.dll
+  - dotnet run -p ./Mond.Tests/Mond.Tests.csproj -c Release

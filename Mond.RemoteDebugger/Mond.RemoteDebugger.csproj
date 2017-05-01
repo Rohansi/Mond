@@ -4,6 +4,17 @@
     <TargetFrameworks>netstandard1.3</TargetFrameworks>
     <AssemblyVersion>0.4.0</AssemblyVersion>
     <DebugType>portable</DebugType>
+	
+	  <!-- NuGet Package -->
+    <PackageId>Mond.RemoteDebugger</PackageId>
+    <PackageVersion>$(AssemblyVersion)</PackageVersion>
+    <Authors>Rohans</Authors>
+    <Description>A browser-based, remote debugger for Mond scripts.</Description>
+    <PackageIconUrl>http://i.imgur.com/zbqVSaz.png</PackageIconUrl>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageLicenseUrl>https://raw.githubusercontent.com/Rohansi/Mond/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/Rohansi/Mond</PackageProjectUrl>
+    <PackageTags>Mond Scripting Debugger</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>

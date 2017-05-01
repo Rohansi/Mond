@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using Mond.Libraries;
 using Mond.Repl.Input;
-using Mond.RemoteDebugger;
 
 namespace Mond.Repl
 {
@@ -105,12 +104,9 @@ namespace Mond.Repl
             var state = new MondState();
             var options = new MondCompilerOptions
             {
-                DebugInfo = MondDebugInfoLevel.Full,
                 MakeRootDeclarationsGlobal = true,
                 UseImplicitGlobals = true
             };
-
-            state.Debugger = new MondRemoteDebugger(1234);
 
             libraries.Load(state);
 
