@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Mond.Binding;
 using NUnit.Framework;
 
@@ -34,7 +35,7 @@ namespace Mond.Tests.Binding
 
             foreach (var func in functions)
             {
-                _state[func] = MondFunctionBinder.Bind(null, typeof(FunctionTests).GetMethod(func));
+                _state[func] = MondFunctionBinder.Bind(null, typeof(FunctionTests).GetTypeInfo().GetMethod(func));
             }
         }
 

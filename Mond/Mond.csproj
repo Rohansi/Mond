@@ -1,13 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard1.3;net45</TargetFrameworks>
+    <TargetFrameworks>netstandard1.3</TargetFrameworks>
     <AssemblyVersion>0.4.0</AssemblyVersion>
     <DebugType>portable</DebugType>
     
     <!-- NuGet Package -->
     <PackageId>Mond</PackageId>
-    <PackageVersion>$(AssemblyVersion)-pre</PackageVersion>
+    <PackageVersion>$(AssemblyVersion)</PackageVersion>
     <Authors>Rohans</Authors>
     <Description>A scripting language for C# .NET/Mono.</Description>
     <PackageIconUrl>http://i.imgur.com/zbqVSaz.png</PackageIconUrl>
@@ -17,7 +17,7 @@
     <PackageTags>Mond Scripting</PackageTags>
   </PropertyGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' ">
+  <ItemGroup>
     <PackageReference Include="System.Diagnostics.StackTrace" Version="4.3.0" />
     <PackageReference Include="System.Globalization" Version="4.3.0" />
     <PackageReference Include="System.Reflection.TypeExtensions" Version="4.3.0" />

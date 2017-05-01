@@ -2,13 +2,14 @@
   
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>netcoreapp1.1;net45</TargetFrameworks>
+    <TargetFrameworks>netcoreapp1.1</TargetFrameworks>
     <RuntimeIdentifiers>any</RuntimeIdentifiers>
     <AssemblyVersion>0.4.0</AssemblyVersion>
     <DebugType>portable</DebugType>
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Mond.RemoteDebugger\Mond.RemoteDebugger.csproj" />
     <ProjectReference Include="..\Mond\Mond.csproj" />
   </ItemGroup>
 

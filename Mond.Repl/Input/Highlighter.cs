@@ -165,7 +165,8 @@ namespace Mond.Repl.Input
                         }
                     }
 
-                    Func<char, bool> isDigit = c => char.IsDigit(c) || (format == NumberFormat.Hexadecimal && HexChars.Contains(c));
+                    bool IsDigit(char c) =>
+                        char.IsDigit(c) || (format == NumberFormat.Hexadecimal && HexChars.Contains(c));
 
                     while (index < line.Length)
                     {
@@ -178,7 +179,7 @@ namespace Mond.Repl.Input
                             continue;
                         }
 
-                        if (c == '_' && (index + 1 < line.Length && isDigit(line[index + 1])))
+                        if (c == '_' && (index + 1 < line.Length && IsDigit(line[index + 1])))
                         {
                             result[index++] = new ColoredCharacter(c, NumberColor);
                             continue;
@@ -190,7 +191,7 @@ namespace Mond.Repl.Input
                             {
                                 hasDecimal = true;
 
-                                if (index + 1 >= line.Length || !isDigit(line[index + 1]))
+                                if (index + 1 >= line.Length || !IsDigit(line[index + 1]))
                                     break;
 
                                 result[index++] = new ColoredCharacter(c, NumberColor);
@@ -212,7 +213,7 @@ namespace Mond.Repl.Input
                             }
                         }
 
-                        if (!isDigit(c))
+                        if (!IsDigit(c))
                             break;
 
                         result[index++] = new ColoredCharacter(c, NumberColor);

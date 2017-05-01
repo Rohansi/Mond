@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Mond.Libraries;
 using Mond.Repl.Input;
+using Mond.RemoteDebugger;
 
 namespace Mond.Repl
 {
@@ -80,7 +81,7 @@ namespace Mond.Repl
 
         static void InteractiveMain(string[] args)
         {
-            var useColoredInput = args.Any(s => s == "-c");
+            var useColoredInput = args.All(s => s != "--no-color");
 
             if (useColoredInput)
             {
@@ -104,9 +105,12 @@ namespace Mond.Repl
             var state = new MondState();
             var options = new MondCompilerOptions
             {
+                DebugInfo = MondDebugInfoLevel.Full,
                 MakeRootDeclarationsGlobal = true,
                 UseImplicitGlobals = true
             };
+
+            state.Debugger = new MondRemoteDebugger(1234);
 
             libraries.Load(state);
 
@@ -219,8 +223,7 @@ namespace Mond.Repl
             string message = e is MondException ? e.Message : e.ToString();
             string stackTrace = null;
 
-            var runtimeException = e as MondRuntimeException;
-            if (runtimeException != null)
+            if (e is MondRuntimeException runtimeException)
                 stackTrace = runtimeException.StackTrace;
 
             Console.WriteLine();
@@ -233,10 +236,7 @@ namespace Mond.Repl
                 Console.WriteLine(stackTrace);
 
             _first = true;
-
-            if (_input != null)
-                _input.Clear();
-
+            _input?.Clear();
             _highlighter = null;
         }
     }

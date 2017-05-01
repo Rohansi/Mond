@@ -64,8 +64,7 @@ namespace Mond.RemoteDebugger
                 breaker = _breaker;
             }
 
-            if (breaker != null)
-                breaker.SetResult(MondDebugAction.Run);
+            breaker?.SetResult(MondDebugAction.Run);
         }
 
         protected override MondDebugAction OnBreak(MondDebugContext context, int address)
@@ -134,7 +133,7 @@ namespace Mond.RemoteDebugger
                 programs = _programs.ToList();
                 position = _position;
                 watches = _watches.ToList();
-                callStack = _context != null ? _context.CallStack : null;
+                callStack = _context?.CallStack;
             }
         }
 
@@ -145,8 +144,7 @@ namespace Mond.RemoteDebugger
             lock (_sync)
                 breaker = _breaker;
 
-            if (breaker != null)
-                breaker.SetResult(action);
+            breaker?.SetResult(action);
         }
 
         internal bool SetBreakpoint(int id, int line, bool value)
@@ -244,7 +242,7 @@ namespace Mond.RemoteDebugger
                 {
                     _watchTimedOut = true;
                     IsBreakRequested = true;
-                });
+                }, null, -1, -1);
 
                 _watchTimedOut = false;
                 timer.Change(500, -1);
