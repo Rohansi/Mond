@@ -1,31 +1,29 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using Mond.Debugger;
-using WebSocketSharp;
-using WebSocketSharp.Server;
+using IotWeb.Common.Http;
 
 namespace Mond.RemoteDebugger
 {
-    internal class Session : WebSocketBehavior
+    internal class Session
     {
+        private readonly SessionManager _manager;
         private readonly MondRemoteDebugger _debugger;
+        private WebSocket _socket;
 
-        public Session(MondRemoteDebugger debugger)
+        public Session(SessionManager manager, MondRemoteDebugger debugger)
         {
+            _manager = manager;
             _debugger = debugger;
         }
 
-        protected override void OnOpen()
+        public void OnOpen(WebSocket socket)
         {
-            bool isRunning;
-            List<ProgramInfo> programs;
-            BreakPosition position;
-            List<Watch> watches;
-            ReadOnlyCollection<MondDebugContext.CallStackEntry> callStack;
+            _socket = socket;
+            _socket.DataReceived += OnMessage;
 
-            _debugger.GetState(out isRunning, out programs, out position, out watches, out callStack);
+            _debugger.GetState(
+                out var isRunning, out var programs, out var position, out var watches, out var callStack);
 
             var message = new MondValue(MondValueType.Object);
             message["Type"] = "InitialState";
@@ -44,14 +42,13 @@ namespace Mond.RemoteDebugger
             Send(Json.Serialize(message));
         }
 
-        protected override void OnMessage(MessageEventArgs args)
-        {
-            if (args.Type != Opcode.Text)
-                return;
+        public void Send(string data) => _socket.Send(data);
 
+        private void OnMessage(WebSocket sender, string data)
+        {
             try
             {
-                var obj = Json.Deserialize(args.Data);
+                var obj = Json.Deserialize(data);
 
                 switch ((string)obj["Type"])
                 {
@@ -83,7 +80,7 @@ namespace Mond.RemoteDebugger
                                 message["Line"] = line;
                                 message["Value"] = value;
 
-                                Sessions.Broadcast(Json.Serialize(message));
+                                _manager.Broadcast(Json.Serialize(message));
                             }
 
                             break;

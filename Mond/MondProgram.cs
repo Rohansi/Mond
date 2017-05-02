@@ -5,7 +5,6 @@ using System.IO;
 using System.Text;
 using Mond.Compiler;
 using Mond.Compiler.Expressions;
-using Mond.Compiler.Visitors;
 using Mond.Debugger;
 
 namespace Mond

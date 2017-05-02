@@ -39,14 +39,14 @@ namespace Mond.VirtualMachine
                 if (_callStackSize == 0)
                     throw new InvalidOperationException("No scripts are running");
 
-                return _callStack[_callStackSize - 1].Program.DebugInfo.FileName;
+                return _callStack[_callStackSize - 1].Program.DebugInfo?.FileName;
             }
         }
 
         public MondValue Load(MondProgram program)
         {
             if (program == null)
-                throw new ArgumentNullException("program");
+                throw new ArgumentNullException(nameof(program));
 
             var function = new MondValue(new Closure(program, 0, null, null));
             return Call(function);
@@ -61,8 +61,7 @@ namespace Mond.VirtualMachine
                 Array.Copy(arguments, 0, arguments, 1, arguments.Length - 1);
                 arguments[0] = function;
 
-                MondValue result;
-                if (function.TryDispatch("__call", out result, arguments))
+                if (function.TryDispatch("__call", out var result, arguments))
                     return result;
             }
 
@@ -610,8 +609,7 @@ namespace Mond.VirtualMachine
                                         argArr = unpackedArgs.ToArray();
                                     }
 
-                                    MondValue result;
-                                    if (function.TryDispatch("__call", out result, argArr))
+                                    if (function.TryDispatch("__call", out var result, argArr))
                                     {
                                         Push(result);
                                         break;
@@ -639,7 +637,7 @@ namespace Mond.VirtualMachine
                                 var closure = function.FunctionValue;
 
                                 var argFrame = function.FunctionValue.Arguments;
-                                var argFrameCount = unpackedArgs == null ? argCount : unpackedArgs.Count;
+                                var argFrameCount = unpackedArgs?.Count ?? argCount;
 
                                 if (argFrame == null)
                                     argFrame = new Frame(1, null, argFrameCount);
@@ -704,7 +702,7 @@ namespace Mond.VirtualMachine
 
                                 var returnAddress = PopCall();
                                 var argFrame = returnAddress.Arguments;
-                                var argFrameCount = unpackedArgs == null ? argCount : unpackedArgs.Count;
+                                var argFrameCount = unpackedArgs?.Count ?? argCount;
 
                                 // make sure we have the correct number of values
                                 if (argFrameCount != argFrame.Values.Length)
@@ -740,7 +738,7 @@ namespace Mond.VirtualMachine
                                 var localCount = ReadInt32(code, ref ip);
 
                                 var frame = PopLocal();
-                                frame = new Frame(frame != null ? frame.Depth + 1 : 0, frame, localCount);
+                                frame = new Frame(frame?.Depth + 1 ?? 0, frame, localCount);
 
                                 PushLocal(frame);
                                 locals = frame;
@@ -906,19 +904,20 @@ namespace Mond.VirtualMachine
 
                 StringBuilder stackTraceBuilder;
 
-                var runtimeException = e as MondRuntimeException;
-                if (runtimeException != null && runtimeException.InternalStackTrace != null)
+                if (e is MondRuntimeException runtimeException &&
+                    runtimeException.InternalStackTrace != null)
                 {
                     stackTraceBuilder = new StringBuilder(runtimeException.InternalStackTrace);
 
                     // check if we are running in a wrapped function
-                    var stackTrace = new System.Diagnostics.StackTrace(e);
+                    var stackTrace = new System.Diagnostics.StackTrace(e, false);
+                    var frames = stackTrace.GetFrames();
                     var foundWrapper = false;
 
                     // skip the first frame because it's this method? need to verify
-                    for (var i = 1; i < stackTrace.FrameCount; i++)
+                    for (var i = 1; i < frames.Length; i++)
                     {
-                        var method = stackTrace.GetFrame(i).GetMethod();
+                        var method = frames[i].GetMethod();
                         if (method == null)
                             continue; // ???
 

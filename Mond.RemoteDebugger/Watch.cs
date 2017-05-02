@@ -10,10 +10,7 @@ namespace Mond.RemoteDebugger
         public readonly int Id;
         public readonly string Expression;
 
-        public string Value
-        {
-            get { return _value ?? ""; }
-        }
+        public string Value => _value ?? "";
 
         public Watch(int id, string expression)
         {

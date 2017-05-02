@@ -152,8 +152,7 @@ namespace Mond.Compiler
 
             public void Add(string op, TokenType type, TokenSubType subType)
             {
-                List<Tuple<string, TokenType, TokenSubType>> list;
-                if (!_operatorDictionary.TryGetValue(op[0], out list))
+                if (!_operatorDictionary.TryGetValue(op[0], out var list))
                 {
                     list = new List<Tuple<string, TokenType, TokenSubType>>();
                     _operatorDictionary.Add(op[0], list);
@@ -165,8 +164,7 @@ namespace Mond.Compiler
 
             public IEnumerable<Tuple<string, TokenType, TokenSubType>> Lookup(char ch)
             {
-                List<Tuple<string, TokenType, TokenSubType>> list;
-                if (!_operatorDictionary.TryGetValue(ch, out list))
+                if (!_operatorDictionary.TryGetValue(ch, out var list))
                     return null;
 
                 return list;

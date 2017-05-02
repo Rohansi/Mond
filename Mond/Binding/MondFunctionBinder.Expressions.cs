@@ -280,7 +280,7 @@ namespace Mond.Binding
             if (NumberTypes.Contains(returnType))
                 return v => Expression.Convert(Expression.Convert(v, typeof(double)), typeof(MondValue));
 
-            var classAttrib = returnType.GetCustomAttribute<MondClassAttribute>();
+            var classAttrib = returnType.Attribute<MondClassAttribute>();
             if (classAttrib != null && classAttrib.AllowReturn)
             {
                 var valueCtor = typeof(MondValue).GetConstructor(new[] { typeof(MondValueType) });

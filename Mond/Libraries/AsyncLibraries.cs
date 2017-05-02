@@ -81,8 +81,7 @@ namespace Mond.Libraries
                 if (result.Type != MondValueType.Object)
                     throw new MondRuntimeException("Tasks may only yield objects");
 
-                var task = result.UserData as Task<MondValue>;
-                if (task != null)
+                if (result.UserData is Task<MondValue> task)
                 {
                     input = await task;
                     continue;
@@ -136,8 +135,7 @@ namespace Mond.Libraries
             return tasks
                 .Select(t =>
                 {
-                    var task = t.UserData as Task<MondValue>;
-                    if (task != null)
+                    if (t.UserData is Task<MondValue> task)
                         return task;
 
                     return RunMondTask(state, t);

@@ -80,7 +80,7 @@ namespace Mond.Repl
 
         static void InteractiveMain(string[] args)
         {
-            var useColoredInput = args.Any(s => s == "-c");
+            var useColoredInput = args.All(s => s != "--no-color");
 
             if (useColoredInput)
             {
@@ -219,8 +219,7 @@ namespace Mond.Repl
             string message = e is MondException ? e.Message : e.ToString();
             string stackTrace = null;
 
-            var runtimeException = e as MondRuntimeException;
-            if (runtimeException != null)
+            if (e is MondRuntimeException runtimeException)
                 stackTrace = runtimeException.StackTrace;
 
             Console.WriteLine();
@@ -233,10 +232,7 @@ namespace Mond.Repl
                 Console.WriteLine(stackTrace);
 
             _first = true;
-
-            if (_input != null)
-                _input.Clear();
-
+            _input?.Clear();
             _highlighter = null;
         }
     }

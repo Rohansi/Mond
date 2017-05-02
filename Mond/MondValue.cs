@@ -286,8 +286,7 @@ namespace Mond
                 if (ObjectValue.Locked)
                     throw new MondRuntimeException(RuntimeError.ObjectIsLocked);
 
-                MondValue result;
-                if (TryDispatch("__set", out result, this, index, value))
+                if (TryDispatch("__set", out var result, this, index, value))
                     return;
 
                 ObjectValue.Values[index] = value;
@@ -433,8 +432,7 @@ namespace Mond
                 if (ObjectValue.Values.ContainsKey(search))
                     return true;
 
-                MondValue result;
-                if (TryDispatch("__in", out result, this, search))
+                if (TryDispatch("__in", out var result, this, search))
                     return result;
 
                 return false;
@@ -533,8 +531,7 @@ namespace Mond
                 if (ReferenceEquals(ObjectValue, other.ObjectValue))
                     return true;
 
-                MondValue result;
-                if (TryDispatch("__eq", out result, this, other))
+                if (TryDispatch("__eq", out var result, this, other))
                     return result;
 
                 if (other.TryDispatch("__eq", out result, other, this))
@@ -619,8 +616,7 @@ namespace Mond
                     return "false";
                 case MondValueType.Object:
                     {
-                        MondValue result;
-                        if (TryDispatch("__string", out result, this))
+                        if (TryDispatch("__string", out var result, this))
                         {
                             if (result.Type != MondValueType.String)
                                 throw new MondRuntimeException(RuntimeError.StringCastWrongType);

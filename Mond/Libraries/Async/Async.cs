@@ -29,14 +29,15 @@ namespace Mond.Libraries.Async
 
         public static MondValue Create()
         {
-            MondValue prototype;
-            MondClassBinder.Bind<AsyncClass>(out prototype);
+            MondClassBinder.Bind<AsyncClass>(out var prototype);
 
             var instance = new AsyncClass();
 
-            var obj = new MondValue(MondValueType.Object);
-            obj.UserData = instance;
-            obj.Prototype = prototype;
+            var obj = new MondValue(MondValueType.Object)
+            {
+                UserData = instance,
+                Prototype = prototype
+            };
             obj.Lock();
 
             return obj;
@@ -115,10 +116,15 @@ namespace Mond.Libraries.Async
         [MondFunction("runToCompletion")]
         public void RunToCompletion()
         {
-            while (Run())
+            var waitTask = Task.Run(async () =>
             {
-                Thread.Sleep(1);
-            }
+                while (Run())
+                {
+                    await Task.Delay(1);
+                }
+            });
+
+            waitTask.Wait();
         }
     }
 }

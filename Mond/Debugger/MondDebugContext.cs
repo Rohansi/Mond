@@ -75,11 +75,8 @@ namespace Mond.Debugger
                     throw new MondRuntimeException("LocalObject.__get: requires 2 parameters");
 
                 var name = (string)args[1];
-
-                Func<MondValue> getter;
-                Action<MondValue> setter;
-
-                if (!TryGetLocalAccessor(name, out getter, out setter))
+                
+                if (!TryGetLocalAccessor(name, out var getter, out var setter))
                     throw new MondRuntimeException("`{0}` is not defined", name);
 
                 return getter();
@@ -92,11 +89,8 @@ namespace Mond.Debugger
 
                 var name = (string)args[1];
                 var value = args[2];
-
-                Func<MondValue> getter;
-                Action<MondValue> setter;
-
-                if (!TryGetLocalAccessor(name, out getter, out setter))
+                
+                if (!TryGetLocalAccessor(name, out var getter, out var setter))
                     throw new MondRuntimeException("`{0}` is not defined", name);
 
                 if (setter == null)

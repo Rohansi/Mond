@@ -91,8 +91,7 @@ namespace Mond.Compiler
                 return 1;
             }
 
-            var identifier = operand as IdentifierOperand;
-            if (identifier != null)
+            if (operand is IdentifierOperand identifier)
             {
                 if (identifier.FrameIndex != LocalIndex)
                     Emit(new Instruction(InstructionType.LdLoc, operand));
@@ -207,8 +206,7 @@ namespace Mond.Compiler
 
         public int BinaryOperation(TokenType operation)
         {
-            InstructionType type;
-            if (!_binaryOperationMap.TryGetValue(operation, out type))
+            if (!_binaryOperationMap.TryGetValue(operation, out var type))
                 throw new NotSupportedException();
 
             Emit(new Instruction(type));
@@ -217,8 +215,7 @@ namespace Mond.Compiler
 
         public int UnaryOperation(TokenType operation)
         {
-            InstructionType type;
-            if (!_unaryOperationMap.TryGetValue(operation, out type))
+            if (!_unaryOperationMap.TryGetValue(operation, out var type))
                 throw new NotSupportedException();
 
             Emit(new Instruction(type));

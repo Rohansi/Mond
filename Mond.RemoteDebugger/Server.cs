@@ -1,60 +1,26 @@
 ﻿using System;
-using System.IO;
 using System.Reflection;
-using WebSocketSharp;
-using WebSocketSharp.Net;
-using WebSocketSharp.Server;
+using IotWeb.Server;
+using IotWeb.Common.Http;
+using System.Collections.Generic;
 
 namespace Mond.RemoteDebugger
 {
     class Server : IDisposable
     {
         private HttpServer _server;
+        private SessionManager _sessionMgr;
 
         public Server(MondRemoteDebugger debugger, int port)
         {
             _server = new HttpServer(port);
-            _server.KeepClean = true;
 
-            var assembly = Assembly.GetExecutingAssembly();
-            var rootNamespace = GetType().Namespace + ".DebuggerClient";
+            var assembly = GetType().GetTypeInfo().Assembly;
+            _server.AddHttpRequestHandler("/", 
+                new HttpResourceHandler(assembly, "DebuggerClient", "index.html"));
 
-            _server.OnGet += (sender, args) =>
-            {
-                var req = args.Request;
-                var res = args.Response;
-
-                var path = req.RawUrl;
-                if (path == "/")
-                    path = "/index.htm";
-
-                Stream stream;
-
-                try
-                {
-                    stream = assembly.GetManifestResourceStream(rootNamespace + path.Replace('/', '.'));
-                }
-                catch
-                {
-                    res.StatusCode = (int)HttpStatusCode.NotFound;
-                    return;
-                }
-
-                if (stream == null)
-                {
-                    res.StatusCode = (int)HttpStatusCode.NotFound;
-                    return;
-                }
-
-                res.StatusCode = (int)HttpStatusCode.OK;
-                res.ContentType = GetMimeType(path);
-
-                var buffer = new byte[stream.Length];
-                stream.Read(buffer, 0, buffer.Length);
-                res.WriteContent(buffer);
-            };
-
-            _server.AddWebSocketService("/", () => new Session(debugger));
+            _sessionMgr = new SessionManager(debugger);
+            _server.AddWebSocketRequestHandler("/", _sessionMgr);
 
             _server.Start();
         }
@@ -67,32 +33,51 @@ namespace Mond.RemoteDebugger
 
         public void Broadcast(string data)
         {
-            _server.WebSocketServices["/"].Sessions.Broadcast(data);
+           _sessionMgr.Broadcast(data);
+        }
+    }
+
+    class SessionManager : IWebSocketRequestHandler
+    {
+        private readonly object _sync = new object();
+        private readonly List<Session> _clients = new List<Session>();
+        private readonly MondRemoteDebugger _debugger;
+
+        public SessionManager(MondRemoteDebugger debugger)
+        {
+            _debugger = debugger;
         }
 
-        private static string GetMimeType(string path)
+        public bool WillAcceptRequest(string uri, string protocol) => true;
+
+        public void Connected(WebSocket socket)
         {
-            var ext = Path.GetExtension(path);
+            var session = new Session(this, _debugger);
+            session.OnOpen(socket);
 
-            if (ext == null)
-                return "application/octet-stream";
-
-            switch (ext.ToLower())
+            lock (_sync)
             {
-                case ".png":
-                    return "image/png";
+                _clients.Add(session);
+            }
+            
+            socket.ConnectionClosed += sender =>
+            {
+                lock (_sync)
+                {
+                    _clients.Remove(session);
+                }
+            };
+        }
 
-                case ".js":
-                    return "application/javascript";
-
-                case ".htm":
-                    return "text/html";
-
-                case ".css":
-                    return "text/css";
-
-                default:
-                    return "application/octet-stream";
+        public void Broadcast(string data)
+        {
+            foreach (var session in _clients)
+            {
+                try
+                {
+                    session.Send(data);
+                }
+                catch { }
             }
         }
     }

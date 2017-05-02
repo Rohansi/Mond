@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Mond.Binding;
@@ -43,7 +42,7 @@ namespace Mond.Libraries
     /// </summary>
     public class RequireLibrary : IMondLibrary
     {
-        public delegate string ModuleLoader(string name, IReadOnlyList<string> searchDirectories);
+        public delegate string ModuleLoader(string name, IEnumerable<string> searchDirectories);
 
         /// <summary>
         /// The options to use when compiling modules. <c>FirstLineNumber</c> will be set to its proper value.
@@ -56,6 +55,16 @@ namespace Mond.Libraries
         public string Definitions { get; set; }
 
         /// <summary>
+        /// Directories that the <c>ModuleLoader</c> should search.
+        /// </summary>
+        public IReadOnlyList<string> SearchDirectories { get; set; }
+
+        /// <summary>
+        /// Includes the current script's directory in search directories.
+        /// </summary>
+        public bool SearchBesideScript { get; set; }
+
+        /// <summary>
         /// The function used to load modules.
         /// </summary>
         public ModuleLoader Loader { get; set; }
@@ -63,6 +72,8 @@ namespace Mond.Libraries
         public RequireLibrary()
         {
             Definitions = "\n";
+            SearchDirectories = new[] { "." };
+            SearchBesideScript = true;
 
             Loader = (name, searchDirectories) =>
             {

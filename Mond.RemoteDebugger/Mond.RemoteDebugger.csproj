@@ -1,87 +1,38 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{02B39787-7210-4B0A-B5E0-D31D466F9239}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Mond.RemoteDebugger</RootNamespace>
-    <AssemblyName>Mond.RemoteDebugger</AssemblyName>
-    <FileAlignment>512</FileAlignment>
+    <TargetFrameworks>netstandard1.3</TargetFrameworks>
+    <AssemblyVersion>0.4.0</AssemblyVersion>
+    <DebugType>portable</DebugType>
+	
+	  <!-- NuGet Package -->
+    <PackageId>Mond.RemoteDebugger</PackageId>
+    <PackageVersion>$(AssemblyVersion)</PackageVersion>
+    <Authors>Rohans</Authors>
+    <Description>A browser-based, remote debugger for Mond scripts.</Description>
+    <PackageIconUrl>http://i.imgur.com/zbqVSaz.png</PackageIconUrl>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageLicenseUrl>https://raw.githubusercontent.com/Rohansi/Mond/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/Rohansi/Mond</PackageProjectUrl>
+    <PackageTags>Mond Scripting Debugger</PackageTags>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|Unity' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\UnityDebug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;UNITY;NO_EXPRESSIONS</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Unity Full v3.5</TargetFrameworkProfile>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|Unity' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\UnityRelease\</OutputPath>
-    <DefineConstants>TRACE;UNITY;NO_EXPRESSIONS</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Unity Full v3.5</TargetFrameworkProfile>
-  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="websocket-sharp">
-      <HintPath>..\packages\WebSocketSharp.1.0.3-rc9\lib\websocket-sharp.dll</HintPath>
-    </Reference>
+    <None Remove="DebuggerClient\img\break.png" />
+    <None Remove="DebuggerClient\img\connect.png" />
+    <None Remove="DebuggerClient\img\continue.png" />
+    <None Remove="DebuggerClient\img\disconnect.png" />
+    <None Remove="DebuggerClient\img\step-in.png" />
+    <None Remove="DebuggerClient\img\step-out.png" />
+    <None Remove="DebuggerClient\img\step-over.png" />
+    <None Remove="DebuggerClient\js\client.js" />
+    <None Remove="DebuggerClient\js\highlight.js" />
+    <None Remove="DebuggerClient\js\interface.js" />
+    <None Remove="DebuggerClient\js\jquery-2.1.3.min.js" />
+    <None Remove="DebuggerClient\style.css" />
   </ItemGroup>
+
   <ItemGroup>
-    <Compile Include="BreakPosition.cs" />
-    <Compile Include="Json.cs" />
-    <Compile Include="MondRemoteDebugger.cs" />
-    <Compile Include="ProgramInfo.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Server.cs" />
-    <Compile Include="Session.cs" />
-    <Compile Include="UnityShim.cs" />
-    <Compile Include="Utility.cs" />
-    <Compile Include="Watch.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Mond\Mond.csproj">
-      <Project>{c057548d-97a8-4f28-883e-cf883bec56a0}</Project>
-      <Name>Mond</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="DebuggerClient\js\client.js" />
     <EmbeddedResource Include="DebuggerClient\img\break.png" />
     <EmbeddedResource Include="DebuggerClient\img\connect.png" />
     <EmbeddedResource Include="DebuggerClient\img\continue.png" />
@@ -89,21 +40,20 @@
     <EmbeddedResource Include="DebuggerClient\img\step-in.png" />
     <EmbeddedResource Include="DebuggerClient\img\step-out.png" />
     <EmbeddedResource Include="DebuggerClient\img\step-over.png" />
-    <EmbeddedResource Include="DebuggerClient\index.htm" />
-    <EmbeddedResource Include="DebuggerClient\js\interface.js" />
+    <EmbeddedResource Include="DebuggerClient\index.html" />
+    <EmbeddedResource Include="DebuggerClient\js\client.js" />
     <EmbeddedResource Include="DebuggerClient\js\highlight.js" />
-    <EmbeddedResource Include="DebuggerClient\style.css" />
-    <None Include="DebuggerClient\js\jquery-2.1.3.intellisense.js" />
+    <EmbeddedResource Include="DebuggerClient\js\interface.js" />
     <EmbeddedResource Include="DebuggerClient\js\jquery-2.1.3.min.js" />
-    <None Include="packages.config" />
+    <EmbeddedResource Include="DebuggerClient\style.css" />
   </ItemGroup>
-  <ItemGroup />
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+
+  <ItemGroup>
+    <PackageReference Include="IotWeb.NETStandard" Version="0.9.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Mond\Mond.csproj" />
+  </ItemGroup>
+
 </Project>
