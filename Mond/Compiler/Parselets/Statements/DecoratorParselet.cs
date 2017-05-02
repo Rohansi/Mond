@@ -42,55 +42,53 @@ namespace Mond.Compiler.Parselets.Statements
 
         private static Expression MakeAnonymous(Expression stmt)
         {
-            if (stmt is SequenceExpression)
+            switch (stmt)
             {
-                var seq = (SequenceExpression)stmt;
-                return new SequenceExpression(seq.Token, null, seq.Arguments.ToList(), seq.OtherArguments, false, seq.Block, seq.Name);
+                case SequenceExpression seq:
+                    return new SequenceExpression(seq.Token, null, seq.Arguments.ToList(), seq.OtherArguments, false, seq.Block, seq.Name);
+
+                case FunctionExpression func:
+                    return new FunctionExpression(func.Token, null, func.Arguments.ToList(), func.OtherArguments, false, func.Block, func.Name);
+
+                default: return null;
             }
-            else if (stmt is FunctionExpression)
-            {
-                var func = (FunctionExpression)stmt;
-                return new FunctionExpression(func.Token, null, func.Arguments.ToList(), func.OtherArguments, false, func.Block, func.Name);
-            }
-            else
-                return null;
         }
 
         private static bool IsOperator(Expression stmt)
         {
-            if (stmt is FunctionExpression)
-                return ((FunctionExpression)stmt).IsOperator;
-            else if (stmt is SequenceExpression)
-                return ((SequenceExpression)stmt).IsOperator;
-            else
-                return false;
+            switch (stmt)
+            {
+                case SequenceExpression seq: return seq.IsOperator;
+                case FunctionExpression func: return func.IsOperator;
+                default: return false;
+            }
         }
 
         private static string GetName(Expression stmt)
         {
-            if (stmt is FunctionExpression)
-                return ((FunctionExpression)stmt).Name;
-            else if(stmt is SequenceExpression)
-                return ((SequenceExpression)stmt).Name;
-            else
-                return null;
+            switch (stmt)
+            {
+                case SequenceExpression seq: return seq.Name;
+                case FunctionExpression func: return func.Name;
+                default: return null;
+            }
         }
 
         private static Expression MakeCallable(Expression expr, Expression stmt)
         {
             var args = new List<Expression> { stmt };
-            if (expr is CallExpression)
+
+            switch (stmt)
             {
-                var call = (CallExpression)expr;
-                return new CallExpression(call.Token, call.Method, args.Concat(call.Arguments).ToList());
-            }
-            else if (expr is FieldExpression || expr is IdentifierExpression)
-            {
-                return new CallExpression(expr.Token, expr, args);
-            }
-            else
-            {
-                throw new MondCompilerException(expr, CompilerError.DecoratorMustBeCallable);
+                case CallExpression call:
+                    return new CallExpression(call.Token, call.Method, args.Concat(call.Arguments).ToList());
+
+                case FieldExpression _:
+                case IdentifierExpression _:
+                    return new CallExpression(expr.Token, expr, args);
+
+                default:
+                    throw new MondCompilerException(expr, CompilerError.DecoratorMustBeCallable);
             }
         }
     }
