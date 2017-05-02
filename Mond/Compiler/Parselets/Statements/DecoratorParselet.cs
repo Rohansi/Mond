@@ -78,7 +78,7 @@ namespace Mond.Compiler.Parselets.Statements
         {
             var args = new List<Expression> { stmt };
 
-            switch (stmt)
+            switch (expr)
             {
                 case CallExpression call:
                     return new CallExpression(call.Token, call.Method, args.Concat(call.Arguments).ToList());
