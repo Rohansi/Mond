@@ -2,16 +2,11 @@
 using System.Collections.Generic;
 using Mond.VirtualMachine;
 using Mond.VirtualMachine.Prototypes;
-
-#if !UNITY
 using System.Runtime.InteropServices;
-#endif
 
 namespace Mond
 {
-#if !UNITY
     [StructLayout(LayoutKind.Explicit)]
-#endif
     public sealed partial class MondValue : IEquatable<MondValue>
     {
         public static readonly MondValue Undefined = new MondValue(MondValueType.Undefined);
@@ -19,34 +14,22 @@ namespace Mond
         public static readonly MondValue True = new MondValue(MondValueType.True);
         public static readonly MondValue False = new MondValue(MondValueType.False);
         
-#if !UNITY
         [FieldOffset(0)]
-#endif
         public readonly MondValueType Type;
         
-#if !UNITY
         [FieldOffset(8)]
-#endif
         private readonly double _numberValue;
         
-#if !UNITY
         [FieldOffset(16)]
-#endif
         internal readonly VirtualMachine.Object ObjectValue;
         
-#if !UNITY
         [FieldOffset(16)]
-#endif
         internal readonly List<MondValue> ArrayValue;
         
-#if !UNITY
         [FieldOffset(16)]
-#endif
         private readonly string _stringValue;
         
-#if !UNITY
         [FieldOffset(16)]
-#endif
         internal readonly Closure FunctionValue;
 
         /// <summary>

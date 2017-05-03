@@ -1,6 +1,4 @@
-﻿#if !UNITY
-
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using Mond.Binding;
 
@@ -60,5 +58,3 @@ namespace Mond.Libraries.Async
         }
     }
 }
-
-#endif

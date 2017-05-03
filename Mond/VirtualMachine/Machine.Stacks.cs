@@ -1,6 +1,4 @@
-﻿#if !UNITY
-using System.Runtime.CompilerServices;
-#endif
+﻿using System.Runtime.CompilerServices;
 
 namespace Mond.VirtualMachine
 {
@@ -30,17 +28,13 @@ namespace Mond.VirtualMachine
             _evalStackSize = 0;
         }
         
-#if !UNITY
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-#endif
         private void PushCall(ReturnAddress value)
         {
             _callStack[_callStackSize++] = value;
         }
         
-#if !UNITY
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-#endif
         private ReturnAddress PopCall()
         {
             var value = _callStack[--_callStackSize];
@@ -48,9 +42,7 @@ namespace Mond.VirtualMachine
             return value;
         }
         
-#if !UNITY
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-#endif
         private ReturnAddress PeekCall()
         {
             if (_callStackSize == 0)
@@ -59,17 +51,13 @@ namespace Mond.VirtualMachine
             return _callStack[_callStackSize - 1];
         }
         
-#if !UNITY
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-#endif
         private void PushLocal(Frame value)
         {
             _localStack[_localStackSize++] = value;
         }
         
-#if !UNITY
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-#endif
         private Frame PopLocal()
         {
             var value = _localStack[--_localStackSize];
@@ -77,9 +65,7 @@ namespace Mond.VirtualMachine
             return value;
         }
         
-#if !UNITY
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-#endif
         private Frame PeekLocal()
         {
             if (_localStackSize == 0)
@@ -88,17 +74,13 @@ namespace Mond.VirtualMachine
             return _localStack[_localStackSize - 1];
         }
         
-#if !UNITY
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-#endif
         private void Push(MondValue value)
         {
             _evalStack[_evalStackSize++] = value;
         }
         
-#if !UNITY
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-#endif
         private MondValue Pop()
         {
             var value = _evalStack[--_evalStackSize];
@@ -106,9 +88,7 @@ namespace Mond.VirtualMachine
             return value;
         }
         
-#if !UNITY
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-#endif
         private MondValue Peek()
         {
             if (_evalStackSize == 0)

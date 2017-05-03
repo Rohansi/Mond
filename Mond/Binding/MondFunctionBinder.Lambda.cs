@@ -4,10 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-
-#if !UNITY
 using System.Runtime.ExceptionServices;
-#endif
 
 namespace Mond.Binding
 {
@@ -79,10 +76,7 @@ namespace Mond.Binding
                 if (e.InnerException == null)
                     throw;
 
-#if !UNITY
                 ExceptionDispatchInfo.Capture(e.InnerException).Throw();
-#endif
-
                 throw e.InnerException; // shouldnt reach this
             }
         }

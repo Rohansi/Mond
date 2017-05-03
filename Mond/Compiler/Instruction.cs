@@ -103,10 +103,8 @@ namespace Mond.Compiler
             if (Type >= InstructionType.DebugInfo)
                 return;
 
-#if !UNITY
             if (Type == InstructionType.Label)
                 Console.ForegroundColor = ConsoleColor.DarkGreen;
-#endif
 
             Console.Write("{0:X4} {1,-15} ", Offset, Type.ToString().ToLower());
 
@@ -116,10 +114,7 @@ namespace Mond.Compiler
             }
 
             Console.WriteLine();
-
-#if !UNITY
             Console.ForegroundColor = ConsoleColor.Gray;
-#endif
         }
 
         public void Write(BinaryWriter writer)

@@ -1,6 +1,4 @@
-﻿#if !UNITY
-
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
@@ -104,5 +102,3 @@ namespace Mond.Libraries.Async
         }
     }
 }
-
-#endif

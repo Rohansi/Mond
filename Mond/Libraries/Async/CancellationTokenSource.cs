@@ -1,6 +1,4 @@
-﻿#if !UNITY
-
-using System;
+﻿using System;
 using System.Threading;
 using Mond.Binding;
 
@@ -32,8 +30,7 @@ namespace Mond.Libraries.Async
         [MondFunction("getToken")]
         public MondValue GetToken()
         {
-            MondValue prototype;
-            MondClassBinder.Bind<CancellationTokenClass>(out prototype);
+            MondClassBinder.Bind<CancellationTokenClass>(out var prototype);
 
             var instance = new CancellationTokenClass(_cts.Token);
 
@@ -58,5 +55,3 @@ namespace Mond.Libraries.Async
         }
     }
 }
-
-#endif

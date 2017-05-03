@@ -3,11 +3,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
-using Mond.Debugger;
-
-#if !UNITY
 using System.Threading.Tasks;
-#endif
+using Mond.Debugger;
 
 namespace Mond.RemoteDebugger
 {
