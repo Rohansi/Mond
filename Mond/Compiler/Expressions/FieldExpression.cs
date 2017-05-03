@@ -2,13 +2,10 @@
 {
     class FieldExpression : Expression, IStorableExpression
     {
-        public readonly Expression Left;
-        public string Name { get; private set; }
+        public Expression Left { get; }
+        public string Name { get; }
 
-        public override Token StartToken
-        {
-            get { return Left.StartToken; }
-        }
+        public override Token StartToken => Left.StartToken;
 
         public FieldExpression(Token token, Expression left)
             : base(token)

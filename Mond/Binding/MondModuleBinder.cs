@@ -11,7 +11,7 @@ namespace Mond.Binding
     {
         private class ModuleBinding
         {
-            public readonly Dictionary<string, MondFunction> Functions;
+            public Dictionary<string, MondFunction> Functions { get; }
 
             public ModuleBinding(Dictionary<string, MondFunction> functions)
             {

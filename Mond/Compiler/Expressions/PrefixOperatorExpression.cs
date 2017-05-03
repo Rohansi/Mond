@@ -4,7 +4,7 @@ namespace Mond.Compiler.Expressions
 {
     class PrefixOperatorExpression : Expression
     {
-        public TokenType Operation { get; private set; }
+        public TokenType Operation { get; }
         public Expression Right { get; private set; }
 
         public PrefixOperatorExpression(Token token, Expression right)
@@ -76,8 +76,7 @@ namespace Mond.Compiler.Expressions
 
             if (Operation == TokenType.Subtract)
             {
-                var number = Right as NumberExpression;
-                if (number != null)
+                if (Right is NumberExpression number)
                 {
                     var token = new Token(Right.Token, TokenType.Number, null);
                     return new NumberExpression(token, -number.Value);
@@ -86,8 +85,7 @@ namespace Mond.Compiler.Expressions
 
             if (Operation == TokenType.BitNot)
             {
-                var number = Right as NumberExpression;
-                if (number != null)
+                if (Right is NumberExpression number)
                 {
                     var token = new Token(Right.Token, TokenType.Number, null);
                     return new NumberExpression(token, ~((int)number.Value));

@@ -2,7 +2,7 @@
 {
     class BoolExpression : Expression, IConstantExpression
     {
-        public bool Value { get; private set; }
+        public bool Value { get; }
 
         public BoolExpression(Token token, bool value)
             : base(token)

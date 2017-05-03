@@ -5,17 +5,19 @@ namespace Mond.Compiler.Expressions.Statements
 {
     class FunctionExpression : Expression, IStatementExpression
     {
-        public string Name { get; private set; }
-        public ReadOnlyCollection<string> Arguments { get; private set; }
-        public string OtherArguments { get; private set; }
-        public bool IsOperator { get; private set; }
+        public string Name { get; }
+        public ReadOnlyCollection<string> Arguments { get; }
+        public string OtherArguments { get; }
+        public bool IsOperator { get; }
         public ScopeExpression Block { get; private set; }
 
         public string DebugName { get; set; }
 
-        public bool HasChildren { get { return false; } }
+        public bool HasChildren => false;
 
-        public FunctionExpression(Token token, string name, List<string> arguments, string otherArgs, bool isOperator, ScopeExpression block, string debugName = null)
+        public FunctionExpression(
+            Token token, string name, List<string> arguments, string otherArgs,
+            bool isOperator, ScopeExpression block, string debugName = null)
             : base(token)
         {
             Name = name;

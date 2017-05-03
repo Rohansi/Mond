@@ -183,8 +183,8 @@ namespace Mond.Libraries.Json
 
         private struct Token
         {
-            public readonly TokenType Type;
-            public readonly string Value;
+            public TokenType Type { get; }
+            public string Value { get; }
 
             public Token(TokenType type, string value = null)
             {

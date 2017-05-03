@@ -8,13 +8,13 @@ namespace Mond.Compiler.Parselets.Statements
     {
         public Expression Parse(Parser parser, Token token, out bool trailingSemicolon)
         {
-            string name;
-            List<string> arguments;
-            string otherArgs;
-            bool isOperator;
-            ScopeExpression body;
+            ParseFunction(parser, token, true, out trailingSemicolon,
+                out var name,
+                out var arguments,
+                out var otherArgs,
+                out var isOperator,
+                out var body);
 
-            ParseFunction(parser, token, true, out trailingSemicolon, out name, out arguments, out otherArgs, out isOperator, out body);
             var function = new FunctionExpression(token, name, arguments, otherArgs, isOperator, body);
 
             return isOperator ? MakeOperator(name, function) : function;
@@ -22,14 +22,13 @@ namespace Mond.Compiler.Parselets.Statements
 
         public Expression Parse(Parser parser, Token token)
         {
-            string name;
-            List<string> arguments;
-            string otherArgs;
-            ScopeExpression body;
-            bool isOperator;
-            bool trailingSemicolon;
+            ParseFunction(parser, token, false, out var _,
+                out var name,
+                out var arguments,
+                out var otherArgs,
+                out var isOperator,
+                out var body);
 
-            ParseFunction(parser, token, false, out trailingSemicolon, out name, out arguments, out otherArgs, out isOperator, out body);
             var function = new FunctionExpression(token, name, arguments, otherArgs, isOperator, body);
 
             return isOperator ? MakeOperator(name, function) : function;

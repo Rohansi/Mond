@@ -6,10 +6,7 @@
         public Expression IfTrue { get; private set; }
         public Expression IfFalse { get; private set; }
 
-        public override Token StartToken
-        {
-            get { return Condition.StartToken; }
-        }
+        public override Token StartToken => Condition.StartToken;
 
         public TernaryExpression(Token token, Expression condition, Expression ifTrue, Expression ifFalse)
             : base(token)

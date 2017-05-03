@@ -5,10 +5,7 @@
         public Expression Left { get; private set; }
         public Expression Index { get; private set; }
 
-        public override Token StartToken
-        {
-            get { return Left.StartToken; }
-        }
+        public override Token StartToken => Left.StartToken;
 
         public IndexerExpression(Token token, Expression left, Expression index)
             : base(token)
@@ -70,10 +67,8 @@
         {
             Left = Left.Simplify();
             Index = Index.Simplify();
-
-            // optimize x["y"] to x.y
-            var indexStr = Index as StringExpression;
-            if (indexStr != null)
+            
+            if (Index is StringExpression indexStr)
             {
                 var token = new Token(indexStr.Token, TokenType.String, indexStr.Value);
                 return new FieldExpression(token, Left);

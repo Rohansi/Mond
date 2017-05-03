@@ -9,10 +9,7 @@ namespace Mond.Compiler.Expressions
         public Expression Method { get; private set; }
         public ReadOnlyCollection<Expression> Arguments { get; private set; }
 
-        public override Token StartToken
-        {
-            get { return Method.StartToken; }
-        }
+        public override Token StartToken => Method.StartToken;
 
         public CallExpression(Token token, Expression method, List<Expression> arguments)
             : base(token)

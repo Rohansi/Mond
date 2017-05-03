@@ -9,7 +9,7 @@ namespace Mond.Binding
     {
         private class OperatorModuleBinding
         {
-            public readonly Dictionary<string, MondFunction> Operators;
+            public Dictionary<string, MondFunction> Operators { get; }
 
             public OperatorModuleBinding(Dictionary<string, MondFunction> operators)
             {

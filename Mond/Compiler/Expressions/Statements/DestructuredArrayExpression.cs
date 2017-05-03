@@ -9,8 +9,8 @@ namespace Mond.Compiler.Expressions.Statements
     {
         public class Index
         {
-            public string Name { get; private set; }
-            public bool IsSlice { get; private set; }
+            public string Name { get; }
+            public bool IsSlice { get; }
 
             public Index(string name, bool isSlice)
             {
@@ -19,10 +19,10 @@ namespace Mond.Compiler.Expressions.Statements
             }
         }
 
-        public ReadOnlyCollection<Index> Indices { get; private set; }
+        public ReadOnlyCollection<Index> Indices { get; }
         public Expression Initializer { get; private set; }
-        public bool IsReadOnly { get; private set; }
-        public bool HasChildren { get { return false; } }
+        public bool IsReadOnly { get; }
+        public bool HasChildren => false;
 
         public DestructuredArrayExpression(Token token, IList<Index> indices, Expression initializer, bool isReadOnly)
             : base(token)
@@ -38,7 +38,7 @@ namespace Mond.Compiler.Expressions.Statements
 
             var i = 0;
             var startIndex = 0;
-            var stack = Initializer == null ? 1 : Initializer.Compile(context);
+            var stack = Initializer?.Compile(context) ?? 1;
             var global = context.ArgIndex == 0 && context.Compiler.Options.MakeRootDeclarationsGlobal;
 
             foreach (var index in Indices)
@@ -114,9 +114,7 @@ namespace Mond.Compiler.Expressions.Statements
 
         public override Expression Simplify()
         {
-            if (Initializer != null)
-                Initializer = Initializer.Simplify();
-
+            Initializer = Initializer?.Simplify();
             return this;
         }
 
@@ -124,8 +122,7 @@ namespace Mond.Compiler.Expressions.Statements
         {
             base.SetParent(parent);
 
-            if (Initializer != null)
-                Initializer.SetParent(this);
+            Initializer?.SetParent(this);
         }
 
         public override T Accept<T>(IExpressionVisitor<T> visitor)

@@ -2,7 +2,7 @@
 {
     class IdentifierExpression : Expression, IStorableExpression
     {
-        public string Name { get; private set; }
+        public string Name { get; }
 
         public IdentifierExpression(Token token)
             : base(token)

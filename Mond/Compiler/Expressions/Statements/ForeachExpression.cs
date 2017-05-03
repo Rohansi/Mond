@@ -5,13 +5,13 @@ namespace Mond.Compiler.Expressions.Statements
 {
     class ForeachExpression : Expression, IStatementExpression
     {
-        public Token InToken { get; private set; }
-        public string Identifier { get; private set; }
+        public Token InToken { get; }
+        public string Identifier { get; }
         public Expression Expression { get; private set; }
         public BlockExpression Block { get; private set; }
         public Expression DestructureExpression { get; private set; }
 
-        public bool HasChildren { get { return true; } }
+        public bool HasChildren => true;
 
         public ForeachExpression(Token token, Token inToken, string identifier, Expression expression, BlockExpression block, Expression destructure = null)
             : base(token)
@@ -121,9 +121,7 @@ namespace Mond.Compiler.Expressions.Statements
         {
             Expression = Expression.Simplify();
             Block = (BlockExpression)Block.Simplify();
-
-            if (DestructureExpression != null)
-                DestructureExpression = DestructureExpression.Simplify();
+            DestructureExpression = DestructureExpression?.Simplify();
 
             return this;
         }

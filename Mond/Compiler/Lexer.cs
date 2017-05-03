@@ -12,8 +12,8 @@ namespace Mond.Compiler
     {
         private struct Position
         {
-            public readonly int Line;
-            public readonly int Column;
+            public int Line { get; }
+            public int Column { get; }
 
             public Position(int line, int column)
                 : this()

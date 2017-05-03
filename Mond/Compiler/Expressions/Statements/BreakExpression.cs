@@ -2,7 +2,7 @@
 {
     class BreakExpression : Expression, IStatementExpression
     {
-        public bool HasChildren { get { return false; } }
+        public bool HasChildren => false;
 
         public BreakExpression(Token token)
             : base(token)

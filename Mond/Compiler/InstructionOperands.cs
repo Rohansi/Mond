@@ -18,10 +18,7 @@ namespace Mond.Compiler
     {
         private readonly Lazy<T> _lazy;
 
-        public T Value
-        {
-            get { return _lazy.Value; }
-        }
+        public T Value => _lazy.Value;
 
         public DeferredOperand(Func<T> valueFactory)
         {
@@ -33,7 +30,7 @@ namespace Mond.Compiler
             _lazy.Value.Print();
         }
 
-        public int Length { get { return _lazy.Value.Length; } }
+        public int Length => _lazy.Value.Length;
 
         public void Write(BinaryWriter writer)
         {
@@ -43,7 +40,7 @@ namespace Mond.Compiler
 
     class ListOperand<T> : IInstructionOperand where T : IInstructionOperand
     {
-        public readonly ReadOnlyCollection<T> Operands;
+        public ReadOnlyCollection<T> Operands { get; }
 
         public ListOperand(List<T> operands)
         {
@@ -71,7 +68,7 @@ namespace Mond.Compiler
 
     class ImmediateOperand : IInstructionOperand
     {
-        public readonly int Value;
+        public int Value { get; }
 
         public ImmediateOperand(int value)
         {
@@ -83,7 +80,7 @@ namespace Mond.Compiler
             Console.Write("{0,-30} (immediate)", Value);
         }
 
-        public int Length { get { return 4; } }
+        public int Length => 4;
 
         public void Write(BinaryWriter writer)
         {
@@ -93,7 +90,7 @@ namespace Mond.Compiler
 
     class ImmediateByteOperand : IInstructionOperand
     {
-        public readonly byte Value;
+        public byte Value { get; }
 
         public ImmediateByteOperand(byte value)
         {
@@ -105,7 +102,7 @@ namespace Mond.Compiler
             Console.Write("{0,-30} (immediate byte)", Value);
         }
 
-        public int Length { get { return 1; } }
+        public int Length => 1;
 
         public void Write(BinaryWriter writer)
         {
@@ -115,8 +112,8 @@ namespace Mond.Compiler
 
     class ConstantOperand<T> : IInstructionOperand
     {
-        public readonly int Id;
-        public readonly T Value;
+        public int Id { get; }
+        public T Value { get; }
 
         public ConstantOperand(int id, T value)
         {
@@ -129,7 +126,7 @@ namespace Mond.Compiler
             Console.Write("{0,-30} (const {1})", Value, Id);
         }
 
-        public int Length { get { return 4; } }
+        public int Length => 4;
 
         public void Write(BinaryWriter writer)
         {
@@ -139,10 +136,10 @@ namespace Mond.Compiler
 
     class IdentifierOperand : IInstructionOperand
     {
-        public readonly int FrameIndex;
-        public readonly int Id;
-        public readonly string Name;
-        public readonly bool IsReadOnly;
+        public int FrameIndex { get; }
+        public int Id { get; }
+        public string Name { get; }
+        public bool IsReadOnly { get; }
 
         public IdentifierOperand(int frameIndex, int id, string name, bool isReadOnly)
         {
@@ -157,7 +154,7 @@ namespace Mond.Compiler
             Console.Write("{0,-30} (frame {1} ident {2})", Name, FrameIndex, Id);
         }
 
-        public int Length { get { return 8; } }
+        public int Length => 8;
 
         public void Write(BinaryWriter writer)
         {
@@ -182,8 +179,8 @@ namespace Mond.Compiler
 
     class LabelOperand : IInstructionOperand
     {
-        public readonly int Id;
-        public readonly string Name;
+        public int Id { get; }
+        public string Name { get; }
         public int? Position;
 
         public LabelOperand(int id, string name = null)
@@ -199,7 +196,7 @@ namespace Mond.Compiler
             Console.Write("{0,-30} (label)", name);
         }
 
-        public int Length { get { return 4; } }
+        public int Length => 4;
 
         public void Write(BinaryWriter writer)
         {
@@ -212,10 +209,10 @@ namespace Mond.Compiler
 
     class DebugIdentifierOperand : IInstructionOperand
     {
-        public readonly ConstantOperand<string> Name;
-        public readonly bool IsReadOnly;
-        public readonly int FrameIndex;
-        public readonly int Id;
+        public ConstantOperand<string> Name { get; }
+        public bool IsReadOnly { get; }
+        public int FrameIndex { get; }
+        public int Id { get; }
 
         public DebugIdentifierOperand(ConstantOperand<string> name, bool isReadOnly, int frameIndex, int id)
         {
@@ -230,10 +227,7 @@ namespace Mond.Compiler
             throw new NotSupportedException();
         }
 
-        public int Length
-        {
-            get { return 4 + 1 + 4 + 4; }
-        }
+        public int Length => 4 + 1 + 4 + 4;
 
         public void Write(BinaryWriter writer)
         {

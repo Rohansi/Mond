@@ -8,8 +8,8 @@ namespace Mond.Compiler.Expressions.Statements
     {
         public class Branch
         {
-            public Expression Condition { get; private set; }
-            public BlockExpression Block { get; private set; }
+            public Expression Condition { get; }
+            public BlockExpression Block { get; }
 
             public Branch(Expression condition, BlockExpression block)
             {
@@ -21,7 +21,7 @@ namespace Mond.Compiler.Expressions.Statements
         public ReadOnlyCollection<Branch> Branches { get; private set; }
         public Branch Else { get; private set; }
 
-        public bool HasChildren { get { return true; } }
+        public bool HasChildren => true;
 
         public IfExpression(Token token, List<Branch> branches, Branch elseBranch)
             : base(token)
@@ -103,8 +103,7 @@ namespace Mond.Compiler.Expressions.Statements
                 branch.Block.SetParent(this);
             }
 
-            if (Else != null)
-                Else.Block.SetParent(this);
+            Else?.Block.SetParent(this);
         }
 
         public override T Accept<T>(IExpressionVisitor<T> visitor)

@@ -107,13 +107,13 @@
 
     class Token
     {
-        public readonly string FileName;
-        public readonly int Line;
-        public readonly int Column;
-        public readonly TokenType Type;
-        public readonly TokenSubType SubType;
-        public readonly string Contents;
-        public readonly object Tag;
+        public string FileName { get; }
+        public int Line { get; }
+        public int Column { get; }
+        public TokenType Type { get; }
+        public TokenSubType SubType { get; }
+        public string Contents { get; }
+        public object Tag { get; }
 
         public Token(string fileName, int line, int column, TokenType type, string contents, TokenSubType subType = TokenSubType.None, object tag = null)
         {

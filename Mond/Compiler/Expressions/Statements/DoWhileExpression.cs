@@ -7,7 +7,7 @@ namespace Mond.Compiler.Expressions.Statements
         public BlockExpression Block { get; private set; }
         public Expression Condition { get; private set; }
 
-        public bool HasChildren { get { return true; } }
+        public bool HasChildren => true;
 
         public DoWhileExpression(Token token, BlockExpression block, Expression condition)
             : base(token)

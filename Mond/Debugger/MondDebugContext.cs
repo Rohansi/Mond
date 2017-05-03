@@ -18,8 +18,7 @@ namespace Mond.Debugger
         private readonly MondValue _localObject;
 
         public MondProgram Program { get; }
-
-        public readonly ReadOnlyCollection<CallStackEntry> CallStack;
+        public ReadOnlyCollection<CallStackEntry> CallStack { get; }
 
         internal MondDebugContext(
             MondState state, MondProgram program, int address,

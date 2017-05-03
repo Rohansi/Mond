@@ -5,7 +5,7 @@ namespace Mond.Binding
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
     public class MondModuleAttribute : Attribute
     {
-        public readonly string Name;
+        public string Name { get; }
 
         public MondModuleAttribute(string name = null)
         {

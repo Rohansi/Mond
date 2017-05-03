@@ -7,7 +7,7 @@ namespace Mond.Compiler.Parselets
         private readonly int _precedence;
         private readonly bool _isRight;
 
-        public int Precedence { get { return _precedence; } }
+        public int Precedence => _precedence;
 
         public BinaryOperatorParselet(int precedence, bool isRight)
         {

@@ -4,12 +4,12 @@
     {
         public Expression Value { get; private set; }
 
-        public bool HasChildren { get { return false; } }
+        public bool HasChildren => false;
 
         public override Token EndToken
         {
-            get { return base.EndToken ?? Value.EndToken; }
-            set { base.EndToken = value; }
+            get => base.EndToken ?? Value.EndToken;
+            set => base.EndToken = value;
         }
 
         public ReturnExpression(Token token, Expression value)
@@ -24,8 +24,7 @@
 
             var stack = 0;
 
-            var sequenceContext = context.Root as SequenceBodyContext;
-            if (sequenceContext != null)
+            if (context.Root is SequenceBodyContext sequenceContext)
             {
                 var sequenceBody = sequenceContext.SequenceBody;
 
@@ -41,11 +40,10 @@
 
             if (context.AssignedName != null)
             {
-                var callExpression = Value as CallExpression;
-                if (callExpression != null)
+                if (Value is CallExpression callExpression)
                 {
-                    var identifierExpression = callExpression.Method as IdentifierExpression;
-                    if (identifierExpression != null && context.Identifier(identifierExpression.Name) == context.AssignedName)
+                    if (callExpression.Method is IdentifierExpression identifierExpression &&
+                        context.Identifier(identifierExpression.Name) == context.AssignedName)
                     {
                         stack += callExpression.CompileTailCall(context);
                         CheckStack(stack, 0);
@@ -63,18 +61,14 @@
 
         public override Expression Simplify()
         {
-            if (Value != null)
-                Value = Value.Simplify();
-
+            Value = Value?.Simplify();
             return this;
         }
 
         public override void SetParent(Expression parent)
         {
             base.SetParent(parent);
-
-            if (Value != null)
-                Value.SetParent(this);
+            Value?.SetParent(this);
         }
 
         public override T Accept<T>(IExpressionVisitor<T> visitor)

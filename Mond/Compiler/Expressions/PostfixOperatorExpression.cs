@@ -4,13 +4,10 @@ namespace Mond.Compiler.Expressions
 {
     class PostfixOperatorExpression : Expression
     {
-        public TokenType Operation { get; private set; }
-        public Expression Left { get; private set; }
+        public TokenType Operation { get; }
+        public Expression Left { get; }
 
-        public override Token StartToken
-        {
-            get { return Left.StartToken; }
-        }
+        public override Token StartToken => Left.StartToken;
 
         public PostfixOperatorExpression(Token token, Expression left)
             : base(token)

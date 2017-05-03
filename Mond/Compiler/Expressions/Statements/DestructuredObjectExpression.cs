@@ -7,8 +7,8 @@ namespace Mond.Compiler.Expressions.Statements
     {
         public class Field
         {
-            public string Name { get; private set; }
-            public string Alias { get; private set; }
+            public string Name { get; }
+            public string Alias { get; }
 
             public Field(string name, string alias)
             {
@@ -17,10 +17,10 @@ namespace Mond.Compiler.Expressions.Statements
             }
         }
 
-        public ReadOnlyCollection<Field> Fields { get; private set; }
+        public ReadOnlyCollection<Field> Fields { get; }
         public Expression Initializer { get; private set; }
-        public bool IsReadOnly { get; private set; }
-        public bool HasChildren { get { return false; } }
+        public bool IsReadOnly { get; }
+        public bool HasChildren => false;
 
         public DestructuredObjectExpression(Token token, IList<Field> fields, Expression initializer, bool isReadOnly)
             : base(token)
@@ -34,7 +34,7 @@ namespace Mond.Compiler.Expressions.Statements
         {
             context.Position(Token);
 
-            var stack = Initializer == null ? 1 : Initializer.Compile(context);
+            var stack = Initializer?.Compile(context) ?? 1;
             var global = context.ArgIndex == 0 && context.Compiler.Options.MakeRootDeclarationsGlobal;
 
             foreach (var field in Fields)
@@ -66,9 +66,7 @@ namespace Mond.Compiler.Expressions.Statements
 
         public override Expression Simplify()
         {
-            if (Initializer != null)
-                Initializer = Initializer.Simplify();
-
+            Initializer = Initializer?.Simplify();
             return this;
         }
 
@@ -76,8 +74,7 @@ namespace Mond.Compiler.Expressions.Statements
         {
             base.SetParent(parent);
 
-            if (Initializer != null)
-                Initializer.SetParent(this);
+            Initializer?.SetParent(this);
         }
 
         public override T Accept<T>(IExpressionVisitor<T> visitor)

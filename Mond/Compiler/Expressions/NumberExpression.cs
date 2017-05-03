@@ -2,7 +2,7 @@
 {
     class NumberExpression : Expression, IConstantExpression
     {
-        public double Value { get; private set; }
+        public double Value { get; }
 
         public NumberExpression(Token token, double value)
             : base(token)

@@ -5,14 +5,11 @@ namespace Mond.Compiler.Expressions
 {
     class BinaryOperatorExpression : Expression
     {
-        public TokenType Operation { get; private set; }
+        public TokenType Operation { get; }
         public Expression Left { get; private set; }
         public Expression Right { get; private set; }
 
-        public override Token StartToken
-        {
-            get { return Left.StartToken; }
-        }
+        public override Token StartToken => Left.StartToken;
 
         public BinaryOperatorExpression(Token token, Expression left, Expression right)
             : base(token)
@@ -26,8 +23,7 @@ namespace Mond.Compiler.Expressions
         {
             var stack = 0;
             
-            TokenType assignOperation;
-            var isAssignOperation = _assignMap.TryGetValue(Operation, out assignOperation);
+            var isAssignOperation = _assignMap.TryGetValue(Operation, out var assignOperation);
 
             if (IsAssign)
             {
@@ -123,8 +119,7 @@ namespace Mond.Compiler.Expressions
             Left = Left.Simplify();
             Right = Right.Simplify();
 
-            Func<double, double, double> simplifyOp;
-            if (_simplifyMap.TryGetValue(Operation, out simplifyOp))
+            if (_simplifyMap.TryGetValue(Operation, out var simplifyOp))
             {
                 var leftNum = Left as NumberExpression;
                 var rightNum = Right as NumberExpression;
@@ -166,16 +161,10 @@ namespace Mond.Compiler.Expressions
             return visitor.Visit(this);
         }
 
-        public bool IsAssign
-        {
-            get
-            {
-                return Operation == TokenType.Assign || _assignMap.ContainsKey(Operation);
-            }
-        }
+        public bool IsAssign => Operation == TokenType.Assign || _assignMap.ContainsKey(Operation);
 
-        private static Dictionary<TokenType, TokenType> _assignMap;
-        private static Dictionary<TokenType, Func<double, double, double>> _simplifyMap; 
+        private static readonly Dictionary<TokenType, TokenType> _assignMap;
+        private static readonly Dictionary<TokenType, Func<double, double, double>> _simplifyMap; 
 
         static BinaryOperatorExpression()
         {

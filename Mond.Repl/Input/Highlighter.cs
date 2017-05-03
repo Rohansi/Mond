@@ -5,8 +5,8 @@ namespace Mond.Repl.Input
 {
     public struct ColoredCharacter
     {
-        public readonly char Character;
-        public readonly ConsoleColor Color;
+        public char Character { get; }
+        public ConsoleColor Color { get; }
 
         public ColoredCharacter(char character, ConsoleColor color)
         {
@@ -98,9 +98,7 @@ namespace Mond.Repl.Input
                     return;
                 }
 
-
-                string[] operators;
-                if (Operators.TryGetValue(ch, out operators))
+                if (Operators.TryGetValue(ch, out var operators))
                 {
                     var idx = index;
                     var op = operators.FirstOrDefault(s => IsNext(line, idx, s));

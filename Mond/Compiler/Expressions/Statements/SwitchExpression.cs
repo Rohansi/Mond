@@ -9,12 +9,12 @@ namespace Mond.Compiler.Expressions.Statements
     {
         public class Branch
         {
-            public ReadOnlyCollection<Expression> Conditions { get; private set; }
-            public BlockExpression Block { get; private set; }
+            public ReadOnlyCollection<Expression> Conditions { get; }
+            public BlockExpression Block { get; }
 
             public Branch(List<Expression> conditions, BlockExpression block)
             {
-                Conditions = conditions == null ? null : conditions.AsReadOnly();
+                Conditions = conditions?.AsReadOnly();
                 Block = block;
             }
         }
@@ -22,7 +22,7 @@ namespace Mond.Compiler.Expressions.Statements
         public Expression Expression { get; private set; }
         public ReadOnlyCollection<Branch> Branches { get; private set; }
 
-        public bool HasChildren { get { return true; } }
+        public bool HasChildren => true;
 
         public SwitchExpression(Token token, Expression expression, List<Branch> branches)
             : base(token)
@@ -65,11 +65,9 @@ namespace Mond.Compiler.Expressions.Statements
 
             context.Statement(Expression);
             stack += Expression.Compile(context);
-
-            List<JumpTable> tables;
-            List<JumpEntry> rest;
+            
             var flattenedBranches = FlattenBranches(Branches, caseLabels, caseDefault);
-            BuildTables(flattenedBranches, caseDefault, out tables, out rest);
+            BuildTables(flattenedBranches, caseDefault, out var tables, out var rest);
 
             foreach (var table in tables)
             {
@@ -133,7 +131,7 @@ namespace Mond.Compiler.Expressions.Statements
                 .Select(b =>
                 {
                     var conditions = b.Conditions
-                        .Select(c => c != null ? c.Simplify() : null)
+                        .Select(c => c?.Simplify())
                         .ToList();
 
                     return new Branch(conditions, (BlockExpression)b.Block.Simplify());
@@ -154,10 +152,7 @@ namespace Mond.Compiler.Expressions.Statements
             {
                 foreach (var condition in branch.Conditions)
                 {
-                    if (condition == null)
-                        continue;
-
-                    condition.SetParent(this);
+                    condition?.SetParent(this);
                 }
 
                 branch.Block.SetParent(this);
@@ -172,8 +167,8 @@ namespace Mond.Compiler.Expressions.Statements
         #region Jump Table Stuff
         private class JumpEntry
         {
-            public readonly Expression Condition;
-            public readonly LabelOperand Label;
+            public Expression Condition { get; }
+            public LabelOperand Label { get; }
 
             public JumpEntry(Expression condition, LabelOperand label)
             {
@@ -184,9 +179,9 @@ namespace Mond.Compiler.Expressions.Statements
 
         private class JumpTableEntry<T>
         {
-            public readonly Expression Condition;
-            public readonly T Value;
-            public readonly LabelOperand Label;
+            public Expression Condition { get; }
+            public T Value { get; }
+            public LabelOperand Label { get; }
 
             public JumpTableEntry(Expression condition, T value, LabelOperand label)
             {
@@ -198,8 +193,8 @@ namespace Mond.Compiler.Expressions.Statements
 
         private class JumpTable
         {
-            public readonly ReadOnlyCollection<JumpTableEntry<int>> Entries;
-            public readonly int Holes;
+            public ReadOnlyCollection<JumpTableEntry<int>> Entries { get; }
+            public int Holes { get; }
 
             public JumpTable(List<JumpTableEntry<int>> entries, int holes)
             {

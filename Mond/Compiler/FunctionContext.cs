@@ -9,18 +9,18 @@ namespace Mond.Compiler
         private readonly List<Instruction> _instructions;
         private readonly IndexedStack<Tuple<LabelOperand, LabelOperand>> _loopLabels;
 
-        public readonly int ArgIndex;
-        public readonly int LocalIndex;
+        public int ArgIndex { get; }
+        public int LocalIndex { get; }
         public Scope Scope { get; protected set; }
 
-        public readonly ExpressionCompiler Compiler;
+        public ExpressionCompiler Compiler { get; }
 
-        public readonly string ParentName;
-        public readonly string Name;
-        public readonly string FullName;
+        public string ParentName { get; }
+        public string Name { get; }
+        public string FullName { get; }
 
-        public readonly IdentifierOperand AssignedName;
-        public readonly LabelOperand Label;
+        public IdentifierOperand AssignedName { get; }
+        public LabelOperand Label { get; }
 
         public int IdentifierCount { get; protected set; }
 
@@ -45,15 +45,9 @@ namespace Mond.Compiler
             IdentifierCount = 0;
         }
 
-        public virtual FunctionContext Root
-        {
-            get { return this; }
-        }
+        public virtual FunctionContext Root => this;
 
-        public IEnumerable<Instruction> Instructions
-        {
-            get { return _instructions; }
-        }
+        public IEnumerable<Instruction> Instructions => _instructions;
 
         public virtual FunctionContext MakeFunction(string name)
         {
@@ -90,7 +84,7 @@ namespace Mond.Compiler
             {
                 new ImmediateOperand(scopeId),
                 new ImmediateOperand(Compiler.ScopeDepth),
-                new ImmediateOperand(Scope != null ? Scope.Id : -1),
+                new ImmediateOperand(Scope?.Id ?? -1),
                 startLabel,
                 endLabel,
                 new DeferredOperand<ListOperand<DebugIdentifierOperand>>(() =>

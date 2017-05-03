@@ -13,10 +13,10 @@ namespace Mond.Compiler
         private int _labelIndex;
         private List<Instruction> _instructions;
 
-        public readonly MondCompilerOptions Options;
+        public MondCompilerOptions Options { get; }
 
-        public readonly ConstantPool<double> NumberPool;
-        public readonly ConstantPool<string> StringPool;
+        public ConstantPool<double> NumberPool { get; }
+        public ConstantPool<string> StringPool { get; }
 
         public int LambdaId;
 

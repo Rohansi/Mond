@@ -10,9 +10,9 @@ namespace Mond.Compiler
         private readonly int _localIndex;
         private int _nextId;
 
-        public readonly int Id;
-        public readonly Scope Previous;
-        public readonly Action PopAction;
+        public int Id { get; }
+        public Scope Previous { get; }
+        public Action PopAction { get; }
 
         public Scope(int id, int argIndex, int localIndex, Scope previous, Action popAction = null)
         {
@@ -87,8 +87,7 @@ namespace Mond.Compiler
 
         public IdentifierOperand Get(string name, bool inherit = true)
         {
-            IdentifierOperand identifier;
-            if (_identifiers.TryGetValue(name, out identifier))
+            if (_identifiers.TryGetValue(name, out var identifier))
                 return identifier;
 
             if (inherit && Previous != null)

@@ -10,7 +10,7 @@ namespace Mond.Compiler.Expressions.Statements
         public BlockExpression Increment { get; private set; }
         public BlockExpression Block { get; private set; }
 
-        public bool HasChildren { get { return true; } }
+        public bool HasChildren => true;
 
         public ForExpression(Token token, BlockExpression initializer, Expression condition, BlockExpression increment, BlockExpression block)
             : base(token)
@@ -42,9 +42,11 @@ namespace Mond.Compiler.Expressions.Statements
 
                 if (Initializer.Statements.Count > 0)
                 {
-                    var initializerVar = Initializer.Statements[0] as VarExpression;
-                    if (initializerVar != null && initializerVar.Declarations.All(d => d.Initializer == null))
+                    if (Initializer.Statements[0] is VarExpression initializerVar &&
+                        initializerVar.Declarations.All(d => d.Initializer == null))
+                    {
                         hasCode = false;
+                    }
                 }
 
                 if (hasCode)
@@ -103,15 +105,9 @@ namespace Mond.Compiler.Expressions.Statements
 
         public override Expression Simplify()
         {
-            if (Initializer != null)
-                Initializer = (BlockExpression)Initializer.Simplify();
-
-            if (Condition != null)
-                Condition = Condition.Simplify();
-
-            if (Increment != null)
-                Increment = (BlockExpression)Increment.Simplify();
-
+            Initializer = (BlockExpression)Initializer?.Simplify();
+            Condition = Condition?.Simplify();
+            Increment = (BlockExpression)Increment?.Simplify();
             Block = (BlockExpression)Block.Simplify();
 
             return this;
@@ -121,15 +117,9 @@ namespace Mond.Compiler.Expressions.Statements
         {
             base.SetParent(parent);
 
-            if (Initializer != null)
-                Initializer.SetParent(this);
-
-            if (Condition != null)
-                Condition.SetParent(this);
-
-            if (Increment != null)
-                Increment.SetParent(this);
-
+            Initializer?.SetParent(this);
+            Condition?.SetParent(this);
+            Increment?.SetParent(this);
             Block.SetParent(this);
         }
 

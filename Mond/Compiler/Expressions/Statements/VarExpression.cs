@@ -8,8 +8,8 @@ namespace Mond.Compiler.Expressions.Statements
     {
         public class Declaration
         {
-            public string Name { get; private set; }
-            public Expression Initializer { get; private set; }
+            public string Name { get; }
+            public Expression Initializer { get; }
 
             public Declaration(string name, Expression initializer)
             {
@@ -19,9 +19,9 @@ namespace Mond.Compiler.Expressions.Statements
         }
 
         public ReadOnlyCollection<Declaration> Declarations { get; private set; }
-        public bool IsReadOnly { get; private set; }
+        public bool IsReadOnly { get; }
 
-        public bool HasChildren { get { return false; } }
+        public bool HasChildren => false;
 
         public VarExpression(Token token, List<Declaration> declarations, bool isReadOnly = false)
             : base(token)
@@ -72,7 +72,7 @@ namespace Mond.Compiler.Expressions.Statements
         public override Expression Simplify()
         {
             Declarations = Declarations
-                .Select(d => new Declaration(d.Name, d.Initializer == null ? null : d.Initializer.Simplify()))
+                .Select(d => new Declaration(d.Name, d.Initializer?.Simplify()))
                 .ToList()
                 .AsReadOnly();
 

@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using Mond.Compiler.Expressions;
 using Mond.Compiler.Expressions.Statements;
-using Mond.Compiler.Parselets.Statements;
 
 namespace Mond.Compiler.Parselets
 {
@@ -42,9 +41,7 @@ namespace Mond.Compiler.Parselets
                     parser.Take(TokenType.Colon);
                     value = parser.ParseExpression();
 
-                    var function = value as FunctionExpression;
-
-                    if (function != null)
+                    if (value is FunctionExpression function)
                         function.DebugName = key;
                 }
 

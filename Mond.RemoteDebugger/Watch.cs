@@ -7,8 +7,8 @@ namespace Mond.RemoteDebugger
     {
         private string _value;
 
-        public readonly int Id;
-        public readonly string Expression;
+        public int Id { get; }
+        public string Expression { get; }
 
         public string Value => _value ?? "";
 

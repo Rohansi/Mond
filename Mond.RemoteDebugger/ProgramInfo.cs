@@ -10,9 +10,9 @@ namespace Mond.RemoteDebugger
         private readonly object _sync = new object();
         private readonly List<int> _breakpoints;
 
-        public readonly string FileName;
-        public readonly MondProgram Program;
-        public readonly MondDebugInfo DebugInfo;
+        public string FileName { get; }
+        public MondProgram Program { get; }
+        public MondDebugInfo DebugInfo { get; }
 
         public ReadOnlyCollection<int> Breakpoints
         {

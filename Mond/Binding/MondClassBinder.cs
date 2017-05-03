@@ -10,8 +10,8 @@ namespace Mond.Binding
     {
         private class ClassBinding
         {
-            public readonly MondConstructor Constructor;
-            public readonly Dictionary<string, MondInstanceFunction> PrototypeFunctions;
+            public MondConstructor Constructor { get; }
+            public Dictionary<string, MondInstanceFunction> PrototypeFunctions { get; }
 
             public ClassBinding(MondConstructor constructor, Dictionary<string, MondInstanceFunction> prototypeFunctions)
             {

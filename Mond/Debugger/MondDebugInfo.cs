@@ -8,8 +8,8 @@ namespace Mond.Debugger
     {
         public struct Function
         {
-            public readonly int Address;
-            public readonly int Name;
+            public int Address { get; }
+            public int Name { get; }
 
             public Function(int address, int name)
             {
@@ -20,9 +20,9 @@ namespace Mond.Debugger
 
         public struct Position
         {
-            public readonly int Address;
-            public readonly int LineNumber;
-            public readonly int ColumnNumber;
+            public int Address { get; }
+            public int LineNumber { get; }
+            public int ColumnNumber { get; }
 
             public Position(int address, int lineNumber, int columnNumber)
             {
@@ -34,11 +34,11 @@ namespace Mond.Debugger
 
         public struct Statement
         {
-            public readonly int Address;
-            public readonly int StartLineNumber;
-            public readonly int StartColumnNumber;
-            public readonly int EndLineNumber;
-            public readonly int EndColumnNumber;
+            public int Address { get; }
+            public int StartLineNumber { get; }
+            public int StartColumnNumber { get; }
+            public int EndLineNumber { get; }
+            public int EndColumnNumber { get; }
 
             public Statement(int address, int startLine, int startColumn, int endLine, int endColumn)
             {
@@ -52,12 +52,12 @@ namespace Mond.Debugger
 
         public class Scope
         {
-            public readonly int Id;
-            public readonly int Depth;
-            public readonly int ParentId;
-            public readonly int StartAddress;
-            public readonly int EndAddress;
-            public readonly ReadOnlyCollection<Identifier> Identifiers;
+            public int Id { get; }
+            public int Depth { get; }
+            public int ParentId { get; }
+            public int StartAddress { get; }
+            public int EndAddress { get; }
+            public ReadOnlyCollection<Identifier> Identifiers;
 
             public Scope(int id, int depth, int parentId, int startAddress, int endAddress, List<Identifier> identifiers)
             {
@@ -72,10 +72,10 @@ namespace Mond.Debugger
 
         public struct Identifier
         {
-            public readonly int Name;
-            public readonly bool IsReadOnly;
-            public readonly int FrameIndex;
-            public readonly int Id;
+            public int Name { get; }
+            public bool IsReadOnly { get; }
+            public int FrameIndex { get; }
+            public int Id { get; }
 
             public Identifier(int name, bool isReadOnly, int frameIndex, int id)
             {
@@ -93,8 +93,8 @@ namespace Mond.Debugger
 
         private List<List<Scope>> _unpackedScopes;
 
-        public readonly string FileName;
-        public readonly string SourceCode;
+        public string FileName { get; }
+        public string SourceCode { get; }
 
         public ReadOnlyCollection<Function> Functions => _functions?.AsReadOnly();
         public ReadOnlyCollection<Position> Lines => _lines?.AsReadOnly();

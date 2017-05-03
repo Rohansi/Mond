@@ -81,12 +81,12 @@ namespace Mond.Compiler.Expressions.Statements
 
     class SequenceBodyExpression : FunctionExpression
     {
-        private List<LabelOperand> _stateLabels;
+        private readonly List<LabelOperand> _stateLabels;
 
-        public readonly IdentifierOperand State;
-        public readonly IdentifierOperand Enumerable;
+        public IdentifierOperand State { get; }
+        public IdentifierOperand Enumerable { get; }
 
-        public int NextState { get { return _stateLabels.Count; } }
+        public int NextState => _stateLabels.Count;
         public LabelOperand EndLabel { get; private set; }
 
         public SequenceBodyExpression(Token token, string name, bool isOperator, ScopeExpression block, string debugName,
@@ -172,7 +172,7 @@ namespace Mond.Compiler.Expressions.Statements
 
     class SequenceBodyContext : FunctionContext
     {
-        public readonly SequenceBodyExpression SequenceBody;
+        public SequenceBodyExpression SequenceBody { get; }
 
         public SequenceBodyContext(ExpressionCompiler compiler, string name, FunctionContext parent, SequenceBodyExpression sequenceBody)
             : base(compiler, parent.ArgIndex + 1, parent.LocalIndex + 1, parent.Scope, parent.FullName, name)

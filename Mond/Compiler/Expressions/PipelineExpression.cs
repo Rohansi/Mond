@@ -7,10 +7,7 @@ namespace Mond.Compiler.Expressions
         public Expression Left { get; private set; }
         public Expression Right { get; private set; }
 
-        public override Token StartToken
-        {
-            get { return Left.StartToken; }
-        }
+        public override Token StartToken => Left.StartToken;
 
         public PipelineExpression(Token token, Expression left, Expression right)
             : base(token)

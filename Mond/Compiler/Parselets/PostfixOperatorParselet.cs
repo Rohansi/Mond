@@ -6,7 +6,7 @@ namespace Mond.Compiler.Parselets
     {
         private readonly int _precedence;
 
-        public int Precedence { get { return _precedence; } }
+        public int Precedence => _precedence;
 
         public PostfixOperatorParselet(int precedence)
         {

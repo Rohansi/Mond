@@ -5,7 +5,7 @@ namespace Mond.Compiler.Parselets
 {
     class CallParselet : IInfixParselet
     {
-        public int Precedence { get { return (int)PrecedenceValue.Postfix; } }
+        public int Precedence => (int)PrecedenceValue.Postfix;
 
         public Expression Parse(Parser parser, Expression left, Token token)
         {

@@ -2,11 +2,11 @@
 {
     internal struct BreakPosition
     {
-        public readonly int Id;
-        public readonly int StartLine;
-        public readonly int StartColumn;
-        public readonly int EndLine;
-        public readonly int EndColumn;
+        public int Id { get; }
+        public int StartLine { get; }
+        public int StartColumn { get; }
+        public int EndLine { get; }
+        public int EndColumn { get; }
 
         public BreakPosition(int id, int startLine, int startColumn, int endLine, int endColumn)
         {

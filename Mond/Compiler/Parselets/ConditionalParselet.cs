@@ -4,7 +4,7 @@ namespace Mond.Compiler.Parselets
 {
     class ConditionalParselet : IInfixParselet
     {
-        public int Precedence { get { return (int)PrecedenceValue.Ternary; } }
+        public int Precedence => (int)PrecedenceValue.Ternary;
 
         public Expression Parse(Parser parser, Expression left, Token token)
         {

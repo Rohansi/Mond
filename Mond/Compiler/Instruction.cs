@@ -60,8 +60,8 @@ namespace Mond.Compiler
     {
         private int _offset;
 
-        public readonly InstructionType Type;
-        public readonly ReadOnlyCollection<IInstructionOperand> Operands;
+        public InstructionType Type { get; }
+        public ReadOnlyCollection<IInstructionOperand> Operands { get; }
 
         public Instruction(InstructionType type, params IInstructionOperand[] operands)
         {

@@ -7,10 +7,7 @@
         public Expression End { get; private set; }
         public Expression Step { get; private set; }
 
-        public override Token StartToken
-        {
-            get { return Left.StartToken; }
-        }
+        public override Token StartToken => Left.StartToken;
 
         public SliceExpression(Token token, Expression left, Expression start, Expression end, Expression step)
             : base(token)
@@ -52,15 +49,9 @@
         public override Expression Simplify()
         {
             Left = Left.Simplify();
-
-            if (Start != null)
-                Start = Start.Simplify();
-
-            if (End != null)
-                End = End.Simplify();
-
-            if (Step != null)
-                Step = Step.Simplify();
+            Start = Start?.Simplify();
+            End = End?.Simplify();
+            Step = Step?.Simplify();
 
             return this;
         }
@@ -70,15 +61,9 @@
             base.SetParent(parent);
 
             Left.SetParent(this);
-
-            if (Start != null)
-                Start.SetParent(this);
-
-            if (End != null)
-                End.SetParent(this);
-
-            if (Step != null)
-                Step.SetParent(this);
+            Start?.SetParent(this);
+            End?.SetParent(this);
+            Step?.SetParent(this);
         }
 
         public override T Accept<T>(IExpressionVisitor<T> visitor)

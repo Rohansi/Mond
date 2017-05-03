@@ -8,8 +8,8 @@ namespace Mond.Compiler.Parselets.Statements
     {
         public class DestructuringField
         {
-            public Token FieldName { get; private set; }
-            public Token AliasName { get; private set; }
+            public Token FieldName { get; }
+            public Token AliasName { get; }
 
             internal DestructuringField(Token field, Token alias)
             {
@@ -20,8 +20,8 @@ namespace Mond.Compiler.Parselets.Statements
 
         public class DestructuringIndex
         {
-            public Token Name { get; private set; }
-            public bool IsSlice { get; private set; }
+            public Token Name { get; }
+            public bool IsSlice { get; }
             public Expression StartIndex { get; internal set; }
             public Expression EndIndex { get; internal set; }
 
