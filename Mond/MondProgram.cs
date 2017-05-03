@@ -17,7 +17,7 @@ namespace Mond
         internal readonly byte[] Bytecode;
         internal readonly List<MondValue> Numbers;
         internal readonly List<MondValue> Strings;
-        internal readonly MondDebugInfo DebugInfo;
+        public MondDebugInfo DebugInfo { get; }
 
         internal MondProgram(byte[] bytecode, IEnumerable<double> numbers, IEnumerable<string> strings, MondDebugInfo debugInfo = null)
         {

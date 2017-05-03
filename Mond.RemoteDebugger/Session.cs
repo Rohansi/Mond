@@ -37,7 +37,7 @@ namespace Mond.RemoteDebugger
             message["Watches"] = new MondValue(watches.Select(Utility.JsonWatch));
 
             if (callStack != null)
-                message["CallStack"] = new MondValue(callStack.Select(Utility.JsonCallStackEntry));
+                message["CallStack"] = _debugger.BuildCallStackArray(callStack);
 
             Send(Json.Serialize(message));
         }

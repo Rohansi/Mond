@@ -31,9 +31,10 @@ namespace Mond.RemoteDebugger
             return obj;
         }
 
-        public static MondValue JsonCallStackEntry(MondDebugContext.CallStackEntry callStackEntry)
+        public static MondValue JsonCallStackEntry(int programId, MondDebugContext.CallStackEntry callStackEntry)
         {
             var obj = new MondValue(MondValueType.Object);
+            obj["ProgramId"] = programId;
             obj["FileName"] = callStackEntry.FileName;
             obj["Function"] = callStackEntry.Function;
             obj["LineNumber"] = callStackEntry.LineNumber;

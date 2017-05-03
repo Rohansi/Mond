@@ -23,14 +23,14 @@ namespace Mond.RemoteDebugger
             }
         }
 
-        public ProgramInfo(MondProgram program, MondDebugInfo debugInfo)
+        public ProgramInfo(MondProgram program)
         {
             _breakpoints = new List<int>(16);
 
             Program = program;
-            DebugInfo = debugInfo;
+            DebugInfo = program.DebugInfo;
 
-            FileName = debugInfo.FileName ?? Program.GetHashCode().ToString("X8");
+            FileName = DebugInfo?.FileName ?? Program.GetHashCode().ToString("X8");
         }
 
         public void AddBreakpoint(int line)

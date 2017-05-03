@@ -273,6 +273,10 @@ ol {
     user-select: none;
 }
 
+#stack-list > li {
+	cursor: pointer;
+}
+
 .breakpoint {
     background-color: rgba(249, 169, 169, 0.3);
 }

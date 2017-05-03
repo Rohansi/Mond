@@ -17,8 +17,7 @@ namespace Mond.Debugger
 
         private readonly MondValue _localObject;
 
-        public readonly MondProgram Program;
-        public readonly MondDebugInfo DebugInfo;
+        public MondProgram Program { get; }
 
         public readonly ReadOnlyCollection<CallStackEntry> CallStack;
 
@@ -33,8 +32,6 @@ namespace Mond.Debugger
             _args = args;
 
             Program = program;
-            DebugInfo = program.DebugInfo;
-
             CallStack = GenerateCallStack(address, callStack, callStackTop, callStackBottom).AsReadOnly();
 
             _localObject = CreateLocalObject();
@@ -108,14 +105,15 @@ namespace Mond.Debugger
             getter = null;
             setter = null;
 
-            if (string.IsNullOrEmpty(name) || DebugInfo == null || DebugInfo.Scopes == null || _locals == null)
+            var debugInfo = Program.DebugInfo;
+            if (string.IsNullOrEmpty(name) || debugInfo == null || debugInfo.Scopes == null || _locals == null)
                 return false;
 
-            var scope = DebugInfo.FindScope(_address);
+            var scope = debugInfo.FindScope(_address);
             if (scope == null)
                 return false;
 
-            var scopes = DebugInfo.Scopes;
+            var scopes = debugInfo.Scopes;
             var id = scope.Id;
 
             do
@@ -168,7 +166,7 @@ namespace Mond.Debugger
                 if (i == callStackBottom)
                 {
                     if (callStackBottom > 0)
-                        result.Add(new CallStackEntry(0, "[... native ...]", null, 0, -1));
+                        result.Add(new CallStackEntry(null, 0, "[... native ...]", null, 0, -1));
 
                     continue;
                 }
@@ -185,7 +183,10 @@ namespace Mond.Debugger
             var debugInfo = program.DebugInfo;
 
             if (debugInfo == null)
-                return new CallStackEntry(address, program.GetHashCode().ToString("X8"), address.ToString("X8"), 0, -1);
+            {
+                return new CallStackEntry(
+                    program, address, program.GetHashCode().ToString("X8"), address.ToString("X8"), 0, -1);
+            }
 
             var fileName = program.DebugInfo.FileName;
             string function = null;
@@ -209,19 +210,28 @@ namespace Mond.Debugger
             if (function == null)
                 function = address.ToString("X8");
 
-            return new CallStackEntry(address, fileName, function, lineNumber, columnNumber);
+            return new CallStackEntry(
+                program, address, fileName, function, lineNumber, columnNumber);
         }
 
         public class CallStackEntry
         {
-            public readonly int Address;
-            public readonly string FileName;
-            public readonly string Function;
-            public readonly int LineNumber;
-            public readonly int ColumnNumber;
+            public MondProgram Program { get; }
+            public int Address { get; }
+            public string FileName { get; }
+            public string Function { get; }
+            public int LineNumber { get; }
+            public int ColumnNumber { get; }
 
-            internal CallStackEntry(int address, string fileName, string function, int lineNumber, int columnNumber)
+            internal CallStackEntry(
+                MondProgram program,
+                int address,
+                string fileName,
+                string function,
+                int lineNumber,
+                int columnNumber)
             {
+                Program = program;
                 Address = address;
                 FileName = fileName;
                 Function = function;

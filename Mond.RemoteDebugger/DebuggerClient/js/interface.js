@@ -190,6 +190,16 @@ function updateWatches(watches) {
 function updateCallStack(callStack) {
     stackList.html("");
 
+	function makeClickEvent(entry) {
+		return function(ev) {
+			if (entry.ProgramId < 0)
+				return;
+
+			switchToTab(entry.ProgramId);
+			scrollToLine(entry.LineNumber);
+		};
+	}
+
     for (var i = 0; i < callStack.length; i++) {
         var entry = callStack[i];
 
@@ -207,7 +217,10 @@ function updateCallStack(callStack) {
         if (entry.FileName != null)
             str += "]";
 
-        stackList.append("<li>" + escapeHtml(str) + "</li>");
+	    $("<li/>")
+			.text(str)
+			.appendTo(stackList)
+			.click(makeClickEvent(entry));
     }
 }
 

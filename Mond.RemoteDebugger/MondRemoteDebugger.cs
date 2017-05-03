@@ -76,7 +76,7 @@ namespace Mond.RemoteDebugger
                 return MondDebugAction.Run;
 
             // if missing debug info, leave the function
-            if (IsMissingDebugInfo(context.DebugInfo))
+            if (IsMissingDebugInfo(context.Program.DebugInfo))
                 return MondDebugAction.StepOut;
 
             lock (_sync)
@@ -89,7 +89,7 @@ namespace Mond.RemoteDebugger
             }
 
             // keep track of program instances
-            VisitProgram(context);
+            VisitProgram(context.Program);
 
             // update the current state
             UpdateState(context, address);
@@ -258,7 +258,7 @@ namespace Mond.RemoteDebugger
         private void UpdateState(MondDebugContext context, int address)
         {
             var program = context.Program;
-            var debugInfo = context.DebugInfo;
+            var debugInfo = program.DebugInfo;
 
             // find out where we are in the source code
             var statement = debugInfo.FindStatement(address);
@@ -294,7 +294,7 @@ namespace Mond.RemoteDebugger
             lock (_sync)
             {
                 var stmtValue = statement.Value;
-                var programId = _programs.FindIndex(t => t.Program == program);
+                var programId = FindProgramIndex(program);
 
                 _position = new BreakPosition(
                     programId,
@@ -312,16 +312,36 @@ namespace Mond.RemoteDebugger
                 message["EndLine"] = _position.EndLine;
                 message["EndColumn"] = _position.EndColumn;
                 message["Watches"] = new MondValue(watches.Select(Utility.JsonWatch));
-                message["CallStack"] = new MondValue(_context.CallStack.Select(Utility.JsonCallStackEntry));
+                message["CallStack"] = BuildCallStackArray(_context.CallStack);
             }
 
             Broadcast(message);
         }
 
-        private void VisitProgram(MondDebugContext context)
+        internal MondValue BuildCallStackArray(ReadOnlyCollection<MondDebugContext.CallStackEntry> entries)
         {
-            var program = context.Program;
-            var debugInfo = context.DebugInfo;
+            var objs = new List<MondValue>(entries.Count);
+
+            foreach (var entry in entries)
+            {
+                VisitProgram(entry.Program);
+
+                var programId = FindProgramIndex(entry.Program);
+                objs.Add(Utility.JsonCallStackEntry(programId, entry));
+            }
+
+            return new MondValue(objs);
+        }
+
+        internal int FindProgramIndex(MondProgram p) =>
+            _programs.FindIndex(t => ReferenceEquals(t.Program, p));
+
+        private void VisitProgram(MondProgram program)
+        {
+            var debugInfo = program.DebugInfo;
+
+            if (IsMissingDebugInfo(debugInfo))
+                return;
 
             int id;
             ProgramInfo programInfo;
@@ -334,7 +354,7 @@ namespace Mond.RemoteDebugger
                 _seenPrograms.Add(program);
 
                 id = _programs.Count;
-                programInfo = new ProgramInfo(program, debugInfo);
+                programInfo = new ProgramInfo(program);
 
                 _programs.Add(programInfo);
             }
