@@ -2,15 +2,37 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Mond.Libraries;
+using System.Reflection;
+using Mond.RemoteDebugger;
 using Mond.Repl.Input;
 
 namespace Mond.Repl
 {
-    class Program
+    public class Program
     {
-        static void Main(string[] args)
+        private const int DebugPort = 1597;
+
+        private static string[] _args;
+
+        public static void Main(string[] args)
         {
+            _args = args;
+
+            if (HasFlag("-h", "--help"))
+            {
+                var mondVersion = typeof(MondState).GetTypeInfo().Assembly.GetName().Version;
+
+                Console.WriteLine($"Mond REPL v{mondVersion.ToString(3)}");
+                Console.WriteLine();
+                Console.WriteLine($"Usage: Mond.Repl.exe [flags] [filename]");
+                Console.WriteLine();
+                Console.WriteLine($"-h, --help    Show REPL help");
+                Console.WriteLine($"--no-color    Disable syntax highlighting");
+                Console.WriteLine($"--debug       Start debugging on port {DebugPort}");
+
+                return;
+            }
+
             var fileName = args.FirstOrDefault(s => s.Length > 0 && s[0] != '-');
 
             if (fileName != null)
@@ -36,12 +58,14 @@ namespace Mond.Repl
                 return;
             }
 
-            InteractiveMain(args);
+            InteractiveMain();
         }
 
-        static void ScriptMain(TextReader input, string fileName)
+        private static bool HasFlag(params string[] flags) => _args.Any(flags.Contains);
+
+        private static void ScriptMain(TextReader input, string fileName)
         {
-            var state = new MondState();
+            var state = CreateState(false, out var _);
 
             string source;
 
@@ -78,9 +102,9 @@ namespace Mond.Repl
         private static bool _first;
         private static Highlighter _highlighter;
 
-        static void InteractiveMain(string[] args)
+        private static void InteractiveMain()
         {
-            var useColoredInput = args.All(s => s != "--no-color");
+            var useColoredInput = !HasFlag("--no-color");
 
             if (useColoredInput)
             {
@@ -96,19 +120,7 @@ namespace Mond.Repl
             _input = new Queue<char>();
             _first = true;
 
-            var libraries = new MondLibraryManager
-            {
-                new StandardLibraries()
-            };
-
-            var state = new MondState();
-            var options = new MondCompilerOptions
-            {
-                MakeRootDeclarationsGlobal = true,
-                UseImplicitGlobals = true
-            };
-
-            libraries.Load(state);
+            var state = CreateState(true, out var options);
 
             while (true)
             {
@@ -128,7 +140,7 @@ namespace Mond.Repl
             }
         }
 
-        static void InteractiveRun(MondState state, MondProgram program)
+        private static void InteractiveRun(MondState state, MondProgram program)
         {
             var result = state.Load(program);
 
@@ -181,7 +193,7 @@ namespace Mond.Repl
             }
         }
 
-        static IEnumerable<char> ConsoleInput()
+        private static IEnumerable<char> ConsoleInput()
         {
             while (true)
             {
@@ -214,7 +226,7 @@ namespace Mond.Repl
             }
         }
 
-        static void PrintException(Exception e)
+        private static void PrintException(Exception e)
         {
             string message = e is MondException ? e.Message : e.ToString();
             string stackTrace = null;
@@ -234,6 +246,31 @@ namespace Mond.Repl
             _first = true;
             _input?.Clear();
             _highlighter = null;
+        }
+
+        private static MondState CreateState(bool isInteractive, out MondCompilerOptions options)
+        {
+            options = new MondCompilerOptions();
+
+            if (isInteractive)
+            {
+                options.MakeRootDeclarationsGlobal = true;
+                options.UseImplicitGlobals = true;
+            }
+
+            var isDebug = HasFlag("--debug");
+            if (isDebug)
+                options.DebugInfo = MondDebugInfoLevel.Full;
+
+            var state = new MondState
+            {
+                Options = options
+            };
+
+            if (isDebug)
+                state.Debugger = new MondRemoteDebugger(1597);
+
+            return state;
         }
     }
 }
