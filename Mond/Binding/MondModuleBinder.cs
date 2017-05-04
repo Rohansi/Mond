@@ -19,7 +19,7 @@ namespace Mond.Binding
             }
         }
 
-        private static Dictionary<Type, ModuleBinding> _cache = new Dictionary<Type, ModuleBinding>();
+        private static readonly Dictionary<Type, ModuleBinding> Cache = new Dictionary<Type, ModuleBinding>();
 
         /// <summary>
         /// Generates module bindings for T. Returns an object containing the bound methods.
@@ -74,9 +74,9 @@ namespace Mond.Binding
         {
             ModuleBinding binding;
 
-            lock (_cache)
+            lock (Cache)
             {
-                if (_cache.TryGetValue(type, out binding))
+                if (Cache.TryGetValue(type, out binding))
                 {
                     return binding.Functions;
                 }
@@ -121,8 +121,8 @@ namespace Mond.Binding
 
             binding = new ModuleBinding(result);
 
-            lock (_cache)
-                _cache[type] = binding;
+            lock (Cache)
+                Cache[type] = binding;
 
             return result;
         }

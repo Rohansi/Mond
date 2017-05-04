@@ -6,7 +6,7 @@ namespace Mond.Libraries.Async
     [MondClass("CancellationToken")]
     internal class CancellationTokenClass
     {
-        internal CancellationToken CancellationToken { get; private set; }
+        internal CancellationToken CancellationToken { get; }
 
         internal CancellationTokenClass(CancellationToken cancellationToken)
         {

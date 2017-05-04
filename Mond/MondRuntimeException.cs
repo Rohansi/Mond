@@ -7,10 +7,7 @@ namespace Mond
     {
         internal string InternalStackTrace;
 
-        public override string StackTrace
-        {
-            get { return InternalStackTrace; }
-        }
+        public override string StackTrace => InternalStackTrace;
 
         public MondRuntimeException(string message)
             : base(message)

@@ -7,7 +7,7 @@ namespace Mond.Libraries.Async
     [MondClass("CancellationTokenSource")]
     internal class CancellationTokenSourceClass
     {
-        private CancellationTokenSource _cts;
+        private readonly CancellationTokenSource _cts;
 
         [MondConstructor]
         public CancellationTokenSourceClass()

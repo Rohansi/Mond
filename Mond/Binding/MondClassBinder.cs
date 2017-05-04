@@ -20,7 +20,7 @@ namespace Mond.Binding
             }
         }
 
-        private static Dictionary<Type, ClassBinding> _cache = new Dictionary<Type, ClassBinding>();
+        private static readonly Dictionary<Type, ClassBinding> Cache = new Dictionary<Type, ClassBinding>();
 
         /// <summary>
         /// Generate a class binding for T. Returns the constructor function. The
@@ -83,9 +83,9 @@ namespace Mond.Binding
         {
             ClassBinding binding;
 
-            lock (_cache)
+            lock (Cache)
             {
-                if (_cache.TryGetValue(type, out binding))
+                if (Cache.TryGetValue(type, out binding))
                 {
                     prototypeFunctions = binding.PrototypeFunctions;
                     return binding.Constructor;
@@ -134,8 +134,8 @@ namespace Mond.Binding
 
             binding = new ClassBinding(constructor, functions);
 
-            lock (_cache)
-                _cache[type] = binding;
+            lock (Cache)
+                Cache[type] = binding;
 
             prototypeFunctions = functions;
             return constructor;

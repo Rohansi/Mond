@@ -20,15 +20,9 @@ namespace Mond
             _shouldIndent = false;
         }
 
-        public override Encoding Encoding
-        {
-            get { return Encoding.Unicode; }
-        }
+        public override Encoding Encoding => Encoding.Unicode;
 
-        public override IFormatProvider FormatProvider
-        {
-            get { return CultureInfo.InvariantCulture; }
-        }
+        public override IFormatProvider FormatProvider => CultureInfo.InvariantCulture;
 
         public override void Write(char value)
         {

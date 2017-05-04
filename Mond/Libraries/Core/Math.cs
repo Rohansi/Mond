@@ -1,136 +1,72 @@
-﻿using Mond.Binding;
+﻿using System;
+using Mond.Binding;
 
-namespace Mond.Libraries.Math
+namespace Mond.Libraries.Core
 {
-    using Math = System.Math;
-
     [MondModule("Math")]
     internal class MathModule
     {
         [MondFunction("abs")]
-        public static double Abs(double value)
-        {
-            return Math.Abs(value);
-        }
+        public static double Abs(double value) => Math.Abs(value);
 
         [MondFunction("acos")]
-        public static double Acos(double d)
-        {
-            return Math.Acos(d);
-        }
+        public static double Acos(double d) => Math.Acos(d);
 
         [MondFunction("asin")]
-        public static double Asin(double d)
-        {
-            return Math.Asin(d);
-        }
+        public static double Asin(double d) => Math.Asin(d);
 
         [MondFunction("atan")]
-        public static double Atan(double d)
-        {
-            return Math.Atan(d);
-        }
+        public static double Atan(double d) => Math.Atan(d);
 
         [MondFunction("atan2")]
-        public static double Atan2(double y, double x)
-        {
-            return Math.Atan2(y, x);
-        }
+        public static double Atan2(double y, double x) => Math.Atan2(y, x);
 
         [MondFunction("ceiling")]
-        public static double Ceiling(double d)
-        {
-            return Math.Ceiling(d);
-        }
+        public static double Ceiling(double d) => Math.Ceiling(d);
 
         [MondFunction("cos")]
-        public static double Cos(double d)
-        {
-            return Math.Cos(d);
-        }
+        public static double Cos(double d) => Math.Cos(d);
 
         [MondFunction("cosh")]
-        public static double Cosh(double d)
-        {
-            return Math.Cosh(d);
-        }
+        public static double Cosh(double d) => Math.Cosh(d);
 
         [MondFunction("exp")]
-        public static double Exp(double d)
-        {
-            return Math.Exp(d);
-        }
+        public static double Exp(double d) => Math.Exp(d);
 
         [MondFunction("floor")]
-        public static double Floor(double d)
-        {
-            return Math.Floor(d);
-        }
+        public static double Floor(double d) => Math.Floor(d);
 
         [MondFunction("log")]
-        public static double Log(double d)
-        {
-            return Math.Log(d);
-        }
+        public static double Log(double d) => Math.Log(d);
 
         [MondFunction("max")]
-        public static double Max(double x, double y)
-        {
-            return Math.Max(x, y);
-        }
+        public static double Max(double x, double y) => Math.Max(x, y);
 
         [MondFunction("min")]
-        public static double Min(double x, double y)
-        {
-            return Math.Min(x, y);
-        }
+        public static double Min(double x, double y) => Math.Min(x, y);
 
         [MondFunction("round")]
-        public static double Round(double d)
-        {
-            return Math.Round(d);
-        }
+        public static double Round(double d) => Math.Round(d);
 
         [MondFunction("sign")]
-        public static double Sign(double d)
-        {
-            return Math.Sign(d);
-        }
+        public static double Sign(double d) => Math.Sign(d);
 
         [MondFunction("sin")]
-        public static double Sin(double d)
-        {
-            return Math.Sin(d);
-        }
+        public static double Sin(double d) => Math.Sin(d);
 
         [MondFunction("sinh")]
-        public static double Sinh(double d)
-        {
-            return Math.Sinh(d);
-        }
+        public static double Sinh(double d) => Math.Sinh(d);
 
         [MondFunction("sqrt")]
-        public static double Sqrt(double d)
-        {
-            return Math.Sqrt(d);
-        }
+        public static double Sqrt(double d) => Math.Sqrt(d);
 
         [MondFunction("tan")]
-        public static double Tan(double d)
-        {
-            return Math.Tan(d);
-        }
+        public static double Tan(double d) => Math.Tan(d);
 
         [MondFunction("tanh")]
-        public static double Tanh(double d)
-        {
-            return Math.Tanh(d);
-        }
+        public static double Tanh(double d) => Math.Tanh(d);
 
         [MondFunction("truncate")]
-        public static double Truncate(double d)
-        {
-            return Math.Truncate(d);
-        }
+        public static double Truncate(double d) => Math.Truncate(d);
     }
 }

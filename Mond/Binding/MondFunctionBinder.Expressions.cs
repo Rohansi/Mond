@@ -245,12 +245,7 @@ namespace Mond.Binding
         internal static Func<Expression, Expression> MakeReturnConversion(Type returnType)
         {
             if (returnType == typeof(void))
-            {
-                return v =>
-                {
-                    throw new MondBindingException("Expression binder should not use void return conversion");
-                };
-            }
+                return v => throw new MondBindingException("Expression binder should not use void return conversion");
 
             if (returnType == typeof(MondValue))
                 return v => Expression.Coalesce(v, Expression.Constant(MondValue.Null));

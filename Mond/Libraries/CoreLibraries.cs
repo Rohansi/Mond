@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using Mond.Binding;
 using Mond.Libraries.Core;
-using Mond.Libraries.Math;
 
 namespace Mond.Libraries
 {

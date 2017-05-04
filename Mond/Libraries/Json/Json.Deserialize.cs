@@ -28,7 +28,7 @@ namespace Mond.Libraries.Json
         private class Parser
         {
             private readonly Lexer _lexer;
-            private List<Token> _read;
+            private readonly List<Token> _read;
 
             public Parser(string text)
             {
@@ -55,9 +55,7 @@ namespace Mond.Libraries.Json
                         return new MondValue(token.Value);
 
                     case TokenType.Number:
-                        double number;
-
-                        if (!double.TryParse(token.Value, out number))
+                        if (!double.TryParse(token.Value, out var number))
                             throw new MondRuntimeException("Json.deserialize: invalid number '{0}'", token.Value);
 
                         return new MondValue(number);
@@ -147,7 +145,7 @@ namespace Mond.Libraries.Json
             private Token Peek(int distance = 0)
             {
                 if (distance < 0)
-                    throw new ArgumentOutOfRangeException("distance", "distance can't be negative");
+                    throw new ArgumentOutOfRangeException(nameof(distance), "distance can't be negative");
 
                 while (_read.Count <= distance)
                 {
@@ -314,8 +312,7 @@ namespace Mond.Libraries.Json
                                 case 'u':
                                     var digits = "" + TakeChar() + TakeChar() + TakeChar() + TakeChar();
 
-                                    short value;
-                                    if (!short.TryParse(digits, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out value))
+                                    if (!short.TryParse(digits, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out var value))
                                         goto default;
 
                                     sb.Append((char)value);
@@ -455,15 +452,9 @@ namespace Mond.Libraries.Json
                 _position = 0;
             }
 
-            public void Dispose()
-            {
+            public void Dispose() { }
 
-            }
-
-            object IEnumerator.Current
-            {
-                get { return Current; }
-            }
+            object IEnumerator.Current => Current;
         }
     }
 }

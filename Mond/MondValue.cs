@@ -85,7 +85,7 @@ namespace Mond
         public MondValue(string value)
         {
             if (ReferenceEquals(value, null))
-                throw new ArgumentNullException("value");
+                throw new ArgumentNullException(nameof(value));
 
             Type = MondValueType.String;
             _stringValue = value;
@@ -97,7 +97,7 @@ namespace Mond
         public MondValue(MondFunction function)
         {
             if (ReferenceEquals(function, null))
-                throw new ArgumentNullException("function");
+                throw new ArgumentNullException(nameof(function));
 
             Type = MondValueType.Function;
             FunctionValue = new Closure(function);
@@ -110,7 +110,7 @@ namespace Mond
         public MondValue(MondInstanceFunction function)
         {
             if (ReferenceEquals(function, null))
-                throw new ArgumentNullException("function");
+                throw new ArgumentNullException(nameof(function));
 
             Type = MondValueType.Function;
             FunctionValue = new Closure(function);
@@ -122,7 +122,7 @@ namespace Mond
         public MondValue(IEnumerable<MondValue> values)
         {
             if (ReferenceEquals(values, null))
-                throw new ArgumentNullException("values");
+                throw new ArgumentNullException(nameof(values));
 
             Type = MondValueType.Array;
             ArrayValue = new List<MondValue>(values);
@@ -157,7 +157,7 @@ namespace Mond
             get
             {
                 if (ReferenceEquals(index, null))
-                    throw new ArgumentNullException("index");
+                    throw new ArgumentNullException(nameof(index));
 
                 if (Type == MondValueType.Array && index.Type == MondValueType.Number)
                 {
@@ -211,10 +211,10 @@ namespace Mond
             set
             {
                 if (ReferenceEquals(index, null))
-                    throw new ArgumentNullException("index");
+                    throw new ArgumentNullException(nameof(index));
 
                 if (ReferenceEquals(value, null))
-                    throw new ArgumentNullException("value");
+                    throw new ArgumentNullException(nameof(value));
 
                 if (Type == MondValueType.Array && index.Type == MondValueType.Number)
                 {
@@ -269,7 +269,7 @@ namespace Mond
                 if (ObjectValue.Locked)
                     throw new MondRuntimeException(RuntimeError.ObjectIsLocked);
 
-                if (TryDispatch("__set", out var result, this, index, value))
+                if (TryDispatch("__set", out var _, this, index, value))
                     return;
 
                 ObjectValue.Values[index] = value;
@@ -389,10 +389,7 @@ namespace Mond
             ObjectValue.Locked = true;
         }
 
-        public bool IsLocked
-        {
-            get { return Type == MondValueType.Object && ObjectValue.Locked; }
-        }
+        public bool IsLocked => Type == MondValueType.Object && ObjectValue.Locked;
 
         public void EnableThis()
         {
@@ -432,16 +429,16 @@ namespace Mond
             if (Type != MondValueType.Array)
                 throw new MondRuntimeException("Slices can only be created from arrays");
 
-            Func<MondValue, int, int> toIntOrDefault = (value, defaultValue) =>
+            int ToIntOrDefault(MondValue value, int defaultValue)
             {
                 if (value == null || !value)
                     return defaultValue;
 
                 return (int)value;
-            };
+            }
 
             // get start value
-            var startIndex = toIntOrDefault(start, 0);
+            var startIndex = ToIntOrDefault(start, 0);
 
             if (startIndex < 0)
                 startIndex += ArrayValue.Count;
@@ -450,7 +447,7 @@ namespace Mond
                 throw new MondRuntimeException("Slice start index out of bounds");
 
             // get end value
-            var endIndex = toIntOrDefault(end, Math.Max(0, ArrayValue.Count - 1));
+            var endIndex = ToIntOrDefault(end, Math.Max(0, ArrayValue.Count - 1));
 
             if (endIndex < 0)
                 endIndex += ArrayValue.Count;
@@ -459,7 +456,7 @@ namespace Mond
                 throw new MondRuntimeException("Slice end index out of bounds");
 
             // get step value
-            var stepValue = toIntOrDefault(step, startIndex <= endIndex ? 1 : -1);
+            var stepValue = ToIntOrDefault(step, startIndex <= endIndex ? 1 : -1);
 
             if (stepValue == 0)
                 throw new MondRuntimeException("Slice step value must be non-zero");

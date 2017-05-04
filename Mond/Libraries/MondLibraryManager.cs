@@ -35,7 +35,7 @@ namespace Mond.Libraries
         public MondLibraryManager Configure(Action<MondLibraryCollection> configAction)
         {
             if (configAction == null)
-                throw new ArgumentNullException("configAction");
+                throw new ArgumentNullException(nameof(configAction));
 
             if (_locked)
                 throw new InvalidOperationException(LockedError);
@@ -60,7 +60,7 @@ namespace Mond.Libraries
             _locked = true;
 
             if (state == null)
-                throw new ArgumentNullException("state");
+                throw new ArgumentNullException(nameof(state));
 
             var definitionNames = new HashSet<string>();
 
@@ -136,7 +136,7 @@ namespace Mond.Libraries
         public void Add(IMondLibraryCollection item)
         {
             if (item == null)
-                throw new ArgumentNullException("item");
+                throw new ArgumentNullException(nameof(item));
 
             if (_locked)
                 throw new InvalidOperationException(LockedError);

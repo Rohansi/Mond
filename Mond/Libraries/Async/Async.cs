@@ -14,7 +14,7 @@ namespace Mond.Libraries.Async
         private readonly TaskFactory _factory;
         private int _activeTasks;
 
-        private Queue<Exception> _exceptions;
+        private readonly Queue<Exception> _exceptions;
 
         private AsyncClass()
         {

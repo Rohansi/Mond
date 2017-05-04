@@ -53,8 +53,7 @@ namespace Mond
                     return !double.IsNaN(value._numberValue);
 
                 case MondValueType.Object:
-                    MondValue result;
-                    if (value.TryDispatch("__bool", out result, value))
+                    if (value.TryDispatch("__bool", out var result, value))
                     {
                         if (result.Type != MondValueType.True && result.Type != MondValueType.False)
                             throw new MondRuntimeException(RuntimeError.BoolCastWrongType);

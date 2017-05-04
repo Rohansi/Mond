@@ -353,11 +353,7 @@ namespace Mond
                     parser.ParseStatement()
                 });
 
-                var sourceCode = lexer.SourceCode;
-
-                if (sourceCode != null)
-                    sourceCode = sourceCode.TrimStart('\r', '\n');
-
+                var sourceCode = lexer.SourceCode?.TrimStart('\r', '\n');
                 yield return CompileImpl(expression, options, sourceCode);
             }
         }

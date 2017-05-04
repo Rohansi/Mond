@@ -31,7 +31,7 @@ namespace Mond.Binding
                 case MethodType.Property:
                     {
                         if (string.IsNullOrEmpty(nameOverride))
-                            throw new ArgumentNullException("nameOverride");
+                            throw new ArgumentNullException(nameof(nameOverride));
 
                         return new List<MethodTable>
                         {

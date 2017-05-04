@@ -17,7 +17,7 @@ namespace Mond.Binding
             }
         }
 
-        private static Dictionary<Type, OperatorModuleBinding> _cache = new Dictionary<Type, OperatorModuleBinding>();
+        private static readonly Dictionary<Type, OperatorModuleBinding> Cache = new Dictionary<Type, OperatorModuleBinding>();
 
         public static void Bind<T>(MondState state)
         {
@@ -27,12 +27,12 @@ namespace Mond.Binding
         public static void Bind(Type type, MondState state)
         {
             if (state == null)
-                throw new ArgumentNullException("state");
+                throw new ArgumentNullException(nameof(state));
 
             OperatorModuleBinding binding;
 
-            lock (_cache)
-                _cache.TryGetValue(type, out binding);
+            lock (Cache)
+                Cache.TryGetValue(type, out binding);
 
             if (binding == null)
             {
@@ -45,8 +45,8 @@ namespace Mond.Binding
                 var boundMethods = MondFunctionBinder.BindStatic(type.Name, methods, MondFunctionBinder.MethodType.Operator);
                 binding = new OperatorModuleBinding(boundMethods.ToDictionary(t => t.Item1, t => t.Item2));
 
-                lock (_cache)
-                    _cache[type] = binding;
+                lock (Cache)
+                    Cache[type] = binding;
             }
 
             var opsObject = state["__ops"];
