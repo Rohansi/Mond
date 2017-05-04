@@ -34,18 +34,18 @@ Async.runToCompletion();
 ```
 
 ### Install
-Mond is currently available on NuGet as a *prerelease* version. To install it, use the following command in the Package Manager Console.
+Mond is available on NuGet. To install it, use the following command in the Package Manager Console.
 ```
-PM> Install-Package Mond -Pre
+PM> Install-Package Mond
 ```
 
 The remote debugger is also available on NuGet.
 ```
-PM> Install-Package Mond.RemoteDebugger -Pre
+PM> Install-Package Mond.RemoteDebugger
 ```
 
 ### Documentation
-Please check the [wiki](https://github.com/Rohansi/Mond/wiki) for documentation. If you have any questions, try asking someone on [Gitter](https://gitter.im/Rohansi/Mond).
+Please check the [wiki](https://github.com/Rohansi/Mond/wiki) for documentation.
 
 
 ### Build Status
