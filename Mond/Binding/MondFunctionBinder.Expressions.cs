@@ -14,6 +14,7 @@ namespace Mond.Binding
         /// Creates the function call needed for a function binding.
         /// </summary>
         private delegate Expression BindCallFactory(
+            string errorPrefix,
             Method method,
             List<ParameterExpression> parameters,
             List<Expression> arguments,
@@ -25,6 +26,8 @@ namespace Mond.Binding
             bool instanceFunction,
             BindCallFactory callFactory)
         {
+            var errorPrefix = BindingError.ErrorPrefix(moduleName, methodTable.Name);
+
             var parameters = new List<ParameterExpression>
             {
                 Expression.Parameter(typeof(MondState), "state"),
@@ -43,7 +46,7 @@ namespace Mond.Binding
 
             for (var i = 0; i < methodTable.Methods.Count; i++)
             {
-                var dispatches = BuildDispatchExpression(methodTable.Methods[i], i, parameters, instanceFunction, returnLabel, callFactory);
+                var dispatches = BuildDispatchExpression(errorPrefix, methodTable.Methods[i], i, parameters, instanceFunction, returnLabel, callFactory);
 
                 if (dispatches.Count == 0)
                     continue;
@@ -57,7 +60,7 @@ namespace Mond.Binding
 
             foreach (var group in methodTable.ParamsMethods.GroupBy(p => p.RequiredMondParameterCount))
             {
-                var dispatches = BuildDispatchExpression(group, int.MaxValue, parameters, instanceFunction, returnLabel, callFactory);
+                var dispatches = BuildDispatchExpression(errorPrefix, group, int.MaxValue, parameters, instanceFunction, returnLabel, callFactory);
                 var requiredArgCount = Expression.Constant(group.Key);
                 var argLengthAtLeast = Expression.GreaterThanOrEqual(argumentsLength, requiredArgCount);
                 var argBranch = Expression.IfThen(argLengthAtLeast, Expression.Block(dispatches));
@@ -65,7 +68,6 @@ namespace Mond.Binding
                 statements.Add(argBranch);
             }
 
-            var errorPrefix = BindingError.ErrorPrefix(moduleName, methodTable.Name);
             statements.Add(ThrowParameterTypeError(errorPrefix, methodTable));
 
             statements.Add(Expression.Label(returnLabel, Expression.Default(typeof(TReturn))));
@@ -75,6 +77,7 @@ namespace Mond.Binding
         }
 
         private static List<Expression> BuildDispatchExpression(
+            string errorPrefix,
             IEnumerable<Method> methods,
             int checkedArguments,
             List<ParameterExpression> parameters,
@@ -135,7 +138,7 @@ namespace Mond.Binding
                     }
                 }
 
-                var callExpression = callFactory(method, parameters, arguments, returnLabel);
+                var callExpression = callFactory(errorPrefix, method, parameters, arguments, returnLabel);
 
                 result.Add(Expression.IfThen(typeCondition, callExpression));
             }
@@ -169,20 +172,17 @@ namespace Mond.Binding
 
         private static Expression ThrowParameterTypeError(string errorPrefix, MethodTable methodTable)
         {
-            var constructor = typeof(MondRuntimeException).GetConstructor(new[] { typeof(string) });
-            if (constructor == null)
-                throw new MondBindingException("Could not find MondRuntimeException constructor");
-
             var parameterTypeError = typeof(BindingError).GetMethod("ParameterTypeError", BindingFlags.Public | BindingFlags.Static);
             var errorString = Expression.Call(parameterTypeError, Expression.Constant(errorPrefix), Expression.Constant(methodTable));
 
-            return Expression.Throw(Expression.New(constructor, errorString));
+            return Expression.Throw(Expression.New(RuntimeExceptionConstructor, errorString));
         }
 
         /// <summary>
         /// Creates the function call for normal function calls. Should be used through BindCallFactory.
         /// </summary>
         private static Expression BindFunctionCall(
+            string errorPrefix,
             Method method,
             Type instanceType,
             bool instanceFunction,
@@ -191,25 +191,30 @@ namespace Mond.Binding
             LabelTarget returnLabel)
         {
             var returnType = ((MethodInfo)method.Info).ReturnType;
+            var expressions = new List<Expression>();
 
             Expression callExpr;
-
             if (instanceFunction && instanceType != null)
             {
                 // instance functions store the instance in UserData
-                var userData = Expression.Convert(Expression.PropertyOrField(parameters[1], "UserData"), instanceType);
-                callExpr = Expression.Call(userData, (MethodInfo)method.Info, arguments);
+                var userData = Expression.PropertyOrField(parameters[1], "UserData");
+
+                var throwExpr = Expression.Throw(Expression.New(RuntimeExceptionConstructor,
+                    Expression.Constant(errorPrefix + BindingError.RequiresInstance)));
+
+                expressions.Add(Expression.IfThen(Expression.ReferenceEqual(userData, Expression.Constant(null)), throwExpr));
+
+                var userDataCasted = Expression.Convert(userData, instanceType);
+                callExpr = Expression.Call(userDataCasted, (MethodInfo)method.Info, arguments);
             }
             else
             {
                 callExpr = Expression.Call((MethodInfo)method.Info, arguments);
             }
 
-            var expressions = new List<Expression>();
-
             if (returnType != typeof(void))
             {
-                expressions.Add(Expression.Return(returnLabel, method.ReturnConversion(callExpr)));
+                expressions.Add(Expression.Return(returnLabel, method.ReturnConversion(parameters[0], callExpr)));
             }
             else
             {
@@ -242,17 +247,17 @@ namespace Mond.Binding
         }
 
         // T -> MondValue
-        internal static Func<Expression, Expression> MakeReturnConversion(Type returnType)
+        internal static ReturnConverter MakeReturnConversion(Type returnType)
         {
             if (returnType == typeof(void))
-                return v => throw new MondBindingException("Expression binder should not use void return conversion");
+                return (s, v) => throw new MondBindingException("Expression binder should not use void return conversion");
 
             if (returnType == typeof(MondValue))
-                return v => Expression.Coalesce(v, Expression.Constant(MondValue.Null));
+                return (s, v) => Expression.Coalesce(v, Expression.Constant(MondValue.Null));
 
             if (returnType == typeof(string))
             {
-                return v =>
+                return (s, v) =>
                 {
                     var tempVar = Expression.Variable(typeof(string));
 
@@ -270,15 +275,15 @@ namespace Mond.Binding
             }
 
             if (BasicTypes.Contains(returnType))
-                return v => Expression.Convert(v, typeof(MondValue));
+                return (s, v) => Expression.Convert(v, typeof(MondValue));
 
             if (NumberTypes.Contains(returnType))
-                return v => Expression.Convert(Expression.Convert(v, typeof(double)), typeof(MondValue));
+                return (s, v) => Expression.Convert(Expression.Convert(v, typeof(double)), typeof(MondValue));
 
             var classAttrib = returnType.Attribute<MondClassAttribute>();
             if (classAttrib != null && classAttrib.AllowReturn)
             {
-                var valueCtor = typeof(MondValue).GetConstructor(new[] { typeof(MondValueType) });
+                var valueCtor = typeof(MondValue).GetConstructor(new[] { typeof(MondState) });
 
                 if (valueCtor == null)
                     throw new Exception("Could not find MondValue constructor");
@@ -286,13 +291,13 @@ namespace Mond.Binding
                 MondValue prototype;
                 MondClassBinder.Bind(returnType, out prototype);
 
-                return v =>
+                return (s, v) =>
                 {
                     var obj = Expression.Variable(typeof(MondValue));
 
                     return Expression.Block(
                         new [] { obj },
-                        Expression.Assign(obj, Expression.New(valueCtor, Expression.Constant(MondValueType.Object))),
+                        Expression.Assign(obj, Expression.New(valueCtor, s)),
                         Expression.Assign(Expression.PropertyOrField(obj, "Prototype"), Expression.Constant(prototype, typeof(MondValue))),
                         Expression.Assign(Expression.PropertyOrField(obj, "UserData"), v),
                         obj

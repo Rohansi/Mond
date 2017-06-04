@@ -16,6 +16,8 @@ namespace Mond.Binding
 
         public const string NameIsntValidOperator = "'{0}' is not a valid operator name";
 
+        public const string RequiresInstance = "Must be called on an instance";
+
         public static string MethodsHiddenError(IEnumerable<MethodBase> methods)
         {
             var sb = new StringBuilder();

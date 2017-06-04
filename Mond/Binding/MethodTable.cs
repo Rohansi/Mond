@@ -25,6 +25,12 @@ namespace Mond.Binding
         }
     }
 
+#if !NO_EXPRESSIONS
+    internal delegate Expression ReturnConverter(Expression state, Expression value);
+#else
+    internal delegate MondValue ReturnConverter(MondState state, object value);
+#endif
+
     internal class Method : IComparable<Method>
     {
         public MethodBase Info { get; }
@@ -38,12 +44,8 @@ namespace Mond.Binding
         public List<Parameter> ValueParameters { get; }
 
         public bool HasParams { get; }
-
-#if !NO_EXPRESSIONS
-        public Func<Expression, Expression> ReturnConversion { get; }
-#else
-        public Func<object, MondValue> ReturnConversion { get; }
-#endif
+        
+        public ReturnConverter ReturnConversion { get; }
 
         public Method(string name, MethodBase info)
         {

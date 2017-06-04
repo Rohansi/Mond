@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace Mond.Binding
 {
@@ -8,6 +9,8 @@ namespace Mond.Binding
         internal static readonly Dictionary<Type, MondValueType[]> TypeCheckMap;
         internal static readonly HashSet<Type> BasicTypes;
         internal static readonly HashSet<Type> NumberTypes;
+        
+        private static readonly ConstructorInfo RuntimeExceptionConstructor;
 
         static MondFunctionBinder()
         {
@@ -49,6 +52,12 @@ namespace Mond.Binding
                 typeof(sbyte),
                 typeof(byte),
             };
+
+            var constructor = typeof(MondRuntimeException).GetConstructor(new[] { typeof(string) });
+            if (constructor == null)
+                throw new MondBindingException("Could not find MondRuntimeException constructor");
+
+            RuntimeExceptionConstructor = constructor;
         }
     }
 }

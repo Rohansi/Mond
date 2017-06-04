@@ -42,7 +42,7 @@ namespace Mond.Binding
             foreach (var table in methodTables)
             {
 #if !NO_EXPRESSIONS
-                BindCallFactory callFactory = (m, p, a, r) => BindFunctionCall(m, null, false, p, a, r);
+                BindCallFactory callFactory = (e, m, p, a, r) => BindFunctionCall(e, m, null, false, p, a, r);
                 yield return Tuple.Create(table.Name, BindImpl<MondFunction, MondValue>(moduleName, table, false, callFactory));
 #else
                 yield return Tuple.Create(table.Name, BindImpl(moduleName, table, nameOverride));
@@ -71,7 +71,7 @@ namespace Mond.Binding
             foreach (var table in methodTables)
             {
 #if !NO_EXPRESSIONS
-                BindCallFactory callFactory = (m, p, a, r) => BindFunctionCall(m, type, true, p, a, r);
+                BindCallFactory callFactory = (e, m, p, a, r) => BindFunctionCall(e, m, type, true, p, a, r);
                 yield return Tuple.Create(table.Name, BindImpl<MondInstanceFunction, MondValue>(className, table, true, callFactory));
 #else
                 yield return Tuple.Create(table.Name, BindInstanceImpl(className, table, nameOverride, type == null));
@@ -93,7 +93,7 @@ namespace Mond.Binding
                 return null;
 
 #if !NO_EXPRESSIONS
-            BindCallFactory callFactory = (m, p, a, r) => BindConstructorCall(m, a, r);
+            BindCallFactory callFactory = (e, m, p, a, r) => BindConstructorCall(m, a, r);
             return BindImpl<MondConstructor, object>(className, methodTable, true, callFactory);
 #else
             return BindConstructorImpl(className, methodTable);

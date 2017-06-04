@@ -17,10 +17,10 @@ namespace Mond.Binding
             return (state, args) =>
             {
                 MethodBase function;
-                Func<object, MondValue> returnConversion;
+                ReturnConverter returnConversion;
                 var parameters = BuildParameterArray(errorPrefix, method, state, null, args, out function, out returnConversion);
 
-                return returnConversion(Call(() => function.Invoke(null, parameters)));
+                return returnConversion(state, Call(() => function.Invoke(null, parameters)));
             };
         }
 
@@ -33,21 +33,25 @@ namespace Mond.Binding
                 return (state, instance, args) =>
                 {
                     MethodBase function;
-                    Func<object, MondValue> returnConversion;
+                    ReturnConverter returnConversion;
                     var parameters = BuildParameterArray(errorPrefix, method, state, instance, args, out function, out returnConversion);
 
                     var classInstance = instance.UserData;
-                    return returnConversion(Call(() => function.Invoke(classInstance, parameters)));
+
+                    if (ReferenceEquals(classInstance, null))
+                        throw new MondRuntimeException(errorPrefix + BindingError.RequiresInstance);
+
+                    return returnConversion(state, Call(() => function.Invoke(classInstance, parameters)));
                 };
             }
 
             return (state, instance, args) =>
             {
                 MethodBase function;
-                Func<object, MondValue> returnConversion;
+                ReturnConverter returnConversion;
                 var parameters = BuildParameterArray(errorPrefix, method, state, instance, args, out function, out returnConversion);
 
-                return returnConversion(Call(() => function.Invoke(null, parameters)));
+                return returnConversion(state, Call(() => function.Invoke(null, parameters)));
             };
         }
 
@@ -58,7 +62,7 @@ namespace Mond.Binding
             return (state, instance, args) =>
             {
                 MethodBase constructor;
-                Func<object, MondValue> returnConversion;
+                ReturnConverter returnConversion;
                 var parameters = BuildParameterArray(errorPrefix, method, state, instance, args, out constructor, out returnConversion);
 
                 return Call(() => ((ConstructorInfo)constructor).Invoke(parameters));
@@ -88,7 +92,7 @@ namespace Mond.Binding
             MondValue instance,
             MondValue[] args,
             out MethodBase methodBase,
-            out Func<object, MondValue> returnConversion)
+            out ReturnConverter returnConversion)
         {
             Method method = null;
 
@@ -213,22 +217,22 @@ namespace Mond.Binding
             return null;
         }
 
-        internal static Func<object, MondValue> MakeReturnConversion(Type returnType)
+        internal static ReturnConverter MakeReturnConversion(Type returnType)
         {
             if (returnType == typeof(void))
-                return o => MondValue.Undefined;
+                return (s, o) => MondValue.Undefined;
 
             if (returnType == typeof(MondValue))
-                return o => ReferenceEquals(o, null) ? MondValue.Null : (MondValue)o;
+                return (s, o) => ReferenceEquals(o, null) ? MondValue.Null : (MondValue)o;
 
             if (returnType == typeof(string))
-                return o => ReferenceEquals(o, null) ? MondValue.Null : (MondValue)(string)o;
+                return (s, o) => ReferenceEquals(o, null) ? MondValue.Null : (MondValue)(string)o;
 
             if (returnType == typeof(bool))
-                return o => (bool)o;
+                return (s, o) => (bool)o;
 
             if (NumberTypes.Contains(returnType))
-                return o => Convert.ToDouble(o);
+                return (s, o) => Convert.ToDouble(o);
 
             var classAttrib = returnType.Attribute<MondClassAttribute>();
             if (classAttrib != null && classAttrib.AllowReturn)
@@ -236,9 +240,9 @@ namespace Mond.Binding
                 MondValue prototype;
                 MondClassBinder.Bind(returnType, out prototype);
 
-                return o =>
+                return (s, o) =>
                 {
-                    var obj = new MondValue(MondValueType.Object);
+                    var obj = new MondValue(s);
                     obj.Prototype = prototype;
                     obj.UserData = o;
                     return obj;
