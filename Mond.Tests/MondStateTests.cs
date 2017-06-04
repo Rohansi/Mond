@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using System;
 
 namespace Mond.Tests
 {
@@ -56,6 +57,31 @@ namespace Mond.Tests
             ");
 
             Assert.True(result == 123);
+        }
+
+        [Test]
+        [TestCase("runtime", false)]
+        [TestCase("generic", false)]
+        [TestCase("indirect", true)]
+        public void NativeTransitions(string testName, bool hasNativeTransition)
+        {
+            var state = new MondState();
+
+            state["runtimeEx"] = new MondValue((_, args) => { throw new MondRuntimeException("runtime"); });
+            state["genericEx"] = new MondValue((_, args) => { throw new Exception("generic"); });
+            state["call"] = new MondValue((_, args) => state.Call(args[0]));
+
+            const string programTemplate = @"
+                return {{
+                    runtime: () -> global.runtimeEx(),
+                    generic: () -> global.genericEx(),
+                    indirect: () -> global.call(() -> global.runtimeEx())
+                }}.{0}();
+            ";
+
+            var program = string.Format(programTemplate, testName);
+            var exception = Assert.Throws<MondRuntimeException>(() => state.Run(program));
+            Assert.AreEqual(hasNativeTransition, exception.ToString().Contains("[... native ...]"), testName);
         }
     }
 }

@@ -176,7 +176,7 @@ namespace Mond
                 if (Type == MondValueType.Object)
                 {
                     if (ObjectValue.Values.TryGetValue(index, out indexValue))
-                        return CheckWrapFunction(indexValue, ObjectValue.ThisEnabled);
+                        return CheckWrapFunction(indexValue);
                 }
 
                 var i = 0;
@@ -191,7 +191,7 @@ namespace Mond
 
                     var currentObjValue = currentValue.ObjectValue;
                     if (currentObjValue.Values.TryGetValue(index, out indexValue))
-                        return CheckWrapFunction(indexValue, currentObjValue.ThisEnabled);
+                        return CheckWrapFunction(indexValue);
 
                     prototype = currentValue.Prototype;
                     i++;
@@ -203,7 +203,7 @@ namespace Mond
                 if (Type == MondValueType.Object)
                 {
                     if (TryDispatch("__get", out indexValue, this, index))
-                        return CheckWrapFunction(indexValue, ObjectValue.ThisEnabled);
+                        return CheckWrapFunction(indexValue);
                 }
 
                 return Undefined;
@@ -390,17 +390,6 @@ namespace Mond
         }
 
         public bool IsLocked => Type == MondValueType.Object && ObjectValue.Locked;
-
-        public void EnableThis()
-        {
-            if (Type != MondValueType.Object)
-                throw new MondRuntimeException("Cannot enable this on non-object");
-
-            if (ObjectValue.Locked)
-                throw new MondRuntimeException(RuntimeError.ObjectIsLocked);
-
-            ObjectValue.ThisEnabled = true;
-        }
 
         public bool Contains(MondValue search)
         {
@@ -615,40 +604,18 @@ namespace Mond
             }
         }
 
-        private MondValue CheckWrapFunction(MondValue value, bool thisEnabled)
+        private MondValue CheckWrapFunction(MondValue value)
         {
             if (value.Type != MondValueType.Function)
                 return value;
 
-            switch (value.FunctionValue.Type)
-            {
-                case ClosureType.Mond:
-                {
-                    if (!thisEnabled)
-                        break;
+            var funcValue = value.FunctionValue;
+            if (funcValue.Type != ClosureType.InstanceNative)
+                return value;
 
-                    var func = value;
-                    var inst = this;
-                    return new MondValue((state, args) =>
-                    {
-                        // insert "this" value into argument array
-                        System.Array.Resize(ref args, args.Length + 1);
-                        System.Array.Copy(args, 0, args, 1, args.Length - 1);
-                        args[0] = inst;
-
-                        return state.Call(func, args);
-                    });
-                }
-
-                case ClosureType.InstanceNative:
-                {
-                    var func = value.FunctionValue.InstanceNativeFunction;
-                    var inst = this;
-                    return new MondValue((state, args) => func(state, inst, args));
-                }
-            }
-            
-            return value;
+            var func = funcValue.InstanceNativeFunction;
+            var inst = this;
+            return new MondValue((state, args) => func(state, inst, args));
         }
         
         internal bool TryDispatch(string name, out MondValue result, params MondValue[] args)
@@ -675,7 +642,7 @@ namespace Mond
                     state = current.ObjectValue.State;
 
                     // and we need to wrap functions if needed
-                    callable = CheckWrapFunction(callable, current.ObjectValue.ThisEnabled);
+                    callable = CheckWrapFunction(callable);
                     break;
                 }
 

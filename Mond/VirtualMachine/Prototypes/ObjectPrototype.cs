@@ -182,21 +182,6 @@ namespace Mond.VirtualMachine.Prototypes
             return instance;
         }
 
-        /// <summary>
-        /// enableThis(): object
-        /// </summary>
-        [MondFunction("enableThis")]
-        public static MondValue EnableThis([MondInstance] MondValue instance)
-        {
-            EnsureObject("enableThis", instance);
-
-            if (instance.ObjectValue.Locked)
-                throw new MondRuntimeException(LockedError, "enableThis");
-
-            instance.EnableThis();
-            return instance;
-        }
-
         private static void EnsureObject(string methodName, MondValue instance)
         {
             if (instance.Type != MondValueType.Object)

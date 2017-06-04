@@ -1,5 +1,4 @@
-﻿using System;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 
 namespace Mond.Tests.Expressions
 {
@@ -138,46 +137,6 @@ namespace Mond.Tests.Expressions
             ");
 
             Assert.True(result == 15);
-        }
-
-        [Test]
-        public void EnableThis()
-        {
-            var result = Script.Run(@"
-                var obj = {
-                    method: fun (this) -> this
-                }.enableThis();
-
-                var method = obj.method;
-                return method() == obj;
-            ");
-
-            Assert.True(result == MondValue.True);
-        }
-
-        [Test]
-        [TestCase("runtime", false)]
-        [TestCase("generic", false)]
-        [TestCase("indirect", true)]
-        public void EnableThisStackTrace(string testName, bool hasNativeTransition)
-        {
-            var state = new MondState();
-
-            state["runtimeEx"] = new MondValue((_, args) => { throw new MondRuntimeException("runtime"); });
-            state["genericEx"] = new MondValue((_, args) => { throw new Exception("generic"); });
-            state["call"] = new MondValue((_, args) => state.Call(args[0]));
-
-            const string programTemplate = @"
-                return {{
-                    runtime: () -> global.runtimeEx(),
-                    generic: () -> global.genericEx(),
-                    indirect: () -> global.call(() -> global.runtimeEx())
-                }}.enableThis().{0}();
-            ";
-
-            var program = string.Format(programTemplate, testName);
-            var exception = Assert.Throws<MondRuntimeException>(() => state.Run(program));
-            Assert.AreEqual(hasNativeTransition, exception.ToString().Contains("[... native ...]"), testName);
         }
     }
 }
