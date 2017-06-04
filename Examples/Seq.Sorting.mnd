@@ -1,0 +1,150 @@
+fun defaultComparer(x, y) -> x == y ?  0 :
+                             x <  y ? -1 : 1;
+
+fun reverseComparer(forwardComparer) {
+    return (x, y) -> forwardComparer(y, x);
+}
+
+fun compositeKeyComparer(primaryComparer, secondaryComparer) {
+    return (x, y) -> {
+        var primaryResult = primaryComparer(x.primary, y.primary);
+
+        if (primaryResult != 0)
+            return primaryResult;
+
+        return secondaryComparer(x.secondary, y.secondary);
+    };
+}
+
+fun Stack() {
+    var data = [];
+
+    const this = {
+        push: fun (value) {
+            data.add(value);
+        },
+
+        pop: fun () {
+            var index = data.length() - 1;
+            var result = data[index];
+            data.removeAt(index);
+            return result;
+        },
+
+        length: data.length
+    }.setPrototypeAndLock(null);
+
+    return this;
+}
+
+fun OrderedEnumerable(source, compositeSelector, compositeComparer) {
+    fun partition(indexes, keys, left, right, pivot) {
+        var pivotIndex = indexes[pivot];
+        var pivotKey = keys[pivotIndex];
+
+        indexes[pivot] = indexes[right];
+        indexes[right] = pivotIndex;
+
+        var storeIndex = left;
+
+        for (var i = left; i < right; i++) {
+            var candidateIndex = indexes[i];
+            var candidateKey = keys[candidateIndex];
+            var comparison = compositeComparer(candidateKey, pivotKey);
+
+            if (comparison < 0 || (comparison == 0 && candidateIndex < pivotIndex)) {
+                indexes[i] = indexes[storeIndex];
+                indexes[storeIndex] = candidateIndex;
+                storeIndex++;
+            }
+        }
+
+        var tmp = indexes[storeIndex];
+        indexes[storeIndex] = indexes[right];
+        indexes[right] = tmp;
+        return storeIndex;
+    }
+
+    const this = {
+        createOrderedEnumerable: fun (keySelector, comparer, descending) {
+            comparer = comparer || defaultComparer;
+
+            if (descending)
+                comparer = reverseComparer(comparer);
+
+            var newKeySelector = element -> ({
+                primary: compositeSelector(element),
+                secondary: keySelector(element)
+            });
+
+            var newKeyComparer = compositeKeyComparer(compositeComparer, comparer);
+
+            return OrderedEnumerable(source, newKeySelector, newKeyComparer);
+        },
+
+        getEnumerator: seq () {
+            var data = [];
+            var indexes = [];
+            var keys = [];
+
+            var i = 0;
+            foreach (var e in source) {
+                data.add(e);
+                indexes.add(i++);
+                keys.add(compositeSelector(e));
+            }
+
+            var nextYield = 0;
+
+            var stack = Stack();
+            stack.push({ left: 0, right: data.length() - 1 });
+
+            while (stack.length() > 0) {
+                var leftRight = stack.pop();
+                var left = leftRight.left;
+                var right = leftRight.right;
+
+                if (right > left) {
+                    var pivot = left + (right - left) / 2;
+                    var pivotPosition = partition(indexes, keys, left, right, pivot);
+
+                    stack.push({ left: pivotPosition + 1, right });
+                    stack.push({ left, right: pivotPosition - 1 });
+                } else {
+                    while (nextYield <= right) {
+                        yield data[indexes[nextYield]];
+                        nextYield++;
+                    }
+                }
+            }
+        }
+    }.setPrototypeAndLock(null);
+
+    return this;
+}
+
+const Seq = {
+    orderBy: fun (source, keySelector) {
+        return OrderedEnumerable(source, keySelector, defaultComparer);
+    },
+
+    orderByDescending: fun (source, keySelector) {
+        return OrderedEnumerable(source, keySelector, reverseComparer(defaultComparer));
+    },
+
+    thenBy: fun (source, keySelector) {
+        if (!source.createOrderedEnumerable)
+            error("Seq.thenBy: must be called after an orderBy");
+
+        return source.createOrderedEnumerable(keySelector, defaultComparer, false);
+    },
+
+    thenByDescending: fun (source, keySelector) {
+        if (!source.createOrderedEnumerable)
+            error("Seq.thenByDescending: must be called after an orderBy");
+
+        return source.createOrderedEnumerable(keySelector, defaultComparer, true);
+    }
+};
+
+return Seq;

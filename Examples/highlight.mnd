@@ -169,6 +169,8 @@ seq tokenize(input) {
         }
         
         var ch = peekChar();
+        if (ch == "")
+            break;
         
         // operators
         var opList = tokenizerOperators.get(ch);

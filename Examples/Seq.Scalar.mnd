@@ -1,0 +1,215 @@
+const Seq = {
+    count: fun (source, predicate) {
+        var value = 0;
+
+        if (predicate) {
+            foreach (var e in source) {
+                if (predicate(e))
+                    value++;
+            }
+
+            return value;
+        } else {
+            if (source.getType) {
+                var type = source.getType();
+
+                if (type == "array" || type == "object" || type == "string")
+                    return source.length();
+            }
+
+            foreach (var e in source) {
+                value++;
+            }
+
+            return value;
+        }
+    },
+
+    any: fun (source, predicate) {
+        if (predicate) {
+            foreach (var e in source) {
+                if (predicate(e))
+                    return true;
+            }
+        } else {
+            foreach (var e in source) {
+                return true;
+            }
+        }
+
+        return false;
+    },
+
+    all: fun (source, predicate) {
+        foreach (var e in source) {
+            if (!predicate(e))
+                return false;
+        }
+
+        return true;
+    },
+
+    first: fun (source, predicate) {
+        if (predicate) {
+            foreach (var e in source) {
+                if (predicate(e))
+                    return e;
+            }
+        } else {
+            foreach (var e in source) {
+                return e;
+            }
+        }
+
+        return undefined;
+    },
+
+    last: fun (source, predicate) {
+        var value = undefined;
+
+        if (predicate) {
+            foreach (var e in source) {
+                if (predicate(e))
+                    value = e;
+            }
+        } else {
+            foreach (var e in source) {
+                value = e;
+            }
+        }
+
+        return value;
+    },
+
+    aggregate: fun (source, seed, func) {
+        var value = seed;
+        foreach (var e in source) {
+            value = func(value, e);
+        }
+        return value;
+    },
+
+    sum: fun (source) {
+        var value = 0;
+        foreach (var e in source) {
+            value += e;
+        }
+        return value;
+    },
+
+    min: fun (source) {
+        var isFirst = true;
+        var value = undefined;
+
+        foreach (var e in source) {
+            if (isFirst) {
+                value = e;
+                isFirst = false;
+                continue;
+            }
+
+            if (value > e)
+                value = e;
+        }
+
+        return value;
+    },
+
+    max: fun (source) {
+        var isFirst = true;
+        var value = undefined;
+
+        foreach (var e in source) {
+            if (isFirst) {
+                value = e;
+                isFirst = false;
+                continue;
+            }
+
+            if (value < e)
+                value = e;
+        }
+
+        return value;
+    },
+
+    average: fun (source) {
+        var n = 0;
+        var total = 0;
+
+        foreach (var e in source) {
+            n++;
+            total += e;
+        }
+
+        return total / n;
+    },
+
+    elementAt: fun (source, index) {
+        if (index < 0)
+            return undefined;
+
+        var sourceEnumerator = source.getEnumerator();
+        var result;
+
+        for (var i = -1; i < index; i++) {
+            if (!sourceEnumerator.moveNext())
+                break;
+        }
+
+        sourceEnumerator.dispose();
+        return sourceEnumerator.current;
+    },
+
+    contains: fun (source, value) {
+        foreach (var e in source) {
+            if (e == value)
+                return true;
+        }
+
+        return false;
+    },
+
+    sequenceEqual: fun (source, second) {
+        var value;
+        var sourceEnumerator = source.getEnumerator();
+        var secondEnumerator = second.getEnumerator();
+
+        while (true) {
+            var firstNext = sourceEnumerator.moveNext();
+            var secondNext = secondEnumerator.moveNext();
+
+            if (firstNext != secondNext) {
+                value = false; // not the same length
+                break;
+            }
+
+            if (!firstNext) {
+                value = true; // completed
+                break;
+            }
+
+            if (sourceEnumerator.current != secondEnumerator.current) {
+                value = false; // found mismatch
+                break;
+            }
+        }
+
+        sourceEnumerator.dispose();
+        secondEnumerator.dispose();
+
+        return value;
+    },
+
+    toArray: fun (source) {
+        var array = [];
+
+        foreach (var e in source) {
+            array.add(e);
+        }
+
+        return array;
+    }
+};
+
+return Seq;
