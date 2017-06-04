@@ -185,6 +185,32 @@ namespace Mond
             throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "exponent", Type.GetName(), right.Type.GetName());
         }
 
+        public MondValue LShift(MondValue right)
+        {
+            if (Type == MondValueType.Object)
+            {
+                if (TryDispatch("__lshift", out var result, this, right))
+                    return result;
+
+                return new MondValue((int)this << (int)right);
+            }
+
+            return this << (int)right;
+        }
+
+        public MondValue RShift(MondValue right)
+        {
+            if (Type == MondValueType.Object)
+            {
+                if (TryDispatch("__rshift", out var result, this, right))
+                    return result;
+
+                return new MondValue((int)this >> (int)right);
+            }
+
+            return this >> (int)right;
+        }
+
         public static MondValue operator <<(MondValue left, int right)
         {
             if (left.Type == MondValueType.Number)

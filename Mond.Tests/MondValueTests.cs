@@ -105,15 +105,37 @@ namespace Mond.Tests
         public void OperatorLShift()
         {
             _left = 10.0;
+            _right = 7.0;
+            Assert.AreEqual(_left.LShift(_right), new MondValue(10 << 7));
+
+            _left = 10.0;
             Assert.AreEqual(_left << 7, new MondValue(10 << 7));
+
+            _left = 123;
+            _right = "abc";
+            Assert.Throws<MondRuntimeException>(() => { _left = _left.LShift(_right); });
+
+            _left = "abc";
+            Assert.Throws<MondRuntimeException>(() => { _left = _left.LShift(_right); });
         }
 
         [Test]
         public void OperatorRShift()
         {
+            _left = 10.0;
+            _right = 2.0;
+            Assert.AreEqual(_left.RShift(_right), new MondValue(10 >> 2));
 
             _left = 10.0;
             Assert.AreEqual(_left >> 2, new MondValue(10 >> 2));
+
+            _left = 123;
+            _right = "abc";
+            Assert.Throws<MondRuntimeException>(() => { _left = _left.RShift(_right); });
+
+            _left = "abc";
+            _right = 2.0;
+            Assert.Throws<MondRuntimeException>(() => { _left = _left.RShift(_right); });
         }
 
         [Test]
