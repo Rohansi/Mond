@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Mond.Debugger;
 using Mond.Libraries;
@@ -14,12 +15,14 @@ namespace Mond
     public class MondState
     {
         private readonly Machine _machine;
+        private readonly Dictionary<string, MondValue> _prototypeCache;
         private MondLibraryManager _libraries;
         private bool _librariesLoaded;
 
         public MondState()
         {
             _machine = new Machine(this);
+            _prototypeCache = new Dictionary<string, MondValue>();
             _librariesLoaded = false;
 
             Options = new MondCompilerOptions();
@@ -141,5 +144,32 @@ namespace Mond
         /// Gets the file name of the currently running script.
         /// </summary>
         public string CurrentScript => _machine.CurrentScript;
+
+        /// <summary>
+        /// Finds the generated prototype for a bound class or module.
+        /// </summary>
+        public MondValue FindPrototype(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentNullException(nameof(name));
+
+            _prototypeCache.TryGetValue(name, out var value);
+            return value;
+        }
+
+        internal bool TryAddPrototype(string name, MondValue value)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentNullException(nameof(name));
+
+            if (value == null || value.Type != MondValueType.Object)
+                throw new ArgumentException("Prototype value must be an object.", nameof(value));
+
+            if (_prototypeCache.ContainsKey(name))
+                return false;
+
+            _prototypeCache.Add(name, value);
+            return true;
+        }
     }
 }

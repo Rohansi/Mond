@@ -18,6 +18,9 @@ namespace Mond.Binding
 
         public const string RequiresInstance = "Must be called on an instance";
 
+        public const string PrototypeNotFound = "Prototype for class '{0}' was not found";
+        public const string DuplicatePrototype = "Prototype for class '{0}' was already found in the given state";
+
         public static string MethodsHiddenError(IEnumerable<MethodBase> methods)
         {
             var sb = new StringBuilder();

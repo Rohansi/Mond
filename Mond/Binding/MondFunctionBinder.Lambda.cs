@@ -20,13 +20,13 @@ namespace Mond.Binding
                 ReturnConverter returnConversion;
                 var parameters = BuildParameterArray(errorPrefix, method, state, null, args, out function, out returnConversion);
 
-                return returnConversion(state, Call(() => function.Invoke(null, parameters)));
+                return returnConversion(errorPrefix, state, Call(() => function.Invoke(null, parameters)));
             };
         }
 
-        private static MondInstanceFunction BindInstanceImpl(string moduleName, MethodTable method, string nameOverride = null, bool fakeInstance = false)
+        private static MondInstanceFunction BindInstanceImpl(string className, MethodTable method, string nameOverride = null, bool fakeInstance = false)
         {
-            var errorPrefix = BindingError.ErrorPrefix(moduleName, nameOverride ?? method.Name);
+            var errorPrefix = BindingError.ErrorPrefix(className, nameOverride ?? method.Name);
 
             if (!fakeInstance)
             {
@@ -41,7 +41,7 @@ namespace Mond.Binding
                     if (ReferenceEquals(classInstance, null))
                         throw new MondRuntimeException(errorPrefix + BindingError.RequiresInstance);
 
-                    return returnConversion(state, Call(() => function.Invoke(classInstance, parameters)));
+                    return returnConversion(errorPrefix, state, Call(() => function.Invoke(classInstance, parameters)));
                 };
             }
 
@@ -51,7 +51,7 @@ namespace Mond.Binding
                 ReturnConverter returnConversion;
                 var parameters = BuildParameterArray(errorPrefix, method, state, instance, args, out function, out returnConversion);
 
-                return returnConversion(state, Call(() => function.Invoke(null, parameters)));
+                return returnConversion(errorPrefix, state, Call(() => function.Invoke(null, parameters)));
             };
         }
 
@@ -220,28 +220,31 @@ namespace Mond.Binding
         internal static ReturnConverter MakeReturnConversion(Type returnType)
         {
             if (returnType == typeof(void))
-                return (s, o) => MondValue.Undefined;
+                return (e, s, o) => MondValue.Undefined;
 
             if (returnType == typeof(MondValue))
-                return (s, o) => ReferenceEquals(o, null) ? MondValue.Null : (MondValue)o;
+                return (e, s, o) => ReferenceEquals(o, null) ? MondValue.Null : (MondValue)o;
 
             if (returnType == typeof(string))
-                return (s, o) => ReferenceEquals(o, null) ? MondValue.Null : (MondValue)(string)o;
+                return (e, s, o) => ReferenceEquals(o, null) ? MondValue.Null : (MondValue)(string)o;
 
             if (returnType == typeof(bool))
-                return (s, o) => (bool)o;
+                return (e, s, o) => (bool)o;
 
             if (NumberTypes.Contains(returnType))
-                return (s, o) => Convert.ToDouble(o);
+                return (e, s, o) => Convert.ToDouble(o);
 
             var classAttrib = returnType.Attribute<MondClassAttribute>();
             if (classAttrib != null && classAttrib.AllowReturn)
             {
-                MondValue prototype;
-                MondClassBinder.Bind(returnType, out prototype);
+                var className = classAttrib.Name ?? returnType.Name;
 
-                return (s, o) =>
+                return (e, s, o) =>
                 {
+                    var prototype = s.FindPrototype(className);
+                    if (prototype == null)
+                        throw new MondRuntimeException(e + string.Format(BindingError.PrototypeNotFound, className));
+
                     var obj = new MondValue(s);
                     obj.Prototype = prototype;
                     obj.UserData = o;

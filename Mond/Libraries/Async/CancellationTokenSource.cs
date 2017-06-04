@@ -28,18 +28,9 @@ namespace Mond.Libraries.Async
         }
 
         [MondFunction("getToken")]
-        public MondValue GetToken()
+        public CancellationTokenClass GetToken()
         {
-            MondClassBinder.Bind<CancellationTokenClass>(out var prototype);
-
-            var instance = new CancellationTokenClass(_cts.Token);
-
-            var obj = new MondValue(MondValueType.Object);
-            obj.UserData = instance;
-            obj.Prototype = prototype;
-            obj.Lock();
-
-            return obj;
+            return new CancellationTokenClass(_cts.Token);
         }
 
         [MondFunction("cancel")]

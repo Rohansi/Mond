@@ -13,7 +13,7 @@ namespace Mond.Tests.Binding
         public void SetUp()
         {
             _state = new MondState();
-            _state["Test"] = MondModuleBinder.Bind<Test>();
+            _state["Test"] = MondModuleBinder.Bind<Test>(_state);
         }
 
         [Test]
@@ -64,7 +64,7 @@ namespace Mond.Tests.Binding
         [Test]
         public void Duplicates()
         {
-            Assert.DoesNotThrow(() => MondModuleBinder.Bind<TestDuplicate>());
+            Assert.DoesNotThrow(() => MondModuleBinder.Bind<TestDuplicate>(_state));
         }
 
         [MondModule]

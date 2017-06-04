@@ -12,7 +12,7 @@ namespace Mond.Tests.Binding
         public void SetUp()
         {
             _state = new MondState();
-            _state["Person"] = MondClassBinder.Bind<Person>();
+            _state["Person"] = MondClassBinder.Bind<Person>(_state);
 
             _state.Run(@"
                 global.brian = global.Person('Brian');
@@ -79,15 +79,15 @@ namespace Mond.Tests.Binding
         {
             Assert.True(_state.Run("return global.brian.test;") == 123);
 
-            Assert.True(MondClassBinder.Bind<NoConstructor>() == null);
+            Assert.True(MondClassBinder.Bind<NoConstructor>(_state) == null);
 
-            Assert.DoesNotThrow(() => MondClassBinder.Bind<MultipleConstructors>());
+            Assert.DoesNotThrow(() => MondClassBinder.Bind<MultipleConstructors>(_state));
         }
 
         [Test]
         public void Duplicates()
         {
-            Assert.DoesNotThrow(() => MondClassBinder.Bind<TestDuplicate>());
+            Assert.DoesNotThrow(() => MondClassBinder.Bind<TestDuplicate>(_state));
         }
 
         [MondClass]

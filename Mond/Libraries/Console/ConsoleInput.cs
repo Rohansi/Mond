@@ -2,15 +2,15 @@
 
 namespace Mond.Libraries.Console
 {
-    [MondClass("")]
+    [MondClass("ConsoleInput")]
     internal class ConsoleInputClass
     {
         private ConsoleInputLibrary _consoleInput;
 
-        public static MondValue Create(ConsoleInputLibrary consoleInput)
+        public static MondValue Create(MondState state, ConsoleInputLibrary consoleInput)
         {
             MondValue prototype;
-            MondClassBinder.Bind<ConsoleInputClass>(out prototype);
+            MondClassBinder.Bind<ConsoleInputClass>(state, out prototype);
 
             var instance = new ConsoleInputClass();
             instance._consoleInput = consoleInput;

@@ -28,7 +28,7 @@ namespace Mond.Binding
 #if !NO_EXPRESSIONS
     internal delegate Expression ReturnConverter(Expression state, Expression value);
 #else
-    internal delegate MondValue ReturnConverter(MondState state, object value);
+    internal delegate MondValue ReturnConverter(string errorPrefix, MondState state, object value);
 #endif
 
     internal class Method : IComparable<Method>

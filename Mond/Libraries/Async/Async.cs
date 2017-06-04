@@ -25,9 +25,9 @@ namespace Mond.Libraries.Async
             _exceptions = new Queue<Exception>();
         }
 
-        public static MondValue Create()
+        public static MondValue Create(MondState state)
         {
-            MondClassBinder.Bind<AsyncClass>(out var prototype);
+            MondClassBinder.Bind<AsyncClass>(state, out var prototype);
 
             var instance = new AsyncClass();
 

@@ -12,17 +12,17 @@ namespace Mond.Binding
         /// <summary>
         /// Generates a MondFunction binding for the given function.
         /// </summary>
-        public static MondFunction Bind(string moduleName, MethodInfo method, string nameOverride = null)
+        public static MondFunction Bind(MethodInfo method, string nameOverride = null)
         {
-            return BindStatic(moduleName, new[] { method }, nameOverride: nameOverride).Single().Item2;
+            return BindStatic(null, new[] { method }, nameOverride: nameOverride).Single().Item2;
         }
 
         /// <summary>
         /// Generates a MondFunction binding for the given functions.
         /// </summary>
-        public static MondFunction Bind(string moduleName, ICollection<MethodInfo> methods, string nameOverride = null)
+        public static MondFunction Bind(ICollection<MethodInfo> methods, string nameOverride = null)
         {
-            return BindStatic(moduleName, methods, nameOverride: nameOverride).Single().Item2;
+            return BindStatic(null, methods, nameOverride: nameOverride).Single().Item2;
         }
 
         /// <summary>

@@ -25,7 +25,7 @@ namespace Mond.Binding
         /// Generates module bindings for T. Returns an object containing the bound methods.
         /// </summary>
         /// <param name="state">Optional state to bind to. Only required if you plan on using metamethods.</param>
-        public static MondValue Bind<T>(MondState state = null)
+        public static MondValue Bind<T>(MondState state)
         {
             return Bind(typeof(T), state);
         }
@@ -35,7 +35,7 @@ namespace Mond.Binding
         /// </summary>
         /// <param name="type"></param>
         /// <param name="state">Optional state to bind to. Only required if you plan on using metamethods.</param>
-        public static MondValue Bind(Type type, MondState state = null)
+        public static MondValue Bind(Type type, MondState state)
         {
             return CopyToObject(BindImpl(type), state);
         }

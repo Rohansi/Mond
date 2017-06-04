@@ -15,11 +15,11 @@ namespace Mond.Libraries
     {
         public IEnumerable<IMondLibrary> Create(MondState state)
         {
-            yield return new ErrorLibrary();
-            yield return new RequireLibrary();
-            yield return new CharLibrary();
-            yield return new MathLibrary();
-            yield return new RandomLibrary();
+            yield return new ErrorLibrary(state);
+            yield return new RequireLibrary(state);
+            yield return new CharLibrary(state);
+            yield return new MathLibrary(state);
+            yield return new RandomLibrary(state);
         }
     }
 
@@ -28,9 +28,13 @@ namespace Mond.Libraries
     /// </summary>
     public class ErrorLibrary : IMondLibrary
     {
+        private readonly MondState _state;
+
+        public ErrorLibrary(MondState state) => _state = state;
+
         public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions()
         {
-            var errorModule = MondModuleBinder.Bind<ErrorModule>();
+            var errorModule = MondModuleBinder.Bind<ErrorModule>(_state);
             yield return new KeyValuePair<string, MondValue>("error", errorModule["error"]);
             yield return new KeyValuePair<string, MondValue>("try", errorModule["try"]);
         }
@@ -42,6 +46,8 @@ namespace Mond.Libraries
     public class RequireLibrary : IMondLibrary
     {
         public delegate string ModuleLoader(string name, IEnumerable<string> searchDirectories);
+
+        private readonly MondState _state;
 
         /// <summary>
         /// The options to use when compiling modules. <c>FirstLineNumber</c> will be set to its proper value.
@@ -68,8 +74,10 @@ namespace Mond.Libraries
         /// </summary>
         public ModuleLoader Loader { get; set; }
 
-        public RequireLibrary()
+        public RequireLibrary(MondState state)
         {
+            _state = state;
+
             Definitions = "\n";
             SearchDirectories = new[] { "." };
             SearchBesideScript = true;
@@ -90,7 +98,7 @@ namespace Mond.Libraries
 
         public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions()
         {
-            var requireClass = RequireClass.Create(this);
+            var requireClass = RequireClass.Create(_state, this);
             yield return new KeyValuePair<string, MondValue>("require", requireClass["require"]);
         }
     }
@@ -100,9 +108,13 @@ namespace Mond.Libraries
     /// </summary>
     public class CharLibrary : IMondLibrary
     {
+        private readonly MondState _state;
+
+        public CharLibrary(MondState state) => _state = state;
+
         public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions()
         {
-            var charModule = MondModuleBinder.Bind<CharModule>();
+            var charModule = MondModuleBinder.Bind<CharModule>(_state);
             yield return new KeyValuePair<string, MondValue>("Char", charModule);
         }
     }
@@ -112,9 +124,13 @@ namespace Mond.Libraries
     /// </summary>
     public class MathLibrary : IMondLibrary
     {
+        private readonly MondState _state;
+
+        public MathLibrary(MondState state) => _state = state;
+
         public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions()
         {
-            var mathModule = MondModuleBinder.Bind<MathModule>();
+            var mathModule = MondModuleBinder.Bind<MathModule>(_state);
 
             mathModule["PI"] = System.Math.PI;
             mathModule["E"] = System.Math.E;
@@ -128,9 +144,13 @@ namespace Mond.Libraries
     /// </summary>
     public class RandomLibrary : IMondLibrary
     {
+        private readonly MondState _state;
+
+        public RandomLibrary(MondState state) => _state = state;
+
         public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions()
         {
-            var randomClass = MondClassBinder.Bind<RandomClass>();
+            var randomClass = MondClassBinder.Bind<RandomClass>(_state);
             yield return new KeyValuePair<string, MondValue>("Random", randomClass);
         }
     }

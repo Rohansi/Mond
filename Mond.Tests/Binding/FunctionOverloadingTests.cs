@@ -12,7 +12,7 @@ namespace Mond.Tests.Binding
         public void SetUp()
         {
             _state = new MondState();
-            _state["Ov"] = MondModuleBinder.Bind<OverloadedModule>();
+            _state["Ov"] = MondModuleBinder.Bind<OverloadedModule>(_state);
         }
 
         [Test]
@@ -46,7 +46,7 @@ namespace Mond.Tests.Binding
         [Test]
         public void HiddenOverloads()
         {
-            Assert.Throws<MondBindingException>(() => MondModuleBinder.Bind<HiddenOverloadsModule>());
+            Assert.Throws<MondBindingException>(() => MondModuleBinder.Bind<HiddenOverloadsModule>(_state));
         }
 
         [MondModule]

@@ -15,6 +15,7 @@ namespace Mond.Tests.Binding
         public void SetUp()
         {
             _state = new MondState();
+            MondClassBinder.Bind<ClassTests.Person>(_state);
 
             var functions = new List<string>
             {
@@ -35,7 +36,7 @@ namespace Mond.Tests.Binding
 
             foreach (var func in functions)
             {
-                _state[func] = MondFunctionBinder.Bind(null, typeof(FunctionTests).GetTypeInfo().GetMethod(func));
+                _state[func] = MondFunctionBinder.Bind(typeof(FunctionTests).GetTypeInfo().GetMethod(func));
             }
         }
 

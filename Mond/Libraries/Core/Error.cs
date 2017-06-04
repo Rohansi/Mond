@@ -3,7 +3,7 @@ using Mond.Binding;
 
 namespace Mond.Libraries.Core
 {
-    [MondModule("")]
+    [MondModule("Error")]
     internal class ErrorModule
     {
         [MondFunction("error")]
