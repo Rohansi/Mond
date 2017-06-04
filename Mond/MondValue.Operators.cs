@@ -100,111 +100,94 @@ namespace Mond
 
         public static MondValue operator +(MondValue left, MondValue right)
         {
-            if (left.Type == MondValueType.Number && right.Type == MondValueType.Number)
-                return new MondValue(left._numberValue + right._numberValue);
-
             if (left.Type == MondValueType.String || right.Type == MondValueType.String)
-            {
-                if (left.TryDispatch("__add", out var result, left, right))
-                    return result;
-
                 return new MondValue(left.ToString() + right.ToString());
-            }
 
-            if (left.Type == MondValueType.Object || right.Type == MondValueType.Object)
-            {
-                if (left.TryDispatch("__add", out var result, left, right))
-                    return result;
+            if (left.Type == MondValueType.Number)
+                return new MondValue(left._numberValue + (double)right);
 
-                return new MondValue((double)left + (double)right);
-            }
+            if (left.TryDispatch("__add", out var result, left, right))
+                return result;
+
+            if (right.Type == MondValueType.Number)
+                return new MondValue((double)left + right._numberValue);
 
             throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "addition", left.Type.GetName(), right.Type.GetName());
         }
 
         public static MondValue operator -(MondValue left, MondValue right)
         {
-            if (left.Type == MondValueType.Number && right.Type == MondValueType.Number)
-                return new MondValue(left._numberValue - right._numberValue);
+            if (left.Type == MondValueType.Number)
+                return new MondValue(left._numberValue - (double)right);
 
-            if (left.Type == MondValueType.Object || right.Type == MondValueType.Object)
-            {
-                if (left.TryDispatch("__sub", out var result, left, right))
-                    return result;
+            if (left.TryDispatch("__sub", out var result, left, right))
+                return result;
 
-                return new MondValue((double)left - (double)right);
-            }
+            if (right.Type == MondValueType.Number)
+                return new MondValue((double)left - right._numberValue);
 
             throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "subtraction", left.Type.GetName(), right.Type.GetName());
         }
 
         public static MondValue operator *(MondValue left, MondValue right)
         {
-            if (left.Type == MondValueType.Number && right.Type == MondValueType.Number)
-                return new MondValue(left._numberValue * right._numberValue);
+            if (left.Type == MondValueType.Number)
+                return new MondValue(left._numberValue * (double)right);
 
-            if (left.Type == MondValueType.Object || right.Type == MondValueType.Object)
-            {
-                if (left.TryDispatch("__mul", out var result, left, right))
-                    return result;
+            if (left.TryDispatch("__mul", out var result, left, right))
+                return result;
 
-                return new MondValue((double)left * (double)right);
-            }
+            if (right.Type == MondValueType.Number)
+                return new MondValue((double)left * right._numberValue);
 
             throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "multiplication", left.Type.GetName(), right.Type.GetName());
         }
 
         public static MondValue operator /(MondValue left, MondValue right)
         {
-            if (left.Type == MondValueType.Number && right.Type == MondValueType.Number)
-                return new MondValue(left._numberValue / right._numberValue);
+            if (left.Type == MondValueType.Number)
+                return new MondValue(left._numberValue / (double)right);
 
-            if (left.Type == MondValueType.Object || right.Type == MondValueType.Object)
-            {
-                if (left.TryDispatch("__div", out var result, left, right))
-                    return result;
+            if (left.TryDispatch("__div", out var result, left, right))
+                return result;
 
-                return new MondValue((double)left / (double)right);
-            }
+            if (right.Type == MondValueType.Number)
+                return new MondValue((double)left / right._numberValue);
 
             throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "division", left.Type.GetName(), right.Type.GetName());
         }
 
         public static MondValue operator %(MondValue left, MondValue right)
         {
-            if (left.Type == MondValueType.Number && right.Type == MondValueType.Number)
-                return new MondValue(left._numberValue % right._numberValue);
+            if (left.Type == MondValueType.Number)
+                return new MondValue(left._numberValue % (double)right);
 
-            if (left.Type == MondValueType.Object || right.Type == MondValueType.Object)
-            {
-                if (left.TryDispatch("__mod", out var result, left, right))
-                    return result;
+            if (left.TryDispatch("__mod", out var result, left, right))
+                return result;
 
-                return new MondValue((double)left % (double)right);
-            }
+            if (right.Type == MondValueType.Number)
+                return new MondValue((double)left % right._numberValue);
 
             throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "modulo", left.Type.GetName(), right.Type.GetName());
         }
 
         public MondValue Pow(MondValue right)
         {
-            if (Type == MondValueType.Number && right.Type == MondValueType.Number)
-                return new MondValue(Math.Pow(_numberValue, right._numberValue));
+            if (Type == MondValueType.Number)
+                return new MondValue(Math.Pow(_numberValue, right));
 
-            if (Type == MondValueType.Object || right.Type == MondValueType.Object)
-            {
-                if (TryDispatch("__pow", out var result, this, right))
-                    return result;
+            if (TryDispatch("__pow", out var result, this, right))
+                return result;
 
-                return new MondValue(Math.Pow(this, right));
-            }
+            if (right.Type == MondValueType.Number)
+                return new MondValue(Math.Pow(this, right._numberValue));
 
             throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "exponent", Type.GetName(), right.Type.GetName());
         }
 
         public MondValue LShift(MondValue right)
         {
-            if (Type == MondValueType.Object || right.Type == MondValueType.Object)
+            if (Type == MondValueType.Object)
             {
                 if (TryDispatch("__lshift", out var result, this, right))
                     return result;
@@ -217,7 +200,7 @@ namespace Mond
 
         public MondValue RShift(MondValue right)
         {
-            if (Type == MondValueType.Object || right.Type == MondValueType.Object)
+            if (Type == MondValueType.Object)
             {
                 if (TryDispatch("__rshift", out var result, this, right))
                     return result;
@@ -262,48 +245,42 @@ namespace Mond
 
         public static MondValue operator &(MondValue left, MondValue right)
         {
-            if (left.Type == MondValueType.Number && right.Type == MondValueType.Number)
-                return new MondValue((int)left._numberValue & (int)right._numberValue);
+            if (left.Type == MondValueType.Number)
+                return new MondValue((int)left._numberValue & (int)right);
 
-            if (left.Type == MondValueType.Object || right.Type == MondValueType.Object)
-            {
-                if (left.TryDispatch("__and", out var result, left, right))
-                    return result;
+            if (left.TryDispatch("__and", out var result, left, right))
+                return result;
 
-                return new MondValue((int)left & (int)right);
-            }
+            if (right.Type == MondValueType.Number)
+                return new MondValue((int)left & (int)right._numberValue);
 
             throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "bitwise and", left.Type.GetName(), right.Type.GetName());
         }
 
         public static MondValue operator |(MondValue left, MondValue right)
         {
-            if (left.Type == MondValueType.Number && right.Type == MondValueType.Number)
-                return new MondValue((int)left._numberValue | (int)right._numberValue);
+            if (left.Type == MondValueType.Number)
+                return new MondValue((int)left._numberValue | (int)right);
 
-            if (left.Type == MondValueType.Object || right.Type == MondValueType.Object)
-            {
-                if (left.TryDispatch("__or", out var result, left, right))
-                    return result;
+            if (left.TryDispatch("__or", out var result, left, right))
+                return result;
 
-                return new MondValue((int)left | (int)right);
-            }
+            if (right.Type == MondValueType.Number)
+                return new MondValue((int)left | (int)right._numberValue);
 
             throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "bitwise or", left.Type.GetName(), right.Type.GetName());
         }
 
         public static MondValue operator ^(MondValue left, MondValue right)
         {
-            if (left.Type == MondValueType.Number && right.Type == MondValueType.Number)
-                return new MondValue((int)left._numberValue ^ (int)right._numberValue);
+            if (left.Type == MondValueType.Number)
+                return new MondValue((int)left._numberValue ^ (int)right);
 
-            if (left.Type == MondValueType.Object || right.Type == MondValueType.Object)
-            {
-                if (left.TryDispatch("__xor", out var result, left, right))
-                    return result;
+            if (left.TryDispatch("__xor", out var result, left, right))
+                return result;
 
-                return new MondValue((int)left ^ (int)right);
-            }
+            if (right.Type == MondValueType.Number)
+                return new MondValue((int)left ^ (int)right._numberValue);
 
             throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "bitwise xor", left.Type.GetName(), right.Type.GetName());
         }
