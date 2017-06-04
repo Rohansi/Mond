@@ -100,8 +100,8 @@ namespace Mond
 
         public static MondValue operator +(MondValue left, MondValue right)
         {
-            if (left.Type == MondValueType.String)
-                return new MondValue(left._stringValue + right.ToString());
+            if (left.Type == MondValueType.String || right.Type == MondValueType.String)
+                return new MondValue(left.ToString() + right.ToString());
 
             if (left.Type == MondValueType.Number)
                 return new MondValue(left._numberValue + (double)right);
@@ -111,9 +111,6 @@ namespace Mond
 
             if (right.Type == MondValueType.Number)
                 return new MondValue((double)left + right._numberValue);
-
-            if (right.Type == MondValueType.String)
-                return new MondValue(left.ToString() + right._stringValue);
 
             throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "addition", left.Type.GetName(), right.Type.GetName());
         }
