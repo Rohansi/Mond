@@ -220,10 +220,6 @@ namespace Mond.Tests.Expressions
 
             Assert.True((result >> 5) == 5, ">>");
 
-            Assert.True(result.LShift(6) == 6, "LShift");
-
-            Assert.True(result.RShift(7) == 7, "RShift");
-
             Assert.True(~result == 100, "~");
         }
     }

@@ -445,7 +445,7 @@ namespace Mond.VirtualMachine
                             {
                                 var right = Pop();
                                 var left = Pop();
-                                Push(left.LShift(right));
+                                Push(left << (int)right);
                                 break;
                             }
 
@@ -453,7 +453,7 @@ namespace Mond.VirtualMachine
                             {
                                 var right = Pop();
                                 var left = Pop();
-                                Push(left.RShift(right));
+                                Push(left >> (int)right);
                                 break;
                             }
 
