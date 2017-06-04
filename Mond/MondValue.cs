@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 namespace Mond
 {
     [StructLayout(LayoutKind.Explicit)]
-    public sealed partial class MondValue : IEquatable<MondValue>
+    public sealed partial class MondValue : IEquatable<MondValue>, IComparable<MondValue>
     {
         public static readonly MondValue Undefined = new MondValue(MondValueType.Undefined);
         public static readonly MondValue Null = new MondValue(MondValueType.Null);
@@ -529,15 +529,27 @@ namespace Mond
             }
         }
 
+        public int CompareTo(MondValue other)
+        {
+            if (ReferenceEquals(other, null))
+                return -1;
+
+            if (this == other)
+                return 0;
+
+            return this > other ? 1 : -1;
+        }
+
         public override bool Equals(object other)
         {
             if (ReferenceEquals(other, null))
                 return false;
 
-            if (!(other is MondValue))
+            var otherValue = other as MondValue;
+            if (otherValue == null)
                 return false;
 
-            return Equals((MondValue)other);
+            return Equals(otherValue);
         }
 
         public override int GetHashCode()
