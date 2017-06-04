@@ -697,17 +697,5 @@ namespace Mond
             result = state.Call(callable, args);
             return true;
         }
-
-        private static bool TryDispatchBinary(string name, out MondValue result, MondValue left, MondValue right)
-        {
-            if (left.Type == MondValueType.Object)
-                return left.TryDispatch(name, out result, left, right, false);
-
-            if (right.Type == MondValueType.Object)
-                return right.TryDispatch(name, out result, left, right, true);
-
-            result = Undefined;
-            return false;
-        }
     }
 }
