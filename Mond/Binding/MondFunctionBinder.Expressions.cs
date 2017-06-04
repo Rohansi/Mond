@@ -214,7 +214,7 @@ namespace Mond.Binding
 
             if (returnType != typeof(void))
             {
-                expressions.Add(Expression.Return(returnLabel, method.ReturnConversion(parameters[0], callExpr)));
+                expressions.Add(Expression.Return(returnLabel, method.ReturnConversion(errorPrefix, parameters[0], callExpr)));
             }
             else
             {
@@ -250,14 +250,14 @@ namespace Mond.Binding
         internal static ReturnConverter MakeReturnConversion(Type returnType)
         {
             if (returnType == typeof(void))
-                return (s, v) => throw new MondBindingException("Expression binder should not use void return conversion");
+                return (e, s, v) => throw new MondBindingException("Expression binder should not use void return conversion");
 
             if (returnType == typeof(MondValue))
-                return (s, v) => Expression.Coalesce(v, Expression.Constant(MondValue.Null));
+                return (e, s, v) => Expression.Coalesce(v, Expression.Constant(MondValue.Null));
 
             if (returnType == typeof(string))
             {
-                return (s, v) =>
+                return (e, s, v) =>
                 {
                     var tempVar = Expression.Variable(typeof(string));
 
@@ -275,30 +275,38 @@ namespace Mond.Binding
             }
 
             if (BasicTypes.Contains(returnType))
-                return (s, v) => Expression.Convert(v, typeof(MondValue));
+                return (e, s, v) => Expression.Convert(v, typeof(MondValue));
 
             if (NumberTypes.Contains(returnType))
-                return (s, v) => Expression.Convert(Expression.Convert(v, typeof(double)), typeof(MondValue));
+                return (e, s, v) => Expression.Convert(Expression.Convert(v, typeof(double)), typeof(MondValue));
 
             var classAttrib = returnType.Attribute<MondClassAttribute>();
             if (classAttrib != null && classAttrib.AllowReturn)
             {
                 var valueCtor = typeof(MondValue).GetConstructor(new[] { typeof(MondState) });
-
                 if (valueCtor == null)
                     throw new Exception("Could not find MondValue constructor");
 
-                MondValue prototype;
-                MondClassBinder.Bind(returnType, out prototype);
+                var findPrototype = typeof(MondState).GetMethod("FindPrototype");
+                if (findPrototype == null)
+                    throw new Exception("Could not find FindPrototype method");
 
-                return (s, v) =>
+                var className = classAttrib.Name ?? returnType.Name;
+
+                return (e, s, v) =>
                 {
+                    var prototype = Expression.Variable(typeof(MondValue));
                     var obj = Expression.Variable(typeof(MondValue));
 
+                    var throwMsg = Expression.Constant(e + string.Format(BindingError.PrototypeNotFound, className));
+                    var throwExpr = Expression.Throw(Expression.New(RuntimeExceptionConstructor, throwMsg));
+
                     return Expression.Block(
-                        new [] { obj },
+                        new [] { prototype, obj },
+                        Expression.Assign(prototype, Expression.Call(s, findPrototype, Expression.Constant(className))),
+                        Expression.IfThen(Expression.ReferenceEqual(prototype, Expression.Constant(null)), throwExpr),
                         Expression.Assign(obj, Expression.New(valueCtor, s)),
-                        Expression.Assign(Expression.PropertyOrField(obj, "Prototype"), Expression.Constant(prototype, typeof(MondValue))),
+                        Expression.Assign(Expression.PropertyOrField(obj, "Prototype"), prototype),
                         Expression.Assign(Expression.PropertyOrField(obj, "UserData"), v),
                         obj
                     );
