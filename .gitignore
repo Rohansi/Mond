@@ -98,6 +98,7 @@ TestResults
 ClientBin
 [Ss]tyle[Cc]op.*
 ~$*
+*.dgml
 *.dbmdl
 Generated_Code #added for RIA/Silverlight projects
 
