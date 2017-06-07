@@ -110,18 +110,6 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// slice(startIndex: number, endIndex: number) : string
-        /// </summary>
-        [MondFunction("slice")]
-        public static string Slice([MondInstance] MondValue instance, int startIndex, int endIndex, int step)
-        {
-            if (startIndex < 0 || startIndex > endIndex)
-                throw new MondRuntimeException(IndexOutOfBounds, "slice");
-            return instance.Slice(startIndex, endIndex, step);
-        }
-
-
-        /// <summary>
         /// split(separator: string): array
         /// </summary>
         [MondFunction("split")]
