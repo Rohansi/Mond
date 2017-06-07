@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Mond.VirtualMachine;
 using Mond.VirtualMachine.Prototypes;
 using System.Runtime.InteropServices;
-using System.Text;
 
 namespace Mond
 {
@@ -486,16 +485,13 @@ namespace Mond
 
         public MondValue Slice(MondValue start = null, MondValue end = null, MondValue step = null)
         {
-            var buffer = new MondValue(MondValueType.Array);
             if (Type == MondValueType.String)
                 return new string(SliceImpl(_stringValue.ToCharArray(), start, end, step));
 
-            else if (Type == MondValueType.Array)
+            if (Type == MondValueType.Array)
                 return new MondValue(SliceImpl(ArrayValue, start, end, step));
 
-                throw new MondRuntimeException("Slices can only be created from arrays");
-
-            
+            throw new MondRuntimeException("Slices can only be created from strings and arrays");
         }
 
         public bool Equals(MondValue other)
