@@ -414,11 +414,7 @@ namespace Mond.Compiler
             // single line comment
             if (TakeIfNext("//"))
             {
-                while (!AtEof && !IsNext("\n"))
-                {
-                    TakeChar();
-                }
-
+                while(!AtEof && TakeChar() != '\n');
                 return true;
             }
 
@@ -510,21 +506,39 @@ namespace Mond.Compiler
 
         public char TakeChar()
         {
-            PeekChar();
-            PeekChar(1);
+            var current = PeekChar();
+            var result = current;
+            if (_endOfLineChars.Contains(current))
+            {
+                _currentLine++;
+                _currentColumn = 0;
+                result = '\n';
+            }
+            else if(current == '\r') // CR and LF have special handling
+            {
+                if (_sourceCode != null)
+                    _sourceCode.Append('\r');
 
-            var result = _read[0];
+                if (PeekChar(1) == '\n')
+                {
+                    if (_sourceCode != null)
+                        _sourceCode.Append('\n');
+
+                    _read.RemoveAt(1);
+                    _index++;
+                }
+
+                result = '\n';
+                _currentLine++;
+                _currentColumn = 0;
+            }
+            else
+            {
+                if (_sourceCode != null && current != '\0')
+                    _sourceCode.Append(current);
+            }
+
             _read.RemoveAt(0);
-
-            if (result == '\r' && _read[0] != '\n')
-                throw new MondCompilerException(_fileName, _currentLine, _currentColumn, CompilerError.CrMustBeFollowedByLf);
-
-            if (result == '\n')
-                AdvanceLine();
-
-            if (_sourceCode != null && result != '\0')
-                _sourceCode.Append(result);
-
             _index++;
             _currentColumn++;
 
@@ -546,12 +560,6 @@ namespace Mond.Compiler
             }
 
             return _read[distance];
-        }
-
-        private void AdvanceLine()
-        {
-            _currentLine++;
-            _currentColumn = 0;
         }
 
         private void MarkPosition()
