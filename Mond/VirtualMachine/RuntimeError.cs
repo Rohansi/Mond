@@ -7,7 +7,7 @@
 
         public const string IndexOutOfBounds = "Index out of bounds";
 
-        public const string FailedCastObjectToNumber = "Cannot cast object to number, __number must be implemented";
+        public const string FailedCastToNumber = "Cannot cast {0} to number, __number must be implemented";
 
         public const string CantCreateField = "Fields cannot be created on type {0}";
 

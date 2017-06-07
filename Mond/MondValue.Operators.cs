@@ -90,7 +90,7 @@ namespace Mond
                 return result._numberValue;
             }
 
-            throw new MondRuntimeException(RuntimeError.FailedCastObjectToNumber);
+            throw new MondRuntimeException(RuntimeError.FailedCastToNumber, value.Type.GetName());
         }
 
         public static implicit operator string(MondValue value)

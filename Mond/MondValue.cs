@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Mond.VirtualMachine;
 using Mond.VirtualMachine.Prototypes;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Mond
 {
@@ -413,11 +414,8 @@ namespace Mond
             throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "in", Type.GetName(), search.Type.GetName());
         }
 
-        public MondValue Slice(MondValue start = null, MondValue end = null, MondValue step = null)
+        private static T[] SliceImpl<T>(IList<T> values, MondValue start, MondValue end, MondValue step)
         {
-            if (Type != MondValueType.Array)
-                throw new MondRuntimeException("Slices can only be created from arrays");
-
             int ToIntOrDefault(MondValue value, int defaultValue)
             {
                 if (value == null || !value)
@@ -430,18 +428,18 @@ namespace Mond
             var startIndex = ToIntOrDefault(start, 0);
 
             if (startIndex < 0)
-                startIndex += ArrayValue.Count;
+                startIndex += values.Count;
 
-            if (startIndex < 0 || (startIndex >= ArrayValue.Count && ArrayValue.Count > 0))
+            if (startIndex < 0 || (startIndex >= values.Count && values.Count > 0))
                 throw new MondRuntimeException("Slice start index out of bounds");
 
             // get end value
-            var endIndex = ToIntOrDefault(end, Math.Max(0, ArrayValue.Count - 1));
+            var endIndex = ToIntOrDefault(end, Math.Max(0, values.Count - 1));
 
             if (endIndex < 0)
-                endIndex += ArrayValue.Count;
+                endIndex += values.Count;
 
-            if (endIndex < 0 || (endIndex >= ArrayValue.Count && ArrayValue.Count > 0))
+            if (endIndex < 0 || (endIndex >= values.Count && values.Count > 0))
                 throw new MondRuntimeException("Slice end index out of bounds");
 
             // get step value
@@ -453,7 +451,7 @@ namespace Mond
             // allow reversing with default indices, ex: [::-1]
             if (stepValue < 0 && (start == null || !start) && (end == null || !end))
             {
-                startIndex = Math.Max(0, ArrayValue.Count - 1);
+                startIndex = Math.Max(0, values.Count - 1);
                 endIndex = 0;
             }
 
@@ -464,7 +462,7 @@ namespace Mond
             // find size of slice
             int length;
 
-            if (ArrayValue.Count == 0 && startIndex == 0 && endIndex == 0)
+            if (values.Count == 0 && startIndex == 0 && endIndex == 0)
             {
                 length = 0; // allow cloning empty arrays
             }
@@ -475,16 +473,29 @@ namespace Mond
             }
 
             // copy values to new array
-            var result = new MondValue(MondValueType.Array);
-            result.ArrayValue.Capacity = length;
+            var result = new T[length];
 
             var src = startIndex;
             for (var dst = 0; dst < length; src += stepValue, dst++)
             {
-                result.ArrayValue.Add(ArrayValue[src]);
+                result[dst] = values[src];
             }
 
             return result;
+        }
+
+        public MondValue Slice(MondValue start = null, MondValue end = null, MondValue step = null)
+        {
+            var buffer = new MondValue(MondValueType.Array);
+            if (Type == MondValueType.String)
+                return new string(SliceImpl(_stringValue.ToCharArray(), start, end, step));
+
+            else if (Type == MondValueType.Array)
+                return new MondValue(SliceImpl(ArrayValue, start, end, step));
+
+                throw new MondRuntimeException("Slices can only be created from arrays");
+
+            
         }
 
         public bool Equals(MondValue other)

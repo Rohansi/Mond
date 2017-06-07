@@ -149,6 +149,17 @@ namespace Mond.VirtualMachine.Prototypes
             return enumerator;
         }
 
+        /// <summary>
+        /// slice(startIndex: number, endIndex: number, step: number): 
+        /// </summary>
+        [MondFunction("slice")]
+        public static MondValue Slice([MondInstance] MondValue instance, int startIndex, int endIndex, int step)
+        {
+            EnsureArray("slice", instance);
+
+            return instance.Slice(startIndex, endIndex, step);
+        }
+
         private static void EnsureArray(string methodName, MondValue instance)
         {
             if (instance.Type != MondValueType.Array)

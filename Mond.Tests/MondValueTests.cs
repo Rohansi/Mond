@@ -481,7 +481,11 @@ namespace Mond.Tests
             var state = new MondState();
 
             var arr = new MondValue(MondValueType.Array);
+            var str = new MondValue("HelloWorld");
+
             arr.ArrayValue.AddRange(new MondValue[] { 1, 2, 3, 4, 5 });
+
+            Assert.True(str.Slice(1, 3, 1).Equals(new MondValue("ell")));
 
             Assert.True(arr.Slice().Enumerate(state).SequenceEqual(arr.Enumerate(state)), "clone");
 
