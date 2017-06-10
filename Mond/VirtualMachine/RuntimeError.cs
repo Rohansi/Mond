@@ -22,6 +22,13 @@
         public const string StringCastWrongType = "__string must return a string";
         public const string BoolCastWrongType = "__bool must return a bool";
 
+        public const string SliceWrongType = "Slicing cannot be done on type {0}";
+        public const string SliceMissingMethod = "Cannot use slice operator on object, __slice must be implemented";
+        public const string SliceStartBounds = "Slice start index out of bounds";
+        public const string SliceEndBounds = "Slice end index out of bounds";
+        public const string SliceStepZero = "Slice step value must be non-zero";
+        public const string SliceInvalid = "Slice range is invalid";
+
         public const string StackOverflow = "Stack overflow";
         public const string StackEmpty = "Stack is empty (runtime bug)";
 

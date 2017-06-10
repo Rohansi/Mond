@@ -226,5 +226,23 @@ namespace Mond.Tests.Expressions
 
             Assert.True(~result == 100, "~");
         }
+
+        [Test]
+        public void Slice()
+        {
+            var result = Script.Run(@"
+                var obj = {
+                    __slice: fun (this, start, end, step) -> [ start, end, step ]
+                };
+
+                return obj[1:2:3];
+            ");
+
+            Assert.AreEqual(MondValueType.Array, result.Type);
+            Assert.AreEqual(3, result.Array.Count);
+            Assert.True(result[0] == 1);
+            Assert.True(result[1] == 2);
+            Assert.True(result[2] == 3);
+        }
     }
 }

@@ -430,7 +430,7 @@ namespace Mond
                 startIndex += values.Count;
 
             if (startIndex < 0 || (startIndex >= values.Count && values.Count > 0))
-                throw new MondRuntimeException("Slice start index out of bounds");
+                throw new MondRuntimeException(RuntimeError.SliceStartBounds);
 
             // get end value
             var endIndex = ToIntOrDefault(end, Math.Max(0, values.Count - 1));
@@ -439,13 +439,13 @@ namespace Mond
                 endIndex += values.Count;
 
             if (endIndex < 0 || (endIndex >= values.Count && values.Count > 0))
-                throw new MondRuntimeException("Slice end index out of bounds");
+                throw new MondRuntimeException(RuntimeError.SliceEndBounds);
 
             // get step value
             var stepValue = ToIntOrDefault(step, startIndex <= endIndex ? 1 : -1);
 
             if (stepValue == 0)
-                throw new MondRuntimeException("Slice step value must be non-zero");
+                throw new MondRuntimeException(RuntimeError.SliceStepZero);
 
             // allow reversing with default indices, ex: [::-1]
             if (stepValue < 0 && (start == null || !start) && (end == null || !end))
@@ -456,7 +456,7 @@ namespace Mond
 
             // make sure the range makes sense
             if ((stepValue < 0 && endIndex > startIndex) || (stepValue > 0 && startIndex > endIndex))
-                throw new MondRuntimeException("Slice range is invalid"); // TODO: better error message
+                throw new MondRuntimeException(RuntimeError.SliceInvalid); // TODO: better error message
 
             // find size of slice
             int length;
@@ -491,7 +491,15 @@ namespace Mond
             if (Type == MondValueType.Array)
                 return new MondValue(SliceImpl(ArrayValue, start, end, step));
 
-            throw new MondRuntimeException("Slices can only be created from strings and arrays");
+            if (Type == MondValueType.Object)
+            {
+                if (TryDispatch("__slice", out var result, this, start ?? Undefined, end ?? Undefined, step ?? Undefined))
+                    return result;
+
+                throw new MondRuntimeException(RuntimeError.SliceMissingMethod);
+            }
+
+            throw new MondRuntimeException(RuntimeError.SliceWrongType, Type.GetName());
         }
 
         public bool Equals(MondValue other)
