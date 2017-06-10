@@ -126,6 +126,22 @@ namespace Mond.Repl.Input
 
                         continue;
 
+                    case ConsoleKey.Home:
+                        if (_caretIndex == 0)
+                            continue;
+
+                        Move(-_caretIndex);
+                        _caretIndex = 0;
+                        continue;
+
+                    case ConsoleKey.End:
+                        if (_caretIndex == _input.Count)
+                            continue;
+
+                        Move(_input.Count - _caretIndex);
+                        _caretIndex = _input.Count;
+                        continue;
+
                     case ConsoleKey.Backspace:
                         if (_caretIndex == 0)
                             continue;
