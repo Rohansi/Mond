@@ -59,6 +59,18 @@ namespace Mond.Tests.Expressions
         }
 
         [Test]
+        public void IndexWithObject()
+        {
+            var result = Script.Run(@"
+                var number = { __number: () -> 1 };
+                var array = [ 1, 2, 3 ];
+                return array[number];
+            ");
+
+            Assert.True(result == 2);
+        }
+
+        [Test]
         public void IndexerLoadStore()
         {
             var result = Script.Run(@"

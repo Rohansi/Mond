@@ -159,9 +159,9 @@ namespace Mond
                 if (ReferenceEquals(index, null))
                     throw new ArgumentNullException(nameof(index));
 
-                if (Type == MondValueType.Array && index.Type == MondValueType.Number)
+                if (Type == MondValueType.Array && (index.Type == MondValueType.Number || index.Type == MondValueType.Object))
                 {
-                    var n = (int)index._numberValue;
+                    var n = (int)index;
 
                     if (n < 0)
                         n += ArrayValue.Count;
