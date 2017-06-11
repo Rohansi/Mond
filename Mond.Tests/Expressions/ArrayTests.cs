@@ -59,7 +59,30 @@ namespace Mond.Tests.Expressions
         }
 
         [Test]
-        public void IndexWithObject()
+        public void IndexLoadNegative()
+        {
+            var result = Script.Run(@"
+                var array = [ 1, 2, 3 ];
+                return array[-2];
+            ");
+
+            Assert.True(result == 2);
+        }
+
+        [Test]
+        public void IndexStoreNegative()
+        {
+            var result = Script.Run(@"
+                var array = [ 1, 2, 3 ];
+                array[-2] = 5;
+                return array[1];
+            ");
+
+            Assert.True(result == 5);
+        }
+
+        [Test]
+        public void IndexLoadWithObject()
         {
             var result = Script.Run(@"
                 var number = { __number: () -> 1 };
@@ -68,6 +91,19 @@ namespace Mond.Tests.Expressions
             ");
 
             Assert.True(result == 2);
+        }
+
+        [Test]
+        public void IndexStoreWithObject()
+        {
+            var result = Script.Run(@"
+                var number = { __number: () -> 1 };
+                var array = [ 1, 2, 3 ];
+                array[number] = 5;
+                return array[1];
+            ");
+
+            Assert.True(result == 5);
         }
 
         [Test]
