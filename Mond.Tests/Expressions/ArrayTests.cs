@@ -154,6 +154,78 @@ namespace Mond.Tests.Expressions
         }
 
         [Test]
+        public void SortAll()
+        {
+            var array = Script.Run(@"
+                var array = [ 5, 0, 2, 4, 3, 1 ];
+                array.sort();
+                return array;
+            ");
+
+            var expected = new MondValue[]
+            {
+                0, 1, 2, 3, 4, 5
+            };
+
+            Assert.AreEqual(array.Type, MondValueType.Array);
+            Assert.True(array.Array.SequenceEqual(expected));
+        }
+
+        [Test]
+        public void SortRange()
+        {
+            var array = Script.Run(@"
+                var array = [ 5, 0, 2, 4, 3, 1 ];
+                array.sort(1, 4);
+                return array;
+            ");
+
+            var expected = new MondValue[]
+            {
+                5, 0, 2, 3, 4, 1
+            };
+
+            Assert.AreEqual(array.Type, MondValueType.Array);
+            Assert.True(array.Array.SequenceEqual(expected));
+        }
+
+        [Test]
+        public void SortDescendingAll()
+        {
+            var array = Script.Run(@"
+                var array = [ 5, 0, 2, 4, 3, 1 ];
+                array.sortDescending();
+                return array;
+            ");
+
+            var expected = new MondValue[]
+            {
+                5, 4, 3, 2, 1, 0
+            };
+
+            Assert.AreEqual(array.Type, MondValueType.Array);
+            Assert.True(array.Array.SequenceEqual(expected));
+        }
+
+        [Test]
+        public void SortDescendingRange()
+        {
+            var array = Script.Run(@"
+                var array = [ 5, 0, 2, 4, 3, 1 ];
+                array.sortDescending(1, 4);
+                return array;
+            ");
+
+            var expected = new MondValue[]
+            {
+                5, 4, 3, 2, 0, 1
+            };
+
+            Assert.AreEqual(array.Type, MondValueType.Array);
+            Assert.True(array.Array.SequenceEqual(expected));
+        }
+
+        [Test]
         public void Enumerator()
         {
             MondState state;

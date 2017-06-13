@@ -1,4 +1,5 @@
-﻿using Mond.Binding;
+﻿using System.Collections.Generic;
+using Mond.Binding;
 
 namespace Mond.VirtualMachine.Prototypes
 {
@@ -110,6 +111,48 @@ namespace Mond.VirtualMachine.Prototypes
                 throw new MondRuntimeException(IndexOutOfBounds, "removeAt");
 
             instance.ArrayValue.RemoveAt(index);
+        }
+
+        /// <summary>
+        /// sort()
+        /// </summary>
+        [MondFunction("sort")]
+        public static void Sort([MondInstance] MondValue instance) =>
+            SortImpl("sort", instance, 0, instance.ArrayValue.Count, false);
+
+        /// <summary>
+        /// sort(index: number, count: number)
+        /// </summary>
+        [MondFunction("sort")]
+        public static void Sort([MondInstance] MondValue instance, int index, int count) =>
+            SortImpl("sort", instance, index, count, false);
+
+        /// <summary>
+        /// sortDescending()
+        /// </summary>
+        [MondFunction("sortDescending")]
+        public static void SortDescending([MondInstance] MondValue instance) =>
+            SortImpl("sort", instance, 0, instance.ArrayValue.Count, true);
+
+        /// <summary>
+        /// sortDescending(index: number, count: number)
+        /// </summary>
+        [MondFunction("sortDescending")]
+        public static void SortDescending([MondInstance] MondValue instance, int index, int count) =>
+            SortImpl("sort", instance, index, count, true);
+
+        private static void SortImpl(string name, MondValue instance, int index, int count, bool reverse)
+        {
+            EnsureArray(name, instance);
+
+            if (index < 0 || index >= instance.ArrayValue.Count ||
+                count < 0 || index + count > instance.ArrayValue.Count)
+            {
+                throw new MondRuntimeException(IndexOutOfBounds, name);
+            }
+
+            var comparer = reverse ? ReverseComparer<MondValue>.Instance : Comparer<MondValue>.Default;
+            instance.ArrayValue.Sort(index, count, comparer);
         }
 
         /// <summary>
