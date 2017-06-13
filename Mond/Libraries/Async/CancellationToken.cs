@@ -19,13 +19,13 @@ namespace Mond.Libraries.Async
             CancellationToken = new CancellationToken(canceled);
         }
 
-        [MondFunction("isCancellationRequested")]
+        [MondFunction]
         public bool IsCancellationRequested()
         {
             return CancellationToken.IsCancellationRequested;
         }
 
-        [MondFunction("register")]
+        [MondFunction]
         public void Register(MondState state, MondValue function)
         {
             if (function.Type != MondValueType.Function)
@@ -34,7 +34,7 @@ namespace Mond.Libraries.Async
             CancellationToken.Register(() => state.Call(function));
         }
 
-        [MondFunction("throwIfCancellationRequested")]
+        [MondFunction]
         public void ThrowIfCancellationRequested()
         {
             CancellationToken.ThrowIfCancellationRequested();

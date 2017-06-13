@@ -22,7 +22,7 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// charAt(index: number): string
         /// </summary>
-        [MondFunction("charAt")]
+        [MondFunction]
         public static string CharAt([MondInstance] MondValue instance, int index)
         {
             var instStr = (string)instance;
@@ -36,7 +36,7 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// charCodeAt(index: number): number
         /// </summary>
-        [MondFunction("charCodeAt")]
+        [MondFunction]
         public static int CharCodeAt([MondInstance] MondValue instance, int index)
         {
             var instStr = (string)instance;
@@ -50,7 +50,7 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// contains(value: string): bool
         /// </summary>
-        [MondFunction("contains")]
+        [MondFunction]
         public static bool Contains([MondInstance] MondValue instance, string value)
         {
             return ((string)instance).Contains(value);
@@ -59,7 +59,7 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// endsWith(value: string): bool
         /// </summary>
-        [MondFunction("endsWith")]
+        [MondFunction]
         public static bool EndsWith([MondInstance] MondValue instance, string value)
         {
             return ((string)instance).EndsWith(value);
@@ -68,7 +68,7 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// indexOf(value: string): number
         /// </summary>
-        [MondFunction("indexOf")]
+        [MondFunction]
         public static int IndexOf([MondInstance] MondValue instance, string value)
         {
             return ((string)instance).IndexOf(value, StringComparison.Ordinal);
@@ -77,7 +77,7 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// insert(index: number, value: string): string
         /// </summary>
-        [MondFunction("insert")]
+        [MondFunction]
         public static string Insert([MondInstance] MondValue instance, int index, string value)
         {
             var instStr = (string)instance;
@@ -91,7 +91,7 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// lastIndexOf(value: string): number
         /// </summary>
-        [MondFunction("lastIndexOf")]
+        [MondFunction]
         public static int LastIndexOf([MondInstance] MondValue instance, string value)
         {
             return ((string)instance).LastIndexOf(value, StringComparison.Ordinal);
@@ -100,7 +100,7 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// replace(oldValue: string, newValue: string): string
         /// </summary>
-        [MondFunction("replace")]
+        [MondFunction]
         public static string Replace([MondInstance] MondValue instance, string oldValue, string newValue)
         {
             if (string.IsNullOrEmpty(oldValue))
@@ -112,7 +112,7 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// split(separator: string): array
         /// </summary>
-        [MondFunction("split")]
+        [MondFunction]
         public static MondValue Split([MondInstance] MondValue instance, string separator)
         {
             var values = ((string)instance).Split(new [] { separator }, StringSplitOptions.None);
@@ -126,7 +126,7 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// startsWith(value: string): bool
         /// </summary>
-        [MondFunction("startsWith")]
+        [MondFunction]
         public static bool StartsWith([MondInstance] MondValue instance, string value)
         {
             return ((string)instance).StartsWith(value);
@@ -135,7 +135,7 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// substring(startIndex: number): string
         /// </summary>
-        [MondFunction("substring")]
+        [MondFunction]
         public static string Substring([MondInstance] MondValue instance, int startIndex)
         {
             var instStr = (string)instance;
@@ -149,7 +149,7 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// substring(startIndex: number, length: number): string
         /// </summary>
-        [MondFunction("substring")]
+        [MondFunction]
         public static string Substring([MondInstance] MondValue instance, int startIndex, int length)
         {
             var instStr = (string)instance;
@@ -166,7 +166,7 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// toUpper(): string
         /// </summary>
-        [MondFunction("toUpper")]
+        [MondFunction]
         public static string ToUpper([MondInstance] MondValue instance)
         {
             return ((string)instance).ToUpper();
@@ -175,7 +175,7 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// toLower(): string
         /// </summary>
-        [MondFunction("toLower")]
+        [MondFunction]
         public static string ToLower([MondInstance] MondValue instance)
         {
             return ((string)instance).ToLower();
@@ -184,7 +184,7 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// trim(): string
         /// </summary>
-        [MondFunction("trim")]
+        [MondFunction]
         public static string Trim([MondInstance] MondValue instance)
         {
             return ((string)instance).Trim();
@@ -193,7 +193,7 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// format(): string
         /// </summary>
-        [MondFunction("format")]
+        [MondFunction]
         public static string Format([MondInstance] MondValue instance, params MondValue[] arguments)
         {
             var values = arguments.Select<MondValue, object>(x =>
@@ -220,7 +220,7 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// length(): number
         /// </summary>
-        [MondFunction("length")]
+        [MondFunction]
         public static int Length([MondInstance] MondValue instance)
         {
             return ((string)instance).Length;
@@ -229,7 +229,7 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// getEnumerator(): object
         /// </summary>
-        [MondFunction("getEnumerator")]
+        [MondFunction]
         public static MondValue GetEnumerator([MondInstance] MondValue instance)
         {
             var enumerator = new MondValue(MondValueType.Object);

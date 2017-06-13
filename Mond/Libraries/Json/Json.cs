@@ -6,7 +6,7 @@ namespace Mond.Libraries.Json
     [MondModule("Json")]
     internal partial class JsonModule
     {
-        [MondFunction("serialize")]
+        [MondFunction]
         public static string Serialize(MondValue value)
         {
             var sb = new StringBuilder();

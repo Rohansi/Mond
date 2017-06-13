@@ -41,7 +41,7 @@ namespace Mond.Libraries.Async
             return obj;
         }
 
-        [MondFunction("start")]
+        [MondFunction]
         public MondValue Start(MondState state, MondValue value)
         {
             if (value.Type == MondValueType.Function)
@@ -82,7 +82,7 @@ namespace Mond.Libraries.Async
             return AsyncUtil.ToObject(waitTask());
         }
 
-        [MondFunction("run")]
+        [MondFunction]
         public bool Run()
         {
             if (SynchronizationContext.Current is MondSynchronizationContext)
@@ -111,7 +111,7 @@ namespace Mond.Libraries.Async
                 return _activeTasks > 0 || _exceptions.Count > 0;
         }
 
-        [MondFunction("runToCompletion")]
+        [MondFunction]
         public void RunToCompletion()
         {
             var waitTask = Task.Run(async () =>

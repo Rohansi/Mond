@@ -11,16 +11,16 @@ namespace Mond.Libraries.Async
         [MondConstructor]
         public TaskCompletionSourceClass() => _tcs = new TaskCompletionSource<MondValue>();
 
-        [MondFunction("getTask")]
+        [MondFunction]
         public MondValue GetTask() => AsyncUtil.ToObject(_tcs.Task);
 
-        [MondFunction("setCanceled")]
+        [MondFunction]
         public void SetCanceled() => _tcs.SetCanceled();
 
-        [MondFunction("setException")]
+        [MondFunction]
         public void SetException(string message) => _tcs.SetException(new MondRuntimeException(message));
 
-        [MondFunction("setResult")]
+        [MondFunction]
         public void SetResult(MondValue result) => _tcs.SetResult(result);
     }
 }

@@ -7,7 +7,7 @@ namespace Mond.Libraries.Core
     [MondModule("Char")]
     internal class CharModule
     {
-        [MondFunction("toNumber")]
+        [MondFunction]
         public static short ToNumber(string s, int index = 0)
         {
             if (index < 0 || index >= s.Length)
@@ -16,64 +16,64 @@ namespace Mond.Libraries.Core
             return (short)s[index];
         }
 
-        [MondFunction("fromNumber")]
+        [MondFunction]
         public static string FromNumber(short num) => "" + (char)num;
 
-        [MondFunction("convertFromUtf32")]
+        [MondFunction]
         public static string ConvertFromUtf32(int utf32) => char.ConvertFromUtf32(utf32);
 
-        [MondFunction("convertToUtf32")]
+        [MondFunction]
         public static int ConvertToUtf32(string s, int index = 0) => char.ConvertToUtf32(s, index);
 
-        [MondFunction("getNumericValue")]
+        [MondFunction]
         public static double GetNumericValue(string s, int index = 0) => char.GetNumericValue(s, index);
 
-        [MondFunction("getUnicodeCategory")]
+        [MondFunction]
         public static string GetUnicodeCategory(string s, int index = 0) => CharUnicodeInfo.GetUnicodeCategory(s, index).ToString();
 
-        [MondFunction("isControl")]
+        [MondFunction]
         public static bool IsControl(string s, int index = 0) => char.IsControl(s, index);
 
-        [MondFunction("isDigit")]
+        [MondFunction]
         public static bool IsDigit(string s, int index = 0) => char.IsDigit(s, index);
 
-        [MondFunction("isHighSurrogate")]
+        [MondFunction]
         public static bool IsHighSurrogate(string s, int index = 0) => char.IsHighSurrogate(s, index);
 
-        [MondFunction("isLetter")]
+        [MondFunction]
         public static bool IsLetter(string s, int index = 0) => char.IsLetter(s, index);
 
-        [MondFunction("isLetterOrDigit")]
+        [MondFunction]
         public static bool IsLetterOrDigit(string s, int index = 0) => char.IsLetterOrDigit(s, index);
 
-        [MondFunction("isLower")]
+        [MondFunction]
         public static bool IsLower(string s, int index = 0) => char.IsLower(s, index);
 
-        [MondFunction("isLowSurrogate")]
+        [MondFunction]
         public static bool IsLowSurrogate(string s, int index = 0) => char.IsLowSurrogate(s, index);
 
-        [MondFunction("isNumber")]
+        [MondFunction]
         public static bool IsNumber(string s, int index = 0) => char.IsNumber(s, index);
 
-        [MondFunction("isPunctuation")]
+        [MondFunction]
         public static bool IsPunctuation(string s, int index = 0) => char.IsPunctuation(s, index);
 
-        [MondFunction("isSeparator")]
+        [MondFunction]
         public static bool IsSeparator(string s, int index = 0) => char.IsSeparator(s, index);
 
-        [MondFunction("isSurrogate")]
+        [MondFunction]
         public static bool IsSurrogate(string s, int index = 0) => char.IsSurrogate(s, index);
 
-        [MondFunction("isSurrogatePair")]
+        [MondFunction]
         public static bool IsSurrogatePair(string s, int index = 0) => char.IsSurrogatePair(s, index);
 
-        [MondFunction("isSymbol")]
+        [MondFunction]
         public static bool IsSymbol(string s, int index = 0) => char.IsSymbol(s, index);
 
-        [MondFunction("isUpper")]
+        [MondFunction]
         public static bool IsUpper(string s, int index = 0) => char.IsUpper(s, index);
 
-        [MondFunction("isWhiteSpace")]
+        [MondFunction]
         public static bool IsWhiteSpace(string s, int index = 0) => char.IsWhiteSpace(s, index);
     }
 }

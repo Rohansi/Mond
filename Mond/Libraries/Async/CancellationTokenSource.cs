@@ -21,25 +21,25 @@ namespace Mond.Libraries.Async
             _cts = new CancellationTokenSource(TimeSpan.FromSeconds(seconds));
         }
 
-        [MondFunction("isCancellationRequested")]
+        [MondFunction]
         public bool IsCancellationRequested()
         {
             return _cts.IsCancellationRequested;
         }
 
-        [MondFunction("getToken")]
+        [MondFunction]
         public CancellationTokenClass GetToken()
         {
             return new CancellationTokenClass(_cts.Token);
         }
 
-        [MondFunction("cancel")]
+        [MondFunction]
         public void Cancel()
         {
             _cts.Cancel();
         }
 
-        [MondFunction("cancelAfter")]
+        [MondFunction]
         public void CancelAfter(double seconds)
         {
             _cts.CancelAfter(TimeSpan.FromSeconds(seconds));

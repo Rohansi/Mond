@@ -26,7 +26,7 @@ namespace Mond.Libraries.Core
             return obj;
         }
 
-        [MondFunction("require")]
+        [MondFunction]
         public MondValue Require(MondState state, string fileName)
         {
             if (_require.Loader == null)

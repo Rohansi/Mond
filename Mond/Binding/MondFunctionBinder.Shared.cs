@@ -23,7 +23,7 @@ namespace Mond.Binding
                         return source
                             .Select(m => new { Method = m, FunctionAttribute = m.Attribute<MondFunctionAttribute>() })
                             .Where(m => m.FunctionAttribute != null)
-                            .GroupBy(m => nameOverride ?? m.FunctionAttribute.Name ?? m.Method.Name)
+                            .GroupBy(m => nameOverride ?? m.FunctionAttribute.Name ?? m.Method.Name.ToCamelCase())
                             .Select(g => BuildMethodTable(g.Select(m => new Method(g.Key, m.Method))))
                             .ToList();
                     }

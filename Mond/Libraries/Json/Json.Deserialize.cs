@@ -9,7 +9,7 @@ namespace Mond.Libraries.Json
 {
     internal partial class JsonModule
     {
-        [MondFunction("deserialize")]
+        [MondFunction]
         public static MondValue Deserialize(string text)
         {
             text = text.Trim();

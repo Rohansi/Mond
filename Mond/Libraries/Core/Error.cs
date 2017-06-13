@@ -6,13 +6,13 @@ namespace Mond.Libraries.Core
     [MondModule("Error")]
     internal class ErrorModule
     {
-        [MondFunction("error")]
+        [MondFunction]
         public static void Error(string message)
         {
             throw new MondRuntimeException(message);
         }
 
-        [MondFunction("try")]
+        [MondFunction]
         public static MondValue Try(MondState state, MondValue function, params MondValue[] arguments)
         {
             if (function.Type != MondValueType.Function)

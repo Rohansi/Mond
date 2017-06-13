@@ -22,7 +22,7 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// add(key, value)
         /// </summary>
-        [MondFunction("add")]
+        [MondFunction]
         public static void Add([MondInstance] MondValue instance, MondValue key, MondValue value)
         {
             EnsureObject("add", instance);
@@ -36,7 +36,7 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// clear()
         /// </summary>
-        [MondFunction("clear")]
+        [MondFunction]
         public static void Clear([MondInstance] MondValue instance)
         {
             EnsureObject("clear", instance);
@@ -50,7 +50,7 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// containsKey(key): bool
         /// </summary>
-        [MondFunction("containsKey")]
+        [MondFunction]
         public static bool ContainsKey([MondInstance] MondValue instance, MondValue key)
         {
             EnsureObject("containsKey", instance);
@@ -61,7 +61,7 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// containsValue(value): bool
         /// </summary>
-        [MondFunction("containsValue")]
+        [MondFunction]
         public static bool ContainsValue([MondInstance] MondValue instance, MondValue value)
         {
             EnsureObject("containsValue", instance);
@@ -72,7 +72,7 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// get(key): any
         /// </summary>
-        [MondFunction("get")]
+        [MondFunction]
         public static MondValue Get([MondInstance] MondValue instance, MondValue key)
         {
             EnsureObject("get", instance);
@@ -86,7 +86,7 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// remove(key): bool
         /// </summary>
-        [MondFunction("remove")]
+        [MondFunction]
         public static bool Remove([MondInstance] MondValue instance, MondValue key)
         {
             EnsureObject("remove", instance);
@@ -100,7 +100,7 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// length(): number
         /// </summary>
-        [MondFunction("length")]
+        [MondFunction]
         public static int Length([MondInstance] MondValue instance)
         {
             EnsureObject("length", instance);
@@ -111,7 +111,7 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// getEnumerator(): object
         /// </summary>
-        [MondFunction("getEnumerator")]
+        [MondFunction]
         public static MondValue GetEnumerator([MondInstance] MondValue instance)
         {
             EnsureObject("getEnumerator", instance);
@@ -143,7 +143,7 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// setPrototype(value: any) : object
         /// </summary>
-        [MondFunction("setPrototype")]
+        [MondFunction]
         public static MondValue SetPrototype([MondInstance] MondValue instance, MondValue value)
         {
             EnsureObject("setPrototype", instance);
@@ -159,7 +159,7 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// lock(): object
         /// </summary>
-        [MondFunction("lock")]
+        [MondFunction]
         public static MondValue Lock([MondInstance] MondValue instance)
         {
             EnsureObject("lock", instance);
@@ -171,7 +171,7 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// setPrototypeAndLock(value: any): object
         /// </summary>
-        [MondFunction("setPrototypeAndLock")]
+        [MondFunction]
         public static MondValue SetPrototypeAndLock([MondInstance] MondValue instance, MondValue value)
         {
             EnsureObject("setPrototypeAndLock", instance);

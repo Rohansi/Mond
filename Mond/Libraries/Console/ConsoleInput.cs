@@ -23,7 +23,7 @@ namespace Mond.Libraries.Console
             return obj;
         }
 
-        [MondFunction("readLn")]
+        [MondFunction]
         public string ReadLn()
         {
             return _consoleInput.In.ReadLine();

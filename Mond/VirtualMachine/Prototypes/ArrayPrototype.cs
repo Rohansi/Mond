@@ -22,7 +22,7 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// add(item)
         /// </summary>
-        [MondFunction("add")]
+        [MondFunction]
         public static void Add([MondInstance] MondValue instance, MondValue item)
         {
             EnsureArray("add", instance);
@@ -33,7 +33,7 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// clear()
         /// </summary>
-        [MondFunction("clear")]
+        [MondFunction]
         public static void Clear([MondInstance] MondValue instance)
         {
             EnsureArray("clear", instance);
@@ -44,7 +44,7 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// contains(item): bool
         /// </summary>
-        [MondFunction("contains")]
+        [MondFunction]
         public static bool Contains([MondInstance] MondValue instance, MondValue item)
         {
             EnsureArray("contains", instance);
@@ -55,7 +55,7 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// indexOf(item): number
         /// </summary>
-        [MondFunction("indexOf")]
+        [MondFunction]
         public static int IndexOf([MondInstance] MondValue instance, MondValue item)
         {
             EnsureArray("indexOf", instance);
@@ -66,7 +66,7 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// insert(index: number, item)
         /// </summary>
-        [MondFunction("insert")]
+        [MondFunction]
         public static void Insert([MondInstance] MondValue instance, int index, MondValue item)
         {
             EnsureArray("insert", instance);
@@ -80,7 +80,7 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// lastIndexOf(item): number
         /// </summary>
-        [MondFunction("lastIndexOf")]
+        [MondFunction]
         public static int LastIndexOf([MondInstance] MondValue instance, MondValue item)
         {
             EnsureArray("lastIndexOf", instance);
@@ -91,7 +91,7 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// remove(item): bool
         /// </summary>
-        [MondFunction("remove")]
+        [MondFunction]
         public static MondValue Remove([MondInstance] MondValue instance, MondValue item)
         {
             EnsureArray("remove", instance);
@@ -102,7 +102,7 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// removeAt(index: number)
         /// </summary>
-        [MondFunction("removeAt")]
+        [MondFunction]
         public static void RemoveAt([MondInstance] MondValue instance, int index)
         {
             EnsureArray("removeAt", instance);
@@ -116,30 +116,30 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// sort()
         /// </summary>
-        [MondFunction("sort")]
+        [MondFunction]
         public static void Sort([MondInstance] MondValue instance) =>
             SortImpl("sort", instance, 0, instance.ArrayValue.Count, false);
 
         /// <summary>
         /// sort(index: number, count: number)
         /// </summary>
-        [MondFunction("sort")]
+        [MondFunction]
         public static void Sort([MondInstance] MondValue instance, int index, int count) =>
             SortImpl("sort", instance, index, count, false);
 
         /// <summary>
         /// sortDescending()
         /// </summary>
-        [MondFunction("sortDescending")]
+        [MondFunction]
         public static void SortDescending([MondInstance] MondValue instance) =>
-            SortImpl("sort", instance, 0, instance.ArrayValue.Count, true);
+            SortImpl("sortDescending", instance, 0, instance.ArrayValue.Count, true);
 
         /// <summary>
         /// sortDescending(index: number, count: number)
         /// </summary>
-        [MondFunction("sortDescending")]
+        [MondFunction]
         public static void SortDescending([MondInstance] MondValue instance, int index, int count) =>
-            SortImpl("sort", instance, index, count, true);
+            SortImpl("sortDescending", instance, index, count, true);
 
         private static void SortImpl(string name, MondValue instance, int index, int count, bool reverse)
         {
@@ -158,7 +158,7 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// length(): number
         /// </summary>
-        [MondFunction("length")]
+        [MondFunction]
         public static int Length([MondInstance] MondValue instance)
         {
             EnsureArray("length", instance);
@@ -169,7 +169,7 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// getEnumerator(): object
         /// </summary>
-        [MondFunction("getEnumerator")]
+        [MondFunction]
         public static MondValue GetEnumerator([MondInstance] MondValue instance)
         {
             EnsureArray("getEnumerator", instance);

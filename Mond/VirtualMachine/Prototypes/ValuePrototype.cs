@@ -23,7 +23,7 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// getType(): string
         /// </summary>
-        [MondFunction("getType")]
+        [MondFunction]
         public static string GetType([MondInstance] MondValue instance)
         {
             return instance.Type.GetName();
@@ -32,7 +32,7 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// toString(): string
         /// </summary>
-        [MondFunction("toString")]
+        [MondFunction]
         public static string ToString([MondInstance] MondValue instance)
         {
             return instance.ToString();
@@ -41,7 +41,7 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// serialize(): string
         /// </summary>
-        [MondFunction("serialize")]
+        [MondFunction]
         public static string Serialize([MondInstance] MondValue instance)
         {
             return instance.Serialize();
@@ -50,7 +50,7 @@ namespace Mond.VirtualMachine.Prototypes
         /// <summary>
         /// getPrototype(): object
         /// </summary>
-        [MondFunction("getPrototype")]
+        [MondFunction]
         public static MondValue GetPrototype([MondInstance] MondValue instance)
         {
             return instance.Prototype;

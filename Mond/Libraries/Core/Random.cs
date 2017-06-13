@@ -14,16 +14,16 @@ namespace Mond.Libraries.Core
         [MondConstructor]
         public RandomClass(int seed) => _random = new Random(seed);
 
-        [MondFunction("next")]
+        [MondFunction]
         public int Next() => _random.Next();
 
-        [MondFunction("next")]
+        [MondFunction]
         public int Next(int maxValue) => _random.Next(maxValue);
 
-        [MondFunction("next")]
+        [MondFunction]
         public int Next(int minValue, int maxValue) => _random.Next(minValue, maxValue);
 
-        [MondFunction("nextDouble")]
+        [MondFunction]
         public double NextDouble() => _random.NextDouble();
     }
 }

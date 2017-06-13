@@ -23,7 +23,7 @@ namespace Mond.Libraries.Console
             return obj;
         }
 
-        [MondFunction("print")]
+        [MondFunction]
         public void Print(params MondValue[] arguments)
         {
             foreach (var v in arguments)
@@ -32,7 +32,7 @@ namespace Mond.Libraries.Console
             }
         }
 
-        [MondFunction("printLn")]
+        [MondFunction]
         public void PrintLn(params MondValue[] arguments)
         {
             foreach (var v in arguments)
