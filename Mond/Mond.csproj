@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard1.3</TargetFrameworks>
-    <AssemblyVersion>0.5.1</AssemblyVersion>
+    <AssemblyVersion>0.5.2</AssemblyVersion>
     <DebugType>portable</DebugType>
     
     <!-- NuGet Package -->
