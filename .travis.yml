@@ -6,6 +6,6 @@ dotnet: 1.0.1
 dist: trusty
 install:
   - dotnet restore
-  - dotnet build -c Release
+  - dotnet build Mond.Repl -f netcoreapp1.1
 script:
   - dotnet run -p ./Mond.Tests/Mond.Tests.csproj -c Release
