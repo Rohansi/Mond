@@ -334,6 +334,9 @@ namespace Mond
                     case MondValueType.String:
                         return StringPrototype.Value;
 
+                    case MondValueType.Function:
+                        return FunctionPrototype.Value;
+
                     default:
                         return ValuePrototype.Value;
                 }

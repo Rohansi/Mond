@@ -338,8 +338,24 @@ namespace Mond.Tests.Expressions
 
                 return add( 5, 10 );
             ");
+            
+            Assert.True(result == 30);
+        }
 
-            Assert.AreEqual((int)result, 30);
+        [Test]
+        public void FunctionGetName()
+        {
+            var result = Script.Run(@"
+                fun Outer() {
+                    fun inner() { }
+                    return inner;
+                }
+
+                return Outer().getName();
+            ");
+
+            Assert.AreEqual(MondValueType.String, result.Type);
+            Assert.True(result == "Outer.inner");
         }
     }
 }
