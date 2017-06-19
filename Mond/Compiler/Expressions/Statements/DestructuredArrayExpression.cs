@@ -36,7 +36,7 @@ namespace Mond.Compiler.Expressions.Statements
         {
             context.Position(Token);
             
-            var stack = Initializer?.Compile(context) ?? 0;
+            var stack = Initializer?.Compile(context) ?? 1;
             var global = context.ArgIndex == 0 && context.Compiler.Options.MakeRootDeclarationsGlobal;
 
             var hasSlice = false;
