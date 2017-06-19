@@ -7,54 +7,106 @@ namespace Mond.Tests.Expressions
     public class DestructuringTests
     {
         [Test]
-        public void BasicArrayDestructuring()
+        public void Array()
         {
             var result = Script.Run(@"
                 var array = [ 1, 2, 3, 4, 5 ];      
                 var [ a, b ] = array;
-                var [ y, x ] = array[4:0];
-
-                return [ a, b, x, y ];     
+                return [ a, b ];     
             ");
 
-            var expected = new MondValue[] { 1, 2, 4, 5 };
-            Assert.True(result.Array.SequenceEqual(expected));
+            var expected = new MondValue[] { 1, 2 };
+            CollectionAssert.AreEqual(expected, result.Array);
         }
 
         [Test]
-        public void ArrayEllipsisDestructuring()
+        public void ArrayNotEnough()
+        {
+            var result = Script.Run(@"
+                var array = [ 1, 2 ];      
+                var [ a, b, c, d ] = array;
+                return [ a, b, c, d ];     
+            ");
+
+            var expected = new[] { 1, 2, MondValue.Undefined, MondValue.Undefined };
+            CollectionAssert.AreEqual(expected, result.Array);
+        }
+
+        [Test]
+        public void ArrayEllipsisFirst()
         {
             var result = Script.Run(@"
                 var array = [ 1, 2, 3, 4, 5 ];
                 var [ ...start, _1 ] = array;
-                var [ _2, ...middle, _3 ] = array;
-                var [ _4, ...end ] = array;
-
-                return [ start, middle, end ];
+                return start;
             ");
 
-            var expectStart = new MondValue[] { 1, 2, 3, 4 };
-            var expectMiddle = new MondValue[] { 2, 3, 4 };
-            var expectEnd = new MondValue[] { 2, 3, 4, 5 };
+            var expected = new MondValue[] { 1, 2, 3, 4 };
+            CollectionAssert.AreEqual(expected, result.Array);
+        }
 
-            Assert.True(result[0].Array.SequenceEqual(expectStart));
-            Assert.True(result[1].Array.SequenceEqual(expectMiddle));
-            Assert.True(result[2].Array.SequenceEqual(expectEnd));
+        [Test]
+        public void ArrayEllipsisMiddle()
+        {
+            var result = Script.Run(@"
+                var array = [ 1, 2, 3, 4, 5 ];
+                var [ _2, ...middle, _3 ] = array;
+                return middle;
+            ");
 
-            result = Script.Run(@"
+            var expected = new MondValue[] { 2, 3, 4 };
+            CollectionAssert.AreEqual(expected, result.Array);
+        }
+
+        [Test]
+        public void ArrayEllipsisLast()
+        {
+            var result = Script.Run(@"
+                var array = [ 1, 2, 3, 4, 5 ];
+                var [ _4, ...end ] = array;
+                return end;
+            ");
+
+            var expected = new MondValue[] { 2, 3, 4, 5 };
+            CollectionAssert.AreEqual(expected, result.Array);
+        }
+
+        [Test]
+        public void ArrayEllipsisEmpty()
+        {
+            var result = Script.Run(@"
                 var array = [ 1, 2 ];
                 var [ x, ...y, z ] = array;
-
                 return [ x, y, z ];
             ");
 
-            var emptyArray = new MondValue[0];
+            var expected = new MondValue[0];
 
-            Assert.AreEqual((int)result[0], 1);
-            Assert.True(result[1].Array.SequenceEqual(emptyArray));
-            Assert.AreEqual((int)result[2], 2);
+            Assert.AreEqual((MondValue)1, result[0]);
+            CollectionAssert.AreEqual(expected, result[1].Array);
+            Assert.AreEqual((MondValue)2, result[2]);
+        }
 
-            var multipleEllipsis = @"
+        [Test]
+        public void ArrayEllipsisNotEnough()
+        {
+            var result = Script.Run(@"
+                var array = [ 1, 2 ];
+                var [ a, b, c, ...d, e ] = array;
+                return [ a, b, c, d, e ];
+            ");
+            
+            Assert.AreEqual((MondValue)1, result[0], "a");
+            Assert.AreEqual((MondValue)2, result[1], "b");
+            Assert.AreEqual(MondValue.Undefined, result[2], "c");
+            CollectionAssert.AreEqual(new MondValue[0], result[3].Array, "d");
+            Assert.AreEqual(MondValue.Undefined, result[4], "e");
+        }
+
+        [Test]
+        public void ArrayMultipleEllipsis()
+        {
+            const string multipleEllipsis = @"
                 var array = [ 1, 2, 3, 4, 5 ];
                 var [ ...head, middle, ...tail ] = array;
             ";
@@ -90,7 +142,16 @@ namespace Mond.Tests.Expressions
 
             var expectedKeys = new MondValue[] { "foo", "bar", "baz" };
             var expectedValues = new MondValue[] { 1, 2, 3 };
-            var objectEllipsis = @"
+            
+            CollectionAssert.AreEqual(expectedKeys, result["keys"].Array, "keys");
+            CollectionAssert.AreEqual(expectedValues, result["values"].Array, "values");
+            Assert.AreEqual((MondValue)5, result["five"]);
+        }
+
+        [Test]
+        public void ObjectEllipsis()
+        {
+            const string objectEllipsis = @"
                 var object = {
                     foo: 1,
                     bar: 2,
@@ -100,36 +161,24 @@ namespace Mond.Tests.Expressions
                 var { foo, ...rest } = object;
             ";
 
-            Assert.True(result["keys"].Array.SequenceEqual(expectedKeys));
-            Assert.True(result["values"].Array.SequenceEqual(expectedValues));
-            Assert.AreEqual(5, (int)result["five"]);
             Assert.Throws<MondCompilerException>(() => Script.Run(objectEllipsis));
         }
 
         [Test]
-        public void MissingDestructuredValue()
+        public void ObjectMissing()
         {
-            var undefinedArray = @"
-                var array = [ 1, 2 ];
-                var [ x, y, z ] = array;
-
-                return x + z;
-            ";
-
-            var undefinedObject = Script.Run(@"
+            var result = Script.Run(@"
                 var object = {
                     foo: 'foo',
                     bar: 'bar',
                 };
 
-                var { foo, bar, baz: x } = object;
-                x = x || 5;
-
-                return foo + x;
+                var { foo, baz } = object;
+                return [ foo, baz ];
             ");
 
-            Assert.Throws<MondRuntimeException>(() => Script.Run(undefinedArray));
-            Assert.AreEqual(undefinedObject.ToString(), "foo5");
+            var expected = new MondValue[] { "foo", MondValue.Undefined };
+            CollectionAssert.AreEqual(expected, result.Array);
         }
     }
 }

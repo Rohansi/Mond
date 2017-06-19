@@ -6,68 +6,19 @@ namespace Mond.Tests.Expressions
     public class ObjectTests
     {
         [Test]
-        public void Creation()
+        [TestCase("return { a: 123, b: 456 };")]
+        [TestCase("var a = 123, b = 456; return { a, b };")]
+        [TestCase("return { a: 123, b: 456, };")]
+        [TestCase("var obj = {}; obj.a = 123; obj.b = 456; return obj;")]
+        [TestCase("var obj = {}; obj['a'] = 123; obj['b'] = 456; return obj;")]
+        [TestCase("var obj = { a: 123, b: 456 }; return { a: obj.a, b: obj.b };")]
+        [TestCase("var obj = { a: 123, b: 456 }; return { a: obj['a'], b: obj['b'] };")]
+        public void CreationAndIndexing(string source)
         {
-            const string source1 = @"
-                return { a: 123, b: 456 };
-            ";
+            var result = Script.Run(source);
 
-            const string source2 = @"
-                var a = 123, b = 456;
-                return { a, b };
-            ";
-
-            const string source3 = @"
-                return { a: 123, b: 456, };
-            ";
-
-            var sources = new[] { source1, source2, source3 };
-
-            foreach (var source in sources)
-            {
-                var result = Script.Run(source);
-
-                Assert.True(result["a"] == 123);
-                Assert.True(result["b"] == 456);
-            }
-        }
-
-        [Test]
-        public void Indexing()
-        {
-            const string source1 = @"
-                var obj = {};
-                obj.a = 123;
-                obj.b = 456;
-                return obj;
-            ";
-
-            const string source2 = @"
-                var obj = {};
-                obj['a'] = 123;
-                obj['b'] = 456;
-                return obj;
-            ";
-
-            const string source3 = @"
-                var obj = { a: 123, b: 456 };
-                return { a: obj.a, b: obj.b };
-            ";
-
-            const string source4 = @"
-                var obj = { a: 123, b: 456 };
-                return { a: obj['a'], b: obj['b'] };
-            ";
-
-            var sources = new[] { source1, source2, source3, source4 };
-
-            foreach (var source in sources)
-            {
-                var result = Script.Run(source);
-
-                Assert.True(result["a"] == 123);
-                Assert.True(result["b"] == 456);
-            }
+            Assert.AreEqual((MondValue)123, result["a"]);
+            Assert.AreEqual((MondValue)456, result["b"]);
         }
 
         [Test]
@@ -88,26 +39,25 @@ namespace Mond.Tests.Expressions
         [Test]
         public void AnonymousFunctionDebugName()
         {
-            MondState state;
-            var obj = Script.Run(out state, @"
+            var obj = Script.Run(out var state, @"
                 return {
                     fun123: fun () { error('test'); },
                     seq456: seq () { error('test'); },
                 };
             ");
 
-            Assert.True(obj["fun123"].Type == MondValueType.Function);
-            Assert.True(obj["seq456"].Type == MondValueType.Function);
+            Assert.AreEqual(MondValueType.Function, obj["fun123"].Type);
+            Assert.AreEqual(MondValueType.Function, obj["seq456"].Type);
 
             var funEx = Assert.Throws<MondRuntimeException>(() => state.Call(obj["fun123"]));
-            Assert.True(funEx.ToString().Contains("fun123"));
+            StringAssert.Contains("fun123", funEx.ToString());
 
             var seqEx = Assert.Throws<MondRuntimeException>(() =>
             {
                 var enumerator = state.Call(obj["seq456"]);
                 state.Call(enumerator["moveNext"]);
             });
-            Assert.True(seqEx.ToString().Contains("seq456"));
+            StringAssert.Contains("seq456", seqEx.ToString());
         }
 
         [Test]
@@ -136,7 +86,7 @@ namespace Mond.Tests.Expressions
                 return a.number();
             ");
 
-            Assert.True(result == 15);
+            Assert.AreEqual((MondValue)15, result);
         }
     }
 }

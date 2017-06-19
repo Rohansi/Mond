@@ -26,9 +26,13 @@ namespace Mond.Tests.Expressions
                 return a;
             ");
 
-            Assert.True(result == 256);
+            Assert.AreEqual((MondValue)256, result);
+        }
 
-            result = Script.Run(@"
+        [Test]
+        public void WhileClosure()
+        {
+            var result = Script.Run(@"
                 var i = 0;
                 var arr = [];
             
@@ -45,7 +49,7 @@ namespace Mond.Tests.Expressions
                 return arr[4]();
             ");
 
-            Assert.True(result == 4, "closure in loop");
+            Assert.AreEqual((MondValue)4, result);
         }
 
         [Test]
@@ -69,9 +73,13 @@ namespace Mond.Tests.Expressions
                 return a;
             ");
 
-            Assert.True(result == 1024);
+            Assert.AreEqual((MondValue)1024, result);
+        }
 
-            result = Script.Run(@"
+        [Test]
+        public void DoWhileContinue()
+        {
+            var result = Script.Run(@"
                 var i = 0;
                 
                 do {
@@ -81,9 +89,13 @@ namespace Mond.Tests.Expressions
                 return i;
             ");
 
-            Assert.True(result == 10);
+            Assert.AreEqual((MondValue)10, result);
+        }
 
-            result = Script.Run(@"
+        [Test]
+        public void DoWhileClosure()
+        {
+            var result = Script.Run(@"
                 var i = 0;
                 var arr = [];
 
@@ -98,7 +110,7 @@ namespace Mond.Tests.Expressions
                 return arr[4]();
             ");
 
-            Assert.True(result == 4, "closure in loop");
+            Assert.AreEqual((MondValue)4, result);
         }
 
         [Test]
@@ -114,9 +126,13 @@ namespace Mond.Tests.Expressions
                 return a;
             ");
 
-            Assert.True(result == 3628800);
+            Assert.AreEqual((MondValue)3628800, result);
+        }
 
-            result = Script.Run(@"
+        [Test]
+        public void ForClosure()
+        {
+            var result = Script.Run(@"
                 var arr = [];
             
                 for (var i = 0; i < 10; i++) {
@@ -130,20 +146,32 @@ namespace Mond.Tests.Expressions
                 return arr[4]();
             ");
 
-            Assert.True(result == 4, "closure in loop");
+            Assert.AreEqual((MondValue)4, result);
+        }
 
+        [Test]
+        public void ForIdentifierUniqueness()
+        {
             Assert.Throws<MondCompilerException>(() => Script.Run(@"
                 var i;
                 for (var i = 0; i < 10; i++) { }
-            "), "for loop identifier must be unique");
+            "));
+        }
 
+        [Test]
+        public void ForInitializer()
+        {
             Assert.Throws<MondCompilerException>(() => Script.Run(@"
                 for (break;;) {} 
-            "), "for loop initializer must be var");
+            "));
+        }
 
+        [Test]
+        public void ForIncrement()
+        {
             Assert.Throws<MondCompilerException>(() => Script.Run(@"
                 for (;; return) {}
-            "), "for loop increment must be expression");
+            "));
         }
 
         [Test]
@@ -159,7 +187,7 @@ namespace Mond.Tests.Expressions
                 return res;
             ");
 
-            Assert.True(result == 5);
+            Assert.AreEqual((MondValue)5, result);
         }
 
         [Test]
@@ -178,7 +206,7 @@ namespace Mond.Tests.Expressions
                 return i;
             ");
 
-            Assert.True(result == 100);
+            Assert.AreEqual((MondValue)100, result);
         }
 
         [Test]
@@ -199,7 +227,7 @@ namespace Mond.Tests.Expressions
                 return result;
             ");
 
-            Assert.True(result == 500);
+            Assert.AreEqual((MondValue)500, result);
         }
 
         [Test]
@@ -216,9 +244,13 @@ namespace Mond.Tests.Expressions
                 return res;
             ");
 
-            Assert.True(result == 15);
+            Assert.AreEqual((MondValue)15, result);
+        }
 
-            result = Script.Run(@"
+        [Test]
+        public void ForeachClosure()
+        {
+            var result = Script.Run(@"
                 var arr = [];
 
                 foreach (var i in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]) {
@@ -232,16 +264,24 @@ namespace Mond.Tests.Expressions
                 return arr[4]();
             ");
 
-            Assert.True(result == 4, "closure in loop");
+            Assert.AreEqual((MondValue)4, result);
+        }
 
-            result = Script.Run(@"
+        [Test]
+        public void ForeachReuseIdentifier()
+        {
+            var result = Script.Run(@"
                 foreach (var i in []) { }
                 foreach (var i in []) { }
                 return 1;
             ");
 
-            Assert.True(result == 1, "two foreach in same scope with same ident");
+            Assert.AreEqual((MondValue)1, result);
+        }
 
+        [Test]
+        public void ForeachIdentifierUniqueness()
+        {
             Assert.Throws<MondCompilerException>(() => Script.Run(@"
                 var i;
                 foreach (var i in []) { }
@@ -264,8 +304,12 @@ namespace Mond.Tests.Expressions
                 return res;
             ");
 
-            Assert.True(result == 15);
+            Assert.AreEqual((MondValue)15, result);
+        }
 
+        [Test]
+        public void BreakNotInLoop()
+        {
             Assert.Throws<MondCompilerException>(() => Script.Run("break;"));
         }
 
@@ -285,8 +329,12 @@ namespace Mond.Tests.Expressions
                 return res;
             ");
 
-            Assert.True(result == 30);
+            Assert.AreEqual((MondValue)30, result);
+        }
 
+        [Test]
+        public void ContinueNotInLoop()
+        {
             Assert.Throws<MondCompilerException>(() => Script.Run("continue;"));
         }
     }

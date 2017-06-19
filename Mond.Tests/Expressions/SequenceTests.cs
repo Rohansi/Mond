@@ -9,8 +9,7 @@ namespace Mond.Tests.Expressions
         [Test]
         public void Sequence()
         {
-            MondState state;
-            var result = Script.Run(out state, @"
+            var result = Script.Run(out var state, @"
                 var test = seq () {
                     for (var i = 1; i <= 10; i++) {
                         if (i > 5)
@@ -29,29 +28,27 @@ namespace Mond.Tests.Expressions
             };
 
             Assert.True(result.IsEnumerable);
-            Assert.True(result.Enumerate(state).Take(expected.Length).SequenceEqual(expected));
+            CollectionAssert.AreEqual(expected, result.Enumerate(state));
         }
 
         [Test]
         public void SequenceExpression()
         {
-            MondState state;
-            var result = Script.Run(out state, @"
+            var result = Script.Run(out var state, @"
                 return (seq () -> 10)();
             ");
 
             Assert.True(result.IsEnumerable);
 
             var enumerator = state.Call(result["getEnumerator"]);
-            Assert.True(state.Call(enumerator["moveNext"]) == false);
-            Assert.True(enumerator["current"] == 10);
+            Assert.AreEqual(MondValue.False, state.Call(enumerator["moveNext"]));
+            Assert.AreEqual((MondValue)10, enumerator["current"]);
         }
 
         [Test]
         public void SequenceScope()
         {
-            MondState state;
-            var result = Script.Run(out state, @"
+            var result = Script.Run(out var state, @"
                 seq scope() {
                     {
                         var a = 10;
@@ -73,23 +70,27 @@ namespace Mond.Tests.Expressions
             };
 
             Assert.True(result.IsEnumerable);
-            Assert.True(result.Enumerate(state).SequenceEqual(expected));
+            CollectionAssert.AreEqual(expected, result.Enumerate(state));
         }
 
         [Test]
-        public void SequenceErrors()
+        public void YieldReturnInFunction()
         {
             Assert.Throws<MondCompilerException>(() => Script.Run(@"
                 fun test() {
                     yield 1;
                 }
-            "), "can't use yield in fun");
+            "));
+        }
 
+        [Test]
+        public void YieldBreakInFunction()
+        {
             Assert.Throws<MondCompilerException>(() => Script.Run(@"
                 fun test() {
                     yield break;
                 }
-            "), "can't use yield in fun");
+            "));
         }
 
         [Test]
@@ -115,14 +116,13 @@ namespace Mond.Tests.Expressions
                        check(false, 2);
             ");
 
-            Assert.True(result == MondValue.True);
+            Assert.AreEqual(MondValue.True, result);
         }
         
         [Test]
         public void FizzBuzz()
         {
-            MondState state;
-            var result = Script.Run(out state, @"
+            var result = Script.Run(out var state, @"
                 seq fizzBuzz() {
                     var n = 1;
 
@@ -149,14 +149,13 @@ namespace Mond.Tests.Expressions
             };
 
             Assert.True(result.IsEnumerable);
-            Assert.True(result.Enumerate(state).Take(expected.Length).SequenceEqual(expected));
+            CollectionAssert.AreEqual(expected, result.Enumerate(state).Take(expected.Length));
         }
 
         [Test]
         public void NestedSequence()
         {
-            MondState state;
-            var result = Script.Run(out state, @"
+            var result = Script.Run(out var state, @"
                 seq expand(pairs) {
                     seq repeat(value, count) {
                         for (var i = 0; i < count; i++)
@@ -178,14 +177,13 @@ namespace Mond.Tests.Expressions
             };
 
             Assert.True(result.IsEnumerable);
-            Assert.True(result.Enumerate(state).SequenceEqual(expected));
+            CollectionAssert.AreEqual(expected, result.Enumerate(state));
         }
 
         [Test]
         public void VariableLengthArguments()
         {
-            MondState state;
-            var result = Script.Run(out state, @"
+            var result = Script.Run(out var state, @"
                 seq values(...args) {
                     foreach (var x in args)
                         yield x;
@@ -200,14 +198,13 @@ namespace Mond.Tests.Expressions
             };
 
             Assert.True(result.IsEnumerable);
-            Assert.True(result.Enumerate(state).SequenceEqual(expected));
+            CollectionAssert.AreEqual(expected, result.Enumerate(state));
         }
 
         [Test]
         public void LambdaInLoop()
         {
-            MondState state;
-            var result = Script.Run(out state, @"
+            var result = Script.Run(out var state, @"
                 seq ints() {
                     var i = 0;
                     while (true) {
@@ -222,7 +219,7 @@ namespace Mond.Tests.Expressions
             Assert.True(result.IsEnumerable);
 
             result = result.Enumerate(state).Skip(4).FirstOrDefault();
-            Assert.True(state.Call(result) == 4);
+            Assert.AreEqual((MondValue)4, state.Call(result));
         }
 
         [Test]
@@ -244,7 +241,7 @@ namespace Mond.Tests.Expressions
                 return result;
             ");
 
-            Assert.True(result == 15);
+            Assert.AreEqual((MondValue)15, result);
         }
 
         [Test]
@@ -270,8 +267,8 @@ namespace Mond.Tests.Expressions
                 return [ ae.current, be.current ];
             ");
 
-            Assert.True(result[0] == 6);
-            Assert.True(result[1] == 25);
+            Assert.AreEqual((MondValue)6, result[0]);
+            Assert.AreEqual((MondValue)25, result[1]);
         }
     }
 }

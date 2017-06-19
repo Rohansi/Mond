@@ -12,17 +12,23 @@ namespace Mond.Tests.Expressions
                 return 3 + 4 ** 4 * 2 / (1 - 5) % 3;
             ");
 
-            Assert.True(result == 1);
-
-            result = Script.Run(@"
-                return 4 | 2 * 6 << 4 ^ 6 >> 2 + 2 & 4;
-            ");
-
-            Assert.True(result == 196);
+            Assert.True((MondValue)1, result);
         }
 
         [Test]
-        public void Ternary()
+        public void BinaryOrderOfOperations()
+        {
+            var result = Script.Run(@"
+                return 4 | 2 * 6 << 4 ^ 6 >> 2 + 2 & 4;
+            ");
+
+            Assert.AreEqual((MondValue)196, result);
+        }
+
+        [Test]
+        [TestCase(15, 3)]
+        [TestCase(5, 9)]
+        public void Ternary(int input, int expected)
         {
             var state = Script.Load(@"
                 global.test = fun (n) {
@@ -31,14 +37,16 @@ namespace Mond.Tests.Expressions
             ");
 
             var func = state["test"];
-
-            Assert.True(state.Call(func, 15) == 3);
-
-            Assert.True(state.Call(func, 5) == 9);
+            Assert.AreEqual((MondValue)expected, state.Call(func, input));
         }
 
         [Test]
-        public void NestedTernary()
+        [TestCase(0, 1)]
+        [TestCase(1, 2)]
+        [TestCase(2, 3)]
+        [TestCase(3, 4)]
+        [TestCase(4, 5)]
+        public void NestedTernary(int input, int expected)
         {
             var state = Script.Load(@"
                 global.test = fun (n) {
@@ -50,16 +58,7 @@ namespace Mond.Tests.Expressions
             ");
 
             var func = state["test"];
-
-            Assert.True(state.Call(func, 0) == 1);
-
-            Assert.True(state.Call(func, 1) == 2);
-
-            Assert.True(state.Call(func, 2) == 3);
-
-            Assert.True(state.Call(func, 3) == 4);
-
-            Assert.True(state.Call(func, 4) == 5);
+            Assert.AreEqual((MondValue)expected, state.Call(func, input));
         }
 
         [Test]
@@ -82,7 +81,7 @@ namespace Mond.Tests.Expressions
                 return result;
             ");
 
-            Assert.True(result == "a!AB!");
+            Assert.AreEqual((MondValue)"a!AB!", result);
         }
 
         [Test]
@@ -105,7 +104,7 @@ namespace Mond.Tests.Expressions
                 return result;
             ");
 
-            Assert.True(result == "ab!A");
+            Assert.AreEqual((MondValue)"ab!A", result);
         }
 
         [Test]
@@ -113,12 +112,10 @@ namespace Mond.Tests.Expressions
         {
             var result = Script.Run(@"
                 var a = true;
-                return !a;
+                return ! ! !a;
             ");
 
-            Assert.True(result == false);
-
-            // TODO: more cases
+            Assert.AreEqual(MondValue.False, result);
         }
 
         [Test]
@@ -130,69 +127,101 @@ namespace Mond.Tests.Expressions
                 return 123 |> test(1);
             ");
 
-            Assert.True(result == 124);
+            Assert.AreEqual((MondValue)124, result);
+        }
 
+        [Test]
+        public void PipelineMustPointToCall()
+        {
             Assert.Throws<MondCompilerException>(() => Script.Run(@"
                 return 1 |> 1;
-            "), "right side of pipeline must be function");
+            "));
         }
 
         [Test]
-        public void In()
+        [TestCase(84, false)]
+        [TestCase(14, true)]
+        public void InArray(int input, bool expected)
         {
-            var result = Script.Run(@"
-                return 84 in [ 0, 7, 14, 21, 42 ];
+            var result = Script.Run(out var state, @"
+                var array = [ 0, 7, 14, 21, 42 ];
+                return fun(x) -> x in array;
             ");
 
-            Assert.True(result == false);
-
-            result = Script.Run(@"
-                var object = {
-                    foo: 123,
-                    bar: 456,
-                };
-
-                var key = 'baz' in object ? 'baz' : 'foo';
-                return object[key];
-            ");
-
-            Assert.True(result == 123);
-
-            result = Script.Run(@"
-                var string = 'abcdef';
-                return 'ab' in string && 'cd' in string;
-            ");
-
-            Assert.True(result == true);
+            Assert.AreEqual((MondValue)expected, state.Call(result, input));
         }
 
         [Test]
-        public void NotIn()
+        [TestCase("abc", false)]
+        [TestCase("bar", true)]
+        public void InObject(string input, bool expected)
         {
-            var result = Script.Run(@"
-                return 84 !in [ 0, 7, 14, 21, 42 ];
-            ");
-
-            Assert.True(result == true);
-
-            result = Script.Run(@"
+            var result = Script.Run(out var state, @"
                 var object = {
                     foo: 123,
                     bar: 456,
+                    baz: 789
                 };
-
-                var key = 'baz' !in object ? 'foo' : 'baz';
-                return object[key];
+                return fun(x) -> x in object;
             ");
 
-            Assert.True(result == 123);
+            Assert.AreEqual((MondValue)expected, state.Call(result, input));
+        }
 
-            result = Script.Run(@"
+        [Test]
+        [TestCase("cd", true)]
+        [TestCase("xy", false)]
+        public void InString(string input, bool expected)
+        {
+            var result = Script.Run(out var state, @"
                 var string = 'abcdef';
-                return 'gh' !in string && 'ij' !in string;
+                return fun(x) -> x in string;
             ");
 
-            Assert.True(result == true);
+            Assert.AreEqual((MondValue)expected, state.Call(result, input));
+        }
+        
+        [Test]
+        [TestCase(84, true)]
+        [TestCase(14, false)]
+        public void NotInArray(int input, bool expected)
+        {
+            var result = Script.Run(out var state, @"
+                var array = [ 0, 7, 14, 21, 42 ];
+                return fun(x) -> x !in array;
+            ");
+
+            Assert.AreEqual((MondValue)expected, state.Call(result, input));
+        }
+
+        [Test]
+        [TestCase("abc", true)]
+        [TestCase("bar", false)]
+        public void NotInObject(string input, bool expected)
+        {
+            var result = Script.Run(out var state, @"
+                var object = {
+                    foo: 123,
+                    bar: 456,
+                    baz: 789
+                };
+                return fun(x) -> x !in object;
+            ");
+
+            Assert.AreEqual((MondValue)expected, state.Call(result, input));
+        }
+
+        [Test]
+        [TestCase("cd", false)]
+        [TestCase("xy", true)]
+        public void NotInString(string input, bool expected)
+        {
+            var result = Script.Run(out var state, @"
+                var string = 'abcdef';
+                return fun(x) -> x !in string;
+            ");
+
+            Assert.AreEqual((MondValue)expected, state.Call(result, input));
         }
     }
 }

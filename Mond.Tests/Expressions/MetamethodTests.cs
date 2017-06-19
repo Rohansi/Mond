@@ -28,10 +28,10 @@ namespace Mond.Tests.Expressions
             ");
 
             result["test"] = 123;
-            Assert.True(result["test"] == 123);
+            Assert.AreEqual((MondValue)123, result["test"]);
 
             result[123] = "test";
-            Assert.False(result[123] == "test");
+            Assert.AreNotEqual((MondValue)"test", result[123]);
         }
 
         [Test]
@@ -52,15 +52,15 @@ namespace Mond.Tests.Expressions
                 return obj(1, 3) + obj(...[1, 3]);
             ");
 
-            Assert.True(result == 8);
+            Assert.AreEqual((MondValue)8, result);
 
-            Assert.True(state.Call(state["obj"], 1, 3) == 4);
+            Assert.AreEqual((MondValue)4, state.Call(state["obj"], 1, 3));
         }
 
         [Test]
-        public void ImplicitCasts()
+        public void ImplicitNumberCast()
         {
-            // __number, __bool, __string
+            // __number
 
             var result = Script.Run(@"
                 var obj = {
@@ -70,9 +70,15 @@ namespace Mond.Tests.Expressions
                 return (1 + obj) + (obj + 1);
             ");
 
-            Assert.True(result == 10);
+            Assert.AreEqual((MondValue)10, result);
+        }
 
-            result = Script.Run(@"
+        [Test]
+        public void ImplicitBoolCast()
+        {
+            // __bool
+
+            var result = Script.Run(@"
                 var obj = {
                     __bool: fun (this) -> false
                 };
@@ -80,9 +86,15 @@ namespace Mond.Tests.Expressions
                 return obj ? 'yes' : 'no';
             ");
 
-            Assert.True(result == "no");
+            Assert.AreEqual((MondValue)"no", result);
+        }
 
-            result = Script.Run(@"
+        [Test]
+        public void ImplicitStringCast()
+        {
+            // __string
+
+            var result = Script.Run(@"
                 var obj = {
                     __string: fun (this) -> 'hello'
                 };
@@ -90,7 +102,7 @@ namespace Mond.Tests.Expressions
                 return ('' + obj) + (obj + '') + (obj.toString());
             ");
 
-            Assert.True(result == "hellohellohello");
+            Assert.AreEqual((MondValue)"hellohellohello", result);
         }
 
         [Test]
@@ -110,7 +122,7 @@ namespace Mond.Tests.Expressions
         }
 
         [Test]
-        public void Comparison()
+        public void Relational()
         {
             // __eq, __gt
 
@@ -230,7 +242,7 @@ namespace Mond.Tests.Expressions
         [Test]
         public void Slice()
         {
-            var result = Script.Run(@"
+            var result = Script.Run(out var state, @"
                 var obj = {
                     __slice: fun (this, start, end, step) -> [ start, end, step ]
                 };
@@ -238,11 +250,13 @@ namespace Mond.Tests.Expressions
                 return obj[1:2:3];
             ");
 
+            var expected = new MondValue[]
+            {
+                1, 2, 3
+            };
+
             Assert.AreEqual(MondValueType.Array, result.Type);
-            Assert.AreEqual(3, result.Array.Count);
-            Assert.True(result[0] == 1);
-            Assert.True(result[1] == 2);
-            Assert.True(result[2] == 3);
+            CollectionAssert.AreEqual(expected, result.Enumerate(state));
         }
     }
 }

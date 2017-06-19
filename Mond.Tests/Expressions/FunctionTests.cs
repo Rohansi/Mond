@@ -29,11 +29,25 @@ namespace Mond.Tests.Expressions
                 return fib(50);
             ");
 
-            Assert.True(result == 12586269025);
+            Assert.AreEqual((MondValue)12586269025, result);
         }
 
         [Test]
         public void DefaultReturnValue()
+        {
+            var result = Script.Run(@"
+                fun test() {
+                    
+                }
+
+                return test();
+            ");
+
+            Assert.AreEqual(MondValue.Undefined, result);
+        }
+
+        [Test]
+        public void DefaultReturnValueExplicit()
         {
             var result = Script.Run(@"
                 fun test() {
@@ -43,17 +57,7 @@ namespace Mond.Tests.Expressions
                 return test();
             ");
 
-            Assert.True(result == MondValue.Undefined);
-
-            result = Script.Run(@"
-                fun test() {
-                    
-                }
-
-                return test();
-            ");
-
-            Assert.True(result == MondValue.Undefined);
+            Assert.AreEqual(MondValue.Undefined, result);
         }
 
         [Test]
@@ -69,7 +73,7 @@ namespace Mond.Tests.Expressions
                 return counter(2);
             ");
 
-            Assert.True(result == 13);
+            Assert.AreEqual((MondValue)13, result);
         }
 
         [Test]
@@ -87,8 +91,12 @@ namespace Mond.Tests.Expressions
                 return loop(10000);
             ");
 
-            Assert.True(result == "done");
+            Assert.AreEqual((MondValue)"done", result);
+        }
 
+        [Test]
+        public void NoTailCallStackOverflow()
+        {
             Assert.Throws<MondRuntimeException>(() => Script.Run(@"
                 var test = fun () {
                     return test();
@@ -115,7 +123,7 @@ namespace Mond.Tests.Expressions
                 return sum(1, 2, 3);
             ");
 
-            Assert.True(result == 6);
+            Assert.AreEqual((MondValue)6, result);
         }
 
         [Test]
@@ -129,18 +137,24 @@ namespace Mond.Tests.Expressions
                 return call(add, 10, 5);
             ");
 
-            Assert.True(result == 15, "single unpack");
+            Assert.AreEqual((MondValue)15, result);
+        }
 
-            result = Script.Run(@"
+        [Test]
+        public void UnpackMultiple()
+        {
+            var result = Script.Run(out var state, @"
                 fun array(...values) -> values;
 
                 return array(1, 2, 3, ...[4, 5, 6], 7, ...[8, 9, 10]);
             ");
 
-            Assert.True(result.Array.SequenceEqual(new MondValue[]
+            var expected = new MondValue[]
             {
                 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-            }), "multiple unpack");
+            };
+
+            CollectionAssert.AreEqual(expected, result.Enumerate(state));
         }
 
         [Test]
@@ -160,59 +174,95 @@ namespace Mond.Tests.Expressions
                 return sum(100, 50, 10, 5, 1);
             ");
 
-            Assert.True(result == 166);
+            Assert.AreEqual((MondValue)166, result);
         }
 
         [Test]
-        public void FunctionErrors()
+        public void FunctionNameUniqueness()
         {
             Assert.Throws<MondCompilerException>(() => Script.Run(@"
                 var a;
                 fun a() { }
-            "), "function name must be unique");
+            "));
+        }
 
+        [Test]
+        public void FunctionNameReadonly()
+        {
             Assert.Throws<MondCompilerException>(() => Script.Run(@"
                 fun test() { }
                 test = 1;
-            "), "function variable should be readonly");
+            "));
+        }
 
+        [Test]
+        public void UnusedClosure()
+        {
             Assert.Throws<MondCompilerException>(() => Script.Run(@"
                 fun () -> 1;
-            "), "don't allow unused closures");
+            "));
+        }
 
+        [Test]
+        public void FunctionParameterUniqueness()
+        {
             Assert.Throws<MondCompilerException>(() => Script.Run(@"
                 fun test(a, a) { }
-            "), "function arg names must be unique");
+            "));
+        }
 
+        [Test]
+        public void FunctionParameterUniquenessPack()
+        {
             Assert.Throws<MondCompilerException>(() => Script.Run(@"
                 fun test(a, ...a) { }
             "), "function arg names must be unique");
         }
 
         [Test]
-        public void NameRequirement()
+        public void FunctionExpressionWithName()
         {
             Assert.Throws<MondCompilerException>(() => Script.Run(@"
                 return fun x() { return 0; };
             "));
+        }
 
+        [Test]
+        public void FunctionStatementWithNoName()
+        {
             Assert.Throws<MondCompilerException>(() => Script.Run(@"
                 fun () { return 0; }
             "));
         }
 
         [Test]
-        public void LambdaExpression()
+        public void LambdaExpressionSimple()
         {
-            Assert.True(Script.Run("return (() -> 100)();") == 100, "simple expression");
+            Assert.AreEqual((MondValue)100, Script.Run("return (() -> 100)();"));
+        }
 
-            Assert.True(Script.Run("return (() -> { return 100; })();") == 100, "block expression");
+        [Test]
+        public void LambdaExpressionBlock()
+        {
+            Assert.AreEqual((MondValue)100, Script.Run("return (() -> { return 100; })();"));
+        }
 
-            Assert.True(Script.Run("return (() -> { })();") == MondValue.Undefined, "empty block does nothing");
+        [Test]
+        public void LambdaExpressionEmptyBlock()
+        {
+            Assert.AreEqual(MondValue.Undefined, Script.Run("return (() -> { })();"));
+        }
 
-            Assert.True(Script.Run("return (() -> ({ a: 100 }))();")["a"] == 100, "return object");
+        [Test]
+        public void LambdaExpressionReturnObject()
+        {
+            Assert.AreEqual((MondValue)100, Script.Run("return (() -> ({ a: 100 }))();")["a"]);
+        }
 
-            Assert.Throws<MondCompilerException>(() => Script.Run("return (() -> { a: 100 })();"), "return object no parens");
+        [Test]
+        public void LambdaExpressionReturnObjectWithoutBrackets()
+        {
+            Assert.Throws<MondCompilerException>(() => Script.Run("return (() -> { a: 100 })();"));
         }
 
         [Test]
@@ -229,7 +279,7 @@ namespace Mond.Tests.Expressions
                 return arr[4]();
             ");
 
-            Assert.True(result == 4);
+            Assert.AreEqual((MondValue)4, result);
         }
 
         [Test]
@@ -251,13 +301,13 @@ namespace Mond.Tests.Expressions
                 return arr[4][2]();
             ");
 
-            Assert.True(result == 2);
+            Assert.AreEqual((MondValue)2, result);
         }
 
         [Test]
         public void UnaryUserDefinedOperator()
         {
-            var state = Script.Load(@"
+            var result = Script.Run(out var state, @"
                 seq (%%)(n) {
                     if (n == 0) {
                         yield 0;
@@ -276,11 +326,15 @@ namespace Mond.Tests.Expressions
                     }
                 }
 
-                global.test = %% 10;
+                return %% 10;
             ");
 
-            var expected = new[] { 2, 3, 5, 8, 13, 21, 34, 55 }.Select(n => new MondValue(n));
-            Assert.True(state["test"].Enumerate(state).SequenceEqual(expected));
+            var expected = new MondValue[]
+            {
+                2, 3, 5, 8, 13, 21, 34, 55
+            };
+
+            CollectionAssert.AreEqual(expected, result.Enumerate(state));
         }
 
         [Test]
@@ -299,18 +353,17 @@ namespace Mond.Tests.Expressions
                 return (square >>> double)(5);
             ");
 
-            Assert.True(result == 50);
+            Assert.AreEqual((MondValue)50, result);
         }
 
         [Test]
-        public void FunctionDecorators()
+        public void DecoratorExecutionOrder()
         {
-            // test the execution order
-            var state = Script.Load(@"
-                global.result = [];
+            var result = Script.Run(out var state, @"
+                var result = [];
 
                 fun add(func, num) {
-                    global.result.add(num);
+                    result.add(num);
 
                     return (... args) -> func(... args);
                 }
@@ -320,12 +373,21 @@ namespace Mond.Tests.Expressions
                 fun test() {}
 
                 test();
+
+                return result;
             ");
 
-            var expected = new[] { 1, 2 }.Select(n => new MondValue(n));
-            Assert.True(state["result"].Enumerate(state).SequenceEqual(expected));
+            var expected = new MondValue[]
+            {
+                1, 2
+            };
 
-            // test nesting
+            CollectionAssert.AreEqual(expected, result.Enumerate(state));
+        }
+
+        [Test]
+        public void FunctionDecorators()
+        {
             var result = Script.Run(@"
                 fun mult(func, x) -> fun(... args) -> func(... args) * x;
 
@@ -339,7 +401,7 @@ namespace Mond.Tests.Expressions
                 return add( 5, 10 );
             ");
             
-            Assert.True(result == 30);
+            Assert.AreEqual((MondValue)30, result);
         }
 
         [Test]

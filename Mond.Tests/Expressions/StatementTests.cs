@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using System.Collections.Generic;
+using NUnit.Framework;
 
 namespace Mond.Tests.Expressions
 {
@@ -6,7 +7,7 @@ namespace Mond.Tests.Expressions
     public class StatementTests
     {
         [Test]
-        public void Scope()
+        public void ScopeNameReuse()
         {
             var result = Script.Run(@"
                 {
@@ -19,8 +20,12 @@ namespace Mond.Tests.Expressions
                 }
             ");
 
-            Assert.True(result == MondValue.Undefined);
+            Assert.AreEqual(MondValue.Undefined, result);
+        }
 
+        [Test]
+        public void ScopeReferenceOutside()
+        {
             Assert.Throws<MondCompilerException>(() => Script.Run(@"
                 {
                     var a = 1;
@@ -28,7 +33,11 @@ namespace Mond.Tests.Expressions
 
                 return a;
             "));
+        }
 
+        [Test]
+        public void ScopeDuplicate()
+        {
             Assert.Throws<MondCompilerException>(() => Script.Run(@"
                 var a = 1;
 
@@ -46,30 +55,54 @@ namespace Mond.Tests.Expressions
                 return a;
             ");
 
-            Assert.True(result == 100);
+            Assert.AreEqual((MondValue)100, result);
+        }
 
+        [Test]
+        public void ConstantNoValue()
+        {
             Assert.Throws<MondCompilerException>(() => Script.Run(@"
                 const a;
             "));
-            
+        }
+
+        [Test]
+        public void ConstantAssign()
+        {
             Assert.Throws<MondCompilerException>(() => Script.Run(@"
                 const a = 100;
                 a = 123;
             "));
+        }
 
+        [Test]
+        public void ConstantAssignPostfix()
+        {
             Assert.Throws<MondCompilerException>(() => Script.Run(@"
                 const a = 100;
                 return a++;
             "));
+        }
 
+        [Test]
+        public void ConstantAssignPrefix()
+        {
             Assert.Throws<MondCompilerException>(() => Script.Run(@"
                 const a = 100;
                 return ++a;
             "));
         }
 
+        public static IEnumerable<TestCaseData> IfData { get; } = new[]
+        {
+            new TestCaseData((MondValue)(-3), (MondValue)1),
+            new TestCaseData((MondValue)12, (MondValue)2),
+            new TestCaseData((MondValue)5, (MondValue)3),
+        };
+
         [Test]
-        public void If()
+        [TestCaseSource(nameof(IfData))]
+        public void If(MondValue input, MondValue expected)
         {
             var state = Script.Load(@"
                 global.test = fun (x) {
@@ -87,16 +120,49 @@ namespace Mond.Tests.Expressions
             ");
 
             var test = state["test"];
-
-            Assert.True(state.Call(test, -3) == 1);
-
-            Assert.True(state.Call(test, 12) == 2);
-
-            Assert.True(state.Call(test, 5) == 3);
+            Assert.AreEqual(expected, state.Call(test, input));
         }
 
         [Test]
-        public void Switch()
+        [TestCaseSource(nameof(IfData))]
+        public void IfNoBraces(MondValue input, MondValue expected)
+        {
+            var state = Script.Load(@"
+                global.test = fun (x) {
+
+                    if (x < 0) 
+                        return 1;
+                    else if (x >= 10)
+                        return 2;
+                    else
+                        return 3;
+
+                    return 4;
+                };
+            ");
+
+            var test = state["test"];
+            Assert.AreEqual(expected, state.Call(test, input));
+        }
+
+        public static IEnumerable<TestCaseData> SwitchData { get; } = new[]
+        {
+            new TestCaseData((MondValue)1, (MondValue)1),
+            new TestCaseData((MondValue)2, (MondValue)2),
+            new TestCaseData((MondValue)3, (MondValue)3),
+            new TestCaseData((MondValue)4, (MondValue)4),
+            new TestCaseData((MondValue)5, (MondValue)5),
+            new TestCaseData((MondValue)"beep", (MondValue)6),
+            new TestCaseData(MondValue.True, (MondValue)7),
+            new TestCaseData(MondValue.False, (MondValue)8),
+            new TestCaseData(MondValue.Null, (MondValue)9),
+            new TestCaseData(MondValue.Undefined, (MondValue)10),
+            new TestCaseData((MondValue)11, (MondValue)11),
+        };
+
+        [Test]
+        [TestCaseSource(nameof(SwitchData))]
+        public void Switch(MondValue input, MondValue expected)
         {
             var state = Script.Load(@"
                 global.test = fun (x) {
@@ -128,32 +194,14 @@ namespace Mond.Tests.Expressions
             ");
 
             var test = state["test"];
-
-            Assert.True(state.Call(test, 1) == 1);
-
-            Assert.True(state.Call(test, 2) == 2);
-
-            Assert.True(state.Call(test, 3) == 3);
-
-            Assert.True(state.Call(test, 4) == 4);
-
-            Assert.True(state.Call(test, 5) == 5);
-
-            Assert.True(state.Call(test, "beep") == 6);
-
-            Assert.True(state.Call(test, MondValue.True) == 7);
-
-            Assert.True(state.Call(test, MondValue.False) == 8);
-
-            Assert.True(state.Call(test, MondValue.Null) == 9);
-
-            Assert.True(state.Call(test, MondValue.Undefined) == 10);
-
-            Assert.True(state.Call(test, 11) == 11);
+            Assert.AreEqual(expected, state.Call(test, input));
         }
 
         [Test]
-        public void SwitchMixedDefault()
+        [TestCase(1, 1)]
+        [TestCase(2, 2)]
+        [TestCase(3, 1)]
+        public void SwitchMixedDefault(int input, int expected)
         {
             var state = Script.Load(@"
                 global.test = fun (x) {
@@ -172,16 +220,14 @@ namespace Mond.Tests.Expressions
             ");
 
             var test = state["test"];
-
-            Assert.True(state.Call(test, 1) == 1);
-            
-            Assert.True(state.Call(test, 2) == 2);
-
-            Assert.True(state.Call(test, 3) == 1);
+            Assert.AreEqual((MondValue)expected, state.Call(test, input));
         }
 
         [Test]
-        public void SwitchNoDefault()
+        [TestCase(1, 1)]
+        [TestCase(2, 2)]
+        [TestCase(3, 0)]
+        public void SwitchNoDefault(int input, int expected)
         {
             var state = Script.Load(@"
                 global.test = fun (x) {
@@ -198,37 +244,44 @@ namespace Mond.Tests.Expressions
             ");
 
             var test = state["test"];
-
-            Assert.True(state.Call(test, 1) == 1);
-
-            Assert.True(state.Call(test, 2) == 2);
-
-            Assert.True(state.Call(test, 3) == 0);
+            Assert.AreEqual((MondValue)expected, state.Call(test, input));
         }
 
         [Test]
-        public void SwitchErrors()
+        public void SwitchNotACase()
         {
             Assert.Throws<MondCompilerException>(() => Script.Run(@"
                 switch (1) { var }
             "));
+        }
 
+        [Test]
+        public void SwitchDuplicateLabel()
+        {
             Assert.Throws<MondCompilerException>(() => Script.Run(@"
                 switch (1) {
                     case 1:
                     case 1:
                         return 0;
                 }
-            "), "duplicate case");
+            "));
+        }
 
+        [Test]
+        public void SwitchDuplicateDefault()
+        {
             Assert.Throws<MondCompilerException>(() => Script.Run(@"
                 switch (1) {
                     default:
                     default:
                         return 0;
                 }
-            "), "duplicate default");
+            "));
+        }
 
+        [Test]
+        public void SwitchDuplicateDefaultBlocks()
+        {
             Assert.Throws<MondCompilerException>(() => Script.Run(@"
                 switch (1) {
                     default:
@@ -236,7 +289,7 @@ namespace Mond.Tests.Expressions
                     default:
                         return 1;
                 }
-            "), "duplicate default blocks");
+            "));
         }
     }
 }
