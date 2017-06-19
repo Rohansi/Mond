@@ -123,7 +123,7 @@ namespace Mond.Tests.Expressions
         [Test]
         [TestCase("i", 1)]
         [TestCase("j", 1)]
-        [TestCase("k", 9)]
+        [TestCase("x", 9)]
         public void IndexerLoadStore(string index, int expected)
         {
             var result = Script.Run(@"
