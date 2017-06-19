@@ -167,7 +167,7 @@ namespace Mond
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentNullException(nameof(name));
 
-            if (value == null || value.Type != MondValueType.Object)
+            if (value.Type != MondValueType.Object)
                 throw new ArgumentException("Prototype value must be an object.", nameof(value));
 
             if (_prototypeCache.ContainsKey(name))

@@ -6,7 +6,7 @@ namespace Mond.VirtualMachine
     {
         public readonly Dictionary<MondValue, MondValue> Values;
         public bool Locked;
-        public MondValue Prototype;
+        public MondValue? Prototype;
         public object UserData;
 
         private MondState _dispatcherState;

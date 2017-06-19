@@ -392,7 +392,7 @@ namespace Mond.Tests
             Assert.True(obj["containsKey"] == MondValue.Undefined);
 
             obj.Lock();
-            Assert.Throws<MondRuntimeException>(() => obj.Prototype = null, "modify locked object prototype");
+            Assert.Throws<MondRuntimeException>(() => obj.Prototype = MondValue.Undefined, "modify locked object prototype");
         }
 
         [Test]

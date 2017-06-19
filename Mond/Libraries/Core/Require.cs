@@ -98,7 +98,7 @@ namespace Mond.Libraries.Core
                 if (result.Type != MondValueType.Object)
                     throw new MondRuntimeException("require: module must return an object (`{0}`)", fileName);
 
-                if (!ReferenceEquals(exports, result))
+                if (!ReferenceEquals(exports.AsDictionary, result.AsDictionary))
                 {
                     // module returned a different object, merge with ours
                     foreach (var kv in result.AsDictionary)

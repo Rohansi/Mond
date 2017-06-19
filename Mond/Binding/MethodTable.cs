@@ -203,6 +203,22 @@ namespace Mond.Binding
                 return;
             }
 
+            if (paramType == typeof(MondValue?))
+            {
+                Type = ParameterType.Value;
+                TypeName = "any?";
+                Priority = 100;
+                MondTypes = AnyTypes;
+
+#if !NO_EXPRESSIONS
+                Conversion = v => Expression.Condition(Expression.Equal(v, Expression.Constant(MondValue.Undefined)), Expression.Constant(null, paramType), Expression.Convert(v, paramType));
+#else
+                Conversion = v => v == MondValue.Undefined ? null : (MondValue?)v;
+#endif
+
+                return;
+            }
+
             if (paramType == typeof(MondValue[]) && info.Attribute<ParamArrayAttribute>() != null)
             {
                 Type = ParameterType.Params;

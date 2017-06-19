@@ -3,7 +3,7 @@ using System.Text;
 
 namespace Mond
 {
-    public sealed partial class MondValue
+    public partial struct MondValue
     {
         /// <summary>
         /// Serialize the value to a string.

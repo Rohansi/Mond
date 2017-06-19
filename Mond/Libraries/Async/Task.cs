@@ -8,11 +8,11 @@ namespace Mond.Libraries.Async
     internal class TaskModule
     {
         [MondFunction]
-        public static MondValue Delay(double seconds, MondValue cancellationToken = null)
+        public static MondValue Delay(double seconds, MondValue? cancellationToken = null)
         {
             AsyncUtil.EnsureAsync();
 
-            var ct = AsyncUtil.AsCancellationToken(cancellationToken);
+            var ct = AsyncUtil.AsCancellationToken(cancellationToken ?? MondValue.Undefined);
 
             if (!ct.HasValue)
                 throw new MondRuntimeException("Task.delay: second argument must be a CancellationToken");

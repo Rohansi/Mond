@@ -73,7 +73,7 @@ namespace Mond.Binding
             }
 
             var prototypeObj = state.FindPrototype(binding.Name);
-            if (prototypeObj == null)
+            if (prototypeObj == MondValue.Undefined)
             {
                 prototypeObj = CopyToObject(binding.PrototypeFunctions, state);
 

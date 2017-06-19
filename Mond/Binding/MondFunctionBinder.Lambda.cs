@@ -18,7 +18,7 @@ namespace Mond.Binding
             {
                 MethodBase function;
                 ReturnConverter returnConversion;
-                var parameters = BuildParameterArray(errorPrefix, method, state, null, args, out function, out returnConversion);
+                var parameters = BuildParameterArray(errorPrefix, method, state, MondValue.Undefined, args, out function, out returnConversion);
 
                 return returnConversion(errorPrefix, state, Call(() => function.Invoke(null, parameters)));
             };
@@ -242,7 +242,7 @@ namespace Mond.Binding
                 return (e, s, o) =>
                 {
                     var prototype = s.FindPrototype(className);
-                    if (prototype == null)
+                    if (prototype == MondValue.Undefined)
                         throw new MondRuntimeException(e + string.Format(BindingError.PrototypeNotFound, className));
 
                     var obj = MondValue.Object(s);

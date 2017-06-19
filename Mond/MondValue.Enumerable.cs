@@ -2,7 +2,7 @@
 
 namespace Mond
 {
-    public sealed partial class MondValue
+    public partial struct MondValue
     {
         public bool IsEnumerable
         {

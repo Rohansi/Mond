@@ -4,7 +4,7 @@ using JetBrains.Annotations;
 
 namespace Mond
 {
-    public partial class MondValue
+    public partial struct MondValue
     {
         public static MondValue Number(double value)
         {

@@ -253,7 +253,7 @@ namespace Mond.Binding
                 return (e, s, v) => throw new MondBindingException("Expression binder should not use void return conversion");
 
             if (returnType == typeof(MondValue))
-                return (e, s, v) => Expression.Coalesce(v, Expression.Constant(MondValue.Null));
+                return (e, s, v) => v;
 
             if (returnType == typeof(string))
             {
@@ -305,7 +305,7 @@ namespace Mond.Binding
                     return Expression.Block(
                         new [] { prototype, obj },
                         Expression.Assign(prototype, Expression.Call(s, findPrototype, Expression.Constant(className))),
-                        Expression.IfThen(Expression.ReferenceEqual(prototype, Expression.Constant(null)), throwExpr),
+                        Expression.IfThen(Expression.Equal(prototype, Expression.Constant(MondValue.Undefined)), throwExpr),
                         Expression.Assign(obj, Expression.Call(valueFactory, s, Expression.Constant(null, objInitializerType))),
                         Expression.Assign(Expression.PropertyOrField(obj, "Prototype"), prototype),
                         Expression.Assign(Expression.PropertyOrField(obj, "UserData"), v),

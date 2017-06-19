@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 namespace Mond
 {
     [StructLayout(LayoutKind.Explicit)]
-    public sealed partial class MondValue : IEquatable<MondValue>, IComparable<MondValue>
+    public partial struct MondValue : IEquatable<MondValue>, IComparable<MondValue>
     {
         public static readonly MondValue Undefined = new MondValue(MondValueType.Undefined);
         public static readonly MondValue Null = new MondValue(MondValueType.Null);
@@ -32,10 +32,21 @@ namespace Mond
         [FieldOffset(16)]
         internal readonly Closure FunctionValue;
 
+        private MondValue(MondValueType type, bool dummy)
+        {
+            Type = type;
+            _numberValue = 0;
+            ObjectValue = null;
+            ArrayValue = null;
+            _stringValue = null;
+            FunctionValue = null;
+        }
+
         /// <summary>
         /// Construct a new MondValue. Should only be used for Object or Array.
         /// </summary>
         private MondValue(MondValueType type)
+            : this(type, false)
         {
             Type = type;
 
@@ -64,9 +75,8 @@ namespace Mond
         /// Construct a new Object MondValue and attach a MondState to it. Should be used if using metamethods.
         /// </summary>
         private MondValue(MondState state)
+            : this(MondValueType.Object)
         {
-            Type = MondValueType.Object;
-            ObjectValue = new VirtualMachine.Object();
             ObjectValue.State = state;
         }
 
@@ -74,8 +84,8 @@ namespace Mond
         /// Construct a new Number MondValue with the specified value.
         /// </summary>
         private MondValue(double value)
+            : this(MondValueType.Number, false)
         {
-            Type = MondValueType.Number;
             _numberValue = value;
         }
 
@@ -83,11 +93,11 @@ namespace Mond
         /// Construct a new String MondValue with the specified value.
         /// </summary>
         private MondValue(string value)
+            : this(MondValueType.String, false)
         {
             if (ReferenceEquals(value, null))
                 throw new ArgumentNullException(nameof(value));
-
-            Type = MondValueType.String;
+            
             _stringValue = value;
         }
 
@@ -95,11 +105,11 @@ namespace Mond
         /// Construct a new Function MondValue with the specified value.
         /// </summary>
         private MondValue(MondFunction function)
+            : this(MondValueType.Function, false)
         {
             if (ReferenceEquals(function, null))
                 throw new ArgumentNullException(nameof(function));
-
-            Type = MondValueType.Function;
+            
             FunctionValue = new Closure(function);
         }
 
@@ -108,11 +118,11 @@ namespace Mond
         /// bind themselves to their parent object when being retrieved.
         /// </summary>
         private MondValue(MondInstanceFunction function)
+            : this(MondValueType.Function, false)
         {
             if (ReferenceEquals(function, null))
                 throw new ArgumentNullException(nameof(function));
-
-            Type = MondValueType.Function;
+            
             FunctionValue = new Closure(function);
         }
 
@@ -120,17 +130,21 @@ namespace Mond
         /// Construct a new Array MondValue with the specified values.
         /// </summary>
         private MondValue(IEnumerable<MondValue> values)
+            : this(MondValueType.Array)
         {
             if (ReferenceEquals(values, null))
                 throw new ArgumentNullException(nameof(values));
 
-            Type = MondValueType.Array;
-            ArrayValue = new List<MondValue>(values);
+            var arr = ArrayValue;
+            foreach (var item in values)
+            {
+                arr.Add(item);
+            }
         }
 
         internal MondValue(Closure closure)
+            : this(MondValueType.Function, false)
         {
-            Type = MondValueType.Function;
             FunctionValue = closure;
         }
 
@@ -141,9 +155,6 @@ namespace Mond
         {
             get
             {
-                if (ReferenceEquals(index, null))
-                    throw new ArgumentNullException(nameof(index));
-
                 if (Type == MondValueType.Array && (index.Type == MondValueType.Number || index.Type == MondValueType.Object))
                 {
                     var n = (int)index;
@@ -167,7 +178,7 @@ namespace Mond
                 var i = 0;
                 var prototype = Prototype;
 
-                while (prototype != null)
+                while (prototype != Undefined)
                 {
                     var currentValue = prototype;
 
@@ -195,12 +206,6 @@ namespace Mond
             }
             set
             {
-                if (ReferenceEquals(index, null))
-                    throw new ArgumentNullException(nameof(index));
-
-                if (ReferenceEquals(value, null))
-                    throw new ArgumentNullException(nameof(value));
-
                 if (Type == MondValueType.Array && (index.Type == MondValueType.Number || index.Type == MondValueType.Object))
                 {
                     var n = (int)index;
@@ -227,7 +232,7 @@ namespace Mond
                 var i = 0;
                 var prototype = Prototype;
 
-                while (prototype != null)
+                while (prototype != Undefined)
                 {
                     var currentValue = prototype;
 
@@ -334,15 +339,10 @@ namespace Mond
                 if (ObjectValue.Locked)
                     throw new MondRuntimeException(RuntimeError.ObjectIsLocked);
 
-                if (!ReferenceEquals(value, null))
-                {
-                    if (value.Type == MondValueType.Undefined)
-                        value = null;
-                    else if (value.Type == MondValueType.Null)
-                        value = ValuePrototype.Value;
-                    else if (value.Type != MondValueType.Object)
-                        throw new MondRuntimeException("Prototypes must be an object, null, or undefined");
-                }
+                if (value.Type == MondValueType.Null)
+                    value = ValuePrototype.Value;
+                else if (value.Type != MondValueType.Object)
+                    throw new MondRuntimeException("Prototypes must be an object, null, or undefined");
 
                 ObjectValue.Prototype = value;
             }
@@ -404,14 +404,14 @@ namespace Mond
             throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "in", Type.GetName(), search.Type.GetName());
         }
 
-        private static T[] SliceImpl<T>(IList<T> values, MondValue start, MondValue end, MondValue step)
+        private static T[] SliceImpl<T>(IList<T> values, MondValue? start, MondValue? end, MondValue? step)
         {
-            int ToIntOrDefault(MondValue value, int defaultValue)
+            int ToIntOrDefault(MondValue? value, int defaultValue)
             {
-                if (value == null || !value)
+                if (value == null || !value.Value)
                     return defaultValue;
 
-                return (int)value;
+                return (int)value.Value;
             }
 
             // get start value
@@ -439,7 +439,7 @@ namespace Mond
                 throw new MondRuntimeException(RuntimeError.SliceStepZero);
 
             // allow reversing with default indices, ex: [::-1]
-            if (stepValue < 0 && (start == null || !start) && (end == null || !end))
+            if (stepValue < 0 && (start == null || !start.Value) && (end == null || !end.Value))
             {
                 startIndex = Math.Max(0, values.Count - 1);
                 endIndex = 0;
@@ -474,7 +474,7 @@ namespace Mond
             return result;
         }
 
-        public MondValue Slice(MondValue start = null, MondValue end = null, MondValue step = null)
+        public MondValue Slice(MondValue? start = null, MondValue? end = null, MondValue? step = null)
         {
             if (Type == MondValueType.String)
                 return new string(SliceImpl(_stringValue.ToCharArray(), start, end, step));
@@ -495,12 +495,6 @@ namespace Mond
 
         public bool Equals(MondValue other)
         {
-            if (ReferenceEquals(other, null))
-                return false;
-
-            if (ReferenceEquals(this, other))
-                return true;
-
             if (Type == MondValueType.Object)
             {
                 if (TryDispatch("__eq", out var result, this, other))
@@ -531,9 +525,6 @@ namespace Mond
 
         public int CompareTo(MondValue other)
         {
-            if (ReferenceEquals(other, null))
-                return -1;
-
             if (this == other)
                 return 0;
 
@@ -545,11 +536,11 @@ namespace Mond
             if (ReferenceEquals(other, null))
                 return false;
 
-            var otherValue = other as MondValue;
+            var otherValue = other as MondValue?;
             if (otherValue == null)
                 return false;
 
-            return Equals(otherValue);
+            return Equals(otherValue.Value);
         }
 
         public override int GetHashCode()
@@ -668,11 +659,11 @@ namespace Mond
 
                 current = current.Prototype;
 
-                if (current == null || current.Type != MondValueType.Object)
+                if (current == Undefined || current.Type != MondValueType.Object)
                     break;
             }
 
-            if (callable == null)
+            if (callable == Undefined)
             {
                 result = Undefined;
                 return false;

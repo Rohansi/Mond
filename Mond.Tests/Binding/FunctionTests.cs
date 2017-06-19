@@ -27,7 +27,7 @@ namespace Mond.Tests.Binding
                 "ReturnSByte", "ReturnByte",
                 "ReturnString", "ReturnBool",
                 "ReturnVoid",
-                "ReturnNullValue", "ReturnNullString",
+                "ReturnNullString",
 
                 "ReturnClass",
 
@@ -70,7 +70,7 @@ namespace Mond.Tests.Binding
                 "SByte", "Byte",
                 "String", "Bool",
                 "Void",
-                "NullValue", "NullString"
+                "NullString"
             };
 
             var results = new List<MondValue>
@@ -302,12 +302,6 @@ namespace Mond.Tests.Binding
         public static void ReturnVoid()
         {
 
-        }
-
-        [MondFunction]
-        public static MondValue ReturnNullValue()
-        {
-            return null;
         }
 
         [MondFunction]

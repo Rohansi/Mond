@@ -3,7 +3,7 @@ using Mond.VirtualMachine;
 
 namespace Mond
 {
-    public sealed partial class MondValue
+    public partial struct MondValue
     {
         public static implicit operator MondValue(bool value)
         {
@@ -319,12 +319,6 @@ namespace Mond
 
         public static bool operator ==(MondValue left, MondValue right)
         {
-            if (ReferenceEquals(left, right))
-                return true;
-
-            if (ReferenceEquals(left, null) || ReferenceEquals(right, null))
-                return false;
-
             return left.Equals(right);
         }
 
