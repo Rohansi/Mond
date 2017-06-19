@@ -104,6 +104,32 @@ namespace Mond.Tests.Expressions
         }
 
         [Test]
+        public void ArrayEllipsisNotEnoughTailOnly()
+        {
+            var result = Script.Run(@"
+                var [ ...x, y, z ] = [ 1, 2 ];
+                return [ x, y, z ];
+            ");
+
+            CollectionAssert.AreEqual(new MondValue[0], result[0].Array);
+            Assert.AreEqual((MondValue)1, result.Array[1]);
+            Assert.AreEqual((MondValue)2, result.Array[2]);
+        }
+
+        [Test]
+        public void ArrayEllipsisTailOnly()
+        {
+            var result = Script.Run(@"
+                var [ ...x, y, z ] = [ 1, 2, 3 ];
+                return [ x, y, z ];
+            ");
+
+            CollectionAssert.AreEqual(new MondValue[] { 1 }, result[0].Array);
+            Assert.AreEqual((MondValue)2, result.Array[1]);
+            Assert.AreEqual((MondValue)3, result.Array[2]);
+        }
+
+        [Test]
         public void ArrayMultipleEllipsis()
         {
             const string multipleEllipsis = @"

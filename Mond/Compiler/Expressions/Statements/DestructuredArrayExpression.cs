@@ -35,57 +35,73 @@ namespace Mond.Compiler.Expressions.Statements
         public override int Compile(FunctionContext context)
         {
             context.Position(Token);
-
-            var i = 0;
-            var startIndex = 0;
-            var stack = Initializer?.Compile(context) ?? 1;
+            
+            var stack = Initializer?.Compile(context) ?? 0;
             var global = context.ArgIndex == 0 && context.Compiler.Options.MakeRootDeclarationsGlobal;
+
+            var hasSlice = false;
+            var headSize = 0;
+            var tailSize = 0;
 
             foreach (var index in Indices)
             {
-                var assign = context.MakeLabel("arrayDestructureAssign");
-                var destruct = context.MakeLabel("arrayDestructureIndex");
-                var remaining = Indices.Skip(i + 1).Count();
-
-                stack += context.Dup();
-                stack += context.Dup();
-                stack += context.LoadField(context.String("length"));
-                stack += context.Call(0, new List<ImmediateOperand>());
-                stack += context.Load(context.Number(1));
-                stack += context.BinaryOperation(TokenType.Subtract);
-
                 if (index.IsSlice)
                 {
-                    stack += context.Load(context.Number(Math.Abs(startIndex)));
-                    stack += context.BinaryOperation(TokenType.Subtract);
-                    stack += context.Load(context.Number(remaining));
+                    if (hasSlice)
+                        throw new InvalidOperationException($"Multiple slices in {nameof(DestructuredArrayExpression)}");
+
+                    hasSlice = true;
+                }
+                else if (hasSlice)
+                {
+                    tailSize++;
                 }
                 else
                 {
-                    stack += context.Load(context.Number(Math.Abs(startIndex)));
+                    headSize++;
                 }
+            }
 
-                stack += context.BinaryOperation(TokenType.GreaterThanOrEqual);
+            var fixedSize = headSize + tailSize;
+            
+            stack += context.Dup();
+            stack += context.LoadField(context.String("length"));
+            stack += context.Call(0, new List<ImmediateOperand>());
+
+            var inTail = false;
+            var fixedI = 0;
+            for (var i = 0; i < Indices.Count; i++)
+            {
+                var index = Indices[i];
+                var assign = context.MakeLabel("arrayDestructureAssign");
+                var destruct = context.MakeLabel("arrayDestructureIndex");
+
+                if (index.IsSlice)
+                    inTail = true;
+
+                if (i < Indices.Count - 1)
+                    stack += context.Dup2(); // -> init.length(), init
+
+                stack += context.Load(context.Number(index.IsSlice ? fixedSize : fixedI));
+                stack += context.BinaryOperation(TokenType.GreaterThan);
                 stack += context.JumpTrue(destruct);
-                stack += context.Drop();
+                stack += context.Drop(); // drops initializer
                 stack += index.IsSlice ? context.NewArray(0) : context.LoadUndefined();
                 stack += context.Jump(assign);
 
                 stack += context.Bind(destruct);
-                stack += context.Load(context.Number(startIndex));
 
                 if (index.IsSlice)
                 {
-                    startIndex = -remaining;
-
-                    stack += context.Load(context.Number(startIndex - 1));
+                    stack += context.Load(context.Number(fixedI));
+                    stack += context.Load(context.Number(-tailSize - 1));
                     stack += context.LoadUndefined();
                     stack += context.Slice();
                 }
                 else
                 {
+                    stack += context.Load(context.Number(inTail ? fixedI - fixedSize : fixedI));
                     stack += context.LoadArray();
-                    startIndex++;
                 }
 
                 stack += context.Bind(assign);
@@ -103,10 +119,9 @@ namespace Mond.Compiler.Expressions.Statements
                     stack += context.Store(context.Identifier(index.Name));
                 }
 
-                i++;
+                if (!index.IsSlice)
+                    fixedI++;
             }
-
-            stack += context.Drop();
 
             CheckStack(stack, 0);
             return -1;
