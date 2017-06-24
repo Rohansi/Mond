@@ -131,6 +131,9 @@ namespace Mond.Tests.Expressions
                     __eq: fun (this, value) {
                         return 4 == value;
                     },
+                    __neq: fun (this, value) {
+                        return 4 != value;
+                    },
                     __gt: fun (this, value) {
                         return 4 > value;
                     },
@@ -149,6 +152,8 @@ namespace Mond.Tests.Expressions
             ");
 
             Assert.True(result == 4, "==");
+
+            Assert.True(result != 3, "!=");
 
             Assert.True(result > 3, ">");
 

@@ -516,12 +516,12 @@ namespace Mond
             if (ReferenceEquals(this, other))
                 return true;
 
-            if (Type == MondValueType.Object || other.Type == MondValueType.Object)
+            if (Type == MondValueType.Object)
             {
                 if (TryDispatch("__eq", out var result, this, other))
                     return result;
 
-                return ReferenceEquals(ObjectValue, other.ObjectValue);
+                return other.Type == MondValueType.Object && ReferenceEquals(ObjectValue, other.ObjectValue);
             }
 
             switch (Type)

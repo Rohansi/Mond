@@ -330,7 +330,19 @@ namespace Mond
 
         public static bool operator !=(MondValue left, MondValue right)
         {
-            return !(left == right);
+            if (ReferenceEquals(left, right))
+                return false;
+
+            if (ReferenceEquals(left, null) || ReferenceEquals(right, null))
+                return true;
+
+            if (left.Type == MondValueType.Object)
+            {
+                if (left.TryDispatch("__neq", out var result, left, right))
+                    return result;
+            }
+
+            return !left.Equals(right);
         }
 
         public static bool operator >(MondValue left, MondValue right)
