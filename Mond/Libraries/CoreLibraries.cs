@@ -20,6 +20,7 @@ namespace Mond.Libraries
             yield return new CharLibrary(state);
             yield return new MathLibrary(state);
             yield return new RandomLibrary(state);
+            yield return new OperatorLibrary(state);
         }
     }
 
@@ -91,7 +92,7 @@ namespace Mond.Libraries
 
                 if (foundModule == null)
                     throw new MondRuntimeException("require: module could not be found: {0}", name);
-                
+
                 return File.ReadAllText(foundModule);
             };
         } 
@@ -136,6 +137,23 @@ namespace Mond.Libraries
             mathModule["E"] = System.Math.E;
 
             yield return new KeyValuePair<string, MondValue>("Math", mathModule);
+        }
+    }
+
+    /// <summary>
+    /// Library containing the built-in operators.
+    /// </summary>
+    public class OperatorLibrary : IMondLibrary
+    {
+        private readonly MondState _state;
+
+        public OperatorLibrary(MondState state) => _state = state;
+
+        public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions()
+        {
+            var operatorModule = MondModuleBinder.Bind<OperatorModule>(_state);
+            foreach (var pair in operatorModule.Object)
+                yield return new KeyValuePair<string, MondValue>(pair.Key, pair.Value);
         }
     }
 
