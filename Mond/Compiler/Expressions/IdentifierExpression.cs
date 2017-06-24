@@ -50,7 +50,7 @@
             var stack = 0;
             var identifier = context.Identifier(Name);
 
-            if (!context.Compiler.Options.UseImplicitGlobals && identifier == null)
+            if (!context.Compiler.Options.UseImplicitGlobals && identifier == null && !Name.StartsWith("op_"))
                 throw new MondCompilerException(this, CompilerError.UndefinedIdentifier, Name);
 
             if (identifier == null)
