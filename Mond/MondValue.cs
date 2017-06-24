@@ -584,6 +584,14 @@ namespace Mond
                     return 0;
 
                 case MondValueType.Object:
+                    if (TryDispatch("__hash", out var result, this))
+                    {
+                        if (result.Type != MondValueType.Number)
+                            throw new MondRuntimeException(RuntimeError.HashWrongType);
+
+                        return (int)result;
+                    }
+
                     return ObjectValue.GetHashCode();
 
                 case MondValueType.Array:

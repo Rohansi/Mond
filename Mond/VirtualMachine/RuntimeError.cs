@@ -21,6 +21,7 @@
         public const string NumberCastWrongType = "__number must return a number";
         public const string StringCastWrongType = "__string must return a string";
         public const string BoolCastWrongType = "__bool must return a bool";
+        public const string HashWrongType = "__hash must return a number";
 
         public const string SliceWrongType = "Slicing cannot be done on type {0}";
         public const string SliceMissingMethod = "Cannot use slice operator on object, __slice must be implemented";

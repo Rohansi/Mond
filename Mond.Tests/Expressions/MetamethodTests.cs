@@ -267,5 +267,27 @@ namespace Mond.Tests.Expressions
             Assert.AreEqual(MondValueType.Array, result.Type);
             CollectionAssert.AreEqual(expected, result.Enumerate(state));
         }
+
+        [Test]
+        public void Hash()
+        {
+            var result = Script.Run(@"
+                fun new() {
+                    return {
+                        __eq: fun() -> true,
+                        __hash: fun() -> 123
+                    };
+                }
+
+                var obj = {};
+                var key1 = new();
+                var key2 = new();
+
+                obj[key1] = 456;
+                return obj[key2];
+            ");
+
+            Assert.AreEqual((MondValue)456, result);
+        }
     }
 }
