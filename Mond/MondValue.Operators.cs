@@ -361,17 +361,80 @@ namespace Mond
 
         public static bool operator >=(MondValue left, MondValue right)
         {
-            return left > right || left == right;
+            if (left.Type == MondValueType.Number && right.Type == MondValueType.Number)
+                return left._numberValue >= right._numberValue;
+
+            if (left.Type == MondValueType.String && right.Type == MondValueType.String)
+                return string.Compare(left._stringValue, right._stringValue, StringComparison.Ordinal) >= 0;
+
+            if (left.Type == MondValueType.Object)
+            {
+                if (left.TryDispatch("__gte", out var result, left, right))
+                    return result;
+            }
+
+            if (right.Type == MondValueType.Object)
+            {
+                if (right.Equals(left))
+                    return false;
+
+                if (right.TryDispatch("__gte", out var result, right, left))
+                    return !result;
+            }
+
+            throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "relational", left.Type.GetName(), right.Type.GetName());
         }
 
         public static bool operator <(MondValue left, MondValue right)
         {
-            return !(left >= right);
+            if (left.Type == MondValueType.Number && right.Type == MondValueType.Number)
+                return left._numberValue < right._numberValue;
+
+            if (left.Type == MondValueType.String && right.Type == MondValueType.String)
+                return string.Compare(left._stringValue, right._stringValue, StringComparison.Ordinal) < 0;
+
+            if (left.Type == MondValueType.Object)
+            {
+                if (left.TryDispatch("__lt", out var result, left, right))
+                    return result;
+            }
+
+            if (right.Type == MondValueType.Object)
+            {
+                if (right.Equals(left))
+                    return false;
+
+                if (right.TryDispatch("__lt", out var result, right, left))
+                    return !result;
+            }
+
+            throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "relational", left.Type.GetName(), right.Type.GetName());
         }
 
         public static bool operator <=(MondValue left, MondValue right)
         {
-            return !(left > right);
+            if (left.Type == MondValueType.Number && right.Type == MondValueType.Number)
+                return left._numberValue <= right._numberValue;
+
+            if (left.Type == MondValueType.String && right.Type == MondValueType.String)
+                return string.Compare(left._stringValue, right._stringValue, StringComparison.Ordinal) <= 0;
+
+            if (left.Type == MondValueType.Object)
+            {
+                if (left.TryDispatch("__lte", out var result, left, right))
+                    return result;
+            }
+
+            if (right.Type == MondValueType.Object)
+            {
+                if (right.Equals(left))
+                    return false;
+
+                if (right.TryDispatch("__lte", out var result, right, left))
+                    return !result;
+            }
+
+            throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "relational", left.Type.GetName(), right.Type.GetName());
         }
     }
 }
