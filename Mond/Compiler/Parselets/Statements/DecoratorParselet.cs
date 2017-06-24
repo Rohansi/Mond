@@ -22,9 +22,6 @@ namespace Mond.Compiler.Parselets.Statements
             if (!(stmt is FunctionExpression) && !(stmt is SequenceExpression))
                 throw new MondCompilerException(stmt, CompilerError.DecoratorOnlyOnFuncs);
 
-            if (IsOperator(stmt))
-                throw new MondCompilerException(stmt, CompilerError.NoDecoratorsOnOperatos);
-
             var name = GetName(stmt);
             stmt = MakeAnonymous(stmt);
             
@@ -45,22 +42,12 @@ namespace Mond.Compiler.Parselets.Statements
             switch (stmt)
             {
                 case SequenceExpression seq:
-                    return new SequenceExpression(seq.Token, null, seq.Arguments.ToList(), seq.OtherArguments, false, seq.Block, seq.Name);
+                    return new SequenceExpression(seq.Token, null, seq.Arguments.ToList(), seq.OtherArguments, seq.Block, seq.Name);
 
                 case FunctionExpression func:
-                    return new FunctionExpression(func.Token, null, func.Arguments.ToList(), func.OtherArguments, false, func.Block, func.Name);
+                    return new FunctionExpression(func.Token, null, func.Arguments.ToList(), func.OtherArguments, func.Block, func.Name);
 
                 default: return null;
-            }
-        }
-
-        private static bool IsOperator(Expression stmt)
-        {
-            switch (stmt)
-            {
-                case SequenceExpression seq: return seq.IsOperator;
-                case FunctionExpression func: return func.IsOperator;
-                default: return false;
             }
         }
 

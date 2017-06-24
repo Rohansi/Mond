@@ -71,7 +71,6 @@ namespace Mond.Compiler.Visitors
                 expression.Name,
                 expression.Arguments.ToList(),
                 expression.OtherArguments,
-                expression.IsOperator,
                 (ScopeExpression)expression.Block.Accept(this),
                 expression.DebugName)
             {
@@ -113,7 +112,6 @@ namespace Mond.Compiler.Visitors
                 expression.Name,
                 expression.Arguments.ToList(),
                 expression.OtherArguments,
-                expression.IsOperator,
                 (ScopeExpression)expression.Block.Accept(this),
                 expression.DebugName)
             {
@@ -348,23 +346,6 @@ namespace Mond.Compiler.Visitors
         public virtual Expression Visit(UnpackExpression expression)
         {
             return new UnpackExpression(expression.Token, expression.Right.Accept(this))
-            {
-                EndToken = expression.EndToken
-            };
-        }
-
-
-        public Expression Visit(UserDefinedUnaryOperator expression)
-        {
-            return new UserDefinedUnaryOperator(expression.Token, expression.Right.Accept(this))
-            {
-                EndToken = expression.EndToken
-            };
-        }
-
-        public Expression Visit(UserDefinedBinaryOperatorExpression expression)
-        {
-            return new UserDefinedBinaryOperatorExpression(expression.Token, expression.Left.Accept(this), expression.Right.Accept(this))
             {
                 EndToken = expression.EndToken
             };

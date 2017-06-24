@@ -12,12 +12,9 @@ namespace Mond.Compiler.Parselets.Statements
                 out var name,
                 out var arguments,
                 out var otherArgs,
-                out var isOperator,
                 out var body);
 
-            var function = new FunctionExpression(token, name, arguments, otherArgs, isOperator, body);
-
-            return isOperator ? MakeOperator(name, function) : function;
+            return new FunctionExpression(token, name, arguments, otherArgs, body);
         }
 
         public Expression Parse(Parser parser, Token token)
@@ -26,12 +23,9 @@ namespace Mond.Compiler.Parselets.Statements
                 out var name,
                 out var arguments,
                 out var otherArgs,
-                out var isOperator,
                 out var body);
 
-            var function = new FunctionExpression(token, name, arguments, otherArgs, isOperator, body);
-
-            return isOperator ? MakeOperator(name, function) : function;
+            return new FunctionExpression(token, name, arguments, otherArgs, body);
         }
 
         public static void ParseFunction(
@@ -42,7 +36,6 @@ namespace Mond.Compiler.Parselets.Statements
             out string name,
             out List<string> arguments,
             out string otherArgs,
-            out bool isOperator,
             out ScopeExpression body)
         {
             trailingSemicolon = false;
@@ -50,7 +43,7 @@ namespace Mond.Compiler.Parselets.Statements
             name = null;
             arguments = new List<string>();
             otherArgs = null;
-            isOperator = false;
+            var isOperator = false;
 
             // only statements can be named
             if (isStatement)
@@ -61,7 +54,7 @@ namespace Mond.Compiler.Parselets.Statements
                     parser.Take(TokenType.RightParen);
 
                     isOperator = true;
-                    name = operatorToken.Contents;
+                    name = Lexer.GetOperatorIdentifier(operatorToken.Contents);
                 }
                 else
                 {
@@ -128,21 +121,6 @@ namespace Mond.Compiler.Parselets.Statements
             {
                 new ReturnExpression(parser.Peek(), parser.ParseExpression())
             });
-        }
-
-        public static Expression MakeOperator(string @operator, FunctionExpression function)
-        {
-            var token = new Token(function.Token, TokenType.Global, "global", TokenSubType.Keyword);
-            var global = new GlobalExpression(token);
-
-            token = new Token(function.Token, TokenType.Identifier, "__ops", TokenSubType.None);
-            var opsField = new FieldExpression(token, global);
-
-            token = new Token(function.Token, TokenType.String, @operator, TokenSubType.Operator);
-            var opField = new FieldExpression(token, opsField);
-
-            token = new Token(function.Token, TokenType.Assign, "=", TokenSubType.Operator);
-            return new BinaryOperatorExpression(token, opField, function);
         }
     }
 }

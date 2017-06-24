@@ -12,12 +12,9 @@ namespace Mond.Compiler.Parselets.Statements
                 out var name,
                 out var arguments,
                 out var otherArgs,
-                out var isOperator,
                 out var body);
 
-            var sequence = new SequenceExpression(token, name, arguments, otherArgs, isOperator, body);
-
-            return isOperator ? FunctionParselet.MakeOperator(name, sequence) : sequence;
+            return new SequenceExpression(token, name, arguments, otherArgs, body);
         }
 
         public Expression Parse(Parser parser, Token token)
@@ -26,12 +23,9 @@ namespace Mond.Compiler.Parselets.Statements
                 out var name,
                 out var arguments,
                 out var otherArgs,
-                out var isOperator,
                 out var body);
 
-            var sequence = new SequenceExpression(token, name, arguments, otherArgs, isOperator, body);
-
-            return isOperator ? FunctionParselet.MakeOperator(name, sequence) : sequence;
+            return new SequenceExpression(token, name, arguments, otherArgs, body);
         }
     }
 }

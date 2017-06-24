@@ -1,4 +1,5 @@
-﻿using Mond.Compiler.Expressions;
+﻿using System.Collections.Generic;
+using Mond.Compiler.Expressions;
 
 namespace Mond.Compiler.Parselets
 {
@@ -16,7 +17,12 @@ namespace Mond.Compiler.Parselets
             var right = parser.ParseExpression(_precedence);
 
             if (token.Type == TokenType.UserDefinedOperator)
-                return new UserDefinedUnaryOperator(token, right);
+            {
+                var name = Lexer.GetOperatorIdentifier(token.Contents);
+                var ident = new Token(token, TokenType.Identifier, name);
+                var func = new IdentifierExpression(ident);
+                return new CallExpression(token, func, new List<Expression> { right });
+            }
 
             return new PrefixOperatorExpression(token, right);
         }

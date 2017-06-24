@@ -52,7 +52,7 @@ namespace Mond.Compiler.Parselets
             parser.Take(TokenType.Pointy);
 
             var body = FunctionParselet.ParseLambdaExpressionBody(parser, token);
-            return new FunctionExpression(token, null, arguments, otherArgs, false, body);
+            return new FunctionExpression(token, null, arguments, otherArgs, body);
         }
     }
 }

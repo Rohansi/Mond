@@ -15,7 +15,6 @@
 
         public const string IncorrectOperatorArity = "Incorrect operator arity ({0}). User defined operators may only accept 1 (prefix) or 2 (infix) arguments";
         public const string EllipsisInOperator = "User defined operators may not have ellipsis arguments";
-        public const string CantNestOperatorDecl = "User defined operators may only be declared in the top-level scope";
         public const string CantOverrideBuiltInOperator = "Cannot define operator '{0}', as it would shadow the built-in '{0}' operator";
 
         public const string UndefinedIdentifier = "Undefined identifier '{0}'";
@@ -25,7 +24,6 @@
 
         public const string DecoratorMustBeCallable = "A decorator expression must be callable";
         public const string DecoratorOnlyOnFuncs = "Decorators are only valid on functions/sequences";
-        public const string NoDecoratorsOnOperatos = "Decorators are not valid on user defined operators";
 
         public const string ExpectedConstant = "Expected a constant value";
         public const string DuplicateCase = "Duplicate case value";
@@ -35,8 +33,6 @@
 
         public const string BadForLoopInitializer = "For loop initializer cannot be statement";
 
-        public const string ObjectFunctionNotNamed = "Object literal functions must be named";
-
         public const string UnresolvedJump = "Unresolved jump";
 
         public const string YieldInFun = "'yield' cannot be used in functions";
@@ -45,8 +41,7 @@
 
         public const string UnpackMustBeInCall = "The unpack operator can only be used as a function call argument";
         public const string TooManyUnpacks = "Cannot have more than 255 unpacks in a single function call";
-
-        public const string FailedToDefineInternal = "Failed to define internal variable (compiler bug)";
+        
         public const string BadStackState = "Bad stack state (compiler bug)";
     }
 }

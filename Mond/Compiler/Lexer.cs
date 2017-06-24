@@ -113,7 +113,7 @@ namespace Mond.Compiler
 
         private bool TryLexOperator(char ch, out Token token)
         {
-            if (_operatorChars.Contains(ch))
+            if (_operatorChars.ContainsKey(ch))
             {
                 MarkPosition();
                 var builder = new StringBuilder().Append(TakeChar());
@@ -136,7 +136,7 @@ namespace Mond.Compiler
                     return true;
                 }
 
-                var rest = TakeWhile(_operatorChars.Contains);
+                var rest = TakeWhile(_operatorChars.ContainsKey);
                 builder.Append(rest);
 
                 var operatorString = builder.ToString();
