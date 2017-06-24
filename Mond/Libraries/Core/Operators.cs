@@ -19,6 +19,9 @@ namespace Mond.Libraries.Core
         [MondFunction("op_Minus")]
         public static MondValue Subtract(MondValue x, MondValue y) => x - y;
 
+        [MondFunction("op_Minus")]
+        public static MondValue Neg(MondValue x) => -x;
+
         [MondFunction("op_Asterisk")]
         public static MondValue Multiply(MondValue x, MondValue y) => x * y;
 
