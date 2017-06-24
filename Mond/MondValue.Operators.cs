@@ -347,15 +347,6 @@ namespace Mond
                     return result;
             }
 
-            if (right.Type == MondValueType.Object)
-            {
-                if (right.Equals(left))
-                    return false;
-
-                if (right.TryDispatch("__gt", out var result, right, left))
-                    return !result;
-            }
-
             throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "relational", left.Type.GetName(), right.Type.GetName());
         }
 
@@ -371,15 +362,6 @@ namespace Mond
             {
                 if (left.TryDispatch("__gte", out var result, left, right))
                     return result;
-            }
-
-            if (right.Type == MondValueType.Object)
-            {
-                if (right.Equals(left))
-                    return false;
-
-                if (right.TryDispatch("__gte", out var result, right, left))
-                    return !result;
             }
 
             throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "relational", left.Type.GetName(), right.Type.GetName());
@@ -399,15 +381,6 @@ namespace Mond
                     return result;
             }
 
-            if (right.Type == MondValueType.Object)
-            {
-                if (right.Equals(left))
-                    return false;
-
-                if (right.TryDispatch("__lt", out var result, right, left))
-                    return !result;
-            }
-
             throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "relational", left.Type.GetName(), right.Type.GetName());
         }
 
@@ -423,15 +396,6 @@ namespace Mond
             {
                 if (left.TryDispatch("__lte", out var result, left, right))
                     return result;
-            }
-
-            if (right.Type == MondValueType.Object)
-            {
-                if (right.Equals(left))
-                    return false;
-
-                if (right.TryDispatch("__lte", out var result, right, left))
-                    return !result;
             }
 
             throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "relational", left.Type.GetName(), right.Type.GetName());
