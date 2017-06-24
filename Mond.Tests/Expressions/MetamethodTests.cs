@@ -124,7 +124,7 @@ namespace Mond.Tests.Expressions
         [Test]
         public void Relational()
         {
-            // __eq, __gt
+            // __eq, __gt, __gte, __lt, __lte
 
             var result = Script.Run(@"
                 var obj = {
@@ -133,6 +133,15 @@ namespace Mond.Tests.Expressions
                     },
                     __gt: fun (this, value) {
                         return 4 > value;
+                    },
+                    __gte: fun (this, value) {
+                        return 3 >= value;
+                    },
+                    __lt: fun (this, value) {
+                        return value < 6;
+                    },
+                    __lte: fun (this, value ) {
+                        return value <= 5;
                     }
                 };
 
@@ -143,9 +152,9 @@ namespace Mond.Tests.Expressions
 
             Assert.True(result > 3, ">");
 
-            Assert.True(result < 5, "<");
-
             Assert.True(result >= 3, ">=");
+
+            Assert.True(result < 5, "<");
 
             Assert.True(result <= 5, "<=");
         }
