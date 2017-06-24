@@ -251,7 +251,7 @@ namespace Mond.Tests.Expressions
                     fun (%%)(a, b) {}
                 }
 
-                return op_At == undefined ? global.op_At : op_At;  
+                return (%%) == undefined ? global[(%%)] : (%%);
             ");
 
             Assert.AreEqual(MondValue.Undefined, result);

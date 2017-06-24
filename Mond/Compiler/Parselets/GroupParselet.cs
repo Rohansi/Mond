@@ -17,7 +17,7 @@ namespace Mond.Compiler.Parselets
                 return ParseLambdaExpression(parser, token);
             }
 
-            if(parser.Match(TokenType.UserDefinedOperator) && parser.Match(TokenType.RightParen, 1))
+            if (parser.Match(TokenSubType.Operator) && parser.Match(TokenType.RightParen, 1))
             {
                 var operatorToken = parser.Take();
                 parser.Take(); // right paren

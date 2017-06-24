@@ -128,7 +128,7 @@ namespace Mond.Compiler
                 { '+', "Plus" },
                 { '-', "Minus" },
                 { '*', "Asterisk" },
-                { '/', "FrontSlash" },
+                { '/', "Slash" },
                 { '%', "Percent" },
                 { '&', "Ampersand" },
                 { '|', "Pipe" },
@@ -141,7 +141,7 @@ namespace Mond.Compiler
                 { '@', "At" },
                 { '#', "Hash" },
                 { '$', "Dollar" },
-                { '\\', "BackSlash" },
+                { '\\', "Backslash" },
             };
         }
 
