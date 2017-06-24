@@ -103,55 +103,5 @@ namespace Mond.Tests.Binding
             Assert.True(result["a"] == 16);
             Assert.True(result["b"] == 30);
         }
-
-        [Test]
-        public void Nesting()
-        {
-            var result = Script.Run(@"
-                fun divrem(x, y) {
-                    fun (%%)(a, b) {
-                        return {
-                            quotient:  a / b,
-                            remainder: a % b,
-                        };
-                    }
-
-                    return x %% y;
-                }
-
-                return divrem(5, 2);
-            ");
-
-            Assert.AreEqual(2, (int)result["quotient"]);
-            Assert.AreEqual(1, (int)result["remainder"]);
-
-            // ensure the nested operator is not visible from the outer scopes
-            result = Script.Run(@"
-                fun test() {
-                    fun (%%)(a, b) {}
-                }
-
-                return op_At == undefined ? global.op_At : op_At;  
-            ");
-
-            Assert.AreEqual(MondValue.Undefined, result);
-        }
-
-        [Test]
-        public void Decorated()
-        {
-            var result = Script.Run(@"
-                fun double(fn) {
-                    return fun(...args) -> fn(...args) * 2;
-                }
-
-                @double
-                fun (^^)(x) -> x ** 2;
-
-                return ^^10;
-            ");
-            
-            Assert.AreEqual(200, (int)result);
-        }
     }
 }
