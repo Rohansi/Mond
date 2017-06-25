@@ -17,6 +17,17 @@ namespace Mond.Compiler.Parselets
                 return ParseLambdaExpression(parser, token);
             }
 
+            if (parser.Match(TokenSubType.Operator) && parser.Match(TokenType.RightParen, 1))
+            {
+                var operatorToken = parser.Take();
+                parser.Take(); // right paren
+
+                var name = Lexer.GetOperatorIdentifier(operatorToken.Contents);
+                var ident = new Token(operatorToken, TokenType.Identifier, name);
+
+                return new IdentifierExpression(ident);
+            }
+
             var expression = parser.ParseExpression();
             parser.Take(TokenType.RightParen);
             return expression;
@@ -52,7 +63,7 @@ namespace Mond.Compiler.Parselets
             parser.Take(TokenType.Pointy);
 
             var body = FunctionParselet.ParseLambdaExpressionBody(parser, token);
-            return new FunctionExpression(token, null, arguments, otherArgs, false, body);
+            return new FunctionExpression(token, null, arguments, otherArgs, body);
         }
     }
 }

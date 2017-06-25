@@ -23,7 +23,7 @@ namespace Mond.Compiler.Parselets
             };
 
             var body = FunctionParselet.ParseLambdaExpressionBody(parser, token);
-            return new FunctionExpression(token, null, arguments, null, false, body);
+            return new FunctionExpression(token, null, arguments, null, body);
         }
     }
 }

@@ -15,7 +15,8 @@
             var stack = 0;
             var identifier = context.Identifier(Name);
 
-            if (!context.Compiler.Options.UseImplicitGlobals && identifier == null)
+            // anything that starts with 'op_' is always an implicit global
+            if (!context.Compiler.Options.UseImplicitGlobals && identifier == null && !Name.StartsWith("op_"))
                 throw new MondCompilerException(this, CompilerError.UndefinedIdentifier, Name);
 
             context.Position(Token); // debug info
@@ -49,7 +50,7 @@
             var stack = 0;
             var identifier = context.Identifier(Name);
 
-            if (!context.Compiler.Options.UseImplicitGlobals && identifier == null)
+            if (!context.Compiler.Options.UseImplicitGlobals && identifier == null && !Name.StartsWith("op_"))
                 throw new MondCompilerException(this, CompilerError.UndefinedIdentifier, Name);
 
             if (identifier == null)

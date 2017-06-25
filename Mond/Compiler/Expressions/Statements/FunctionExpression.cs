@@ -8,7 +8,6 @@ namespace Mond.Compiler.Expressions.Statements
         public string Name { get; }
         public ReadOnlyCollection<string> Arguments { get; }
         public string OtherArguments { get; }
-        public bool IsOperator { get; }
         public ScopeExpression Block { get; private set; }
 
         public string DebugName { get; set; }
@@ -16,14 +15,12 @@ namespace Mond.Compiler.Expressions.Statements
         public bool HasChildren => false;
 
         public FunctionExpression(
-            Token token, string name, List<string> arguments, string otherArgs,
-            bool isOperator, ScopeExpression block, string debugName = null)
+            Token token, string name, List<string> arguments, string otherArgs, ScopeExpression block, string debugName = null)
             : base(token)
         {
             Name = name;
             Arguments = arguments.AsReadOnly();
             OtherArguments = otherArgs;
-            IsOperator = isOperator;
             Block = block;
 
             DebugName = debugName;
@@ -48,12 +45,9 @@ namespace Mond.Compiler.Expressions.Statements
 
         public override int Compile(FunctionContext context)
         {
-            if (IsOperator && Lexer.IsOperatorToken(Name) && !(Parent is BinaryOperatorExpression && Parent.Parent is BlockExpression && !(Parent.Parent is ScopeExpression)))
-                throw new MondCompilerException(Token, CompilerError.CantNestOperatorDecl);
-
             var isStatement = Parent is IBlockExpression;
             var shouldBeGlobal = context.ArgIndex == 0 && context.Compiler.Options.MakeRootDeclarationsGlobal;
-            var shouldStore = Name != null && !IsOperator;
+            var shouldStore = Name != null;
 
             IdentifierOperand identifier = null;
 

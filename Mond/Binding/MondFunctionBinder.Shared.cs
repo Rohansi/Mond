@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Mond.Compiler;
 
 namespace Mond.Binding
 {
@@ -11,7 +12,7 @@ namespace Mond.Binding
 
         internal enum MethodType
         {
-            Normal, Property, Constructor, Operator
+            Normal, Property, Constructor
         }
 
         internal static List<MethodTable> BuildMethodTables(IEnumerable<MethodBase> source, MethodType methodType, string nameOverride = null)
@@ -21,9 +22,19 @@ namespace Mond.Binding
                 case MethodType.Normal:
                     {
                         return source
-                            .Select(m => new { Method = m, FunctionAttribute = m.Attribute<MondFunctionAttribute>() })
-                            .Where(m => m.FunctionAttribute != null)
-                            .GroupBy(m => nameOverride ?? m.FunctionAttribute.Name ?? m.Method.Name.ToCamelCase())
+                            .Select(m => new
+                            {
+                                Method = m,
+                                FunctionAttribute = m.Attribute<MondFunctionAttribute>(),
+                                OperatorAttribute = m.Attribute<MondOperatorAttribute>()
+                            })
+                            .Where(m => m.FunctionAttribute != null || m.OperatorAttribute != null)
+                            .GroupBy( m =>
+                            {
+                                if (nameOverride != null) return nameOverride;
+                                if (m.OperatorAttribute != null) return Lexer.GetOperatorIdentifier(m.OperatorAttribute.Operator);
+                                return m.FunctionAttribute?.Name ?? m.Method.Name.ToCamelCase();
+                            })
                             .Select(g => BuildMethodTable(g.Select(m => new Method(g.Key, m.Method))))
                             .ToList();
                     }
@@ -49,16 +60,6 @@ namespace Mond.Binding
                         {
                             BuildMethodTable(methods.Select(m => new Method("#ctor", m)))
                         };
-                    }
-
-                case MethodType.Operator:
-                    {
-                        return source
-                            .Select(m => new { Method = m, OperatorAttribute = m.Attribute<MondOperatorAttribute>() })
-                            .Where(m => m.OperatorAttribute != null)
-                            .GroupBy(m => m.OperatorAttribute.Operator)
-                            .Select(g => BuildMethodTable(g.Select(m => new Method(g.Key, m.Method))))
-                            .ToList();
                     }
 
                 default:

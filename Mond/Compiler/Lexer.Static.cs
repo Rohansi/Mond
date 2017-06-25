@@ -11,7 +11,7 @@ namespace Mond.Compiler
         private static Dictionary<string, TokenType> _operators;
         private static Dictionary<string, TokenType> _keywords;
         private static HashSet<char> _hexChars;
-        private static HashSet<char> _operatorChars;
+        private static Dictionary<char, string> _operatorChars;
 
         static Lexer()
         {
@@ -121,22 +121,44 @@ namespace Mond.Compiler
                 'A', 'B', 'C', 'D', 'E', 'F',
             };
 
-            _operatorChars = new HashSet<char>
+            _operatorChars = new Dictionary<char, string>
             {
-                '.', '=', '+', '-', '*', '/', '%', '&',
-                '|', '^', '~', '<', '>', '!', '?', '@',
-                '#', '$', '\\'
+                { '.', "Dot" },
+                { '=', "Equals" },
+                { '+', "Plus" },
+                { '-', "Minus" },
+                { '*', "Asterisk" },
+                { '/', "Slash" },
+                { '%', "Percent" },
+                { '&', "Ampersand" },
+                { '|', "Pipe" },
+                { '^', "Caret" },
+                { '~', "Tilde" },
+                { '<', "LeftAngle" },
+                { '>', "RightAngle" },
+                { '!', "Bang" },
+                { '?', "Question" },
+                { '@', "At" },
+                { '#', "Hash" },
+                { '$', "Dollar" },
+                { '\\', "Backslash" },
             };
         }
 
         public static bool IsOperatorToken(string s)
         {
-            return s != null && s.All(_operatorChars.Contains);
+            return s != null && s.All(_operatorChars.ContainsKey);
         }
 
         public static bool OperatorExists(string s)
         {
             return IsOperatorToken(s) && _operators.ContainsKey(s);
+        }
+
+        public static string GetOperatorIdentifier( string operatorToken )
+        {
+            var names = operatorToken.ToCharArray().Select( c => _operatorChars[c] );
+            return $"op_{String.Join( String.Empty, names )}";
         }
 
         class OperatorDictionary : IEnumerable<KeyValuePair<char, List<Tuple<string, TokenType, TokenSubType>>>>

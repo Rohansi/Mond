@@ -23,7 +23,6 @@ namespace Mond.VirtualMachine
         {
             _state = state;
             Global = new MondValue(state);
-            Global["__ops"] = new MondValue(state);
 
             _debugAction = MondDebugAction.Run;
             _debugSkip = false;

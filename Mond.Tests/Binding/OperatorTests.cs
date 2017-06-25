@@ -9,7 +9,7 @@ namespace Mond.Tests.Binding
     [TestFixture]
     public class OperatorTests
     {
-        [MondOperatorModule]
+        [MondModule]
         public class MyOperators
         {
             [MondOperator("<..>")]
@@ -62,7 +62,9 @@ namespace Mond.Tests.Binding
         public void SetUp()
         {
             _state = new MondState();
-            MondOperatorModuleBinder.Bind<MyOperators>(_state);
+            var ops = MondModuleBinder.Bind<MyOperators>(_state);
+            foreach( var pair in ops.Object )
+                this._state[pair.Key] = pair.Value;
         }
 
         [Test]
