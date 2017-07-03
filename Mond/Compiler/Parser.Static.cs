@@ -59,8 +59,9 @@ namespace Mond.Compiler
             RegisterInfix(TokenType.In, new BinaryOperatorParselet((int)PrecedenceValue.Relational, false));
             RegisterInfix(TokenType.NotIn, new BinaryOperatorParselet((int)PrecedenceValue.Relational, false));
 
-            // UDO stuff. We need to add all these so UDOs can parse correctly
+            // custom infix/prefix stuff
             RegisterInfix(TokenType.UserDefinedOperator, new BinaryOperatorParselet((int)PrecedenceValue.Relational, false));
+            RegisterInfix(TokenType.BacktickIdentifier, new BacktickParselet());
             RegisterPrefix(TokenType.UserDefinedOperator, new PrefixOperatorParselet((int)PrecedenceValue.Prefix));
 
             // prefix inc/decrement
