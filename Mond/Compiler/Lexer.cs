@@ -65,10 +65,7 @@ namespace Mond.Compiler
             }
         }
 
-        public bool AtEof
-        {
-            get { return _index >= _length; }
-        }
+        public bool AtEof => _index >= _length;
 
         public IEnumerator<Token> GetEnumerator()
         {
@@ -77,7 +74,7 @@ namespace Mond.Compiler
             _read = new List<char>(16);
 
             _index = 0;
-            _currentLine = _options == null ? 1 : _options.FirstLineNumber;
+            _currentLine = _options?.FirstLineNumber ?? 1;
             _currentColumn = 1;
 
             if (_sourceCode != null)
@@ -291,7 +288,9 @@ namespace Mond.Compiler
             }
 
             var isBacktick = ch == '`';
-            if (isBacktick) this.TakeChar();
+
+            if (isBacktick)
+                TakeChar();
 
             MarkPosition();
             var wordContents = TakeWhile(c => char.IsLetterOrDigit(c) || c == '_');
@@ -299,13 +298,25 @@ namespace Mond.Compiler
 
             var start = _positions.Pop();
 
-            if (isBacktick && (AtEof || this.TakeChar() != '`'))
+            if (isBacktick)
             {
-                throw new MondCompilerException(
-                    _fileName,
-                    start.Line,
-                    start.Column,
-                    "Malformed backtick identifier");
+                if (AtEof || TakeChar() != '`')
+                {
+                    throw new MondCompilerException(
+                        _fileName,
+                        start.Line,
+                        start.Column,
+                        "Malformed backtick identifier");
+                }
+
+                if (string.IsNullOrWhiteSpace(wordContents))
+                {
+                    throw new MondCompilerException(
+                        _fileName,
+                        start.Line,
+                        start.Column,
+                        "Empty backtick identifier");
+                }
             }
 
             token = new Token(
@@ -360,7 +371,7 @@ namespace Mond.Compiler
                 }
             }
 
-            Func<char, bool> isDigit = c => char.IsDigit(c) || (format == NumberFormat.Hexadecimal && _hexChars.Contains(c));
+            bool IsDigit(char c) => char.IsDigit(c) || (format == NumberFormat.Hexadecimal && _hexChars.Contains(c));
 
             var numberContents = TakeWhile(c =>
             {
@@ -373,7 +384,7 @@ namespace Mond.Compiler
                 if (c == '_')
                 {
                     // _ must be followed by a digit
-                    if (!isDigit(PeekChar(1)))
+                    if (!IsDigit(PeekChar(1)))
                         return false;
 
                     // skip _ so it takes the digit
@@ -389,7 +400,7 @@ namespace Mond.Compiler
                         hasDecimal = true;
 
                         // . must be followed by a digit
-                        return isDigit(PeekChar(1));
+                        return IsDigit(PeekChar(1));
                     }
 
                     // only allowed one e
@@ -409,7 +420,7 @@ namespace Mond.Compiler
                     }
                 }
 
-                return isDigit(c);
+                return IsDigit(c);
             });
 
             var start = _positions.Pop();
@@ -546,7 +557,7 @@ namespace Mond.Compiler
         public char PeekChar(int distance = 0)
         {
             if (distance < 0)
-                throw new ArgumentOutOfRangeException("distance", "distance can't be negative");
+                throw new ArgumentOutOfRangeException(nameof(distance), "distance can't be negative");
 
             while (_read.Count <= distance)
             {

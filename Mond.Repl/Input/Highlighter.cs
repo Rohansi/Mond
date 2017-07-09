@@ -110,17 +110,31 @@ namespace Mond.Repl.Input
                     }
                 }
 
-                if (char.IsLetter(ch) || ch == '_')
+                if (char.IsLetter(ch) || ch == '_' || ch == '`')
                 {
                     var start = index;
+
+                    var isBacktick = ch == '`';
+
+                    if (isBacktick)
+                        index++; // opening backtick
 
                     while (index < line.Length && (char.IsLetterOrDigit(line[index]) || line[index] == '_'))
                     {
                         index++;
                     }
 
+                    if (isBacktick && index < line.Length && line[index] == '`')
+                        index++; // closing backtick
+
                     var word = line.Substring(start, index - start);
                     index = start;
+
+                    if (isBacktick)
+                    {
+                        Output(result, ref index, word, OperatorColor);
+                        continue;
+                    }
 
                     if (Keywords.Contains(word))
                     {
