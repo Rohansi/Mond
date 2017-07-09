@@ -419,5 +419,42 @@ namespace Mond.Tests.Expressions
             Assert.AreEqual(MondValueType.String, result.Type);
             Assert.True(result == "Outer.inner");
         }
+
+        [Test]
+        public void BacktickInfixFunction()
+        {
+            // test basic functionality
+            var result = Script.Run(@"
+                fun like(a, b) -> a.toLower() == b.toLower();
+
+                return 'FOO' `like` 'foo';
+            ");
+
+            Assert.True(result);
+
+            // test chaining
+            result = Script.Run(@"
+                seq to(begin, end) {
+                    for (var i = begin; i <= end; ++i)
+                        yield i;
+                }
+
+                fun fold(enumerable, fn) {
+                    const enumerator = enumerable.getEnumerator();
+                    enumerator.moveNext();
+
+                    var accumulator = enumerator.current;
+                    while (enumerator.moveNext())
+                        accumulator = fn( accumulator, enumerator.current );
+
+                    enumerator.dispose();
+                    return accumulator;
+                }
+
+                return 1 `to` 5 `fold` (+);
+            ");
+
+            Assert.AreEqual((MondValue)15, result);
+        }
     }
 }

@@ -284,11 +284,14 @@ namespace Mond.Compiler
 
         private bool TryLexWord(char ch, out Token token)
         {
-            if (!char.IsLetter(ch) && ch != '_')
+            if (!char.IsLetter(ch) && ch != '_' && ch != '`')
             {
                 token = null;
                 return false;
             }
+
+            var isBacktick = ch == '`';
+            if (isBacktick) this.TakeChar();
 
             MarkPosition();
             var wordContents = TakeWhile(c => char.IsLetterOrDigit(c) || c == '_');
@@ -296,11 +299,20 @@ namespace Mond.Compiler
 
             var start = _positions.Pop();
 
+            if (isBacktick && (AtEof || this.TakeChar() != '`'))
+            {
+                throw new MondCompilerException(
+                    _fileName,
+                    start.Line,
+                    start.Column,
+                    "Malformed backtick identifier");
+            }
+
             token = new Token(
                 _fileName,
                 start.Line,
                 start.Column,
-                isKeyword ? keywordType : TokenType.Identifier,
+                isKeyword ? keywordType : (isBacktick ? TokenType.BacktickIdentifier : TokenType.Identifier),
                 wordContents,
                 isKeyword ? TokenSubType.Keyword : TokenSubType.None);
 
