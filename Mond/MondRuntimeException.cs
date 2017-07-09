@@ -5,9 +5,18 @@ namespace Mond
 {
     public class MondRuntimeException : MondException
     {
-        internal string InternalStackTrace;
+        public string MondStackTrace { get; internal set; }
 
-        public override string StackTrace => InternalStackTrace;
+        public override string Message
+        {
+            get
+            {
+                if (string.IsNullOrWhiteSpace(MondStackTrace))
+                    return base.Message;
+
+                return base.Message + Environment.NewLine + MondStackTrace;
+            }
+        }
 
         public MondRuntimeException(string message)
             : base(message)
@@ -26,14 +35,6 @@ namespace Mond
             : base(string.Format(format, args))
         {
 
-        }
-
-        public override string ToString()
-        {
-            if (StackTrace == null)
-                return Message;
-
-            return Message + Environment.NewLine + StackTrace;
         }
     }
 }

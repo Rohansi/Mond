@@ -904,9 +904,9 @@ namespace Mond.VirtualMachine
                 StringBuilder stackTraceBuilder;
 
                 if (e is MondRuntimeException runtimeException &&
-                    runtimeException.InternalStackTrace != null)
+                    runtimeException.MondStackTrace != null)
                 {
-                    stackTraceBuilder = new StringBuilder(runtimeException.InternalStackTrace);
+                    stackTraceBuilder = new StringBuilder(runtimeException.MondStackTrace);
 
                     // check if we are running in a wrapped function
                     var stackTrace = new System.Diagnostics.StackTrace(e, false);
@@ -981,7 +981,7 @@ namespace Mond.VirtualMachine
 
                 throw new MondRuntimeException(message, e)
                 {
-                    InternalStackTrace = stackTraceBuilder.ToString()
+                    MondStackTrace = stackTraceBuilder.ToString()
                 };
             }
         }
