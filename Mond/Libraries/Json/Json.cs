@@ -6,6 +6,9 @@ namespace Mond.Libraries.Json
     [MondModule("Json")]
     internal partial class JsonModule
     {
+        private const string SerializePrefix = "Json.serialize: ";
+        private const string CantSerializePrefix = SerializePrefix + "can't serialize ";
+
         [MondFunction]
         public static string Serialize(MondValue value)
         {
@@ -19,7 +22,7 @@ namespace Mond.Libraries.Json
         private static void SerializeImpl(MondValue value, StringBuilder sb, int depth)
         {
             if (depth >= 32)
-                throw new MondRuntimeException("Json.serialize: maximum depth exceeded");
+                throw new MondRuntimeException(SerializePrefix + "maximum depth exceeded");
 
             var first = true;
 
@@ -39,7 +42,15 @@ namespace Mond.Libraries.Json
                     break;
 
                 case MondValueType.Number:
-                    sb.Append((double)value);
+                    var number = (double)value;
+
+                    if (double.IsNaN(number))
+                        throw new MondRuntimeException(CantSerializePrefix + "NaN");
+
+                    if (double.IsInfinity(number))
+                        throw new MondRuntimeException(CantSerializePrefix + "Infinity");
+
+                    sb.Append(number);
                     break;
 
                 case MondValueType.String:
@@ -86,7 +97,7 @@ namespace Mond.Libraries.Json
                     break;
 
                 default:
-                    throw new MondRuntimeException("Json.serialize: can't serialize {0}s", value.Type.GetName());
+                    throw new MondRuntimeException(CantSerializePrefix + "{0}s", value.Type.GetName());
             }
         }
 

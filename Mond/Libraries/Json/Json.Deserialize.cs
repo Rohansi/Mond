@@ -9,6 +9,8 @@ namespace Mond.Libraries.Json
 {
     internal partial class JsonModule
     {
+        private const string DeserializePrefix = "Json.deserialize: ";
+
         [MondFunction]
         public static MondValue Deserialize(string text)
         {
@@ -266,7 +268,8 @@ namespace Mond.Libraries.Json
                         while (true)
                         {
                             if (_position >= _text.Length)
-                                throw new MondRuntimeException("Json.deserialize: unterminated string starting at position {0}", stringStart);
+                                throw new MondRuntimeException(DeserializePrefix + "unterminated string starting at position {0}",
+                                    stringStart);
 
                             ch = _text[_position++];
 
@@ -319,7 +322,8 @@ namespace Mond.Libraries.Json
                                     continue;
 
                                 default:
-                                    throw new MondRuntimeException("Json.deserialize: invalid escape sequence '{0}' at position {1}", ch, _position - 1);
+                                    throw new MondRuntimeException(DeserializePrefix + "invalid escape sequence '{0}' at position {1}",
+                                        ch, _position - 1);
                             }
                         }
 
@@ -439,12 +443,13 @@ namespace Mond.Libraries.Json
 
             private static Exception EndOfString()
             {
-                return new MondRuntimeException("Json.deserialize: unexpected end of string");
+                return new MondRuntimeException(DeserializePrefix + "unexpected end of string");
             }
 
             private Exception UnexpectedChar()
             {
-                return new MondRuntimeException("Json.deserialize: unexpected character '{0}' at position {1}", _text[_position - 1], _position - 1);
+                return new MondRuntimeException(DeserializePrefix + "unexpected character '{0}' at position {1}",
+                    _text[_position - 1], _position - 1);
             }
 
             public void Reset()
