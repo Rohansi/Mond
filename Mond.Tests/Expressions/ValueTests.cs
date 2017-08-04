@@ -292,10 +292,11 @@ namespace Mond.Tests.Expressions
         {
             _result = Script.Run(@"
                 var a = 0;
-                return a++;
+                return [ a++, a ];
             ");
 
-            Assert.AreEqual((MondValue)0, _result);
+            var expected = new MondValue[] { 0, 1 };
+            CollectionAssert.AreEqual(expected, _result.Array);
         }
 
         [Test]
@@ -323,10 +324,11 @@ namespace Mond.Tests.Expressions
         {
             _result = Script.Run(@"
                 var a = 0;
-                return ++a;
+                return [ ++a, a ];
             ");
 
-            Assert.AreEqual((MondValue)1, _result);
+            var expected = new MondValue[] { 1, 1 };
+            CollectionAssert.AreEqual(expected, _result.Array);
         }
 
         [Test]
@@ -354,10 +356,11 @@ namespace Mond.Tests.Expressions
         {
             _result = Script.Run(@"
                 var a = 0;
-                return a--;
+                return [ a--, a ];
             ");
 
-            Assert.AreEqual((MondValue)0, _result);
+            var expected = new MondValue[] { 0, -1 };
+            CollectionAssert.AreEqual(expected, _result.Array);
         }
 
         [Test]
@@ -385,10 +388,12 @@ namespace Mond.Tests.Expressions
         {
             _result = Script.Run(@"
                 var a = 0;
-                return --a;
+                return [ --a, a ];
             ");
 
-            Assert.AreEqual((MondValue)(-1), _result);
+
+            var expected = new MondValue[] { -1, -1 };
+            CollectionAssert.AreEqual(expected, _result.Array);
         }
 
         [Test]

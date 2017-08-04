@@ -30,7 +30,6 @@ namespace Mond.Compiler.Expressions
                 stack += Left.Compile(context);
                 stack += context.Dup();
                 stack += context.Load(context.Number(1));
-                stack += context.Swap();
             }
             else
             {
