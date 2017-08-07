@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>net46;netstandard1.3</TargetFrameworks>
-    <AssemblyVersion>0.6.1</AssemblyVersion>
+    <AssemblyVersion>0.6.2</AssemblyVersion>
     <DebugType>portable</DebugType>
 	
 	  <!-- NuGet Package -->
