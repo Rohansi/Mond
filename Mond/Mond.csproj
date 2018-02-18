@@ -5,6 +5,9 @@
     <AssemblyVersion>0.7.0</AssemblyVersion>
     <DebugType>portable</DebugType>
     
+    <LangVersion>latest</LangVersion>
+    <DefineConstants>NO_EXPRESSIONS</DefineConstants>
+
     <!-- NuGet Package -->
     <PackageId>Mond</PackageId>
     <PackageVersion>$(AssemblyVersion)</PackageVersion>

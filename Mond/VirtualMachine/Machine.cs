@@ -35,7 +35,7 @@ namespace Mond.VirtualMachine
         {
             get
             {
-                if (_callStackSize == 0)
+                if (_callStackSize == -1)
                     throw new InvalidOperationException("No scripts are running");
 
                 return _callStack[_callStackSize - 1].Program.DebugInfo?.FileName;
@@ -143,7 +143,7 @@ namespace Mond.VirtualMachine
                         #region Stack Manipulation
                         case (int)InstructionType.Dup:
                             {
-                                Push(Peek());
+                                Push(PeekRef());
                                 break;
                             }
 
@@ -274,8 +274,8 @@ namespace Mond.VirtualMachine
 
                         case (int)InstructionType.LdFld:
                             {
-                                var obj = Pop();
-                                Push(obj[program.Strings[ReadInt32(code, ref ip)]]);
+                                ref var value = ref PeekRef();
+                                value = value[program.Strings[ReadInt32(code, ref ip)]];
                                 break;
                             }
 
@@ -291,8 +291,8 @@ namespace Mond.VirtualMachine
                         case (int)InstructionType.LdArr:
                             {
                                 var index = Pop();
-                                var array = Pop();
-                                Push(array[index]);
+                                ref var value = ref PeekRef();
+                                value = value[index];
                                 break;
                             }
 
@@ -334,7 +334,7 @@ namespace Mond.VirtualMachine
                                 var frame = locals.GetFrame(depth);
                                 frame.StoredFrame = locals;
 
-                                var initialEvals = _callStackSize > 0 ? PeekCall().EvalDepth : 0;
+                                var initialEvals = _callStackSize >= 0 ? PeekCall().EvalDepth : 0;
                                 var currentEvals = _evalStackSize;
 
                                 if (currentEvals != initialEvals)
@@ -389,100 +389,94 @@ namespace Mond.VirtualMachine
                         case (int)InstructionType.Add:
                             {
                                 var right = Pop();
-                                var left = Pop();
-                                Push(left + right);
+                                PeekRef() += right;
                                 break;
                             }
 
                         case (int)InstructionType.Sub:
                             {
                                 var right = Pop();
-                                var left = Pop();
-                                Push(left - right);
+                                PeekRef() -= right;
                                 break;
                             }
 
                         case (int)InstructionType.Mul:
                             {
                                 var right = Pop();
-                                var left = Pop();
-                                Push(left * right);
+                                PeekRef() *= right;
                                 break;
                             }
 
                         case (int)InstructionType.Div:
                             {
                                 var right = Pop();
-                                var left = Pop();
-                                Push(left / right);
+                                PeekRef() /= right;
                                 break;
                             }
 
                         case (int)InstructionType.Mod:
                             {
                                 var right = Pop();
-                                var left = Pop();
-                                Push(left % right);
+                                PeekRef() %= right;
                                 break;
                             }
 
                         case (int)InstructionType.Exp:
                             {
                                 var right = Pop();
-                                var left = Pop();
-                                Push(left.Pow(right));
+                                ref var left = ref PeekRef();
+                                left = left.Pow(right);
                                 break;
                             }
 
                         case (int)InstructionType.BitLShift:
                             {
                                 var right = Pop();
-                                var left = Pop();
-                                Push(left.LShift(right));
+                                ref var left = ref PeekRef();
+                                left = left.LShift(right);
                                 break;
                             }
 
                         case (int)InstructionType.BitRShift:
                             {
                                 var right = Pop();
-                                var left = Pop();
-                                Push(left.RShift(right));
+                                ref var left = ref PeekRef();
+                                left = left.RShift(right);
                                 break;
                             }
 
                         case (int)InstructionType.BitAnd:
                             {
                                 var right = Pop();
-                                var left = Pop();
-                                Push(left & right);
+                                PeekRef() &= right;
                                 break;
                             }
 
                         case (int)InstructionType.BitOr:
                             {
                                 var right = Pop();
-                                var left = Pop();
-                                Push(left | right);
+                                PeekRef() |= right;
                                 break;
                             }
 
                         case (int)InstructionType.BitXor:
                             {
                                 var right = Pop();
-                                var left = Pop();
-                                Push(left ^ right);
+                                PeekRef() ^= right;
                                 break;
                             }
 
                         case (int)InstructionType.Neg:
                             {
-                                Push(-Pop());
+                                ref var value = ref PeekRef();
+                                value = -value;
                                 break;
                             }
 
                         case (int)InstructionType.BitNot:
                             {
-                                Push(~Pop());
+                                ref var value = ref PeekRef();
+                                value = ~value;
                                 break;
                             }
                         #endregion
@@ -491,70 +485,71 @@ namespace Mond.VirtualMachine
                         case (int)InstructionType.Eq:
                             {
                                 var right = Pop();
-                                var left = Pop();
-                                Push(left == right);
+                                ref var left = ref PeekRef();
+                                left = left == right;
                                 break;
                             }
 
                         case (int)InstructionType.Neq:
                             {
                                 var right = Pop();
-                                var left = Pop();
-                                Push(left != right);
+                                ref var left = ref PeekRef();
+                                left = left != right;
                                 break;
                             }
 
                         case (int)InstructionType.Gt:
                             {
                                 var right = Pop();
-                                var left = Pop();
-                                Push(left > right);
+                                ref var left = ref PeekRef();
+                                left = left > right;
                                 break;
                             }
 
                         case (int)InstructionType.Gte:
                             {
                                 var right = Pop();
-                                var left = Pop();
-                                Push(left >= right);
+                                ref var left = ref PeekRef();
+                                left = left >= right;
                                 break;
                             }
 
                         case (int)InstructionType.Lt:
                             {
                                 var right = Pop();
-                                var left = Pop();
-                                Push(left < right);
+                                ref var left = ref PeekRef();
+                                left = left < right;
                                 break;
                             }
 
                         case (int)InstructionType.Lte:
                             {
                                 var right = Pop();
-                                var left = Pop();
-                                Push(left <= right);
+                                ref var left = ref PeekRef();
+                                left = left <= right;
                                 break;
                             }
 
                         case (int)InstructionType.Not:
                             {
-                                Push(!Pop());
+                                ref var value = ref PeekRef();
+                                value = !value;
                                 break;
                             }
 
                         case (int)InstructionType.In:
                             {
                                 var right = Pop();
-                                var left = Pop();
-                                Push(right.Contains(left));
+                                ref var left = ref PeekRef();
+                                left = right.Contains(left);
                                 break;
                             }
 
                         case (int)InstructionType.NotIn:
                             {
                                 var right = Pop();
-                                var left = Pop();
-                                Push(!right.Contains(left));
+                                ref var left = ref PeekRef();
+                                left = !right.Contains(left);
                                 break;
                             }
                         #endregion
@@ -757,8 +752,8 @@ namespace Mond.VirtualMachine
                                 code = program.Bytecode;
                                 ip = returnAddress.Address;
 
-                                args = _callStackSize > 0 ? PeekCall().Arguments : null;
-                                locals = _localStackSize > 0 ? PeekLocal() : null;
+                                args = _callStackSize >= 0 ? PeekCall().Arguments : null;
+                                locals = _localStackSize >= 0 ? PeekLocal() : null;
 
                                 if (_callStackSize == initialCallDepth)
                                     return Pop();
@@ -956,19 +951,19 @@ namespace Mond.VirtualMachine
                 }
 
                 _callStackSize = initialCallDepth;
-                for (var i = _callStackSize; i < CallStackCapacity; i++)
+                for (var i = _callStackSize + 1; i < CallStackCapacity; i++)
                 {
                     _callStack[i] = default(ReturnAddress);
                 }
 
                 _localStackSize = initialLocalDepth;
-                for (var i = _localStackSize; i < CallStackCapacity; i++)
+                for (var i = _localStackSize + 1; i < CallStackCapacity; i++)
                 {
                     _localStack[i] = default(Frame);
                 }
 
                 _evalStackSize = initialEvalDepth;
-                for (var i = _evalStackSize; i < EvalStackCapacity; i++)
+                for (var i = _evalStackSize + 1; i < EvalStackCapacity; i++)
                 {
                     _evalStack[i] = default(MondValue);
                 }

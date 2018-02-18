@@ -6,6 +6,7 @@
     <RuntimeIdentifiers>any</RuntimeIdentifiers>
     <AssemblyVersion>0.7.0</AssemblyVersion>
     <DebugType>portable</DebugType>
+    <LangVersion>latest</LangVersion>
 
     <!-- NuGet Package -->
     <PackageId>Mond.Repl</PackageId>

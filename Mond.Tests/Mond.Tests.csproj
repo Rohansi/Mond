@@ -5,6 +5,7 @@
     <TargetFramework>net5.0</TargetFramework>
 	<RuntimeIdentifiers>any</RuntimeIdentifiers>
     <DebugType>portable</DebugType>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>

@@ -19,82 +19,73 @@ namespace Mond.VirtualMachine
         public Machine()
         {
             _callStack = new ReturnAddress[CallStackCapacity];
-            _callStackSize = 0;
+            _callStackSize = -1;
 
             _localStack = new Frame[CallStackCapacity];
-            _localStackSize = 0;
+            _localStackSize = -1;
 
             _evalStack = new MondValue[EvalStackCapacity];
-            _evalStackSize = 0;
+            _evalStackSize = -1;
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void PushCall(ReturnAddress value)
+        private void PushCall(in ReturnAddress value)
         {
-            _callStack[_callStackSize++] = value;
+            _callStack[++_callStackSize] = value;
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private ReturnAddress PopCall()
         {
-            var value = _callStack[--_callStackSize];
-            _callStack[_callStackSize] = default(ReturnAddress);
-            return value;
+            return _callStack[_callStackSize--];
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private ReturnAddress PeekCall()
         {
-            if (_callStackSize == 0)
-                throw new MondRuntimeException(RuntimeError.StackEmpty);
-
-            return _callStack[_callStackSize - 1];
+            return _callStack[_callStackSize];
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void PushLocal(Frame value)
         {
-            _localStack[_localStackSize++] = value;
+            _localStack[++_localStackSize] = value;
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private Frame PopLocal()
         {
-            var value = _localStack[--_localStackSize];
-            _localStack[_localStackSize] = default(Frame);
-            return value;
+            return _localStack[_localStackSize--];
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private Frame PeekLocal()
         {
-            if (_localStackSize == 0)
-                throw new MondRuntimeException(RuntimeError.StackEmpty);
-
-            return _localStack[_localStackSize - 1];
+            return _localStack[_localStackSize];
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void Push(MondValue value)
+        private void Push(in MondValue value)
         {
-            _evalStack[_evalStackSize++] = value;
+            _evalStack[++_evalStackSize] = value;
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private MondValue Pop()
         {
-            var value = _evalStack[--_evalStackSize];
-            _evalStack[_evalStackSize] = default(MondValue);
-            return value;
+            return _evalStack[_evalStackSize--];
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private MondValue Peek()
         {
-            if (_evalStackSize == 0)
-                throw new MondRuntimeException(RuntimeError.StackEmpty);
+            return _evalStack[_evalStackSize];
+        }
 
-            return _evalStack[_evalStackSize - 1];
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private ref MondValue PeekRef()
+        {
+            return ref _evalStack[_evalStackSize];
         }
     }
 }
