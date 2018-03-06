@@ -4,7 +4,7 @@
     <TargetFrameworks>netstandard1.3;netstandard2.0</TargetFrameworks>
     <AssemblyVersion>0.7.0</AssemblyVersion>
     <DebugType>portable</DebugType>
-    
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <DefineConstants>NO_EXPRESSIONS</DefineConstants>
 
@@ -21,6 +21,10 @@
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <RepositoryUrl>https://github.com/Rohansi/Mond.git</RepositoryUrl> 
     <RepositoryType>git</RepositoryType> 
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(AllowUnsafeBlocks)' == 'false' ">
+    <DefineConstants>$(DefineConstants);NO_UNSAFE</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>

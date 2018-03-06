@@ -89,7 +89,7 @@ namespace Mond.Binding
             string errorPrefix,
             MethodTable methodTable,
             MondState state,
-            MondValue instance,
+            in MondValue instance,
             MondValue[] args,
             out MethodBase methodBase,
             out ReturnConverter returnConversion)

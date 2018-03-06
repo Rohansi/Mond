@@ -12,11 +12,13 @@ namespace Mond.VirtualMachine
         private readonly MondState _state;
         internal MondValue Global;
 
+#if !NO_DEBUG
         private MondDebugAction _debugAction;
         private bool _debugSkip;
         private bool _debugAlign;
         private int _debugDepth;
         internal MondDebugger Debugger;
+#endif
 
         public Machine(MondState state)
             : this()
@@ -24,11 +26,13 @@ namespace Mond.VirtualMachine
             _state = state;
             Global = MondValue.Object(state);
 
+#if !NO_DEBUG
             _debugAction = MondDebugAction.Run;
             _debugSkip = false;
             _debugAlign = false;
             _debugDepth = 0;
             Debugger = null;
+#endif
         }
 
         public string CurrentScript
@@ -117,6 +121,7 @@ namespace Mond.VirtualMachine
             {
                 while (true)
                 {
+#if !NO_DEBUG
                     if (Debugger != null)
                     {
                         var skip = _debugSkip;
@@ -135,24 +140,24 @@ namespace Mond.VirtualMachine
                         if (!skip && shouldBreak)
                             DebuggerBreak(program, locals, args, ip, initialCallDepth);
                     }
+#endif
 
                     errorIp = ip;
 
+                    //Console.WriteLine((InstructionType)code[ip]);
                     switch (code[ip++])
                     {
                         #region Stack Manipulation
                         case (int)InstructionType.Dup:
                             {
-                                Push(PeekRef());
+                                Push(Peek());
                                 break;
                             }
 
                         case (int)InstructionType.Dup2:
                             {
-                                var value2 = Pop();
-                                var value1 = Pop();
-                                Push(value1);
-                                Push(value2);
+                                ref readonly var value2 = ref Peek();
+                                ref readonly var value1 = ref Peek(1);
                                 Push(value1);
                                 Push(value2);
                                 break;
@@ -160,27 +165,29 @@ namespace Mond.VirtualMachine
 
                         case (int)InstructionType.Drop:
                             {
-                                Pop();
+                                Release();
                                 break;
                             }
 
                         case (int)InstructionType.Swap:
                             {
-                                var value1 = Pop();
-                                var value2 = Pop();
-                                Push(value1);
-                                Push(value2);
+                                ref var value1 = ref Peek();
+                                ref var value2 = ref Peek(1);
+                                var temp = value1;
+                                value1 = value2;
+                                value2 = temp;
                                 break;
                             }
 
                         case (int)InstructionType.Swap1For2:
                             {
-                                var one = Pop();
-                                var two2 = Pop();
-                                var two1 = Pop();
-                                Push(one);
-                                Push(two1);
-                                Push(two2);
+                                ref var one = ref Peek();
+                                ref var two2 = ref Peek(1);
+                                ref var two1 = ref Peek(2);
+                                var temp = one;
+                                one = two2;
+                                two2 = two1;
+                                two1 = temp;
                                 break;
                             }
                         #endregion
@@ -274,34 +281,42 @@ namespace Mond.VirtualMachine
 
                         case (int)InstructionType.LdFld:
                             {
-                                ref var value = ref PeekRef();
+                                ref var value = ref Peek();
                                 value = value[program.Strings[ReadInt32(code, ref ip)]];
                                 break;
                             }
 
                         case (int)InstructionType.StFld:
                             {
-                                var obj = Pop();
-                                var value = Pop();
+                                ref var obj = ref Peek();
+                                ref readonly var value = ref Peek(1);
 
                                 obj[program.Strings[ReadInt32(code, ref ip)]] = value;
+
+                                Release(2);
                                 break;
                             }
 
                         case (int)InstructionType.LdArr:
                             {
-                                var index = Pop();
-                                ref var value = ref PeekRef();
+                                ref readonly var index = ref Peek();
+                                ref var value = ref Peek(1);
+
                                 value = value[index];
+
+                                Release();
                                 break;
                             }
 
                         case (int)InstructionType.StArr:
                             {
-                                var index = Pop();
-                                var array = Pop();
-                                var value = Pop();
+                                ref readonly var index = ref Peek();
+                                ref var array = ref Peek(1);
+                                ref readonly var value = ref Peek(2);
+
                                 array[index] = value;
+
+                                Release(3);
                                 break;
                             }
 
@@ -319,7 +334,7 @@ namespace Mond.VirtualMachine
                                 {
                                     for (var i = evals.Count - 1; i >= 0; i--)
                                     {
-                                        Push(evals[i]);
+                                        Push(evals[i]); // TODO: use array
                                     }
 
                                     evals.Clear();
@@ -339,11 +354,11 @@ namespace Mond.VirtualMachine
 
                                 if (currentEvals != initialEvals)
                                 {
-                                    var evals = frame.StoredEvals ?? (frame.StoredEvals = new List<MondValue>());
+                                    var evals = frame.StoredEvals ?? (frame.StoredEvals = new List<MondValue>()); // TODO: use array
 
                                     while (currentEvals != initialEvals)
                                     {
-                                        evals.Add(Pop());
+                                        evals.Add(Pop()); // TODO: use array
                                         currentEvals--;
                                     }
                                 }
@@ -375,12 +390,14 @@ namespace Mond.VirtualMachine
 
                         case (int)InstructionType.Slice:
                             {
-                                var step = Pop();
-                                var end = Pop();
-                                var start = Pop();
-                                var array = Pop();
+                                ref readonly var step = ref Peek();
+                                ref readonly var end = ref Peek(1);
+                                ref readonly var start = ref Peek(2);
+                                ref var array = ref Peek(3);
 
-                                Push(array.Slice(start, end, step));
+                                array = array.Slice(start, end, step);
+
+                                Release(3);
                                 break;
                             }
                         #endregion
@@ -388,94 +405,135 @@ namespace Mond.VirtualMachine
                         #region Math
                         case (int)InstructionType.Add:
                             {
-                                var right = Pop();
-                                PeekRef() += right;
+                                ref readonly var right = ref Peek();
+                                ref var left = ref Peek(1);
+
+                                left += right;
+
+                                Release();
                                 break;
                             }
 
                         case (int)InstructionType.Sub:
                             {
-                                var right = Pop();
-                                PeekRef() -= right;
+                                ref readonly var right = ref Peek();
+                                ref var left = ref Peek(1);
+
+                                left -= right;
+
+                                Release();
                                 break;
                             }
 
                         case (int)InstructionType.Mul:
                             {
-                                var right = Pop();
-                                PeekRef() *= right;
+                                ref readonly var right = ref Peek();
+                                ref var left = ref Peek(1);
+
+                                left *= right;
+
+                                Release();
                                 break;
                             }
 
                         case (int)InstructionType.Div:
                             {
-                                var right = Pop();
-                                PeekRef() /= right;
+                                ref readonly var right = ref Peek();
+                                ref var left = ref Peek(1);
+
+                                left /= right;
+
+                                Release();
                                 break;
                             }
 
                         case (int)InstructionType.Mod:
                             {
-                                var right = Pop();
-                                PeekRef() %= right;
+                                ref readonly var right = ref Peek();
+                                ref var left = ref Peek(1);
+
+                                left %= right;
+
+                                Release();
                                 break;
                             }
 
                         case (int)InstructionType.Exp:
                             {
-                                var right = Pop();
-                                ref var left = ref PeekRef();
+                                ref readonly var right = ref Peek();
+                                ref var left = ref Peek(1);
+                                
                                 left = left.Pow(right);
+
+                                Release();
                                 break;
                             }
 
                         case (int)InstructionType.BitLShift:
                             {
-                                var right = Pop();
-                                ref var left = ref PeekRef();
+                                ref readonly var right = ref Peek();
+                                ref var left = ref Peek(1);
+                                
                                 left = left.LShift(right);
+
+                                Release();
                                 break;
                             }
 
                         case (int)InstructionType.BitRShift:
                             {
-                                var right = Pop();
-                                ref var left = ref PeekRef();
+                                ref readonly var right = ref Peek();
+                                ref var left = ref Peek(1);
+                                
                                 left = left.RShift(right);
+
+                                Release();
                                 break;
                             }
 
                         case (int)InstructionType.BitAnd:
                             {
-                                var right = Pop();
-                                PeekRef() &= right;
+                                ref readonly var right = ref Peek();
+                                ref var left = ref Peek(1);
+
+                                left &= right;
+
+                                Release();
                                 break;
                             }
 
                         case (int)InstructionType.BitOr:
                             {
-                                var right = Pop();
-                                PeekRef() |= right;
+                                ref readonly var right = ref Peek();
+                                ref var left = ref Peek(1);
+
+                                left |= right;
+
+                                Release();
                                 break;
                             }
 
                         case (int)InstructionType.BitXor:
                             {
-                                var right = Pop();
-                                PeekRef() ^= right;
+                                ref readonly var right = ref Peek();
+                                ref var left = ref Peek(1);
+
+                                left ^= right;
+
+                                Release();
                                 break;
                             }
 
                         case (int)InstructionType.Neg:
                             {
-                                ref var value = ref PeekRef();
+                                ref var value = ref Peek();
                                 value = -value;
                                 break;
                             }
 
                         case (int)InstructionType.BitNot:
                             {
-                                ref var value = ref PeekRef();
+                                ref var value = ref Peek();
                                 value = ~value;
                                 break;
                             }
@@ -484,72 +542,96 @@ namespace Mond.VirtualMachine
                         #region Logic
                         case (int)InstructionType.Eq:
                             {
-                                var right = Pop();
-                                ref var left = ref PeekRef();
+                                ref readonly var right = ref Peek();
+                                ref var left = ref Peek(1);
+
                                 left = left == right;
+
+                                Release();
                                 break;
                             }
 
                         case (int)InstructionType.Neq:
                             {
-                                var right = Pop();
-                                ref var left = ref PeekRef();
+                                ref readonly var right = ref Peek();
+                                ref var left = ref Peek(1);
+
                                 left = left != right;
+
+                                Release();
                                 break;
                             }
 
                         case (int)InstructionType.Gt:
                             {
-                                var right = Pop();
-                                ref var left = ref PeekRef();
+                                ref readonly var right = ref Peek();
+                                ref var left = ref Peek(1);
+
                                 left = left > right;
+
+                                Release();
                                 break;
                             }
 
                         case (int)InstructionType.Gte:
                             {
-                                var right = Pop();
-                                ref var left = ref PeekRef();
+                                ref readonly var right = ref Peek();
+                                ref var left = ref Peek(1);
+
                                 left = left >= right;
+
+                                Release();
                                 break;
                             }
 
                         case (int)InstructionType.Lt:
                             {
-                                var right = Pop();
-                                ref var left = ref PeekRef();
+                                ref readonly var right = ref Peek();
+                                ref var left = ref Peek(1);
+
                                 left = left < right;
+
+                                Release();
                                 break;
                             }
 
                         case (int)InstructionType.Lte:
                             {
-                                var right = Pop();
-                                ref var left = ref PeekRef();
+                                ref readonly var right = ref Peek();
+                                ref var left = ref Peek(1);
+
                                 left = left <= right;
+
+                                Release();
                                 break;
                             }
 
                         case (int)InstructionType.Not:
                             {
-                                ref var value = ref PeekRef();
+                                ref var value = ref Peek();
                                 value = !value;
                                 break;
                             }
 
                         case (int)InstructionType.In:
                             {
-                                var right = Pop();
-                                ref var left = ref PeekRef();
+                                ref readonly var right = ref Peek();
+                                ref var left = ref Peek(1);
+
                                 left = right.Contains(left);
+
+                                Release();
                                 break;
                             }
 
                         case (int)InstructionType.NotIn:
                             {
-                                var right = Pop();
-                                ref var left = ref PeekRef();
+                                ref readonly var right = ref Peek();
+                                ref var left = ref Peek(1);
+
                                 left = !right.Contains(left);
+
+                                Release();
                                 break;
                             }
                         #endregion
@@ -564,116 +646,7 @@ namespace Mond.VirtualMachine
 
                         case (int)InstructionType.Call:
                             {
-                                var argCount = ReadInt32(code, ref ip);
-                                var unpackCount = code[ip++];
-
-                                var function = Pop();
-
-                                List<MondValue> unpackedArgs = null;
-
-                                if (unpackCount > 0)
-                                    unpackedArgs = UnpackArgs(code, ref ip, argCount, unpackCount);
-
-                                var returnAddress = ip;
-
-                                if (function.Type == MondValueType.Object)
-                                {
-                                    MondValue[] argArr;
-
-                                    if (unpackedArgs == null)
-                                    {
-                                        argArr = new MondValue[argCount + 1];
-
-                                        for (var i = argCount; i >= 1; i--)
-                                        {
-                                            argArr[i] = Pop();
-                                        }
-
-                                        argArr[0] = function;
-                                    }
-                                    else
-                                    {
-                                        unpackedArgs.Insert(0, function);
-                                        argArr = unpackedArgs.ToArray();
-                                    }
-
-                                    if (function.TryDispatch("__call", out var result, argArr))
-                                    {
-                                        Push(result);
-                                        break;
-                                    }
-                                }
-
-                                if (function.Type != MondValueType.Function)
-                                {
-                                    var ldFldBase = ip - 1 - 4 - 1 - 4 - 1;
-                                    if (ldFldBase >= 0 && code[ldFldBase] == (int)InstructionType.LdFld)
-                                    {
-                                        var ldFldIdx = ldFldBase + 1;
-                                        var fieldNameIdx = ReadInt32(code, ref ldFldIdx);
-
-                                        if (fieldNameIdx >= 0 && fieldNameIdx < program.Strings.Count)
-                                        {
-                                            var fieldName = program.Strings[fieldNameIdx];
-                                            throw new MondRuntimeException(RuntimeError.FieldNotCallable, (string)fieldName);
-                                        }
-                                    }
-
-                                    throw new MondRuntimeException(RuntimeError.ValueNotCallable, function.Type.GetName());
-                                }
-
-                                var closure = function.FunctionValue;
-
-                                var argFrame = function.FunctionValue.Arguments;
-                                var argFrameCount = unpackedArgs?.Count ?? argCount;
-
-                                if (argFrame == null)
-                                    argFrame = new Frame(1, null, argFrameCount);
-                                else
-                                    argFrame = new Frame(argFrame.Depth + 1, argFrame, argFrameCount);
-
-                                // copy arguments into frame
-                                if (unpackedArgs == null)
-                                {
-                                    for (var i = argFrameCount - 1; i >= 0; i--)
-                                    {
-                                        argFrame.Values[i] = Pop();
-                                    }
-                                }
-                                else
-                                {
-                                    for (var i = 0; i < argFrameCount; i++)
-                                    {
-                                        argFrame.Values[i] = unpackedArgs[i];
-                                    }
-                                }
-
-                                switch (closure.Type)
-                                {
-                                    case ClosureType.Mond:
-                                        PushCall(new ReturnAddress(program, returnAddress, argFrame, _evalStackSize));
-                                        PushLocal(closure.Locals);
-
-                                        program = closure.Program;
-                                        code = program.Bytecode;
-                                        ip = closure.Address;
-                                        args = argFrame;
-                                        locals = closure.Locals;
-
-                                        if (Debugger != null)
-                                            DebuggerCheckCall();
-
-                                        break;
-
-                                    case ClosureType.Native:
-                                        var result = closure.NativeFunction(_state, argFrame.Values);
-                                        Push(result);
-                                        break;
-
-                                    default:
-                                        throw new MondRuntimeException(RuntimeError.UnhandledClosureType);
-                                }
-
+                                DoCall(ref code, ref ip, ref program, ref args, ref locals);
                                 break;
                             }
 
@@ -758,8 +731,10 @@ namespace Mond.VirtualMachine
                                 if (_callStackSize == initialCallDepth)
                                     return Pop();
 
+#if !NO_DEBUG
                                 if (Debugger != null && DebuggerCheckReturn())
                                     DebuggerBreak(program, locals, args, ip, initialCallDepth);
+#endif
 
                                 break;
                             }
@@ -856,6 +831,7 @@ namespace Mond.VirtualMachine
 
                         case (int)InstructionType.Breakpoint:
                             {
+#if !NO_DEBUG
                                 if (Debugger == null)
                                     break;
 
@@ -864,6 +840,7 @@ namespace Mond.VirtualMachine
                                 // we stop for the statement *after* the debugger statement so we
                                 // skip the next break opportunity, otherwise we break twice
                                 _debugSkip = true;
+#endif
                                 break;
                             }
 
@@ -930,7 +907,7 @@ namespace Mond.VirtualMachine
                             break;
                         }
                     }
-                    
+
                     // don't show a native transition for wrappers
                     if (!foundWrapper)
                         stackTraceBuilder.AppendLine("[... native ...]");
@@ -972,6 +949,121 @@ namespace Mond.VirtualMachine
                 {
                     MondStackTrace = stackTraceBuilder.ToString()
                 };
+            }
+        }
+
+        private void DoCall(ref byte[] code, ref int ip, ref MondProgram program, ref Frame args, ref Frame locals)
+        {
+            var argCount = ReadInt32(code, ref ip);
+            var unpackCount = code[ip++];
+
+            var function = Pop();
+
+            List<MondValue> unpackedArgs = null;
+
+            if (unpackCount > 0)
+                unpackedArgs = UnpackArgs(code, ref ip, argCount, unpackCount);
+
+            var returnAddress = ip;
+
+            if (function.Type == MondValueType.Object)
+            {
+                MondValue[] argArr;
+
+                if (unpackedArgs == null)
+                {
+                    argArr = new MondValue[argCount + 1];
+
+                    for (var i = argCount; i >= 1; i--)
+                    {
+                        argArr[i] = Pop();
+                    }
+
+                    argArr[0] = function;
+                }
+                else
+                {
+                    unpackedArgs.Insert(0, function);
+                    argArr = unpackedArgs.ToArray();
+                }
+
+                if (function.TryDispatch("__call", out var result, argArr))
+                {
+                    Push(result);
+                    return;
+                }
+            }
+
+            if (function.Type != MondValueType.Function)
+            {
+                var ldFldBase = ip - 1 - 4 - 1 - 4 - 1;
+                if (ldFldBase >= 0 && code[ldFldBase] == (int)InstructionType.LdFld)
+                {
+                    var ldFldIdx = ldFldBase + 1;
+                    var fieldNameIdx = ReadInt32(code, ref ldFldIdx);
+
+                    if (fieldNameIdx >= 0 && fieldNameIdx < program.Strings.Length)
+                    {
+                        var fieldName = program.Strings[fieldNameIdx];
+                        throw new MondRuntimeException(RuntimeError.FieldNotCallable, (string)fieldName);
+                    }
+                }
+
+                throw new MondRuntimeException(RuntimeError.ValueNotCallable, function.Type.GetName());
+            }
+
+            var closure = function.FunctionValue;
+
+            var argFrame = function.FunctionValue.Arguments;
+            var argFrameCount = unpackedArgs?.Count ?? argCount;
+
+            if (argFrame == null)
+                argFrame = new Frame(1, null, argFrameCount);
+            else
+                argFrame = new Frame(argFrame.Depth + 1, argFrame, argFrameCount);
+
+            // copy arguments into frame
+            if (unpackedArgs == null)
+            {
+                for (var i = argFrameCount - 1; i >= 0; i--)
+                {
+                    argFrame.Values[i] = Pop();
+                }
+            }
+            else
+            {
+                for (var i = 0; i < argFrameCount; i++)
+                {
+                    argFrame.Values[i] = unpackedArgs[i];
+                }
+            }
+
+            switch (closure.Type)
+            {
+                case ClosureType.Mond:
+                    PushCall(new ReturnAddress(program, returnAddress, argFrame, _evalStackSize));
+                    PushLocal(closure.Locals);
+
+                    program = closure.Program;
+                    code = program.Bytecode;
+                    ip = closure.Address;
+                    args = argFrame;
+                    locals = closure.Locals;
+
+#if !NO_DEBUG
+                    if (Debugger != null)
+                        DebuggerCheckCall();
+#endif
+
+                    break;
+
+                case ClosureType.Native:
+                    var result = closure.NativeFunction(_state, argFrame.Values);
+                    Push(result);
+                    break;
+
+                default:
+                    throw new MondRuntimeException(RuntimeError.UnhandledClosureType);
             }
         }
 
@@ -1019,6 +1111,7 @@ namespace Mond.VirtualMachine
             return unpackedArgs;
         }
 
+#if !NO_DEBUG
         private void DebuggerCheckCall()
         {
             switch (_debugAction)
@@ -1067,15 +1160,30 @@ namespace Mond.VirtualMachine
             _debugAlign = false;
             _debugDepth = 0;
         }
+#endif
 
+#if !NO_UNSAFE
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static unsafe int ReadInt32(byte[] buffer, ref int offset)
+        {
+            // TODO: fixed has overhead, reduce amount by doing it once in Run
+            fixed (byte* b = buffer)
+            {
+                var result = *(int*)(b + offset);
+                offset += sizeof(int);
+                return result;
+            }
+        }
+#else
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int ReadInt32(byte[] buffer, ref int offset)
         {
-            return buffer[offset++] <<  0 |
-                   buffer[offset++] <<  8 |
+            return buffer[offset++] << 0 |
+                   buffer[offset++] << 8 |
                    buffer[offset++] << 16 |
                    buffer[offset++] << 24;
         }
+#endif
 
         private static string GetAddressDebugInfo(MondProgram program, int address)
         {

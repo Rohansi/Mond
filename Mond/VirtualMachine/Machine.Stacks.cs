@@ -65,27 +65,48 @@ namespace Mond.VirtualMachine
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void Push(in MondValue value)
+        private ref MondValue Reserve()
         {
-            _evalStack[++_evalStackSize] = value;
-        }
-        
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private MondValue Pop()
-        {
-            return _evalStack[_evalStackSize--];
-        }
-        
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private MondValue Peek()
-        {
-            return _evalStack[_evalStackSize];
+            return ref _evalStack[++_evalStackSize];
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private ref MondValue PeekRef()
+        private void Release()
+        {
+            _evalStack[_evalStackSize--] = default;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void Release(int n)
+        {
+            for (var i = 0; i < n; i++)
+            {
+                Release();
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void Push(in MondValue value)
+        {
+            Reserve() = value;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private ref MondValue Peek()
         {
             return ref _evalStack[_evalStackSize];
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private ref MondValue Peek(int n)
+        {
+            return ref _evalStack[_evalStackSize - n];
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private ref MondValue Pop()
+        {
+            return ref _evalStack[_evalStackSize--];
         }
     }
 }

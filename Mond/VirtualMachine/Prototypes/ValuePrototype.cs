@@ -8,16 +8,18 @@ namespace Mond.VirtualMachine.Prototypes
     [MondModule("Value")]
     internal static class ValuePrototype
     {
-        public static readonly MondValue Value;
+        internal static MondValue ValueReadOnly;
+        public static MondValue Value => ValueReadOnly;
 
         static ValuePrototype()
         {
-            Value = MondPrototypeBinder.Bind(typeof(ValuePrototype));
+            ValueReadOnly = MondPrototypeBinder.Bind(typeof(ValuePrototype));
 
             // we dont use MondValue.Prototype here because this should not have a prototype
-            Value.ObjectValue.Prototype = MondValue.Undefined;
+            ValueReadOnly.ObjectValue.HasPrototype = true;
+            ValueReadOnly.ObjectValue.Prototype = MondValue.Undefined;
 
-            Value.Lock();
+            ValueReadOnly.Lock();
         }
 
         /// <summary>

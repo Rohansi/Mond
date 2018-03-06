@@ -6,14 +6,15 @@ namespace Mond.VirtualMachine.Prototypes
     [MondModule("Array")]
     internal static class ArrayPrototype
     {
-        public static readonly MondValue Value;
+        internal static MondValue ValueReadOnly;
+        public static MondValue Value => ValueReadOnly;
 
         static ArrayPrototype()
         {
-            Value = MondPrototypeBinder.Bind(typeof(ArrayPrototype));
-            Value.Prototype = ValuePrototype.Value;
+            ValueReadOnly = MondPrototypeBinder.Bind(typeof(ArrayPrototype));
+            ValueReadOnly.Prototype = ValuePrototype.Value;
 
-            Value.Lock();
+            ValueReadOnly.Lock();
         }
 
         private const string MustBeAnArray = "Array.{0}: must be called on an array";

@@ -5,14 +5,15 @@ namespace Mond.VirtualMachine.Prototypes
     [MondModule("Number")]
     internal static class NumberPrototype
     {
-        public static readonly MondValue Value;
+        internal static MondValue ValueReadOnly;
+        public static MondValue Value => ValueReadOnly;
 
         static NumberPrototype()
         {
-            Value = MondPrototypeBinder.Bind(typeof(NumberPrototype));
-            Value.Prototype = ValuePrototype.Value;
+            ValueReadOnly = MondPrototypeBinder.Bind(typeof(NumberPrototype));
+            ValueReadOnly.Prototype = ValuePrototype.Value;
 
-            Value.Lock();
+            ValueReadOnly.Lock();
         }
 
         [MondFunction]

@@ -5,14 +5,15 @@ namespace Mond.VirtualMachine.Prototypes
     [MondModule("Function")]
     internal static class FunctionPrototype
     {
-        public static readonly MondValue Value;
-        
+        internal static MondValue ValueReadOnly;
+        public static MondValue Value => ValueReadOnly;
+
         static FunctionPrototype()
         {
-            Value = MondPrototypeBinder.Bind(typeof(FunctionPrototype));
-            Value.Prototype = ValuePrototype.Value;
+            ValueReadOnly = MondPrototypeBinder.Bind(typeof(FunctionPrototype));
+            ValueReadOnly.Prototype = ValuePrototype.Value;
 
-            Value.Lock();
+            ValueReadOnly.Lock();
         }
 
         private const string MustBeAFunction = "Function.{0}: must be called on a function";

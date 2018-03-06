@@ -7,14 +7,15 @@ namespace Mond.VirtualMachine.Prototypes
     [MondModule("String")]
     internal static class StringPrototype
     {
-        public static readonly MondValue Value;
+        internal static MondValue ValueReadOnly;
+        public static MondValue Value => ValueReadOnly;
 
         static StringPrototype()
         {
-            Value = MondPrototypeBinder.Bind(typeof(StringPrototype));
-            Value.Prototype = ValuePrototype.Value;
+            ValueReadOnly = MondPrototypeBinder.Bind(typeof(StringPrototype));
+            ValueReadOnly.Prototype = ValuePrototype.Value;
 
-            Value.Lock();
+            ValueReadOnly.Lock();
         }
 
         private const string IndexOutOfBounds = "String.{0}: index out of bounds";

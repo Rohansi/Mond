@@ -12,9 +12,9 @@ namespace Mond.Binding
 {
     internal class MethodTable
     {
-        public string Name { get; }
-        public List<List<Method>> Methods { get; }
-        public List<Method> ParamsMethods { get; }
+        public readonly string Name;
+        public readonly List<List<Method>> Methods;
+        public readonly List<Method> ParamsMethods;
 
         public MethodTable(string name, List<List<Method>> methods, List<Method> paramsMethods)
         {
@@ -33,19 +33,19 @@ namespace Mond.Binding
 
     internal class Method : IComparable<Method>
     {
-        public MethodBase Info { get; }
+        public readonly MethodBase Info;
 
-        public string Name { get; }
+        public readonly string Name;
 
-        public int MondParameterCount { get; }             // maximum number of ParameterType.Value parameters
-        public int RequiredMondParameterCount { get; }     // number of required ParameterType.Value parameters
+        public readonly int MondParameterCount;         // maximum number of ParameterType.Value parameters
+        public readonly int RequiredMondParameterCount; // number of required ParameterType.Value parameters
 
-        public List<Parameter> Parameters { get; }
-        public List<Parameter> ValueParameters { get; }
+        public readonly List<Parameter> Parameters;
+        public readonly List<Parameter> ValueParameters;
 
-        public bool HasParams { get; }
-        
-        public ReturnConverter ReturnConversion { get; }
+        public readonly bool HasParams;
+
+        public readonly ReturnConverter ReturnConversion;
 
         public Method(string name, MethodBase info)
         {
@@ -135,23 +135,23 @@ namespace Mond.Binding
         private static readonly MondValueType[] AnyTypes = { MondValueType.Undefined };
         private static readonly MondValueType[] ObjectTypes = { MondValueType.Object };
 
-        public ParameterInfo Info { get; }
+        public readonly ParameterInfo Info;
 
-        public ParameterType Type { get; }
-        public string TypeName { get; }
+        public readonly ParameterType Type;
+        public readonly string TypeName;
 
-        public bool IsOptional { get; }
+        public readonly bool IsOptional;
 
-        public int Priority { get; }
+        public readonly int Priority;
 
-        public MondValueType[] MondTypes { get; }
+        public readonly MondValueType[] MondTypes;
 
-        public Type UserDataType { get; }
+        public readonly Type UserDataType;
 
 #if !NO_EXPRESSIONS
-        public Func<Expression, Expression> Conversion { get; }
+        public readonly Func<Expression, Expression> Conversion;
 #else
-        public Func<MondValue, object> Conversion { get; }
+        public readonly Func<MondValue, object> Conversion;
 #endif
 
         public Parameter(ParameterInfo info)

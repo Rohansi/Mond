@@ -58,6 +58,7 @@ namespace Mond
         /// </summary>
         public MondDebugger Debugger
         {
+#if !NO_DEBUG
             get => _machine.Debugger;
             set
             {
@@ -68,6 +69,10 @@ namespace Mond
 
                 _machine.Debugger = value;
             }
+#else
+            get => throw new NotSupportedException("Mond was built without debug support.");
+            set => throw new NotSupportedException("Mond was built without debug support.");
+#endif
         }
 
         /// <summary>
@@ -158,7 +163,9 @@ namespace Mond
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentNullException(nameof(name));
 
-            _prototypeCache.TryGetValue(name, out var value);
+            if (!_prototypeCache.TryGetValue(name, out var value))
+                value = MondValue.Undefined;
+
             return value;
         }
 

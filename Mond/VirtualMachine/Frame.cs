@@ -24,17 +24,17 @@ namespace Mond.VirtualMachine
             }
         }
 
-        public MondValue Get(int depth, int index)
+        public ref readonly MondValue Get(int depth, int index)
         {
             var frame = GetFrame(depth);
 
             if (index < 0 || index >= frame.Values.Length)
-                return MondValue.Undefined;
+                return ref MondValue.Undefined;
 
-            return frame.Values[index];
+            return ref frame.Values[index];
         }
 
-        public void Set(int depth, int index, MondValue value)
+        public void Set(int depth, int index, in MondValue value)
         {
             var frame = GetFrame(depth);
 
