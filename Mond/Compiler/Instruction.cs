@@ -21,6 +21,7 @@ namespace Mond.Compiler
         LdState, StState,                   // load/store current frame stack and evals in another frame
 
         NewObject, NewArray,                // create object/array
+        FlushArr,                           // flush the stack to the current array
         Slice,                              // slice array
 
         Add, Sub, Mul, Div, Mod, Exp,       // math

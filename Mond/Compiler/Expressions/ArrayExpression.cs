@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
@@ -16,10 +17,35 @@ namespace Mond.Compiler.Expressions
 
         public override int Compile(FunctionContext context)
         {
-            var stack = Values.Sum(value => value.Compile(context));
+            // insert a FlushArr instruction after every n elements are pushed onto the stack
+            const int FlushSize = 32;
 
-            context.Position(Token); // debug info
-            stack += context.NewArray(Values.Count);
+            int stack;
+
+            if (Values.Count <= FlushSize)
+            {
+                stack = Values.Sum(value => value.Compile(context));
+                context.Position(Token); // debug info
+                stack += context.NewArray(Values.Count);
+            }
+            else
+            {
+                stack = Values.Take(FlushSize).Sum(x => x.Compile(context));
+                context.Position(Token); // debug info
+                stack += context.NewArray(FlushSize);
+
+                var i = FlushSize;
+                while( i < Values.Count )
+                {
+                    var remaining = Math.Min( FlushSize, Values.Count - i );
+
+                    for( var j = i; j < i + remaining; ++j )
+                        stack += Values[j].Compile( context );
+
+                    stack += context.FlushArray( remaining );
+                    i += remaining;
+                }
+            }
 
             CheckStack(stack, 1);
             return stack;

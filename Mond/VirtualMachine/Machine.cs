@@ -389,6 +389,19 @@ namespace Mond.VirtualMachine
                                 Push(array.Slice(start, end, step));
                                 break;
                             }
+
+                        case (int)InstructionType.FlushArr:
+                            {
+                                var remaining = ReadInt32(code, ref ip);
+                                var buf = new MondValue[remaining];
+
+                                for (var i = remaining - 1; i >= 0; i--)
+                                    buf[i] = Pop();
+
+                                Peek().ArrayValue.AddRange(buf);
+
+                                break;
+                            }
                         #endregion
 
                         #region Math

@@ -174,6 +174,12 @@ namespace Mond.Compiler
             return -4 + 1;
         }
 
+        public int FlushArray(int length)
+        {
+            Emit(new Instruction(InstructionType.FlushArr, new ImmediateOperand(length)));
+            return -length;
+        }
+
         public int Dup()
         {
             Emit(new Instruction(InstructionType.Dup));
