@@ -35,14 +35,14 @@ namespace Mond.Compiler.Expressions
                 stack += context.NewArray(FlushSize);
 
                 var i = FlushSize;
-                while( i < Values.Count )
+                while (i < Values.Count)
                 {
-                    var remaining = Math.Min( FlushSize, Values.Count - i );
+                    var remaining = Math.Min(FlushSize, Values.Count - i);
 
-                    for( var j = i; j < i + remaining; ++j )
-                        stack += Values[j].Compile( context );
+                    for (var j = i; j < i + remaining; ++j)
+                        stack += Values[j].Compile(context);
 
-                    stack += context.FlushArray( remaining );
+                    stack += context.FlushArray(remaining);
                     i += remaining;
                 }
             }
