@@ -165,19 +165,13 @@ namespace Mond.Compiler
         public int NewArray(int length)
         {
             Emit(new Instruction(InstructionType.NewArray, new ImmediateOperand(length)));
-            return -length + 1;
+            return 1;
         }
 
         public int Slice()
         {
             Emit(new Instruction(InstructionType.Slice));
             return -4 + 1;
-        }
-
-        public int FlushArray(int length)
-        {
-            Emit(new Instruction(InstructionType.FlushArr, new ImmediateOperand(length)));
-            return -length;
         }
 
         public int Dup()

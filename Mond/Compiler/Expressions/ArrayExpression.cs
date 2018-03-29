@@ -17,34 +17,18 @@ namespace Mond.Compiler.Expressions
 
         public override int Compile(FunctionContext context)
         {
-            // insert a FlushArr instruction after every n elements are pushed onto the stack
-            const int FlushSize = 32;
+            var stack = 0;
 
-            int stack;
+            context.Position(Token);
+            stack += context.NewArray(Values.Count);
 
-            if (Values.Count <= FlushSize)
+            for (var i = 0; i < Values.Count; ++i)
             {
-                stack = Values.Sum(value => value.Compile(context));
-                context.Position(Token); // debug info
-                stack += context.NewArray(Values.Count);
-            }
-            else
-            {
-                stack = Values.Take(FlushSize).Sum(x => x.Compile(context));
-                context.Position(Token); // debug info
-                stack += context.NewArray(FlushSize);
-
-                var i = FlushSize;
-                while (i < Values.Count)
-                {
-                    var remaining = Math.Min(FlushSize, Values.Count - i);
-
-                    for (var j = i; j < i + remaining; ++j)
-                        stack += Values[j].Compile(context);
-
-                    stack += context.FlushArray(remaining);
-                    i += remaining;
-                }
+                stack += context.Dup();
+                stack += Values[i].Compile(context);
+                stack += context.Swap();
+                stack += context.Load(context.Number(i));
+                stack += context.StoreArray();
             }
 
             CheckStack(stack, 1);

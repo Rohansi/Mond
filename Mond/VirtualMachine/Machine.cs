@@ -364,16 +364,10 @@ namespace Mond.VirtualMachine
                             {
                                 var count = ReadInt32(code, ref ip);
                                 var array = new MondValue(MondValueType.Array);
+                                array.ArrayValue.Capacity = count;
 
                                 for (var i = 0; i < count; i++)
-                                {
                                     array.ArrayValue.Add(default(MondValue));
-                                }
-
-                                for (var i = count - 1; i >= 0; i--)
-                                {
-                                    array.ArrayValue[i] = Pop();
-                                }
 
                                 Push(array);
                                 break;
@@ -387,19 +381,6 @@ namespace Mond.VirtualMachine
                                 var array = Pop();
 
                                 Push(array.Slice(start, end, step));
-                                break;
-                            }
-
-                        case (int)InstructionType.FlushArr:
-                            {
-                                var remaining = ReadInt32(code, ref ip);
-                                var buf = new MondValue[remaining];
-
-                                for (var i = remaining - 1; i >= 0; i--)
-                                    buf[i] = Pop();
-
-                                Peek().ArrayValue.AddRange(buf);
-
                                 break;
                             }
                         #endregion
