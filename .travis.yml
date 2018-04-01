@@ -2,10 +2,10 @@ language: csharp
 sudo: false
 solution: Mond.sln
 mono: none
-dotnet: 1.0.1
+dotnet: 2.1.101
 dist: trusty
 install:
   - dotnet restore
-  - dotnet build Mond.Repl -f netcoreapp1.1
+  - dotnet build Mond.Repl -f netcoreapp2.0
 script:
   - dotnet run -p ./Mond.Tests/Mond.Tests.csproj -c Release
