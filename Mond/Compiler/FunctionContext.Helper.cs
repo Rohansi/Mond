@@ -165,7 +165,7 @@ namespace Mond.Compiler
         public int NewArray(int length)
         {
             Emit(new Instruction(InstructionType.NewArray, new ImmediateOperand(length)));
-            return -length + 1;
+            return 1;
         }
 
         public int Slice()

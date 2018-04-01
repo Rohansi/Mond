@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
@@ -16,10 +17,19 @@ namespace Mond.Compiler.Expressions
 
         public override int Compile(FunctionContext context)
         {
-            var stack = Values.Sum(value => value.Compile(context));
+            var stack = 0;
 
-            context.Position(Token); // debug info
+            context.Position(Token);
             stack += context.NewArray(Values.Count);
+
+            for (var i = 0; i < Values.Count; ++i)
+            {
+                stack += context.Dup();
+                stack += Values[i].Compile(context);
+                stack += context.Swap();
+                stack += context.Load(context.Number(i));
+                stack += context.StoreArray();
+            }
 
             CheckStack(stack, 1);
             return stack;
