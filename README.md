@@ -9,6 +9,8 @@
 
 [Try it in your browser!](https://rohbot.net/mond/)
 
+![REPL](https://files.facepunch.com/Rohan/2019/January/21_11-14-04.gif)
+
 ### Example
 ```
 const Seq = require("Seq.mnd");
@@ -17,12 +19,15 @@ const randomApi =
     "https://www.random.org/decimal-fractions/?num=1&dec=9&col=1&format=plain";
 
 Async.start(seq() {
+    // concurrently request for 10 random numbers
     var numberTasks = Seq.range(0, 10)
-        |> Seq.select(() -> Http.get(randomApi))
+        |> Seq.select(() -> Http.getAsync(randomApi))
         |> Seq.toArray();
 
+    // wait for all the requests to finish
     var numbers = yield Task.whenAll(numberTasks);
 
+    // parse and sum the numbers
     var total = numbers
         |> Seq.select(s -> Json.deserialize(s))
         |> Seq.aggregate(0, (acc, n) -> acc + n);
