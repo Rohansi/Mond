@@ -11,8 +11,7 @@
     <Authors>Rohans</Authors>
     <Description>A browser-based, remote debugger for Mond scripts.</Description>
     <PackageIconUrl>http://i.imgur.com/zbqVSaz.png</PackageIconUrl>
-    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageLicenseUrl>https://raw.githubusercontent.com/Rohansi/Mond/master/LICENSE</PackageLicenseUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/Rohansi/Mond</PackageProjectUrl>
     <PackageTags>Mond Scripting Debugger</PackageTags>
   </PropertyGroup>
