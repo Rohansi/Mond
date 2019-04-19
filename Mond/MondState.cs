@@ -80,6 +80,11 @@ namespace Mond
         }
 
         /// <summary>
+        /// Gets the global object that holds global values for the state.
+        /// </summary>
+        public MondValue Global => _machine.Global;
+
+        /// <summary>
         /// Compiles and runs a Mond script from source code.
         /// </summary>
         public MondValue Run(string sourceCode, string fileName = null)
