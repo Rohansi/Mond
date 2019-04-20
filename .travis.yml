@@ -3,7 +3,7 @@ sudo: false
 solution: Mond.sln
 mono: none
 dotnet: 2.1.101
-dist: trusty
+dist: xenial
 install:
   - dotnet restore
   - dotnet build Mond.Repl -f netcoreapp2.0
