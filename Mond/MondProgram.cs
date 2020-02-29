@@ -12,7 +12,7 @@ namespace Mond
     public sealed class MondProgram
     {
         private const uint MagicId = 0xFA57C0DE;
-        private const byte FormatVersion = 7;
+        private const byte FormatVersion = 8;
 
         internal readonly byte[] Bytecode;
         internal readonly List<MondValue> Numbers;
@@ -54,7 +54,9 @@ namespace Mond
             writer.Write(Strings.Count);
             foreach (var str in Strings)
             {
-                writer.Write(str.ToString());
+                var buf = Encoding.UTF8.GetBytes(str.ToString());
+                writer.Write(buf.Length);
+                writer.Write(buf);
             }
 
             writer.Write(Numbers.Count);
@@ -192,7 +194,10 @@ namespace Mond
             var strings = new List<string>(stringCount);
             for (var i = 0; i < stringCount; ++i)
             {
-                strings.Add(reader.ReadString());
+                var len = reader.ReadInt32();
+                var buf = reader.ReadBytes(len);
+                var str = Encoding.UTF8.GetString(buf);
+                strings.Add(str);
             }
 
             var numberCount = reader.ReadInt32();
@@ -210,7 +215,7 @@ namespace Mond
             {
                 var fileName = reader.ReadString();
                 var sourceCode = reader.ReadString();
-                    
+
                 var functionCount = reader.ReadInt32();
                 List<MondDebugInfo.Function> functions = null;
 
