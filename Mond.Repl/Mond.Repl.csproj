@@ -2,9 +2,9 @@
   
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net46;netcoreapp1.1;netcoreapp2.0</TargetFrameworks>
+    <TargetFrameworks>netcoreapp2.1;netcoreapp3.1</TargetFrameworks>
     <RuntimeIdentifiers>any</RuntimeIdentifiers>
-    <AssemblyVersion>0.6.4</AssemblyVersion>
+    <AssemblyVersion>0.7.0</AssemblyVersion>
     <DebugType>portable</DebugType>
   </PropertyGroup>
 
