@@ -152,7 +152,7 @@ namespace Mond.Libraries
         public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions()
         {
             var operatorModule = MondModuleBinder.Bind<OperatorModule>(_state);
-            foreach (var pair in operatorModule.Object)
+            foreach (var pair in operatorModule.AsDictionary)
                 yield return new KeyValuePair<string, MondValue>(pair.Key, pair.Value);
         }
     }

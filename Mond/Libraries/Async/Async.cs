@@ -31,11 +31,9 @@ namespace Mond.Libraries.Async
 
             var instance = new AsyncClass();
 
-            var obj = new MondValue(MondValueType.Object)
-            {
-                UserData = instance,
-                Prototype = prototype
-            };
+            var obj = MondValue.Object();
+            obj.UserData = instance;
+            obj.Prototype = prototype;
             obj.Lock();
 
             return obj;

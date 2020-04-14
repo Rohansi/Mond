@@ -64,7 +64,7 @@ namespace Mond
                     writer.WriteLine("{");
                     writer.Indent++;
 
-                    foreach (var objValue in Object)
+                    foreach (var objValue in AsDictionary)
                     {
                         if (first)
                         {

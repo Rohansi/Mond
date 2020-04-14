@@ -595,7 +595,7 @@ namespace Mond.Compiler.Visitors
 
         public int Visit(StringExpression expression)
         {
-            new MondValue(expression.Value).Serialize(_writer);
+            MondValue.String(expression.Value).Serialize(_writer);
             return 0;
         }
 

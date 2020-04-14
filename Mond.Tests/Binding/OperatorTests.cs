@@ -63,7 +63,7 @@ namespace Mond.Tests.Binding
         {
             _state = new MondState();
             var ops = MondModuleBinder.Bind<MyOperators>(_state);
-            foreach( var pair in ops.Object )
+            foreach( var pair in ops.AsDictionary )
                 this._state[pair.Key] = pair.Value;
         }
 

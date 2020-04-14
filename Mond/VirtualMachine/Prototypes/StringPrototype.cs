@@ -116,11 +116,7 @@ namespace Mond.VirtualMachine.Prototypes
         public static MondValue Split([MondInstance] MondValue instance, string separator)
         {
             var values = ((string)instance).Split(new [] { separator }, StringSplitOptions.None);
-            var result = new MondValue(MondValueType.Array);
-
-            result.ArrayValue.AddRange(values.Select(v => (MondValue)v));
-
-            return result;
+            return MondValue.Array(values.Select(v => (MondValue)v));
         }
 
         /// <summary>
@@ -232,12 +228,12 @@ namespace Mond.VirtualMachine.Prototypes
         [MondFunction]
         public static MondValue GetEnumerator([MondInstance] MondValue instance)
         {
-            var enumerator = new MondValue(MondValueType.Object);
+            var enumerator = MondValue.Object();
             var str = (string)instance;
             var i = 0;
 
             enumerator["current"] = MondValue.Undefined;
-            enumerator["moveNext"] = new MondValue((_, args) =>
+            enumerator["moveNext"] = MondValue.Function((_, args) =>
             {
                 if (i >= str.Length)
                     return false;

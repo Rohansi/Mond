@@ -22,7 +22,7 @@ namespace Mond.VirtualMachine
             : this()
         {
             _state = state;
-            Global = new MondValue(state);
+            Global = MondValue.Object(state);
 
             _debugAction = MondDebugAction.Run;
             _debugSkip = false;
@@ -355,7 +355,7 @@ namespace Mond.VirtualMachine
                         #region Object Creation
                         case (int)InstructionType.NewObject:
                             {
-                                var obj = new MondValue(_state);
+                                var obj = MondValue.Object(_state);
                                 Push(obj);
                                 break;
                             }
@@ -363,7 +363,7 @@ namespace Mond.VirtualMachine
                         case (int)InstructionType.NewArray:
                             {
                                 var count = ReadInt32(code, ref ip);
-                                var array = new MondValue(MondValueType.Array);
+                                var array = MondValue.Array();
                                 array.ArrayValue.Capacity = count;
 
                                 for (var i = 0; i < count; i++)
@@ -772,7 +772,7 @@ namespace Mond.VirtualMachine
                         case (int)InstructionType.VarArgs:
                             {
                                 var fixedCount = ReadInt32(code, ref ip);
-                                var varArgs = new MondValue(MondValueType.Array);
+                                var varArgs = MondValue.Array();
 
                                 for (var i = fixedCount; i < args.Values.Length; i++)
                                 {

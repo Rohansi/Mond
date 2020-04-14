@@ -283,9 +283,10 @@ namespace Mond.Binding
             var classAttrib = returnType.Attribute<MondClassAttribute>();
             if (classAttrib != null && classAttrib.AllowReturn)
             {
-                var valueCtor = typeof(MondValue).GetConstructor(new[] { typeof(MondState) });
-                if (valueCtor == null)
-                    throw new Exception("Could not find MondValue constructor");
+                var objInitializerType = typeof(IEnumerable<KeyValuePair<MondValue, MondValue>>);
+                var valueFactory = typeof(MondValue).GetMethod("Object", new[] { typeof(MondState), objInitializerType });
+                if (valueFactory == null)
+                    throw new Exception("Could not find MondValue.Object method");
 
                 var findPrototype = typeof(MondState).GetMethod("FindPrototype");
                 if (findPrototype == null)
@@ -305,7 +306,7 @@ namespace Mond.Binding
                         new [] { prototype, obj },
                         Expression.Assign(prototype, Expression.Call(s, findPrototype, Expression.Constant(className))),
                         Expression.IfThen(Expression.ReferenceEqual(prototype, Expression.Constant(null)), throwExpr),
-                        Expression.Assign(obj, Expression.New(valueCtor, s)),
+                        Expression.Assign(obj, Expression.Call(valueFactory, s, Expression.Constant(null, objInitializerType))),
                         Expression.Assign(Expression.PropertyOrField(obj, "Prototype"), prototype),
                         Expression.Assign(Expression.PropertyOrField(obj, "UserData"), v),
                         obj

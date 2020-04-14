@@ -89,7 +89,7 @@ namespace Mond.Binding
 
             return (_, arguments) =>
             {
-                var instance = new MondValue(_);
+                var instance = MondValue.Object(_);
                 instance.Prototype = prototypeObj;
                 instance.UserData = constructor(_, instance, arguments);
                 return instance;
@@ -98,12 +98,12 @@ namespace Mond.Binding
 
         private static MondValue CopyToObject(Dictionary<string, MondInstanceFunction> functions, MondState state)
         {
-            var obj = new MondValue(state);
+            var obj = MondValue.Object(state);
             obj.Prototype = MondValue.Null;
 
             foreach (var func in functions)
             {
-                obj[func.Key] = new MondValue(func.Value);
+                obj[func.Key] = MondValue.Function(func.Value);
             }
 
             obj.Prototype = ValuePrototype.Value;

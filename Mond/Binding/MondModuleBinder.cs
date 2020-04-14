@@ -58,7 +58,7 @@ namespace Mond.Binding
 
         private static MondValue CopyToObject(Dictionary<string, MondFunction> functions, MondState state)
         {
-            var obj = new MondValue(state);
+            var obj = MondValue.Object(state);
             obj.Prototype = MondValue.Null;
 
             foreach (var func in functions)

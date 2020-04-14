@@ -54,13 +54,13 @@ namespace Mond.Libraries.Json
                         return MondValue.Null;
 
                     case TokenType.String:
-                        return new MondValue(token.Value);
+                        return MondValue.String(token.Value);
 
                     case TokenType.Number:
                         if (!double.TryParse(token.Value, out var number))
                             throw new MondRuntimeException("Json.deserialize: invalid number '{0}'", token.Value);
 
-                        return new MondValue(number);
+                        return MondValue.Number(number);
 
                     case TokenType.ObjectStart:
                         return ParseObject();
@@ -75,7 +75,7 @@ namespace Mond.Libraries.Json
 
             private MondValue ParseObject()
             {
-                var obj = new MondValue(MondValueType.Object);
+                var obj = MondValue.Object();
                 var first = true;
 
                 while (!Match(TokenType.ObjectEnd))
@@ -100,7 +100,7 @@ namespace Mond.Libraries.Json
 
             private MondValue ParseArray()
             {
-                var arr = new MondValue(MondValueType.Array);
+                var arr = MondValue.Array();
 
                 if (Match(TokenType.ArrayEnd))
                 {
@@ -108,12 +108,12 @@ namespace Mond.Libraries.Json
                     return arr;
                 }
 
-                arr.Array.Add(ParseValue());
+                arr.AsList.Add(ParseValue());
 
                 while (!Match(TokenType.ArrayEnd))
                 {
                     Require(TokenType.Comma);
-                    arr.Array.Add(ParseValue());
+                    arr.AsList.Add(ParseValue());
                 }
 
                 Require(TokenType.ArrayEnd);

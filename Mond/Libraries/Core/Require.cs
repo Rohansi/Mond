@@ -18,7 +18,7 @@ namespace Mond.Libraries.Core
             var instance = new RequireClass();
             instance._require = require;
 
-            var obj = new MondValue(MondValueType.Object);
+            var obj = MondValue.Object();
             obj.UserData = instance;
             obj.Prototype = prototype;
             obj.Lock();
@@ -39,7 +39,7 @@ namespace Mond.Libraries.Core
             // make sure we have somewhere to cache modules
             if (state[cacheObjectName].Type != MondValueType.Object)
             {
-                cacheObject = new MondValue(state);
+                cacheObject = MondValue.Object(state);
                 cacheObject.Prototype = MondValue.Null;
                 state[cacheObjectName] = cacheObject;
             }
@@ -54,7 +54,7 @@ namespace Mond.Libraries.Core
                 return cachedExports;
 
             // create a new object to store the exports
-            var exports = new MondValue(state);
+            var exports = MondValue.Object(state);
             exports.Prototype = MondValue.Null;
 
             // instantly cache it so we can have circular dependencies
@@ -101,7 +101,7 @@ namespace Mond.Libraries.Core
                 if (!ReferenceEquals(exports, result))
                 {
                     // module returned a different object, merge with ours
-                    foreach (var kv in result.Object)
+                    foreach (var kv in result.AsDictionary)
                     {
                         var key = kv.Key;
                         var value = kv.Value;

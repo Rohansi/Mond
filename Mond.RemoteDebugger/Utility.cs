@@ -14,17 +14,17 @@ namespace Mond.RemoteDebugger
 
         public static MondValue JsonProgram(ProgramInfo program)
         {
-            var obj = new MondValue(MondValueType.Object);
+            var obj = MondValue.Object();
             obj["FileName"] = program.FileName;
             obj["SourceCode"] = program.DebugInfo.SourceCode;
             obj["FirstLine"] = FirstLineNumber(program.DebugInfo);
-            obj["Breakpoints"] = new MondValue(program.Breakpoints.Select(e => new MondValue(e)));
+            obj["Breakpoints"] = MondValue.Array(program.Breakpoints.Select(e => MondValue.Number(e)));
             return obj;
         }
 
         public static MondValue JsonWatch(Watch watch)
         {
-            var obj = new MondValue(MondValueType.Object);
+            var obj = MondValue.Object();
             obj["Id"] = watch.Id;
             obj["Expression"] = watch.Expression;
             obj["Value"] = watch.Value;
@@ -33,7 +33,7 @@ namespace Mond.RemoteDebugger
 
         public static MondValue JsonCallStackEntry(int programId, MondDebugContext.CallStackEntry callStackEntry)
         {
-            var obj = new MondValue(MondValueType.Object);
+            var obj = MondValue.Object();
             obj["ProgramId"] = programId;
             obj["FileName"] = callStackEntry.FileName;
             obj["Function"] = callStackEntry.Function;

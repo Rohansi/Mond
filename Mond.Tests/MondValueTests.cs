@@ -18,23 +18,23 @@ namespace Mond.Tests
         {
             _left = 10;
             _right = 5;
-            Assert.AreEqual(_left + _right, new MondValue(10 + 5));
+            Assert.AreEqual(_left + _right, MondValue.Number(10 + 5));
 
             _left = "abc";
             _right = "def";
-            Assert.AreEqual(_left + _right, new MondValue("abc" + "def"));
+            Assert.AreEqual(_left + _right, MondValue.String("abc" + "def"));
 
             _left = "abc";
             _right = 123;
-            Assert.AreEqual(_left + _right, new MondValue("abc" + 123));
+            Assert.AreEqual(_left + _right, MondValue.String("abc" + 123));
 
             _left = 123;
             _right = "abc";
-            Assert.AreEqual(_left + _right, new MondValue(123 + "abc"));
+            Assert.AreEqual(_left + _right, MondValue.String(123 + "abc"));
 
             _left = MondValue.Null;
             _right = "abc";
-            Assert.AreEqual(_left + _right, new MondValue("null" + "abc")); // TODO: this shouldn't be allowed imo
+            Assert.AreEqual(_left + _right, MondValue.String("null" + "abc")); // TODO: this shouldn't be allowed imo
 
             _left = MondValue.Null;
             _right = MondValue.Null;
@@ -46,7 +46,7 @@ namespace Mond.Tests
         {
             _left = 10;
             _right = 5;
-            Assert.AreEqual(_left - _right, new MondValue(10 - 5));
+            Assert.AreEqual(_left - _right, MondValue.Number(10 - 5));
 
             _left = 123;
             _right = "abc";
@@ -58,7 +58,7 @@ namespace Mond.Tests
         {
             _left = 10;
             _right = 5;
-            Assert.AreEqual(_left * _right, new MondValue(10 * 5));
+            Assert.AreEqual(_left * _right, MondValue.Number(10 * 5));
 
             _left = 123;
             _right = "abc";
@@ -70,7 +70,7 @@ namespace Mond.Tests
         {
             _left = 10.0;
             _right = 7.0;
-            Assert.AreEqual(_left / _right, new MondValue(10.0 / 7.0));
+            Assert.AreEqual(_left / _right, MondValue.Number(10.0 / 7.0));
 
             _left = 123;
             _right = "abc";
@@ -82,7 +82,7 @@ namespace Mond.Tests
         {
             _left = 10.0;
             _right = 7.0;
-            Assert.AreEqual(_left % _right, new MondValue(10.0 % 7.0));
+            Assert.AreEqual(_left % _right, MondValue.Number(10.0 % 7.0));
 
             _left = 123;
             _right = "abc";
@@ -94,7 +94,7 @@ namespace Mond.Tests
         {
             _left = 10.0;
             _right = 7.0;
-            Assert.AreEqual(_left.Pow(_right), new MondValue(Math.Pow(10.0, 7.0)));
+            Assert.AreEqual(_left.Pow(_right), MondValue.Number(Math.Pow(10.0, 7.0)));
 
             _left = 123;
             _right = "abc";
@@ -106,10 +106,10 @@ namespace Mond.Tests
         {
             _left = 10.0;
             _right = 7.0;
-            Assert.AreEqual(_left.LShift(_right), new MondValue(10 << 7));
+            Assert.AreEqual(_left.LShift(_right), MondValue.Number(10 << 7));
 
             _left = 10.0;
-            Assert.AreEqual(_left << 7, new MondValue(10 << 7));
+            Assert.AreEqual(_left << 7, MondValue.Number(10 << 7));
 
             _left = 123;
             _right = "abc";
@@ -124,10 +124,10 @@ namespace Mond.Tests
         {
             _left = 10.0;
             _right = 2.0;
-            Assert.AreEqual(_left.RShift(_right), new MondValue(10 >> 2));
+            Assert.AreEqual(_left.RShift(_right), MondValue.Number(10 >> 2));
 
             _left = 10.0;
-            Assert.AreEqual(_left >> 2, new MondValue(10 >> 2));
+            Assert.AreEqual(_left >> 2, MondValue.Number(10 >> 2));
 
             _left = 123;
             _right = "abc";
@@ -143,7 +143,7 @@ namespace Mond.Tests
         {
             _left = 10.0;
             _right = 7.0;
-            Assert.AreEqual(_left & _right, new MondValue(10 & 7));
+            Assert.AreEqual(_left & _right, MondValue.Number(10 & 7));
 
             _left = 123;
             _right = "abc";
@@ -155,7 +155,7 @@ namespace Mond.Tests
         {
             _left = 10.0;
             _right = 7.0;
-            Assert.AreEqual(_left | _right, new MondValue(10 | 7));
+            Assert.AreEqual(_left | _right, MondValue.Number(10 | 7));
 
             _left = 123;
             _right = "abc";
@@ -167,7 +167,7 @@ namespace Mond.Tests
         {
             _left = 10.0;
             _right = 7.0;
-            Assert.AreEqual(_left ^ _right, new MondValue(10 ^ 7));
+            Assert.AreEqual(_left ^ _right, MondValue.Number(10 ^ 7));
 
             _left = 123;
             _right = "abc";
@@ -178,7 +178,7 @@ namespace Mond.Tests
         public void OperatorNegate()
         {
             _left = 10;
-            Assert.AreEqual(-_left, new MondValue(-10));
+            Assert.AreEqual(-_left, MondValue.Number(-10));
 
             _left = "10";
             Assert.Throws<MondRuntimeException>(() => { _left = -_left; });
@@ -188,7 +188,7 @@ namespace Mond.Tests
         public void OperatorNot()
         {
             _left = 10;
-            Assert.AreEqual(~_left, new MondValue(~10));
+            Assert.AreEqual(~_left, MondValue.Number(~10));
 
             _left = "10";
             Assert.Throws<MondRuntimeException>(() => { _left = ~_left; });
@@ -213,7 +213,7 @@ namespace Mond.Tests
             _right = MondValue.Undefined;
             Assert.False(_left == _right);
 
-            _left = new MondValue(MondValueType.Object);
+            _left = MondValue.Object();
             _right = _left;
             Assert.True(_left == _right);
 
@@ -332,20 +332,20 @@ namespace Mond.Tests
             value = "hello";
             Assert.True(value);
 
-            value = new MondValue(MondValueType.Object);
+            value = MondValue.Object();
             Assert.True(value);
 
-            value = new MondValue(MondValueType.Array);
+            value = MondValue.Array();
             Assert.True(value);
 
-            value = new MondFunction((state, arguments) => MondValue.Undefined);
+            value = MondValue.Function((state, arguments) => MondValue.Undefined);
             Assert.True(value);
         }
 
         [Test]
         public void ObjectFieldIndexer()
         {
-            var obj = new MondValue(MondValueType.Object);
+            var obj = MondValue.Object();
 
             Assert.True(obj["undef"] == MondValue.Undefined);
 
@@ -361,10 +361,10 @@ namespace Mond.Tests
         [Test]
         public void ArrayIndexer()
         {
-            var array = new MondValue(MondValueType.Array);
+            var array = MondValue.Array();
 
-            array.Array.Add("test");
-            array.Array.Add(123);
+            array.AsList.Add("test");
+            array.AsList.Add(123);
 
             Assert.True(array[0] == "test");
             Assert.True(array[1] == 123);
@@ -375,8 +375,8 @@ namespace Mond.Tests
         [Test]
         public void ObjectPrototype()
         {
-            var prototype = new MondValue(MondValueType.Object);
-            var obj = new MondValue(MondValueType.Object);
+            var prototype = MondValue.Object();
+            var obj = MondValue.Object();
 
             obj.Prototype = prototype;
             Assert.True(obj.Prototype.Type == MondValueType.Object);
@@ -398,9 +398,9 @@ namespace Mond.Tests
         [Test]
         public void WrappedInstanceFunction()
         {
-            var obj = new MondValue(MondValueType.Object);
+            var obj = MondValue.Object();
 
-            var func = new MondValue((state, instance, args) => MondValue.Undefined);
+            var func = MondValue.Function((state, instance, args) => MondValue.Undefined);
             Assert.True(func.FunctionValue.Type == ClosureType.InstanceNative);
 
             obj["test"] = func;
@@ -415,7 +415,7 @@ namespace Mond.Tests
         {
             const string data = "test";
 
-            var value = new MondValue(MondValueType.Object);
+            var value = MondValue.Object();
             value.UserData = data;
 
             Assert.True(ReferenceEquals(data, value.UserData));
@@ -433,7 +433,7 @@ namespace Mond.Tests
         [Test]
         public void Lock()
         {
-            var obj = new MondValue(MondValueType.Object);
+            var obj = MondValue.Object();
             var prototype = obj.Prototype;
 
             Assert.True(obj["getType"].Type == MondValueType.Function, "no getType");
@@ -455,18 +455,18 @@ namespace Mond.Tests
         [Test]
         public void Contains()
         {
-            var arr = new MondValue(MondValueType.Array);
+            var arr = MondValue.Array();
             arr.ArrayValue.AddRange(new MondValue[] { 1, 2, 3, 4, 5 });
 
             Assert.True(arr.Contains(3));
             Assert.False(arr.Contains(10));
 
-            var str = new MondValue("hello world");
+            var str = MondValue.String("hello world");
 
             Assert.True(str.Contains("hello"));
             Assert.False(str.Contains("asdf"));
 
-            var obj = new MondValue(new MondState());
+            var obj = MondValue.Object(new MondState());
             obj["__in"] = new MondFunction((state, args) => args[1].Type == MondValueType.Number);
 
             Assert.True(obj.Contains(3));
@@ -480,12 +480,12 @@ namespace Mond.Tests
         {
             var state = new MondState();
 
-            var arr = new MondValue(MondValueType.Array);
-            var str = new MondValue("HelloWorld");
+            var arr = MondValue.Array();
+            var str = MondValue.String("HelloWorld");
 
             arr.ArrayValue.AddRange(new MondValue[] { 1, 2, 3, 4, 5 });
 
-            Assert.True(str.Slice(1, 3, 1).Equals(new MondValue("ell")));
+            Assert.True(str.Slice(1, 3, 1).Equals(MondValue.String("ell")));
 
             Assert.True(arr.Slice().Enumerate(state).SequenceEqual(arr.Enumerate(state)), "clone");
 
@@ -512,7 +512,7 @@ namespace Mond.Tests
 
             Assert.Throws<MondRuntimeException>(() => MondValue.Undefined.Slice(), "slice non-array");
 
-            var empty = new MondValue(MondValueType.Array);
+            var empty = MondValue.Array();
             Assert.True(!empty.Slice().Enumerate(state).Any(), "clone empty");
         }
     }

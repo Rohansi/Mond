@@ -245,7 +245,7 @@ namespace Mond.Binding
                     if (prototype == null)
                         throw new MondRuntimeException(e + string.Format(BindingError.PrototypeNotFound, className));
 
-                    var obj = new MondValue(s);
+                    var obj = MondValue.Object(s);
                     obj.Prototype = prototype;
                     obj.UserData = o;
                     return obj;

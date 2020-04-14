@@ -35,7 +35,7 @@ namespace Mond
         /// <summary>
         /// Construct a new MondValue. Should only be used for Object or Array.
         /// </summary>
-        public MondValue(MondValueType type)
+        private MondValue(MondValueType type)
         {
             Type = type;
 
@@ -63,7 +63,7 @@ namespace Mond
         /// <summary>
         /// Construct a new Object MondValue and attach a MondState to it. Should be used if using metamethods.
         /// </summary>
-        public MondValue(MondState state)
+        private MondValue(MondState state)
         {
             Type = MondValueType.Object;
             ObjectValue = new VirtualMachine.Object();
@@ -73,7 +73,7 @@ namespace Mond
         /// <summary>
         /// Construct a new Number MondValue with the specified value.
         /// </summary>
-        public MondValue(double value)
+        private MondValue(double value)
         {
             Type = MondValueType.Number;
             _numberValue = value;
@@ -82,7 +82,7 @@ namespace Mond
         /// <summary>
         /// Construct a new String MondValue with the specified value.
         /// </summary>
-        public MondValue(string value)
+        private MondValue(string value)
         {
             if (ReferenceEquals(value, null))
                 throw new ArgumentNullException(nameof(value));
@@ -94,7 +94,7 @@ namespace Mond
         /// <summary>
         /// Construct a new Function MondValue with the specified value.
         /// </summary>
-        public MondValue(MondFunction function)
+        private MondValue(MondFunction function)
         {
             if (ReferenceEquals(function, null))
                 throw new ArgumentNullException(nameof(function));
@@ -107,7 +107,7 @@ namespace Mond
         /// Construct a new Function MondValue with the specified value. Instance functions will
         /// bind themselves to their parent object when being retrieved.
         /// </summary>
-        public MondValue(MondInstanceFunction function)
+        private MondValue(MondInstanceFunction function)
         {
             if (ReferenceEquals(function, null))
                 throw new ArgumentNullException(nameof(function));
@@ -119,28 +119,13 @@ namespace Mond
         /// <summary>
         /// Construct a new Array MondValue with the specified values.
         /// </summary>
-        public MondValue(IEnumerable<MondValue> values)
+        private MondValue(IEnumerable<MondValue> values)
         {
             if (ReferenceEquals(values, null))
                 throw new ArgumentNullException(nameof(values));
 
             Type = MondValueType.Array;
             ArrayValue = new List<MondValue>(values);
-        }
-
-        /// <summary>
-        /// Construct a new Object MondValue with the specified values.
-        /// </summary>
-        public MondValue(IEnumerable<KeyValuePair<MondValue, MondValue>> values)
-        {
-            Type = MondValueType.Object;
-            ObjectValue = new VirtualMachine.Object();
-
-            var obj = Object;
-            foreach (var kvp in values)
-            {
-                obj.Add(kvp.Key, kvp.Value);
-            }
         }
 
         internal MondValue(Closure closure)
@@ -282,12 +267,12 @@ namespace Mond
         /// <summary>
         /// Gets the dictionary instance used to store this object's values.
         /// </summary>
-        public IDictionary<MondValue, MondValue> Object
+        public IDictionary<MondValue, MondValue> AsDictionary
         {
             get
             {
                 if (Type != MondValueType.Object)
-                    throw new InvalidOperationException("MondValue.Object is only valid on objects");
+                    throw new InvalidOperationException("MondValue.AsDictionary is only valid on objects");
 
                 return ObjectValue.Values;
             }
@@ -296,12 +281,12 @@ namespace Mond
         /// <summary>
         /// Gets the list instance used to store this array's values.
         /// </summary>
-        public IList<MondValue> Array
+        public IList<MondValue> AsList
         {
             get
             {
                 if (Type != MondValueType.Array)
-                    throw new InvalidOperationException("MondValue.Array is only valid on arrays");
+                    throw new InvalidOperationException("MondValue.AsList is only valid on arrays");
 
                 return ArrayValue;
             }
@@ -671,7 +656,7 @@ namespace Mond
             var current = this;
             while (true)
             {
-                if (current.Object.TryGetValue(name, out callable))
+                if (current.AsDictionary.TryGetValue(name, out callable))
                 {
                     // we need to use the state from the metamethod's object
                     state = current.ObjectValue.State;

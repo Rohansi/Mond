@@ -174,11 +174,11 @@ namespace Mond.VirtualMachine.Prototypes
         {
             EnsureArray("getEnumerator", instance);
 
-            var enumerator = new MondValue(MondValueType.Object);
+            var enumerator = MondValue.Object();
             var i = 0;
 
             enumerator["current"] = MondValue.Undefined;
-            enumerator["moveNext"] = new MondValue((_, args) =>
+            enumerator["moveNext"] = MondValue.Function((_, args) =>
             {
                 if (i >= instance.ArrayValue.Count)
                     return false;

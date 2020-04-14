@@ -8,11 +8,11 @@ namespace Mond.Binding
     {
         public static MondValue Bind(Type type)
         {
-            var obj = new MondValue(MondValueType.Object);
+            var obj = MondValue.Object();
 
             foreach (var m in BindImpl(type))
             {
-                obj.Object.Add(m.Item1, m.Item2);
+                obj.AsDictionary.Add(m.Item1, m.Item2);
             }
 
             return obj;

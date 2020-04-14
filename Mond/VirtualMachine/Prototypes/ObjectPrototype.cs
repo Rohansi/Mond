@@ -116,17 +116,17 @@ namespace Mond.VirtualMachine.Prototypes
         {
             EnsureObject("getEnumerator", instance);
 
-            var enumerator = new MondValue(MondValueType.Object);
+            var enumerator = MondValue.Object();
             var keys = instance.ObjectValue.Values.Keys.ToList();
             var i = 0;
 
             enumerator["current"] = MondValue.Undefined;
-            enumerator["moveNext"] = new MondValue((_, args) =>
+            enumerator["moveNext"] = MondValue.Function((_, args) =>
             {
                 if (i >= keys.Count)
                     return false;
 
-                var pair = new MondValue(MondValueType.Object);
+                var pair = MondValue.Object();
                 pair["key"] = keys[i];
                 pair["value"] = instance.ObjectValue.Values[keys[i]];
 

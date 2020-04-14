@@ -25,16 +25,16 @@ namespace Mond.RemoteDebugger
             _debugger.GetState(
                 out var isRunning, out var programs, out var position, out var watches, out var callStack);
 
-            var message = new MondValue(MondValueType.Object);
+            var message = MondValue.Object();
             message["Type"] = "InitialState";
-            message["Programs"] = new MondValue(programs.Select(Utility.JsonProgram));
+            message["Programs"] = MondValue.Array(programs.Select(Utility.JsonProgram));
             message["Running"] = isRunning;
             message["Id"] = position.Id;
             message["StartLine"] = position.StartLine;
             message["StartColumn"] = position.StartColumn;
             message["EndLine"] = position.EndLine;
             message["EndColumn"] = position.EndColumn;
-            message["Watches"] = new MondValue(watches.Select(Utility.JsonWatch));
+            message["Watches"] = MondValue.Array(watches.Select(Utility.JsonWatch));
 
             if (callStack != null)
                 message["CallStack"] = _debugger.BuildCallStackArray(callStack);
@@ -74,7 +74,7 @@ namespace Mond.RemoteDebugger
 
                             if (_debugger.SetBreakpoint(id, line, value))
                             {
-                                var message = new MondValue(MondValueType.Object);
+                                var message = MondValue.Object();
                                 message["Type"] = "Breakpoint";
                                 message["Id"] = id;
                                 message["Line"] = line;

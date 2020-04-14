@@ -296,7 +296,7 @@ namespace Mond.Tests.Expressions
             ");
 
             var expected = new MondValue[] { 0, 1 };
-            CollectionAssert.AreEqual(expected, _result.Array);
+            CollectionAssert.AreEqual(expected, _result.AsList);
         }
 
         [Test]
@@ -328,7 +328,7 @@ namespace Mond.Tests.Expressions
             ");
 
             var expected = new MondValue[] { 1, 1 };
-            CollectionAssert.AreEqual(expected, _result.Array);
+            CollectionAssert.AreEqual(expected, _result.AsList);
         }
 
         [Test]
@@ -360,7 +360,7 @@ namespace Mond.Tests.Expressions
             ");
 
             var expected = new MondValue[] { 0, -1 };
-            CollectionAssert.AreEqual(expected, _result.Array);
+            CollectionAssert.AreEqual(expected, _result.AsList);
         }
 
         [Test]
@@ -393,7 +393,7 @@ namespace Mond.Tests.Expressions
 
 
             var expected = new MondValue[] { -1, -1 };
-            CollectionAssert.AreEqual(expected, _result.Array);
+            CollectionAssert.AreEqual(expected, _result.AsList);
         }
 
         [Test]

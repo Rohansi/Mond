@@ -108,7 +108,7 @@ namespace Mond.RemoteDebugger
                 _breaker = null;
             }
 
-            var message = new MondValue(MondValueType.Object);
+            var message = MondValue.Object();
             message["Type"] = "State";
             message["Running"] = true;
 
@@ -203,7 +203,7 @@ namespace Mond.RemoteDebugger
 
             RefreshWatch(_context, watch);
 
-            var message = new MondValue(MondValueType.Object);
+            var message = MondValue.Object();
             message["Type"] = "AddedWatch";
             message["Id"] = watch.Id;
             message["Expression"] = watch.Expression;
@@ -222,7 +222,7 @@ namespace Mond.RemoteDebugger
             if (removed == 0)
                 return;
 
-            var message = new MondValue(MondValueType.Object);
+            var message = MondValue.Object();
             message["Type"] = "RemovedWatch";
             message["Id"] = id;
 
@@ -303,7 +303,7 @@ namespace Mond.RemoteDebugger
                     stmtValue.EndLineNumber,
                     stmtValue.EndColumnNumber);
 
-                message = new MondValue(MondValueType.Object);
+                message = MondValue.Object();
                 message["Type"] = "State";
                 message["Running"] = false;
                 message["Id"] = _position.Id;
@@ -311,7 +311,7 @@ namespace Mond.RemoteDebugger
                 message["StartColumn"] = _position.StartColumn;
                 message["EndLine"] = _position.EndLine;
                 message["EndColumn"] = _position.EndColumn;
-                message["Watches"] = new MondValue(watches.Select(Utility.JsonWatch));
+                message["Watches"] = MondValue.Array(watches.Select(Utility.JsonWatch));
                 message["CallStack"] = BuildCallStackArray(_context.CallStack);
             }
 
@@ -330,7 +330,7 @@ namespace Mond.RemoteDebugger
                 objs.Add(Utility.JsonCallStackEntry(programId, entry));
             }
 
-            return new MondValue(objs);
+            return MondValue.Array(objs);
         }
 
         internal int FindProgramIndex(MondProgram p) =>
@@ -359,13 +359,13 @@ namespace Mond.RemoteDebugger
                 _programs.Add(programInfo);
             }
 
-            var message = new MondValue(MondValueType.Object);
+            var message = MondValue.Object();
             message["Type"] = "NewProgram";
             message["Id"] = id;
             message["FileName"] = programInfo.FileName;
             message["SourceCode"] = debugInfo.SourceCode;
             message["FirstLine"] = Utility.FirstLineNumber(debugInfo);
-            message["Breakpoints"] = new MondValue(programInfo.Breakpoints.Select(e => new MondValue(e)));
+            message["Breakpoints"] = MondValue.Array(programInfo.Breakpoints.Select(e => MondValue.Number(e)));
 
             Broadcast(message);
         }

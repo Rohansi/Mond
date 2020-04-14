@@ -188,9 +188,9 @@ namespace Mond.Tests.Binding
         [Test]
         public void ClassArgument()
         {
-            var person = new ClassTests.Person(new MondValue(MondValueType.Object), "Rohan");
+            var person = new ClassTests.Person(MondValue.Object(), "Rohan");
 
-            var personValue = new MondValue(_state);
+            var personValue = MondValue.Object(_state);
             personValue.UserData = person;
 
             _state["rohan"] = personValue;
@@ -220,7 +220,7 @@ namespace Mond.Tests.Binding
             sbyte   g,  byte    h,
             string  i,  bool    j)
         {
-            var result = new MondValue(MondValueType.Object);
+            var result = MondValue.Object();
 
             result["a"] = a;
             result["b"] = b;
@@ -319,7 +319,7 @@ namespace Mond.Tests.Binding
         [MondFunction]
         public static ClassTests.Person ReturnClass()
         {
-            return new ClassTests.Person(new MondValue(MondValueType.Object), "Test");
+            return new ClassTests.Person(MondValue.Object(), "Test");
         }
 
         #endregion

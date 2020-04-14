@@ -15,7 +15,7 @@ namespace Mond.Libraries.Console
             var instance = new ConsoleInputClass();
             instance._consoleInput = consoleInput;
 
-            var obj = new MondValue(MondValueType.Object);
+            var obj = MondValue.Object();
             obj.UserData = instance;
             obj.Prototype = prototype;
             obj.Lock();

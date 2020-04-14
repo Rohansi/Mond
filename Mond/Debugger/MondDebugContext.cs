@@ -62,7 +62,7 @@ namespace Mond.Debugger
 
         private MondValue CreateLocalObject()
         {
-            var obj = new MondValue(_state);
+            var obj = MondValue.Object(_state);
             obj.Prototype = MondValue.Null;
 
             obj["__get"] = new MondFunction((_, args) =>

@@ -9,7 +9,7 @@ namespace Mond.Tests.Expressions
 
         public ArrayTests()
         {
-            var arr = new MondValue(MondValueType.Array);
+            var arr = MondValue.Array();
             arr.ArrayValue.AddRange(new MondValue[] { 1, 2, 3, 4, 5 });
             _sliceState = new MondState { ["arr"] = arr };
         }
@@ -22,7 +22,7 @@ namespace Mond.Tests.Expressions
             ");
 
             Assert.AreEqual(empty.Type, MondValueType.Array);
-            CollectionAssert.AreEqual(new MondValue[0], empty.Array);
+            CollectionAssert.AreEqual(new MondValue[0], empty.AsList);
         }
 
         [Test]
@@ -35,7 +35,7 @@ namespace Mond.Tests.Expressions
             var expected = new MondValue[] { 1, 2, 3 };
 
             Assert.AreEqual(array.Type, MondValueType.Array);
-            CollectionAssert.AreEqual(expected, array.Array);
+            CollectionAssert.AreEqual(expected, array.AsList);
         }
 
         [Test]
@@ -49,7 +49,7 @@ namespace Mond.Tests.Expressions
             var expected = new MondValue[] { 1, "test", 3, 4 };
 
             Assert.AreEqual(array.Type, MondValueType.Array);
-            CollectionAssert.AreEqual(expected, array.Array);
+            CollectionAssert.AreEqual(expected, array.AsList);
         }
 
         [Test]
@@ -161,7 +161,7 @@ namespace Mond.Tests.Expressions
             var expected = new MondValue[] { 1, 2, 3, 4 };
 
             Assert.AreEqual(array.Type, MondValueType.Array);
-            CollectionAssert.AreEqual(expected, array.Array);
+            CollectionAssert.AreEqual(expected, array.AsList);
         }
 
         [Test]
@@ -176,7 +176,7 @@ namespace Mond.Tests.Expressions
             var expected = new MondValue[] { 0, 1, 2, 3, 4, 5 };
 
             Assert.AreEqual(array.Type, MondValueType.Array);
-            CollectionAssert.AreEqual(expected, array.Array);
+            CollectionAssert.AreEqual(expected, array.AsList);
         }
 
         [Test]
@@ -191,7 +191,7 @@ namespace Mond.Tests.Expressions
             var expected = new MondValue[] { 5, 0, 2, 3, 4, 1 };
 
             Assert.AreEqual(array.Type, MondValueType.Array);
-            CollectionAssert.AreEqual(expected, array.Array);
+            CollectionAssert.AreEqual(expected, array.AsList);
         }
 
         [Test]
@@ -206,7 +206,7 @@ namespace Mond.Tests.Expressions
             var expected = new MondValue[] { 5, 4, 3, 2, 1, 0 };
 
             Assert.AreEqual(array.Type, MondValueType.Array);
-            CollectionAssert.AreEqual(expected, array.Array);
+            CollectionAssert.AreEqual(expected, array.AsList);
         }
 
         [Test]
@@ -221,7 +221,7 @@ namespace Mond.Tests.Expressions
             var expected = new MondValue[] { 5, 4, 3, 2, 0, 1 };
 
             Assert.AreEqual(array.Type, MondValueType.Array);
-            CollectionAssert.AreEqual(expected, array.Array);
+            CollectionAssert.AreEqual(expected, array.AsList);
         }
 
         [Test]
@@ -242,42 +242,42 @@ namespace Mond.Tests.Expressions
         public void SliceNoValues()
         {
             var expected = new MondValue[] { 1, 2, 3, 4, 5 };
-            CollectionAssert.AreEqual(expected, _sliceState.Run("return global.arr[:];").Array);
+            CollectionAssert.AreEqual(expected, _sliceState.Run("return global.arr[:];").AsList);
         }
 
         [Test]
         public void SliceOnlyBegin()
         {
             var expected = new MondValue[] { 4, 5 };
-            CollectionAssert.AreEqual(expected, _sliceState.Run("return global.arr[3:];").Array);
+            CollectionAssert.AreEqual(expected, _sliceState.Run("return global.arr[3:];").AsList);
         }
 
         [Test]
         public void SliceOnlyEnd()
         {
             var expected = new MondValue[] { 1, 2, 3 };
-            CollectionAssert.AreEqual(expected, _sliceState.Run("return global.arr[:2];").Array);
+            CollectionAssert.AreEqual(expected, _sliceState.Run("return global.arr[:2];").AsList);
         }
 
         [Test]
         public void SliceOnlyStep()
         {
             var expected = new MondValue[] { 5, 4, 3, 2, 1 };
-            CollectionAssert.AreEqual(expected, _sliceState.Run("return global.arr[::-1];").Array);
+            CollectionAssert.AreEqual(expected, _sliceState.Run("return global.arr[::-1];").AsList);
         }
 
         [Test]
         public void SliceRange()
         {
             var expected = new MondValue[] { 2, 3 };
-            CollectionAssert.AreEqual(expected, _sliceState.Run("return global.arr[1:2];").Array);
+            CollectionAssert.AreEqual(expected, _sliceState.Run("return global.arr[1:2];").AsList);
         }
 
         [Test]
         public void SliceAllValues()
         {
             var expected = new MondValue[] { 1, 3, 5 };
-            CollectionAssert.AreEqual(expected, _sliceState.Run("return global.arr[0:4:2];").Array);
+            CollectionAssert.AreEqual(expected, _sliceState.Run("return global.arr[0:4:2];").AsList);
         }
 
         [Test]

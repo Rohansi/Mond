@@ -33,7 +33,7 @@ namespace Mond.Libraries.Async
 
             var task = Task.WhenAll(taskArray).ContinueWith(t =>
             {
-                var array = new MondValue(MondValueType.Array);
+                var array = MondValue.Array();
                 array.ArrayValue.AddRange(t.Result);
                 return array;
             });

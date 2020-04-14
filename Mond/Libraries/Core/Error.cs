@@ -18,7 +18,7 @@ namespace Mond.Libraries.Core
             if (function.Type != MondValueType.Function)
                 throw new MondRuntimeException("try: first argument must be a function");
 
-            var obj = new MondValue(MondValueType.Object);
+            var obj = MondValue.Object();
 
             try
             {

@@ -60,7 +60,7 @@ namespace Mond.Libraries.Json
                 case MondValueType.Object:
                     sb.Append('{');
 
-                    foreach (var kvp in value.Object)
+                    foreach (var kvp in value.AsDictionary)
                     {
                         if (kvp.Value == MondValue.Undefined)
                             continue;
@@ -83,7 +83,7 @@ namespace Mond.Libraries.Json
                 case MondValueType.Array:
                     sb.Append('[');
 
-                    foreach (var v in value.Array)
+                    foreach (var v in value.AsList)
                     {
                         if (first)
                             first = false;

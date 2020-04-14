@@ -22,8 +22,8 @@ namespace Mond
         internal MondProgram(byte[] bytecode, IEnumerable<double> numbers, IEnumerable<string> strings, MondDebugInfo debugInfo = null)
         {
             Bytecode = bytecode;
-            Numbers = numbers.Select(n => new MondValue(n)).ToList();
-            Strings = strings.Select(s => new MondValue(s)).ToList();
+            Numbers = numbers.Select(MondValue.Number).ToList();
+            Strings = strings.Select(MondValue.String).ToList();
             DebugInfo = debugInfo;
         }
 

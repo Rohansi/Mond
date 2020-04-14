@@ -111,11 +111,10 @@ namespace Mond.Libraries
         /// </summary>
         public static MondValue ToObject(Task<MondValue> task)
         {
-            return new MondValue(MondValueType.Object)
-            {
-                Prototype = MondValue.Null,
-                UserData = task
-            };
+            var result = MondValue.Object();
+            result.Prototype = MondValue.Null;
+            result.UserData = task;
+            return result;
         }
 
         [Obsolete("Mond tasks must return MondValue", true)]
@@ -131,7 +130,7 @@ namespace Mond.Libraries
         public static Task<MondValue>[] ToTaskArray(MondState state, params MondValue[] tasks)
         {
             if (tasks.Length == 1 && tasks[0].Type == MondValueType.Array)
-                tasks = tasks[0].Array.ToArray();
+                tasks = tasks[0].AsList.ToArray();
 
             return tasks
                 .Select(t =>

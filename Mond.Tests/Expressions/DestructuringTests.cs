@@ -16,7 +16,7 @@ namespace Mond.Tests.Expressions
             ");
 
             var expected = new MondValue[] { 1, 2 };
-            CollectionAssert.AreEqual(expected, result.Array);
+            CollectionAssert.AreEqual(expected, result.AsList);
         }
 
         [Test]
@@ -29,7 +29,7 @@ namespace Mond.Tests.Expressions
             ");
 
             var expected = new[] { 1, 2, MondValue.Undefined, MondValue.Undefined };
-            CollectionAssert.AreEqual(expected, result.Array);
+            CollectionAssert.AreEqual(expected, result.AsList);
         }
 
         [Test]
@@ -42,7 +42,7 @@ namespace Mond.Tests.Expressions
             ");
 
             var expected = new MondValue[] { 1, 2, 3, 4 };
-            CollectionAssert.AreEqual(expected, result.Array);
+            CollectionAssert.AreEqual(expected, result.AsList);
         }
 
         [Test]
@@ -55,7 +55,7 @@ namespace Mond.Tests.Expressions
             ");
 
             var expected = new MondValue[] { 2, 3, 4 };
-            CollectionAssert.AreEqual(expected, result.Array);
+            CollectionAssert.AreEqual(expected, result.AsList);
         }
 
         [Test]
@@ -68,7 +68,7 @@ namespace Mond.Tests.Expressions
             ");
 
             var expected = new MondValue[] { 2, 3, 4, 5 };
-            CollectionAssert.AreEqual(expected, result.Array);
+            CollectionAssert.AreEqual(expected, result.AsList);
         }
 
         [Test]
@@ -83,7 +83,7 @@ namespace Mond.Tests.Expressions
             var expected = new MondValue[0];
 
             Assert.AreEqual((MondValue)1, result[0]);
-            CollectionAssert.AreEqual(expected, result[1].Array);
+            CollectionAssert.AreEqual(expected, result[1].AsList);
             Assert.AreEqual((MondValue)2, result[2]);
         }
 
@@ -99,7 +99,7 @@ namespace Mond.Tests.Expressions
             Assert.AreEqual((MondValue)1, result[0], "a");
             Assert.AreEqual((MondValue)2, result[1], "b");
             Assert.AreEqual(MondValue.Undefined, result[2], "c");
-            CollectionAssert.AreEqual(new MondValue[0], result[3].Array, "d");
+            CollectionAssert.AreEqual(new MondValue[0], result[3].AsList, "d");
             Assert.AreEqual(MondValue.Undefined, result[4], "e");
         }
 
@@ -111,9 +111,9 @@ namespace Mond.Tests.Expressions
                 return [ x, y, z ];
             ");
 
-            CollectionAssert.AreEqual(new MondValue[0], result[0].Array);
-            Assert.AreEqual((MondValue)1, result.Array[1]);
-            Assert.AreEqual((MondValue)2, result.Array[2]);
+            CollectionAssert.AreEqual(new MondValue[0], result[0].AsList);
+            Assert.AreEqual((MondValue)1, result.AsList[1]);
+            Assert.AreEqual((MondValue)2, result.AsList[2]);
         }
 
         [Test]
@@ -124,9 +124,9 @@ namespace Mond.Tests.Expressions
                 return [ x, y, z ];
             ");
 
-            CollectionAssert.AreEqual(new MondValue[] { 1 }, result[0].Array);
-            Assert.AreEqual((MondValue)2, result.Array[1]);
-            Assert.AreEqual((MondValue)3, result.Array[2]);
+            CollectionAssert.AreEqual(new MondValue[] { 1 }, result[0].AsList);
+            Assert.AreEqual((MondValue)2, result.AsList[1]);
+            Assert.AreEqual((MondValue)3, result.AsList[2]);
         }
 
         [Test]
@@ -169,8 +169,8 @@ namespace Mond.Tests.Expressions
             var expectedKeys = new MondValue[] { "foo", "bar", "baz" };
             var expectedValues = new MondValue[] { 1, 2, 3 };
             
-            CollectionAssert.AreEqual(expectedKeys, result["keys"].Array, "keys");
-            CollectionAssert.AreEqual(expectedValues, result["values"].Array, "values");
+            CollectionAssert.AreEqual(expectedKeys, result["keys"].AsList, "keys");
+            CollectionAssert.AreEqual(expectedValues, result["values"].AsList, "values");
             Assert.AreEqual((MondValue)5, result["five"]);
         }
 
@@ -204,7 +204,7 @@ namespace Mond.Tests.Expressions
             ");
 
             var expected = new MondValue[] { "foo", MondValue.Undefined };
-            CollectionAssert.AreEqual(expected, result.Array);
+            CollectionAssert.AreEqual(expected, result.AsList);
         }
     }
 }

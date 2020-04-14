@@ -67,9 +67,9 @@ namespace Mond.Tests
         {
             var state = new MondState();
 
-            state["runtimeEx"] = new MondValue((_, args) => { throw new MondRuntimeException("runtime"); });
-            state["genericEx"] = new MondValue((_, args) => { throw new Exception("generic"); });
-            state["call"] = new MondValue((_, args) => state.Call(args[0]));
+            state["runtimeEx"] = MondValue.Function((_, args) => { throw new MondRuntimeException("runtime"); });
+            state["genericEx"] = MondValue.Function((_, args) => { throw new Exception("generic"); });
+            state["call"] = MondValue.Function((_, args) => state.Call(args[0]));
 
             const string programTemplate = @"
                 return {{
