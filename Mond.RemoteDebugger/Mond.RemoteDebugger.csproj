@@ -13,6 +13,8 @@
     <PackageIconUrl>http://i.imgur.com/zbqVSaz.png</PackageIconUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/Rohansi/Mond</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Rohansi/Mond.git</RepositoryUrl> 
+    <RepositoryType>git</RepositoryType> 
     <PackageTags>Mond Scripting Debugger</PackageTags>
   </PropertyGroup>
 
@@ -49,6 +51,10 @@
 
   <ItemGroup>
     <PackageReference Include="IotWeb.NETStandard" Version="0.9.1" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
