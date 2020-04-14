@@ -13,9 +13,11 @@
     <PackageIconUrl>http://i.imgur.com/zbqVSaz.png</PackageIconUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/Rohansi/Mond</PackageProjectUrl>
+    <PackageTags>Mond Scripting</PackageTags>
+    
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <RepositoryUrl>https://github.com/Rohansi/Mond.git</RepositoryUrl> 
     <RepositoryType>git</RepositoryType> 
-    <PackageTags>Mond Scripting</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
