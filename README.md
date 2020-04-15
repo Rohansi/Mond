@@ -1,4 +1,4 @@
-<p align="center"><img src="http://i.imgur.com/As4LMO6.png" alt="Mond"/>
+<p align="center"><img src="https://i.imgur.com/As4LMO6.png" alt="Mond Logo"/>
 
 ### Features
 * [sequences](https://github.com/Rohansi/Mond/wiki/Sequences) that can also be used for [async/await](https://fpp.literallybrian.com/mond/#e24f0a629859b38e2c27efa8aebaf60cf2cc4aed)
@@ -7,12 +7,19 @@
 * [simple embedding](https://github.com/Rohansi/Mond/wiki/Basic-Usage) with a [great binding API](https://github.com/Rohansi/Mond/wiki/Binding-API)
 * and a [useful debugger](https://github.com/Rohansi/Mond/wiki/Debugging)
 
-[Try it in your browser!](https://rohbot.net/mond/)
+### Trying it
+[You can try it in your browser!](https://rohbot.net/mond/) If you're interested, the backend code for that website is [available here](https://github.com/Rohansi/Mondbot).
 
-![REPL](https://files.facepunch.com/Rohan/2019/January/21_11-14-04.gif)
+![The Mond REPL in action](https://files.facepunch.com/Rohan/2019/January/21_11-14-04.gif)
+
+Alternatively, the Mond REPL is available as a `dotnet` tool:
+
+```
+dotnet tool install -g Mond.Repl
+```
 
 ### Example
-```
+```kotlin
 const Seq = require("Seq.mnd");
 
 const randomApi =
@@ -39,12 +46,12 @@ Async.runToCompletion();
 ```
 
 ### Install
-Mond is available on NuGet. To install it, use the following command in the Package Manager Console.
+Mond is [available on NuGet](https://www.nuget.org/packages/Mond/). To install it, use the following command in the Package Manager Console.
 ```
 PM> Install-Package Mond
 ```
 
-The remote debugger is also available on NuGet.
+The remote debugger is [also available on NuGet](https://www.nuget.org/packages/Mond.RemoteDebugger/).
 ```
 PM> Install-Package Mond.RemoteDebugger
 ```
