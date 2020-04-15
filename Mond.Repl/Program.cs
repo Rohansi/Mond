@@ -29,6 +29,7 @@ namespace Mond.Repl
                 Console.WriteLine($"-h, --help    Show REPL help");
                 Console.WriteLine($"--no-color    Disable syntax highlighting");
                 Console.WriteLine($"--debug       Start debugging on port {DebugPort}");
+                Console.WriteLine($"--wait        When debugging, pauses at the start of the script");
 
                 return;
             }
@@ -261,7 +262,15 @@ namespace Mond.Repl
             };
 
             if (isDebug)
-                state.Debugger = new MondRemoteDebugger(1597);
+            {
+                var debugger = new MondRemoteDebugger(1597);
+                state.Debugger = debugger;
+
+                if (HasFlag("--wait"))
+                {
+                    debugger.RequestBreak();
+                }
+            }
 
             return state;
         }
