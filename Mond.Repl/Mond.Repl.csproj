@@ -6,6 +6,23 @@
     <RuntimeIdentifiers>any</RuntimeIdentifiers>
     <AssemblyVersion>0.7.0</AssemblyVersion>
     <DebugType>portable</DebugType>
+
+    <!-- NuGet Package -->
+    <PackageId>Mond.Repl</PackageId>
+    <PackageVersion>$(AssemblyVersion)</PackageVersion>
+    <Authors>Rohans</Authors>
+    <Description>REPL for the Mond scripting language.</Description>
+    <PackageIconUrl>http://i.imgur.com/zbqVSaz.png</PackageIconUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/Rohansi/Mond</PackageProjectUrl>
+    <PackageTags>Mond Scripting REPL</PackageTags>
+    
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <RepositoryUrl>https://github.com/Rohansi/Mond.git</RepositoryUrl> 
+    <RepositoryType>git</RepositoryType> 
+
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>mond</ToolCommandName>
   </PropertyGroup>
 
   <ItemGroup>
