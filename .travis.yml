@@ -6,6 +6,6 @@ dotnet: 3.1.201
 dist: xenial
 install:
   - dotnet restore
-  - dotnet build Mond.Repl -f netcoreapp3.1
+  - dotnet build Mond.Repl -f netcoreapp3.1 --no-restore
 script:
   - dotnet run -p ./Mond.Tests/Mond.Tests.csproj -c Release
