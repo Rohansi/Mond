@@ -1,6 +1,6 @@
 ﻿namespace Mond.VirtualMachine
 {
-    struct ReturnAddress
+    readonly struct ReturnAddress
     {
         public readonly MondProgram Program;
         public readonly int Address;

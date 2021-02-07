@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Runtime.CompilerServices;
 
 namespace Mond.VirtualMachine
 {
@@ -15,6 +16,7 @@ namespace Mond.VirtualMachine
 
         private readonly MondValue[] _evalStack;
         private int _evalStackSize;
+        private int _evalStackDirtySize;
 
         public Machine()
         {
@@ -35,15 +37,15 @@ namespace Mond.VirtualMachine
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private ReturnAddress PopCall()
+        private ref ReturnAddress PopCall()
         {
-            return _callStack[_callStackSize--];
+            return ref _callStack[_callStackSize--];
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private ReturnAddress PeekCall()
+        private ref ReturnAddress PeekCall()
         {
-            return _callStack[_callStackSize];
+            return ref _callStack[_callStackSize];
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -63,32 +65,15 @@ namespace Mond.VirtualMachine
         {
             return _localStack[_localStackSize];
         }
-        
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private ref MondValue Reserve()
-        {
-            return ref _evalStack[++_evalStackSize];
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void Release()
-        {
-            _evalStack[_evalStackSize--] = default;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void Release(int n)
-        {
-            for (var i = 0; i < n; i++)
-            {
-                Release();
-            }
-        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Push(in MondValue value)
         {
-            Reserve() = value;
+            _evalStack[++_evalStackSize] = value;
+            if (_evalStackSize > _evalStackDirtySize)
+            {
+                _evalStackDirtySize = _evalStackSize;
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -104,9 +89,17 @@ namespace Mond.VirtualMachine
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private ref MondValue Pop()
+        private ref readonly MondValue Pop()
         {
             return ref _evalStack[_evalStackSize--];
+        }
+
+        private void ClearDirty()
+        {
+            for (var i = _evalStackSize + 1; i <= _evalStackDirtySize; i++)
+            {
+                _evalStack[i] = default;
+            }
         }
     }
 }
