@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 
 namespace Mond.Tests.Expressions
 {
@@ -455,6 +454,28 @@ namespace Mond.Tests.Expressions
             ");
 
             Assert.AreEqual((MondValue)15, result);
+        }
+        
+        [Test]
+        public void UndefinedFunctionErrorMessage()
+        {
+            var ex = Assert.Throws<MondRuntimeException>(() => Script.Run(@"
+                var obj = {};
+                return obj.testMethod();
+            "));
+
+            StringAssert.Contains("testMethod", ex?.Message);
+        }
+        
+        [Test]
+        public void UndefinedFunctionErrorMessageWithUnpacks()
+        {
+            var ex = Assert.Throws<MondRuntimeException>(() => Script.Run(@"
+                var obj = {};
+                return obj.testMethod(...[1]);
+            "));
+
+            StringAssert.Contains("testMethod", ex?.Message);
         }
     }
 }

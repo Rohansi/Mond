@@ -233,7 +233,7 @@ namespace Mond.Compiler
             Emit(new Instruction(
                 InstructionType.Call,
                 new ImmediateOperand(argumentCount),
-                new ImmediateByteOperand((byte)unpackIndices.Count),
+                new ImmediateOperand(unpackIndices.Count),
                 new ListOperand<ImmediateOperand>(unpackIndices)));
 
             return -argumentCount - 1 + 1;
@@ -245,7 +245,7 @@ namespace Mond.Compiler
                 InstructionType.TailCall,
                 new ImmediateOperand(argumentCount),
                 label,
-                new ImmediateByteOperand((byte)unpackIndices.Count),
+                new ImmediateOperand(unpackIndices.Count),
                 new ListOperand<ImmediateOperand>(unpackIndices)));
 
             return -argumentCount;

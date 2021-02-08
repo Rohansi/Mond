@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Mond.Compiler.Expressions;
 using Mond.Debugger;
@@ -73,19 +72,23 @@ namespace Mond.Compiler
             return offset;
         }
 
-        private byte[] GenerateBytecode(int bufferSize)
+        private int[] GenerateBytecode(int bytecodeLength)
         {
-            var bytecode = new byte[bufferSize];
-            var memoryStream = new MemoryStream(bytecode);
-            var writer = new BinaryWriter(memoryStream);
-
+            var writer = new BytecodeWriter(bytecodeLength);
+            
             foreach (var instruction in AllInstructions())
             {
+#if DEBUG
                 //instruction.Print();
+
+                if (instruction.Offset != writer.Offset)
+                    throw new InvalidOperationException("Writer is not at the correct position for instruction.");
+#endif
+
                 instruction.Write(writer);
             }
 
-            return bytecode;
+            return writer.GetBuffer();
         }
 
         private MondDebugInfo GenerateDebugInfo(string sourceFileName, string sourceCode)

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.IO;
 using System.Text;
 using Mond.Compiler;
@@ -12,14 +11,14 @@ namespace Mond
     public sealed class MondProgram
     {
         private const uint MagicId = 0xFA57C0DE;
-        private const byte FormatVersion = 8;
+        private const byte FormatVersion = 9;
 
-        internal readonly byte[] Bytecode;
+        internal readonly int[] Bytecode;
         internal readonly MondValue[] Numbers;
         internal readonly MondValue[] Strings;
         public MondDebugInfo DebugInfo { get; }
 
-        internal MondProgram(byte[] bytecode, IList<double> numbers, IList<string> strings, MondDebugInfo debugInfo = null)
+        internal MondProgram(int[] bytecode, IList<double> numbers, IList<string> strings, MondDebugInfo debugInfo = null)
         {
             Bytecode = bytecode;
 
@@ -77,7 +76,10 @@ namespace Mond
             }
 
             writer.Write(Bytecode.Length);
-            writer.Write(Bytecode, 0, Bytecode.Length);
+            foreach (var data in Bytecode)
+            {
+                writer.Write(data);
+            }
 
             if (DebugInfo != null)
             {
@@ -219,7 +221,11 @@ namespace Mond
             }
 
             var bytecodeLength = reader.ReadInt32();
-            var bytecode = reader.ReadBytes(bytecodeLength);
+            var bytecode = new int[bytecodeLength];
+            for (var i = 0; i < bytecodeLength; i++)
+            {
+                bytecode[i] = reader.ReadInt32();
+            }
 
             MondDebugInfo debugInfo = null;
             if (hasDebugInfo)

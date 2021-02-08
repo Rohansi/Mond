@@ -150,8 +150,11 @@ namespace Mond.VirtualMachine
 
                     errorIp = ip;
 
-                    //Console.WriteLine((InstructionType)code[ip]);
-                    switch (code[ip++])
+                    var opcode = code[ip++];
+                    var instruction = opcode >> 24;
+
+                    //Console.WriteLine($"{ip - 1:X4} {(InstructionType)instruction}");
+                    switch (instruction)
                     {
                         #region Stack Manipulation
                         case (int)InstructionType.Dup:
@@ -225,15 +228,15 @@ namespace Mond.VirtualMachine
 
                         case (int)InstructionType.LdNum:
                             {
-                                var numId = ReadInt32(code, ref ip);
-                                Push(program.Numbers[numId]);
+                                var index = UnpackFirstOperand(opcode);
+                                Push(program.Numbers[index]);
                                 break;
                             }
 
                         case (int)InstructionType.LdStr:
                             {
-                                var strId = ReadInt32(code, ref ip);
-                                Push(program.Strings[strId]);
+                                var index = UnpackFirstOperand(opcode);
+                                Push(program.Strings[index]);
                                 break;
                             }
 
@@ -247,22 +250,22 @@ namespace Mond.VirtualMachine
                         #region Storables
                         case (int)InstructionType.LdLocF:
                             {
-                                var index = ReadInt32(code, ref ip);
+                                var index = UnpackFirstOperand(opcode);
                                 Push(locals.Values[index]);
                                 break;
                             }
 
                         case (int)InstructionType.StLocF:
                             {
-                                var index = ReadInt32(code, ref ip);
+                                var index = UnpackFirstOperand(opcode);
                                 locals.Values[index] = Pop();
                                 break;
                             }
 
                         case (int)InstructionType.LdLoc:
                             {
-                                var depth = ReadInt32(code, ref ip);
-                                var index = ReadInt32(code, ref ip);
+                                var depth = UnpackFirstOperand(opcode);
+                                var index = code[ip++];
 
                                 if (depth < 0)
                                     Push(args.Get(-depth, index));
@@ -274,8 +277,8 @@ namespace Mond.VirtualMachine
 
                         case (int)InstructionType.StLoc:
                             {
-                                var depth = ReadInt32(code, ref ip);
-                                var index = ReadInt32(code, ref ip);
+                                var depth = UnpackFirstOperand(opcode);
+                                var index = code[ip++];
 
                                 if (depth < 0)
                                     args.Set(-depth, index, Pop());
@@ -288,7 +291,8 @@ namespace Mond.VirtualMachine
                         case (int)InstructionType.LdFld:
                             {
                                 ref var value = ref Peek();
-                                value = value[program.Strings[ReadInt32(code, ref ip)]];
+                                var stringIndex = UnpackFirstOperand(opcode);
+                                value = value[program.Strings[stringIndex]];
                                 break;
                             }
 
@@ -296,7 +300,8 @@ namespace Mond.VirtualMachine
                             {
                                 ref readonly var obj = ref Pop();
                                 ref readonly var value = ref Pop();
-                                obj[program.Strings[ReadInt32(code, ref ip)]] = value;
+                                var stringIndex = UnpackFirstOperand(opcode);
+                                obj[program.Strings[stringIndex]] = value;
                                 break;
                             }
 
@@ -319,7 +324,7 @@ namespace Mond.VirtualMachine
 
                         case (int)InstructionType.LdState:
                             {
-                                var depth = ReadInt32(code, ref ip);
+                                var depth = UnpackFirstOperand(opcode);
                                 var frame = locals.GetFrame(depth);
                                 locals = frame.StoredFrame;
 
@@ -342,7 +347,7 @@ namespace Mond.VirtualMachine
 
                         case (int)InstructionType.StState:
                             {
-                                var depth = ReadInt32(code, ref ip);
+                                var depth = UnpackFirstOperand(opcode);
                                 var frame = locals.GetFrame(depth);
                                 frame.StoredFrame = locals;
 
@@ -374,7 +379,7 @@ namespace Mond.VirtualMachine
 
                         case (int)InstructionType.NewArray:
                             {
-                                var count = ReadInt32(code, ref ip);
+                                var count = UnpackFirstOperand(opcode);
                                 var array = MondValue.Array();
                                 array.ArrayValue.Capacity = count;
 
@@ -576,21 +581,21 @@ namespace Mond.VirtualMachine
                         #region Functions
                         case (int)InstructionType.Closure:
                             {
-                                var address = ReadInt32(code, ref ip);
+                                var address = UnpackFirstOperand(opcode);
                                 Push(new MondValue(new Closure(program, address, args, locals)));
                                 break;
                             }
 
                         case (int)InstructionType.Call:
                             {
-                                DoCall(ref code, ref ip, ref program, ref args, ref locals);
+                                DoCall(UnpackFirstOperand(opcode), ref code, ref ip, ref program, ref args, ref locals);
                                 break;
                             }
 
                         case (int)InstructionType.TailCall:
                             {
-                                var argCount = ReadInt32(code, ref ip);
-                                var address = ReadInt32(code, ref ip);
+                                var argCount = UnpackFirstOperand(opcode);
+                                var address = code[ip++];
                                 var unpackCount = code[ip++];
 
                                 List<MondValue> unpackedArgs = null;
@@ -633,7 +638,7 @@ namespace Mond.VirtualMachine
 
                         case (int)InstructionType.Enter:
                             {
-                                var localCount = ReadInt32(code, ref ip);
+                                var localCount = UnpackFirstOperand(opcode);
 
                                 var frame = PopLocal();
                                 frame = new Frame(frame?.Depth + 1 ?? 0, frame, localCount);
@@ -690,7 +695,7 @@ namespace Mond.VirtualMachine
 
                         case (int)InstructionType.VarArgs:
                             {
-                                var fixedCount = ReadInt32(code, ref ip);
+                                var fixedCount = UnpackFirstOperand(opcode);
                                 var varArgs = MondValue.Array();
 
                                 for (var i = fixedCount; i < args.Values.Length; i++)
@@ -706,14 +711,14 @@ namespace Mond.VirtualMachine
                         #region Branching
                         case (int)InstructionType.Jmp:
                             {
-                                var address = ReadInt32(code, ref ip);
+                                var address = UnpackFirstOperand(opcode);
                                 ip = address;
                                 break;
                             }
 
                         case (int)InstructionType.JmpTrueP:
                             {
-                                var address = ReadInt32(code, ref ip);
+                                var address = UnpackFirstOperand(opcode);
 
                                 if (Peek())
                                     ip = address;
@@ -723,7 +728,7 @@ namespace Mond.VirtualMachine
 
                         case (int)InstructionType.JmpFalseP:
                             {
-                                var address = ReadInt32(code, ref ip);
+                                var address = UnpackFirstOperand(opcode);
 
                                 if (!Peek())
                                     ip = address;
@@ -733,7 +738,7 @@ namespace Mond.VirtualMachine
 
                         case (int)InstructionType.JmpTrue:
                             {
-                                var address = ReadInt32(code, ref ip);
+                                var address = UnpackFirstOperand(opcode);
 
                                 if (Pop())
                                     ip = address;
@@ -743,7 +748,7 @@ namespace Mond.VirtualMachine
 
                         case (int)InstructionType.JmpFalse:
                             {
-                                var address = ReadInt32(code, ref ip);
+                                var address = UnpackFirstOperand(opcode);
 
                                 if (!Pop())
                                     ip = address;
@@ -753,10 +758,9 @@ namespace Mond.VirtualMachine
 
                         case (int)InstructionType.JmpTable:
                             {
-                                var start = ReadInt32(code, ref ip);
-                                var count = ReadInt32(code, ref ip);
-
-                                var endIp = ip + count * 4;
+                                var start = UnpackFirstOperand(opcode);
+                                var count = code[ip++];
+                                var endIp = ip + count;
 
                                 var value = Pop();
                                 if (value.Type == MondValueType.Number)
@@ -767,8 +771,7 @@ namespace Mond.VirtualMachine
                                     if (number >= start && number < start + count &&
                                         Math.Abs(number - numberInt) <= double.Epsilon)
                                     {
-                                        ip += (numberInt - start) * 4;
-                                        ip = ReadInt32(code, ref ip);
+                                        ip = code[ip + (numberInt - start)];
                                         break;
                                     }
                                 }
@@ -902,9 +905,17 @@ namespace Mond.VirtualMachine
             }
         }
 
-        private void DoCall(ref byte[] code, ref int ip, ref MondProgram program, ref Frame args, ref Frame locals)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int UnpackFirstOperand(int opcode)
         {
-            var argCount = ReadInt32(code, ref ip);
+            const int operandMask    = 0x00FFFFFF;
+            const int operandSignBit = 0x00800000;
+
+            return ((opcode & operandMask) ^ operandSignBit) - operandSignBit;
+        }
+
+        private void DoCall(int argCount, ref int[] code, ref int ip, ref MondProgram program, ref Frame args, ref Frame locals)
+        {
             var unpackCount = code[ip++];
 
             var function = Pop();
@@ -946,11 +957,11 @@ namespace Mond.VirtualMachine
 
             if (function.Type != MondValueType.Function)
             {
-                var ldFldBase = ip - 1 - 4 - 1 - 4 - 1;
-                if (ldFldBase >= 0 && code[ldFldBase] == (int)InstructionType.LdFld)
+                var callLength = /* opcode + argCount */ 1 + /* unpackLength */ 1 + /* unpackIndices*/ unpackCount;
+                var ldFldOp = ip - callLength - 1; // get the IP value for an ldfld immediately before this call
+                if (ldFldOp >= 0 && (code[ldFldOp] >> 24) == (int)InstructionType.LdFld)
                 {
-                    var ldFldIdx = ldFldBase + 1;
-                    var fieldNameIdx = ReadInt32(code, ref ldFldIdx);
+                    var fieldNameIdx = UnpackFirstOperand(code[ldFldOp]);
 
                     if (fieldNameIdx >= 0 && fieldNameIdx < program.Strings.Length)
                     {
@@ -1017,13 +1028,13 @@ namespace Mond.VirtualMachine
             }
         }
 
-        private List<MondValue> UnpackArgs(byte[] code, ref int ip, int argCount, int unpackCount)
+        private List<MondValue> UnpackArgs(int[] code, ref int ip, int argCount, int unpackCount)
         {
             var unpackIndices = new List<int>(unpackCount);
 
             for (var i = 0; i < unpackCount; i++)
             {
-                unpackIndices.Add(ReadInt32(code, ref ip));
+                unpackIndices.Add(code[ip++]);
             }
 
             var unpackedArgs = new List<MondValue>(argCount + unpackCount * 16);
@@ -1109,29 +1120,6 @@ namespace Mond.VirtualMachine
             _debugAction = Debugger.Break(context, address);
             _debugAlign = false;
             _debugDepth = 0;
-        }
-#endif
-
-#if !NO_UNSAFE
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static unsafe int ReadInt32(byte[] buffer, ref int offset)
-        {
-            // TODO: fixed has overhead, reduce amount by doing it once in Run
-            fixed (byte* b = buffer)
-            {
-                var result = *(int*)(b + offset);
-                offset += sizeof(int);
-                return result;
-            }
-        }
-#else
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int ReadInt32(byte[] buffer, ref int offset)
-        {
-            return buffer[offset++] << 0 |
-                   buffer[offset++] << 8 |
-                   buffer[offset++] << 16 |
-                   buffer[offset++] << 24;
         }
 #endif
 

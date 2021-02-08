@@ -71,7 +71,7 @@ namespace Mond.Compiler
 
         public int Offset
         {
-            get { return _offset; }
+            get => _offset;
             set
             {
                 if (Type == InstructionType.Label)
@@ -94,7 +94,7 @@ namespace Mond.Compiler
                     return 0;
                 }
 
-                return 1 + Operands.Sum(o => o.Length);
+                return Math.Max(Operands.Sum(o => o.Length), 1);
             }
         }
 
@@ -117,7 +117,7 @@ namespace Mond.Compiler
             Console.ForegroundColor = ConsoleColor.Gray;
         }
 
-        public void Write(BinaryWriter writer)
+        public void Write(BytecodeWriter writer)
         {
             if (Type == InstructionType.Label ||
                 Type >= InstructionType.DebugInfo)
@@ -125,10 +125,13 @@ namespace Mond.Compiler
                 return;
             }
 
-            writer.Write((byte)Type);
+            var firstOperand = Operands.FirstOrDefault();
+            writer.Write(Type, firstOperand?.FirstValue ?? 0);
+            firstOperand?.Write(writer);
 
-            foreach (var operand in Operands)
+            foreach (var operand in Operands.Skip(1))
             {
+                writer.Write(operand.FirstValue);
                 operand.Write(writer);
             }
         }

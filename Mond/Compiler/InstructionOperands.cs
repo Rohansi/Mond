@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
 
 namespace Mond.Compiler
@@ -10,8 +9,20 @@ namespace Mond.Compiler
     {
         void Print();
 
+        /// <summary>
+        /// Size in ints (so length 1 is 4 bytes)
+        /// </summary>
         int Length { get; }
-        void Write(BinaryWriter writer);
+
+        /// <summary>
+        /// Value to encode with the instruction type (24 bits max)
+        /// </summary>
+        int? FirstValue { get; }
+
+        /// <summary>
+        /// Writes additional data (not including FirstValue!)
+        /// </summary>
+        void Write(BytecodeWriter writer);
     }
 
     class DeferredOperand<T> : IInstructionOperand where T : IInstructionOperand
@@ -32,7 +43,9 @@ namespace Mond.Compiler
 
         public int Length => _lazy.Value.Length;
 
-        public void Write(BinaryWriter writer)
+        public int? FirstValue => _lazy.Value.FirstValue;
+
+        public void Write(BytecodeWriter writer)
         {
             _lazy.Value.Write(writer);
         }
@@ -55,12 +68,24 @@ namespace Mond.Compiler
             }
         }
 
-        public int Length { get { return Operands.Sum(o => o.Length); } }
+        public int Length => Operands.Sum(o => o.Length);
 
-        public void Write(BinaryWriter writer)
+        public int? FirstValue => Operands.Count > 0
+            ? Operands[0].FirstValue
+            : null;
+
+        public void Write(BytecodeWriter writer)
         {
-            foreach (var operand in Operands)
+            if (Operands.Count == 0)
             {
+                return;
+            }
+
+            Operands[0].Write(writer);
+
+            foreach (var operand in Operands.Skip(1))
+            {
+                writer.Write(operand.FirstValue);
                 operand.Write(writer);
             }
         }
@@ -80,34 +105,11 @@ namespace Mond.Compiler
             Console.Write("{0,-30} (immediate)", Value);
         }
 
-        public int Length => 4;
-
-        public void Write(BinaryWriter writer)
-        {
-            writer.Write(Value);
-        }
-    }
-
-    class ImmediateByteOperand : IInstructionOperand
-    {
-        public byte Value { get; }
-
-        public ImmediateByteOperand(byte value)
-        {
-            Value = value;
-        }
-
-        public void Print()
-        {
-            Console.Write("{0,-30} (immediate byte)", Value);
-        }
-
         public int Length => 1;
 
-        public void Write(BinaryWriter writer)
-        {
-            writer.Write(Value);
-        }
+        public int? FirstValue => Value;
+
+        public void Write(BytecodeWriter writer) { }
     }
 
     class ConstantOperand<T> : IInstructionOperand
@@ -126,12 +128,11 @@ namespace Mond.Compiler
             Console.Write("{0,-30} (const {1})", Value, Id);
         }
 
-        public int Length => 4;
+        public int Length => 1;
 
-        public void Write(BinaryWriter writer)
-        {
-            writer.Write(Id);
-        }
+        public int? FirstValue => Id;
+
+        public void Write(BytecodeWriter writer) { }
     }
 
     class IdentifierOperand : IInstructionOperand
@@ -154,13 +155,11 @@ namespace Mond.Compiler
             Console.Write("{0,-30} (frame {1} ident {2})", Name, FrameIndex, Id);
         }
 
-        public int Length => 8;
+        public int Length => 2;
 
-        public void Write(BinaryWriter writer)
-        {
-            writer.Write(FrameIndex);
-            writer.Write(Id);
-        }
+        public int? FirstValue => FrameIndex;
+
+        public void Write(BytecodeWriter writer) => writer.Write(Id);
     }
 
     class ArgumentIdentifierOperand : IdentifierOperand
@@ -192,19 +191,24 @@ namespace Mond.Compiler
 
         public void Print()
         {
-            var name = string.Format("lbl_{0}{1}{2}", Id, Name != null ? "_" : "", Name);
+            var name = $"lbl_{Id}{(Name != null ? "_" : "")}{Name}";
             Console.Write("{0,-30} (label)", name);
         }
 
-        public int Length => 4;
+        public int Length => 1;
 
-        public void Write(BinaryWriter writer)
+        public int? FirstValue
         {
-            if (!Position.HasValue)
-                throw new Exception(string.Format("Label '{0}' not bound", Name));
+            get
+            {
+                if (!Position.HasValue)
+                    throw new Exception($"Label '{Name}' not bound");
 
-            writer.Write(Position.Value);
+                return Position.Value;
+            }
         }
+
+        public void Write(BytecodeWriter writer) { }
     }
 
     class DebugIdentifierOperand : IInstructionOperand
@@ -222,19 +226,12 @@ namespace Mond.Compiler
             Id = id;
         }
 
-        public virtual void Print()
-        {
-            throw new NotSupportedException();
-        }
+        public virtual void Print() => throw new NotSupportedException();
 
-        public int Length => 4 + 1 + 4 + 4;
+        public int Length => 0;
 
-        public void Write(BinaryWriter writer)
-        {
-            writer.Write(Name.Id);
-            writer.Write(IsReadOnly);
-            writer.Write(FrameIndex);
-            writer.Write(Id);
-        }
+        public int? FirstValue => throw new NotSupportedException();
+
+        public void Write(BytecodeWriter writer) => throw new NotSupportedException();
     }
 }
