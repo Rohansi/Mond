@@ -1,12 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard1.3;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <AssemblyVersion>0.8.0</AssemblyVersion>
     <DebugType>portable</DebugType>
     <LangVersion>latest</LangVersion>
 	
-	  <!-- NuGet Package -->
+    <!-- NuGet Package -->
     <PackageId>Mond.RemoteDebugger</PackageId>
     <PackageVersion>$(AssemblyVersion)</PackageVersion>
     <Authors>Rohans</Authors>
@@ -14,7 +14,7 @@
     <PackageIconUrl>http://i.imgur.com/zbqVSaz.png</PackageIconUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/Rohansi/Mond</PackageProjectUrl>
-    <PackageTags>Mond Scripting Debugger</PackageTags>
+    <PackageTags>Mond Embedded Scripting Language Debugger</PackageTags>
 
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <RepositoryUrl>https://github.com/Rohansi/Mond.git</RepositoryUrl> 
