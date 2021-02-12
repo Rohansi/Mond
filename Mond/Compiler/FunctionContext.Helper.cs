@@ -93,10 +93,12 @@ namespace Mond.Compiler
 
             if (operand is IdentifierOperand identifier)
             {
-                if (identifier.FrameIndex != LocalIndex)
-                    Emit(new Instruction(InstructionType.LdLoc, operand));
-                else
+                if (identifier.FrameIndex == LocalIndex)
                     Emit(new Instruction(InstructionType.LdLocF, new ImmediateOperand(identifier.Id)));
+                else if (identifier.FrameIndex < 0 && identifier.FrameIndex == -ArgIndex)
+                    Emit(new Instruction(InstructionType.LdArgF, new ImmediateOperand(identifier.Id)));
+                else
+                    Emit(new Instruction(InstructionType.LdLoc, operand));
 
                 return 1;
             }
@@ -124,10 +126,12 @@ namespace Mond.Compiler
 
         public int Store(IdentifierOperand operand)
         {
-            if (operand.FrameIndex != LocalIndex)
-                Emit(new Instruction(InstructionType.StLoc, operand));
-            else
+            if (operand.FrameIndex == LocalIndex)
                 Emit(new Instruction(InstructionType.StLocF, new ImmediateOperand(operand.Id)));
+            else if (operand.FrameIndex < 0 && operand.FrameIndex == -ArgIndex)
+                Emit(new Instruction(InstructionType.StArgF, new ImmediateOperand(operand.Id)));
+            else
+                Emit(new Instruction(InstructionType.StLoc, operand));
 
             return -1;
         }

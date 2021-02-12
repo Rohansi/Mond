@@ -26,10 +26,7 @@ namespace Mond.Compiler
             PopAction = popAction;
         }
 
-        public IEnumerable<IdentifierOperand> Identifiers
-        {
-            get { return _identifiers.Values; }
-        } 
+        public IEnumerable<IdentifierOperand> Identifiers => _identifiers.Values;
 
         public bool Define(string name, bool isReadOnly)
         {
@@ -69,7 +66,7 @@ namespace Mond.Compiler
 
                 while (true)
                 {
-                    numberedName = string.Format("{0}_{1}", name, n++);
+                    numberedName = $"{name}_{n++}";
 
                     if (!IsDefined(numberedName))
                         break;

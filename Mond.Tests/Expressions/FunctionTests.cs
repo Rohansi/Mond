@@ -32,6 +32,36 @@ namespace Mond.Tests.Expressions
         }
 
         [Test]
+        public void FunctionWriteToArgument()
+        {
+            var result = Script.Run(@"
+                fun foo(n) {
+                    n += n;
+                    return n;
+                }
+
+                return foo(50);
+            ");
+
+            Assert.AreEqual((MondValue)100, result);
+        }
+
+        [Test]
+        public void FunctionWriteToUnspecifiedArgument()
+        {
+            var result = Script.Run(@"
+                fun foo(n) {
+                    n = n || 'default value';
+                    return n;
+                }
+
+                return foo();
+            ");
+
+            Assert.AreEqual((MondValue)"default value", result);
+        }
+
+        [Test]
         public void DefaultReturnValue()
         {
             var result = Script.Run(@"

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace Mond.VirtualMachine
 {
@@ -10,56 +11,54 @@ namespace Mond.VirtualMachine
         public MondValue[] Values;
 
         public Frame StoredFrame;
-        public List<MondValue> StoredEvals; 
-
+        public List<MondValue> StoredEvals;
+        
         public Frame(int depth, Frame previous, int valueCount)
         {
             Depth = depth;
             Previous = previous;
             Values = new MondValue[valueCount];
-
-            for (var i = 0; i < valueCount; i++)
-            {
-                Values[i] = MondValue.Undefined;
-            }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ref readonly MondValue Get(int index)
+        {
+            if (index < 0 || index >= Values.Length)
+                return ref MondValue.Undefined;
+
+            return ref Values[index];
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ref readonly MondValue Get(int depth, int index)
         {
             var frame = GetFrame(depth);
-
-            if (index < 0 || index >= frame.Values.Length)
-                return ref MondValue.Undefined;
-
-            return ref frame.Values[index];
+            return ref frame.Get(index);
         }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Set(int index, in MondValue value)
+        {
+            if (index < 0)
+                return;
+                
+            if (index >= Values.Length)
+            {
+                var newLength = index + 1;
+                Array.Resize(ref Values, newLength);
+            }
 
+            Values[index] = value;
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Set(int depth, int index, in MondValue value)
         {
             var frame = GetFrame(depth);
-
-            if (index < 0)
-                return;
-
-            var values = frame.Values;
-
-            if (index >= values.Length)
-            {
-                var oldLength = values.Length;
-                var newLength = index + 1;
-
-                Array.Resize(ref values, newLength);
-                frame.Values = values;
-
-                for (var i = oldLength; i < newLength; i++)
-                {
-                    values[i] = MondValue.Undefined;
-                }
-            }
-
-            values[index] = value;
+            frame.Set(index, in value);
         }
-
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Frame GetFrame(int depth)
         {
             var current = this;

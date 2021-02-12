@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
 
 namespace Mond.Compiler
@@ -15,6 +14,7 @@ namespace Mond.Compiler
         LdGlobal,                           // load global object
 
         LdLocF, StLocF,                     // load/store local in current frame
+        LdArgF, StArgF,                     // load/store args in current frame
         LdLoc, StLoc,                       // load/store local
         LdFld, StFld,                       // load/store field
         LdArr, StArr,                       // load/store array

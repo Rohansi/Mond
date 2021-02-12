@@ -262,6 +262,20 @@ namespace Mond.VirtualMachine
                                 break;
                             }
 
+                        case (int)InstructionType.LdArgF:
+                            {
+                                var index = UnpackFirstOperand(opcode);
+                                Push(args.Get(index));
+                                break;
+                            }
+
+                        case (int)InstructionType.StArgF:
+                            {
+                                var index = UnpackFirstOperand(opcode);
+                                args.Set(index, Pop());
+                                break;
+                            }
+
                         case (int)InstructionType.LdLoc:
                             {
                                 var depth = UnpackFirstOperand(opcode);
