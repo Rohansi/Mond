@@ -4,10 +4,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 
-#if !NO_EXPRESSIONS
-using System.Linq.Expressions;
-#endif
-
 namespace Mond.Binding
 {
     internal class MethodTable
@@ -24,12 +20,8 @@ namespace Mond.Binding
             ParamsMethods = paramsMethods;
         }
     }
-
-#if !NO_EXPRESSIONS
-    internal delegate Expression ReturnConverter(string errorPrefix, Expression state, Expression value);
-#else
+    
     internal delegate MondValue ReturnConverter(string errorPrefix, MondState state, object value);
-#endif
 
     internal class Method : IComparable<Method>
     {
@@ -147,12 +139,8 @@ namespace Mond.Binding
         public readonly MondValueType[] MondTypes;
 
         public readonly Type UserDataType;
-
-#if !NO_EXPRESSIONS
-        public readonly Func<Expression, Expression> Conversion;
-#else
+        
         public readonly Func<MondValue, object> Conversion;
-#endif
 
         public Parameter(ParameterInfo info)
         {
@@ -209,13 +197,7 @@ namespace Mond.Binding
                 TypeName = "any?";
                 Priority = 100;
                 MondTypes = AnyTypes;
-
-#if !NO_EXPRESSIONS
-                Conversion = v => Expression.Condition(Expression.Equal(v, Expression.Constant(MondValue.Undefined)), Expression.Constant(null, paramType), Expression.Convert(v, paramType));
-#else
                 Conversion = v => v == MondValue.Undefined ? null : (MondValue?)v;
-#endif
-
                 return;
             }
 
@@ -241,13 +223,7 @@ namespace Mond.Binding
                 TypeName = mondClass.Name ?? paramType.Name;
                 MondTypes = ObjectTypes;
                 UserDataType = info.ParameterType;
-
-#if !NO_EXPRESSIONS
-                Conversion = v => Expression.Convert(Expression.PropertyOrField(v, "UserData"), info.ParameterType);
-#else
                 Conversion = v => v.UserData;
-#endif
-
                 return;
             }
 
