@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Mond.Debugger;
@@ -10,12 +11,12 @@ namespace Mond.RemoteDebugger
 {
     public class MondRemoteDebugger : MondDebugger, IDisposable
     {
-        private Server _server;
+        private readonly Server _server;
 
         private readonly object _sync = new object();
-        private HashSet<MondProgram> _seenPrograms;
-        private List<ProgramInfo> _programs;
-        private List<Watch> _watches;
+        private readonly HashSet<MondProgram> _seenPrograms;
+        private readonly List<ProgramInfo> _programs;
+        private readonly List<Watch> _watches;
         private SemaphoreSlim _watchSemaphore;
         private bool _watchTimedOut;
 
@@ -23,9 +24,9 @@ namespace Mond.RemoteDebugger
         private TaskCompletionSource<MondDebugAction> _breaker;
         private BreakPosition _position;
 
-        public MondRemoteDebugger(int port)
+        public MondRemoteDebugger(IPEndPoint endpoint)
         {
-            _server = new Server(this, port);
+            _server = new Server(this, endpoint);
 
             _seenPrograms = new HashSet<MondProgram>();
             _programs = new List<ProgramInfo>();

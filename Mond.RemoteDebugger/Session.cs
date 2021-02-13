@@ -1,27 +1,29 @@
 ﻿using System;
 using System.Linq;
+using Fleck;
 using Mond.Debugger;
-using IotWeb.Common.Http;
 
 namespace Mond.RemoteDebugger
 {
     internal class Session
     {
-        private readonly SessionManager _manager;
+        private readonly Server _server;
         private readonly MondRemoteDebugger _debugger;
-        private WebSocket _socket;
+        private readonly IWebSocketConnection _socket;
 
-        public Session(SessionManager manager, MondRemoteDebugger debugger)
+        public Session(MondRemoteDebugger debugger, Server server, IWebSocketConnection socket)
         {
-            _manager = manager;
             _debugger = debugger;
+            _server = server;
+            _socket = socket;
         }
 
-        public void OnOpen(WebSocket socket)
-        {
-            _socket = socket;
-            _socket.DataReceived += OnMessage;
+        public void Send(string data) => _socket.Send(data);
 
+        public void Close() => _socket.Close();
+
+        public void OnOpen()
+        {
             _debugger.GetState(
                 out var isRunning, out var programs, out var position, out var watches, out var callStack);
 
@@ -42,21 +44,19 @@ namespace Mond.RemoteDebugger
             Send(Json.Serialize(message));
         }
 
-        public void Send(string data) => _socket.Send(data);
-
-        private void OnMessage(WebSocket sender, string data)
+        public void OnMessage(string data)
         {
             try
             {
                 var obj = Json.Deserialize(data);
 
-                switch ((string)obj["Type"])
+                switch (obj["Type"])
                 {
                     case "Action":
                         {
                             var value = (string)obj["Action"];
 
-                            if (value == "break")
+                            if (value == "Break")
                             {
                                 _debugger.RequestBreak();
                                 break;
@@ -80,7 +80,7 @@ namespace Mond.RemoteDebugger
                                 message["Line"] = line;
                                 message["Value"] = value;
 
-                                _manager.Broadcast(Json.Serialize(message));
+                                _server.Broadcast(Json.Serialize(message));
                             }
 
                             break;
@@ -101,7 +101,7 @@ namespace Mond.RemoteDebugger
                         }
 
                     default:
-                        Console.WriteLine("unhandled message type: " + obj.Type);
+                        Console.WriteLine("Unhandled message type: " + obj.Type);
                         break;
                 }
             }
@@ -115,20 +115,20 @@ namespace Mond.RemoteDebugger
         {
             switch (value)
             {
-                case "run":
+                case "Continue":
                     return MondDebugAction.Run;
 
-                case "step-in":
+                case "StepIn":
                     return MondDebugAction.StepInto;
 
-                case "step-over":
+                case "StepOver":
                     return MondDebugAction.StepOver;
 
-                case "step-out":
+                case "StepOut":
                     return MondDebugAction.StepOut;
 
                 default:
-                    throw new NotSupportedException("unknown action: " + value);
+                    throw new NotSupportedException("Unknown action: " + value);
             }
         }
     }

@@ -1,83 +1,87 @@
 ﻿using System;
-using System.Reflection;
-using IotWeb.Server;
-using IotWeb.Common.Http;
 using System.Collections.Generic;
+using System.Net;
+using System.Net.Sockets;
+using Fleck;
 
 namespace Mond.RemoteDebugger
 {
-    class Server : IDisposable
+    internal class Server : IDisposable
     {
-        private HttpServer _server;
-        private SessionManager _sessionMgr;
+        private readonly WebSocketServer _server;
+        private readonly List<Session> _sessions;
 
-        public Server(MondRemoteDebugger debugger, int port)
+        public Server(MondRemoteDebugger debugger, IPEndPoint endpoint)
         {
-            _server = new HttpServer(port);
+            if (endpoint.AddressFamily != AddressFamily.InterNetwork &&
+                endpoint.AddressFamily != AddressFamily.InterNetworkV6)
+            {
+                throw new ArgumentException("Endpoint must be an IPv4 or IPv6 address.", nameof(endpoint));
+            }
 
-            var assembly = GetType().GetTypeInfo().Assembly;
-            _server.AddHttpRequestHandler("/", 
-                new HttpResourceHandler(assembly, "DebuggerClient", "index.html"));
+            _server = new WebSocketServer($"ws://{endpoint}")
+            {
+                RestartAfterListenError = true,
+                ListenerSocket = { NoDelay = true },
+            };
+            _sessions = new List<Session>();
 
-            _sessionMgr = new SessionManager(debugger);
-            _server.AddWebSocketRequestHandler("/", _sessionMgr);
+            _server.Start(socket =>
+            {
+                var session = new Session(debugger, this, socket);
 
-            _server.Start();
+                socket.OnOpen = () =>
+                {
+                    lock (_sessions)
+                    {
+                        _sessions.Add(session);
+                    }
+
+                    session.OnOpen();
+                };
+
+                socket.OnClose = () =>
+                {
+                    lock (_sessions)
+                    {
+                        _sessions.Remove(session);
+                    }
+                };
+
+                socket.OnMessage = session.OnMessage;
+            });
         }
 
         public void Dispose()
         {
-            _server.Stop();
-            _server = null;
-        }
+            _server.Dispose();
 
-        public void Broadcast(string data)
-        {
-           _sessionMgr.Broadcast(data);
-        }
-    }
-
-    class SessionManager : IWebSocketRequestHandler
-    {
-        private readonly object _sync = new object();
-        private readonly List<Session> _clients = new List<Session>();
-        private readonly MondRemoteDebugger _debugger;
-
-        public SessionManager(MondRemoteDebugger debugger)
-        {
-            _debugger = debugger;
-        }
-
-        public bool WillAcceptRequest(string uri, string protocol) => true;
-
-        public void Connected(WebSocket socket)
-        {
-            var session = new Session(this, _debugger);
-            session.OnOpen(socket);
-
-            lock (_sync)
+            lock (_sessions)
             {
-                _clients.Add(session);
+                foreach (var session in _sessions)
+                {
+                    session.Close();
+                }
+
+                _sessions.Clear();
             }
-            
-            socket.ConnectionClosed += sender =>
-            {
-                lock (_sync)
-                {
-                    _clients.Remove(session);
-                }
-            };
         }
 
         public void Broadcast(string data)
         {
-            foreach (var session in _clients)
+            lock (_sessions)
             {
-                try
+                foreach (var session in _sessions)
                 {
-                    session.Send(data);
+                    try
+                    {
+                        session.Send(data);
+                    }
+                    catch
+                    {
+                        session.Close();
+                    }
                 }
-                catch { }
             }
         }
     }

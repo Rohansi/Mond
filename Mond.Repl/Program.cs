@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using Mond.RemoteDebugger;
 using Mond.Repl.Input;
@@ -265,7 +266,7 @@ namespace Mond.Repl
 
             if (isDebug)
             {
-                var debugger = new MondRemoteDebugger(1597);
+                var debugger = new MondRemoteDebugger(new IPEndPoint(IPAddress.Loopback, 1597));
                 state.Debugger = debugger;
 
                 if (HasFlag("--wait"))
