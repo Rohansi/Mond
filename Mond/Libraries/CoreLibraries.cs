@@ -46,7 +46,8 @@ namespace Mond.Libraries
     /// </summary>
     public class RequireLibrary : IMondLibrary
     {
-        public delegate string ModuleLoader(string name, IEnumerable<string> searchDirectories);
+        public delegate string ModuleResolver(string name, IEnumerable<string> searchDirectories);
+        public delegate string ModuleLoader(string resolvedName);
 
         private readonly MondState _state;
 
@@ -71,7 +72,14 @@ namespace Mond.Libraries
         public bool SearchBesideScript { get; set; }
 
         /// <summary>
-        /// The function used to load modules.
+        /// The function used to resolve a module into a name the loader can load.
+        /// Modules will be cached based on their resolved names.
+        /// For example, this may turn a relative path into an absolute path.
+        /// </summary>
+        public ModuleResolver Resolver { get; set; }
+
+        /// <summary>
+        /// The function used to load a module using its resolved name.
         /// </summary>
         public ModuleLoader Loader { get; set; }
 
@@ -83,7 +91,7 @@ namespace Mond.Libraries
             SearchDirectories = new[] { "." };
             SearchBesideScript = true;
 
-            Loader = (name, searchDirectories) =>
+            Resolver = (name, searchDirectories) =>
             {
                 var foundModule = searchDirectories
                     .Where(p => p != null)
@@ -93,8 +101,10 @@ namespace Mond.Libraries
                 if (foundModule == null)
                     throw new MondRuntimeException("require: module could not be found: {0}", name);
 
-                return File.ReadAllText(foundModule);
+                return Path.GetFullPath(foundModule);
             };
+
+            Loader = File.ReadAllText;
         } 
 
         public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions()

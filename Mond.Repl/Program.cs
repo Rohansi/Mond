@@ -38,6 +38,8 @@ namespace Mond.Repl
 
             if (fileName != null)
             {
+                fileName = Path.GetFullPath(fileName);
+
                 try
                 {
                     using (var file = File.OpenRead(fileName))
@@ -83,7 +85,7 @@ namespace Mond.Repl
 
             try
             {
-                var result = state.Run(source, Path.GetFileName(fileName));
+                var result = state.Run(source, fileName);
 
                 if (result == MondValue.Undefined)
                     return;

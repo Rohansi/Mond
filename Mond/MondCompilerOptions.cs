@@ -13,7 +13,7 @@
         StackTrace,
 
         /// <summary>
-        /// All debug information.
+        /// All debug information. This is the level required to run debuggers properly.
         /// </summary>
         Full
     }

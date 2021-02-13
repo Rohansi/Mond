@@ -94,7 +94,7 @@ namespace Mond.Compiler
         private MondDebugInfo GenerateDebugInfo(string sourceFileName, string sourceCode)
         {
             if (Options.DebugInfo == MondDebugInfoLevel.None)
-                return null;
+                return new MondDebugInfo(sourceFileName, null, null, null, null, null);
 
             if (Options.DebugInfo <= MondDebugInfoLevel.StackTrace)
                 sourceCode = null;
@@ -197,7 +197,7 @@ namespace Mond.Compiler
 
         private IEnumerable<Instruction> AllInstructions()
         {
-            return _instructions ?? (_instructions = _contexts.SelectMany(c => c.Instructions).ToList());
+            return _instructions ??= _contexts.SelectMany(c => c.Instructions).ToList();
         }
 
         public void RegisterFunction(FunctionContext context)

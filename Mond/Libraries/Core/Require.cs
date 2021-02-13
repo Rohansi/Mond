@@ -29,6 +29,8 @@ namespace Mond.Libraries.Core
         [MondFunction]
         public MondValue Require(MondState state, string fileName)
         {
+            if (_require.Resolver == null)
+                throw new MondRuntimeException("require: module resolver is not set");
             if (_require.Loader == null)
                 throw new MondRuntimeException("require: module loader is not set");
 
@@ -48,8 +50,22 @@ namespace Mond.Libraries.Core
                 cacheObject = state[cacheObjectName];
             }
 
+            // gather search directories
+            IEnumerable<string> searchDirectories =
+                _require.SearchDirectories ?? Array.Empty<string>();
+
+            if (_require.SearchBesideScript)
+            {
+                var currentDir = Path.GetDirectoryName(state.CurrentScript);
+                searchDirectories = Enumerable.Repeat(currentDir, 1)
+                    .Concat(searchDirectories);
+            }
+            
+            // resolve the module name so we have a consistent caching key
+            var resovledName = _require.Resolver(fileName, searchDirectories);
+
             // return cached module if it exists
-            var cachedExports = cacheObject[fileName];
+            var cachedExports = cacheObject[resovledName];
             if (cachedExports.Type == MondValueType.Object)
                 return cachedExports;
 
@@ -58,21 +74,11 @@ namespace Mond.Libraries.Core
             exports.Prototype = MondValue.Null;
 
             // instantly cache it so we can have circular dependencies
-            cacheObject[fileName] = exports;
+            cacheObject[resovledName] = exports;
 
             try
             {
-                IEnumerable<string> searchDirectories =
-                    _require.SearchDirectories ?? Array.Empty<string>();
-
-                if (_require.SearchBesideScript)
-                {
-                    var currentDir = Path.GetDirectoryName(state.CurrentScript);
-                    searchDirectories = Enumerable.Repeat(currentDir, 1)
-                        .Concat(searchDirectories);
-                }
-
-                var moduleSource = _require.Loader(fileName, searchDirectories);
+                var moduleSource = _require.Loader(resovledName);
 
                 // wrap the module script in a function so we can pass out exports object to it
                 var source = _require.Definitions + "return fun (exports) {\n" + moduleSource + " return exports; };";
@@ -90,7 +96,7 @@ namespace Mond.Libraries.Core
                     options.UseImplicitGlobals = requireOptions.UseImplicitGlobals;
                 }
 
-                var program = MondProgram.Compile(source, fileName, options);
+                var program = MondProgram.Compile(source, resovledName, options);
                 var initializer = state.Load(program);
 
                 var result = state.Call(initializer, exports);
@@ -118,7 +124,7 @@ namespace Mond.Libraries.Core
             catch
             {
                 // if something goes wrong, remove the entry from the cache
-                cacheObject[fileName] = MondValue.Undefined;
+                cacheObject[resovledName] = MondValue.Undefined;
                 throw;
             }
 
