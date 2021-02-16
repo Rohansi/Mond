@@ -46,6 +46,7 @@ namespace Mond.Compiler
             context.Function(context.FullName);
 
             context.PushScope();
+            context.Position(expression.StartToken); // so address 0 has debug info
             context.Enter();
             expression.Compile(context);
             context.LoadUndefined();

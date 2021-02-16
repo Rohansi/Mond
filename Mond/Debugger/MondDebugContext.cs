@@ -189,18 +189,31 @@ namespace Mond.Debugger
 
             var fileName = program.DebugInfo.FileName;
             string function = null;
-            var lineNumber = 0;
-            var columnNumber = -1;
+            var startLineNumber = 0;
+            var startColumnNumber = -1;
+            int? endLineNumber = null;
+            int? endColumnNumber = null;
 
             var func = program.DebugInfo.FindFunction(address);
             if (func.HasValue)
                 function = program.Strings[func.Value.Name];
 
-            var position = program.DebugInfo.FindPosition(address);
-            if (position.HasValue)
+            var statement = program.DebugInfo.FindStatement(address);
+            if (statement.HasValue)
             {
-                lineNumber = position.Value.LineNumber;
-                columnNumber = position.Value.ColumnNumber;
+                startLineNumber = statement.Value.StartLineNumber;
+                startColumnNumber = statement.Value.StartColumnNumber;
+                endLineNumber = statement.Value.EndLineNumber;
+                endColumnNumber = statement.Value.EndColumnNumber;
+            }
+            else
+            {
+                var position = program.DebugInfo.FindPosition(address);
+                if (position.HasValue)
+                {
+                    startLineNumber = position.Value.LineNumber;
+                    startColumnNumber = position.Value.ColumnNumber;
+                }
             }
 
             if (fileName == null)
@@ -210,7 +223,7 @@ namespace Mond.Debugger
                 function = address.ToString("X8");
 
             return new CallStackEntry(
-                program, address, fileName, function, lineNumber, columnNumber);
+                program, address, fileName, function, startLineNumber, startColumnNumber, endLineNumber, endColumnNumber);
         }
 
         public class CallStackEntry
@@ -219,23 +232,29 @@ namespace Mond.Debugger
             public int Address { get; }
             public string FileName { get; }
             public string Function { get; }
-            public int LineNumber { get; }
-            public int ColumnNumber { get; }
+            public int StartLineNumber { get; }
+            public int StartColumnNumber { get; }
+            public int? EndLineNumber { get; }
+            public int? EndColumnNumber { get; }
 
             internal CallStackEntry(
                 MondProgram program,
                 int address,
                 string fileName,
                 string function,
-                int lineNumber,
-                int columnNumber)
+                int startLineNumber,
+                int startColumnNumber,
+                int? endLineNumber = null,
+                int? endColumnNumber = null)
             {
                 Program = program;
                 Address = address;
                 FileName = fileName;
                 Function = function;
-                LineNumber = lineNumber;
-                ColumnNumber = columnNumber;
+                StartLineNumber = startLineNumber;
+                StartColumnNumber = startColumnNumber;
+                EndLineNumber = endLineNumber;
+                EndColumnNumber = endColumnNumber;
             }
         }
     }

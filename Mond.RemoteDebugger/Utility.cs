@@ -1,44 +1,39 @@
-﻿using System.Linq;
-using Mond.Debugger;
+﻿using Mond.Debugger;
 
 namespace Mond.RemoteDebugger
 {
     internal static class Utility
     {
-        public static int FirstLineNumber(MondDebugInfo debugInfo)
+        public static int? GetInt(this MondValue obj, string fieldName)
         {
-            var lines = debugInfo.Lines;
-            var firstLineNumber = lines.Count > 0 ? lines[0].LineNumber : 1;
-            return firstLineNumber;
+            var field = obj[fieldName];
+            return field.Type == MondValueType.Number
+                ? (int)field
+                : null;
         }
 
-        public static MondValue JsonProgram(ProgramInfo program)
+        public static MondValue JsonBreakpoint(MondDebugInfo.Statement statement)
         {
             var obj = MondValue.Object();
-            obj["FileName"] = program.FileName;
-            obj["SourceCode"] = program.DebugInfo.SourceCode;
-            obj["FirstLine"] = FirstLineNumber(program.DebugInfo);
-            obj["Breakpoints"] = MondValue.Array(program.Breakpoints.Select(e => MondValue.Number(e)));
-            return obj;
-        }
-
-        public static MondValue JsonWatch(Watch watch)
-        {
-            var obj = MondValue.Object();
-            obj["Id"] = watch.Id;
-            obj["Expression"] = watch.Expression;
-            obj["Value"] = watch.Value;
+            obj["address"] = statement.Address;
+            obj["line"] = statement.StartLineNumber;
+            obj["column"] = statement.StartColumnNumber;
+            obj["endLine"] = statement.EndLineNumber;
+            obj["endColumn"] = statement.EndColumnNumber;
             return obj;
         }
 
         public static MondValue JsonCallStackEntry(int programId, MondDebugContext.CallStackEntry callStackEntry)
         {
             var obj = MondValue.Object();
-            obj["ProgramId"] = programId;
-            obj["FileName"] = callStackEntry.FileName;
-            obj["Function"] = callStackEntry.Function;
-            obj["LineNumber"] = callStackEntry.LineNumber;
-            obj["ColumnNumber"] = callStackEntry.ColumnNumber;
+            obj["programId"] = programId;
+            obj["address"] = callStackEntry.Address;
+            obj["fileName"] = callStackEntry.FileName;
+            obj["function"] = callStackEntry.Function;
+            obj["line"] = callStackEntry.StartLineNumber;
+            obj["column"] = callStackEntry.StartColumnNumber;
+            obj["endLine"] = callStackEntry.EndLineNumber ?? MondValue.Undefined;
+            obj["endColumn"] = callStackEntry.EndColumnNumber ?? MondValue.Undefined;
             return obj;
         }
     }

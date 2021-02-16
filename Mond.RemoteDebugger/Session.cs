@@ -7,14 +7,12 @@ namespace Mond.RemoteDebugger
 {
     internal class Session
     {
-        private readonly Server _server;
         private readonly MondRemoteDebugger _debugger;
         private readonly IWebSocketConnection _socket;
 
-        public Session(MondRemoteDebugger debugger, Server server, IWebSocketConnection socket)
+        public Session(MondRemoteDebugger debugger, IWebSocketConnection socket)
         {
             _debugger = debugger;
-            _server = server;
             _socket = socket;
         }
 
@@ -24,90 +22,137 @@ namespace Mond.RemoteDebugger
 
         public void OnOpen()
         {
-            _debugger.GetState(
-                out var isRunning, out var programs, out var position, out var watches, out var callStack);
+            _debugger.GetState(out var isRunning, out _);
 
             var message = MondValue.Object();
-            message["Type"] = "InitialState";
-            message["Programs"] = MondValue.Array(programs.Select(Utility.JsonProgram));
-            message["Running"] = isRunning;
-            message["Id"] = position.Id;
-            message["StartLine"] = position.StartLine;
-            message["StartColumn"] = position.StartColumn;
-            message["EndLine"] = position.EndLine;
-            message["EndColumn"] = position.EndColumn;
-            message["Watches"] = MondValue.Array(watches.Select(Utility.JsonWatch));
-
-            if (callStack != null)
-                message["CallStack"] = _debugger.BuildCallStackArray(callStack);
+            message["type"] = "initialState";
+            message["version"] = MondRemoteDebugger.ProtocolVersion;
+            message["isRunning"] = isRunning;
 
             Send(Json.Serialize(message));
         }
 
         public void OnMessage(string data)
         {
+            MondValue obj;
             try
             {
-                var obj = Json.Deserialize(data);
+                obj = Json.Deserialize(data);
+            }
+            catch
+            {
+                return;
+            }
 
-                switch (obj["Type"])
+            try
+            {
+                switch (obj["type"])
                 {
-                    case "Action":
+                    case "action":
+                    {
+                        var value = (string)obj["action"];
+
+                        if (value == "break")
                         {
-                            var value = (string)obj["Action"];
-
-                            if (value == "Break")
-                            {
-                                _debugger.RequestBreak();
-                                break;
-                            }
-
-                            _debugger.PerformAction(ParseAction(value));
+                            _debugger.RequestBreak();
                             break;
                         }
 
-                    case "SetBreakpoint":
-                        {
-                            var id = (int)obj["Id"];
-                            var line = (int)obj["Line"];
-                            var value = (bool)obj["Value"];
+                        _debugger.PerformAction(ParseAction(value));
+                        ReplyWithOk();
+                        break;
+                    }
 
-                            if (_debugger.SetBreakpoint(id, line, value))
-                            {
-                                var message = MondValue.Object();
-                                message["Type"] = "Breakpoint";
-                                message["Id"] = id;
-                                message["Line"] = line;
-                                message["Value"] = value;
+                    case "stackTrace":
+                    {
+                        var stackFrames = _debugger.GetStackFramesArray();
+                        var response = MondValue.Object();
+                        response["stackFrames"] = stackFrames;
+                        ReplyWithOk(response);
+                        break;
+                    }
 
-                                _server.Broadcast(Json.Serialize(message));
-                            }
+                    case "setBreakpoints":
+                    {
+                        var programId = GetProgramId();
+                        var breakpoints = obj["breakpoints"].AsList
+                            .Select(o => (Line: (int)o["line"], Column: o.GetInt("column")));
 
-                            break;
-                        }
+                        var breakpointStatements = _debugger.SetBreakpoints(programId, breakpoints);
 
-                    case "AddWatch":
-                        {
-                            var expression = (string)obj["Expression"];
-                            _debugger.AddWatch(expression);
-                            break;
-                        }
+                        var response = MondValue.Object();
+                        response["programId"] = programId;
+                        response["breakpoints"] = MondValue.Array(breakpointStatements.Select(Utility.JsonBreakpoint));
+                        ReplyWithOk(response);
+                        break;
+                    }
 
-                    case "RemoveWatch":
-                        {
-                            var id = (int)obj["Id"];
-                            _debugger.RemoveWatch(id);
-                            break;
-                        }
+                    case "getBreakpointLocations":
+                    {
+                        var programId = GetProgramId();
+                        var startLine = (int)obj["line"];
+                        var startColumn = obj.GetInt("column") ?? int.MinValue;
+                        var endLine = obj.GetInt("endLine") ?? startLine;
+                        var endColumn = obj.GetInt("endColumn") ?? int.MaxValue;
+
+                        var breakpointLocations = _debugger.GetBreakpointLocations(programId, startLine, startColumn, endLine, endColumn);
+
+                        var response = MondValue.Object();
+                        response["programId"] = programId;
+                        response["locations"] = MondValue.Array(breakpointLocations.Select(Utility.JsonBreakpoint));
+                        ReplyWithOk(response);
+                        break;
+                    }
 
                     default:
+                    {
                         Console.WriteLine("Unhandled message type: " + obj.Type);
+
+                        var response = MondValue.Object();
+                        response["status"] = "error";
+                        response["error"] = $"unhandled type {obj["type"]}";
+                        ReplyWith(response);
+
                         break;
+                    }
+                }
+
+                int GetProgramId()
+                {
+                    var programId = obj["programId"];
+                    if (programId.Type == MondValueType.Number)
+                        return (int)programId;
+
+                    var programPath = obj["programPath"];
+                    if (programPath.Type == MondValueType.String)
+                        return _debugger.FindProgramIndex(programPath);
+
+                    throw new InvalidOperationException("Both Program ID and Program Path were unspecified");
                 }
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
+
+                var response = MondValue.Object();
+                response["status"] = "error";
+                response["error"] = e.Message;
+                ReplyWith(response);
+            }
+
+            void ReplyWithOk(MondValue responseObj = default)
+            {
+                if (responseObj.Type != MondValueType.Object)
+                    responseObj = MondValue.Object();
+
+                responseObj["status"] = "ok";
+                ReplyWith(responseObj);
+            }
+
+            void ReplyWith(MondValue responseObj)
+            {
+                responseObj["seq"] = obj["seq"];
+                Send(Json.Serialize(responseObj));
             }
         }
 
@@ -115,16 +160,16 @@ namespace Mond.RemoteDebugger
         {
             switch (value)
             {
-                case "Continue":
+                case "continue":
                     return MondDebugAction.Run;
 
-                case "StepIn":
+                case "stepIn":
                     return MondDebugAction.StepInto;
 
-                case "StepOver":
+                case "stepOver":
                     return MondDebugAction.StepOver;
 
-                case "StepOut":
+                case "stepOut":
                     return MondDebugAction.StepOut;
 
                 default:

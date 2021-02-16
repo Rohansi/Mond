@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace Mond.Debugger
 {
     public class MondDebugInfo
     {
-        public struct Function
+        public readonly struct Function
         {
             public int Address { get; }
             public int Name { get; }
@@ -18,7 +19,7 @@ namespace Mond.Debugger
             }
         }
 
-        public struct Position
+        public readonly struct Position
         {
             public int Address { get; }
             public int LineNumber { get; }
@@ -32,7 +33,7 @@ namespace Mond.Debugger
             }
         }
 
-        public struct Statement
+        public readonly struct Statement
         {
             public int Address { get; }
             public int StartLineNumber { get; }
@@ -70,7 +71,7 @@ namespace Mond.Debugger
             }
         }
 
-        public struct Identifier
+        public readonly struct Identifier
         {
             public int Name { get; }
             public bool IsReadOnly { get; }
@@ -142,17 +143,29 @@ namespace Mond.Debugger
 
         public Statement? FindStatement(int address)
         {
-            if (_lines == null)
+            if (_statements == null)
                 return null;
 
             var search = new Statement(address, 0, 0, 0, 0);
             var idx = Search(_statements, search, StatementAddressComparer);
             Statement? result = null;
 
-            if (idx >= 0 && idx < _lines.Count)
+            if (idx >= 0 && idx < _statements.Count)
                 result = _statements[idx];
 
             return result;
+        }
+
+        public IEnumerable<Statement> FindStatements(int startLine, int startColumn, int endLine, int endColumn)
+        {
+            if (_statements == null)
+                return Enumerable.Empty<Statement>();
+
+            // TODO: can we optimize? statement list isn't guaranteed to be sorted by line...
+            return _statements
+                .Where(s => (s.StartLineNumber == startLine && s.StartColumnNumber >= startColumn) ||
+                            (s.EndLineNumber == endLine && s.EndColumnNumber <= endColumn) ||
+                            (s.StartLineNumber > startLine && s.EndLineNumber < endLine));
         }
 
         public bool IsStatementStart(int address)

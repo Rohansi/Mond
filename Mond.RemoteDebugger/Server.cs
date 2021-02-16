@@ -28,7 +28,7 @@ namespace Mond.RemoteDebugger
 
             _server.Start(socket =>
             {
-                var session = new Session(debugger, this, socket);
+                var session = new Session(debugger, socket);
 
                 socket.OnOpen = () =>
                 {

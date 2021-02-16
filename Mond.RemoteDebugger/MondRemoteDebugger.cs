@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net;
 using System.Threading;
@@ -11,11 +10,10 @@ namespace Mond.RemoteDebugger
 {
     public class MondRemoteDebugger : MondDebugger, IDisposable
     {
-        private readonly Server _server;
+        internal const int ProtocolVersion = 1;
 
-        private readonly object _sync = new object();
-        private readonly HashSet<MondProgram> _seenPrograms;
-        private readonly List<ProgramInfo> _programs;
+        private readonly Server _server;
+        
         private readonly List<Watch> _watches;
         private SemaphoreSlim _watchSemaphore;
         private bool _watchTimedOut;
@@ -27,9 +25,7 @@ namespace Mond.RemoteDebugger
         public MondRemoteDebugger(IPEndPoint endpoint)
         {
             _server = new Server(this, endpoint);
-
-            _seenPrograms = new HashSet<MondProgram>();
-            _programs = new List<ProgramInfo>();
+            
             _watches = new List<Watch>();
         }
 
@@ -54,11 +50,8 @@ namespace Mond.RemoteDebugger
         {
             TaskCompletionSource<MondDebugAction> breaker;
 
-            lock (_sync)
+            lock (SyncRoot)
             {
-                _seenPrograms.Clear();
-                _programs.Clear();
-
                 breaker = _breaker;
             }
 
@@ -80,7 +73,7 @@ namespace Mond.RemoteDebugger
             if (IsMissingDebugInfo(context.Program.DebugInfo))
                 return MondDebugAction.StepOut;
 
-            lock (_sync)
+            lock (SyncRoot)
             {
                 if (_breaker != null)
                     throw new InvalidOperationException("Debugger hit breakpoint while waiting on another");
@@ -88,9 +81,6 @@ namespace Mond.RemoteDebugger
                 _context = context;
                 _breaker = new TaskCompletionSource<MondDebugAction>();
             }
-
-            // keep track of program instances
-            VisitProgram(context.Program);
 
             // update the current state
             UpdateState(context, address);
@@ -103,35 +93,27 @@ namespace Mond.RemoteDebugger
         {
             var result = _breaker.Task.Result;
 
-            lock (_sync)
+            lock (SyncRoot)
             {
                 _context = null;
                 _breaker = null;
             }
 
             var message = MondValue.Object();
-            message["Type"] = "State";
-            message["Running"] = true;
+            message["type"] = "state";
+            message["isRunning"] = true;
 
             Broadcast(message);
 
             return result;
         }
 
-        internal void GetState(
-            out bool isRunning,
-            out List<ProgramInfo> programs,
-            out BreakPosition position,
-            out List<Watch> watches,
-            out ReadOnlyCollection<MondDebugContext.CallStackEntry> callStack)
+        internal void GetState(out bool isRunning, out BreakPosition position)
         {
-            lock (_sync)
+            lock (SyncRoot)
             {
                 isRunning = _breaker == null;
-                programs = _programs.ToList();
                 position = _position;
-                watches = _watches.ToList();
-                callStack = _context?.CallStack;
             }
         }
 
@@ -139,56 +121,48 @@ namespace Mond.RemoteDebugger
         {
             TaskCompletionSource<MondDebugAction> breaker;
 
-            lock (_sync)
+            lock (SyncRoot)
                 breaker = _breaker;
 
             breaker?.SetResult(action);
         }
 
-        internal bool SetBreakpoint(int id, int line, bool value)
+        internal List<MondDebugInfo.Statement> SetBreakpoints(int programId, IEnumerable<(int Line, int? Column)> breakpoints)
         {
-            lock (_sync)
+            lock (SyncRoot)
             {
-                if (id < 0 || id >= _programs.Count)
-                    return false;
+                if (programId < 0 || programId >= Programs.Count)
+                    return null;
 
-                var programInfo = _programs[id];
+                var program = Programs[programId];
+                ClearBreakpoints(program);
 
-                var statements = programInfo.DebugInfo.Statements
-                    .Where(s => s.StartLineNumber == line)
-                    .ToList();
+                var statementsQuery =
+                    from bp in breakpoints
+                    from s in program.DebugInfo.Statements
+                    where s.StartLineNumber == bp.Line && (!bp.Column.HasValue || bp.Column.Value == s.StartColumnNumber)
+                    select s;
 
-                if (statements.Count == 0)
-                    return false;
-
-                if (value)
+                var statements = statementsQuery.ToList();
+                
+                foreach (var statement in statements)
                 {
-                    // set breakpoint
-                    if (programInfo.ContainsBreakpoint(line))
-                        return true;
-
-                    programInfo.AddBreakpoint(line);
-
-                    foreach (var statement in statements)
-                    {
-                        AddBreakpoint(programInfo.Program, statement.Address);
-                    }
-                }
-                else
-                {
-                    // clear breakpoint
-                    if (!programInfo.ContainsBreakpoint(line))
-                        return true;
-
-                    programInfo.RemoveBreakpoint(line);
-
-                    foreach (var statement in statements)
-                    {
-                        RemoveBreakpoint(programInfo.Program, statement.Address);
-                    }
+                    AddBreakpoint(program, statement.Address);
                 }
 
-                return true;
+                return statements;
+            }
+        }
+
+        internal List<MondDebugInfo.Statement> GetBreakpointLocations(int programId, int startLine, int startColumn, int endLine, int endColumn)
+        {
+            lock (SyncRoot)
+            {
+                if (programId < 0 || programId >= Programs.Count)
+                    return null;
+                    
+                var program = Programs[programId];
+                return program.DebugInfo.FindStatements(startLine, startColumn, endLine, endColumn).ToList();
             }
         }
 
@@ -196,7 +170,7 @@ namespace Mond.RemoteDebugger
         {
             Watch watch;
 
-            lock (_sync)
+            lock (SyncRoot)
             {
                 watch = new Watch(_watches.Count, expression);
                 _watches.Add(watch);
@@ -217,7 +191,7 @@ namespace Mond.RemoteDebugger
         {
             int removed;
 
-            lock (_sync)
+            lock (SyncRoot)
                 removed = _watches.RemoveAll(w => w.Id == id);
 
             if (removed == 0)
@@ -282,7 +256,7 @@ namespace Mond.RemoteDebugger
             // refresh all watches
             List<Watch> watches;
 
-            lock (_sync)
+            lock (SyncRoot)
                 watches = _watches.ToList();
 
             foreach (var watch in watches)
@@ -292,41 +266,38 @@ namespace Mond.RemoteDebugger
 
             // apply new state and broadcast it
             MondValue message;
-            lock (_sync)
+            lock (SyncRoot)
             {
                 var stmtValue = statement.Value;
                 var programId = FindProgramIndex(program);
 
+                var stoppedOnBreakpoint = ProgramBreakpoints.TryGetValue(program, out var breakpoints) &&
+                                          breakpoints.Contains(address);
+
                 _position = new BreakPosition(
                     programId,
+                    program.DebugInfo?.FileName,
                     stmtValue.StartLineNumber,
                     stmtValue.StartColumnNumber,
                     stmtValue.EndLineNumber,
                     stmtValue.EndColumnNumber);
 
                 message = MondValue.Object();
-                message["Type"] = "State";
-                message["Running"] = false;
-                message["Id"] = _position.Id;
-                message["StartLine"] = _position.StartLine;
-                message["StartColumn"] = _position.StartColumn;
-                message["EndLine"] = _position.EndLine;
-                message["EndColumn"] = _position.EndColumn;
-                message["Watches"] = MondValue.Array(watches.Select(Utility.JsonWatch));
-                message["CallStack"] = BuildCallStackArray(_context.CallStack);
+                message["type"] = "state";
+                message["isRunning"] = false;
+                message["stoppedOnBreakpoint"] = stoppedOnBreakpoint;
             }
 
             Broadcast(message);
         }
 
-        internal MondValue BuildCallStackArray(ReadOnlyCollection<MondDebugContext.CallStackEntry> entries)
+        internal MondValue GetStackFramesArray()
         {
+            var entries = _context.CallStack;
             var objs = new List<MondValue>(entries.Count);
 
             foreach (var entry in entries)
             {
-                VisitProgram(entry.Program);
-
                 var programId = FindProgramIndex(entry.Program);
                 objs.Add(Utility.JsonCallStackEntry(programId, entry));
             }
@@ -334,41 +305,20 @@ namespace Mond.RemoteDebugger
             return MondValue.Array(objs);
         }
 
-        internal int FindProgramIndex(MondProgram p) =>
-            _programs.FindIndex(t => ReferenceEquals(t.Program, p));
-
-        private void VisitProgram(MondProgram program)
+        internal int FindProgramIndex(MondProgram program)
         {
-            var debugInfo = program.DebugInfo;
-
-            if (IsMissingDebugInfo(debugInfo))
-                return;
-
-            int id;
-            ProgramInfo programInfo;
-
-            lock (_sync)
+            lock (SyncRoot)
             {
-                if (_seenPrograms.Contains(program))
-                    return;
-
-                _seenPrograms.Add(program);
-
-                id = _programs.Count;
-                programInfo = new ProgramInfo(program);
-
-                _programs.Add(programInfo);
+                return Programs.IndexOf(program);
             }
+        }
 
-            var message = MondValue.Object();
-            message["Type"] = "NewProgram";
-            message["Id"] = id;
-            message["FileName"] = programInfo.FileName;
-            message["SourceCode"] = debugInfo.SourceCode;
-            message["FirstLine"] = Utility.FirstLineNumber(debugInfo);
-            message["Breakpoints"] = MondValue.Array(programInfo.Breakpoints.Select(e => MondValue.Number(e)));
-
-            Broadcast(message);
+        internal int FindProgramIndex(string path)
+        {
+            lock (SyncRoot)
+            {
+                return Programs.FindIndex(p => p.DebugInfo?.FileName?.EndsWith(path) ?? false);
+            }
         }
 
         private void Broadcast(MondValue obj)

@@ -6,38 +6,24 @@ namespace Mond.Debugger
 {
     public abstract class MondDebugger
     {
-        private readonly object _sync;
+        protected readonly object SyncRoot = new();
+        protected readonly List<MondProgram> Programs;
+        protected readonly Dictionary<MondProgram, List<int>> ProgramBreakpoints;
+
         private bool _attached;
-        private Dictionary<MondProgram, List<int>> _programBreakpoints;
 
         protected MondDebugger()
         {
-            _sync = new object();
+            Programs = new List<MondProgram>();
+            ProgramBreakpoints = new Dictionary<MondProgram, List<int>>();
+
             _attached = false;
-            _programBreakpoints = new Dictionary<MondProgram, List<int>>();
         }
 
         /// <summary>
         /// Set to true when the VM should break on the next statement.
         /// </summary>
         protected bool IsBreakRequested { get; set; }
-
-        /// <summary>
-        /// Returns a list of the current breakpoints.
-        /// </summary>
-        protected IReadOnlyDictionary<MondProgram, IReadOnlyList<int>> Breakpoints
-        {
-            get
-            {
-                lock (_sync)
-                {
-                    var copy = _programBreakpoints
-                        .ToDictionary(kv => kv.Key, kv => (IReadOnlyList<int>)kv.Value);
-
-                    return new ReadOnlyDictionary<MondProgram, IReadOnlyList<int>>(copy);
-                }
-            }
-        }
 
         /// <summary>
         /// Called when the debugger is attached to a state.
@@ -49,6 +35,8 @@ namespace Mond.Debugger
         /// </summary>
         protected virtual void OnDetached() { }
 
+        protected virtual void OnProgramAdded(MondProgram program) { }
+
         /// <summary>
         /// Called when the VM breaks. This should block until an action should be taken.
         /// </summary>
@@ -58,16 +46,15 @@ namespace Mond.Debugger
         /// <summary>
         /// Adds a breakpoint to the given program.
         /// </summary>
-        /// <param name="program"></param>
-        /// <param name="address"></param>
         protected void AddBreakpoint(MondProgram program, int address)
         {
-            lock (_sync)
+            lock (SyncRoot)
             {
-                if (!_programBreakpoints.TryGetValue(program, out var breakpoints))
+                if (!ProgramBreakpoints.TryGetValue(program, out var breakpoints))
                 {
                     breakpoints = new List<int>();
-                    _programBreakpoints.Add(program, breakpoints);
+                    ProgramBreakpoints.Add(program, breakpoints);
+                    Programs.Add(program);
                 }
 
                 if (breakpoints.Contains(address))
@@ -80,16 +67,26 @@ namespace Mond.Debugger
         /// <summary>
         /// Removes a breakpoint from the given program.
         /// </summary>
-        /// <param name="program"></param>
-        /// <param name="address"></param>
         protected void RemoveBreakpoint(MondProgram program, int address)
         {
-            lock (_sync)
+            lock (SyncRoot)
             {
-                if (!_programBreakpoints.TryGetValue(program, out var breakpoints))
+                if (!ProgramBreakpoints.TryGetValue(program, out var breakpoints))
                     return;
 
                 breakpoints.Remove(address);
+            }
+        }
+
+        /// <summary>
+        /// Removes all breakpoints from the given program.
+        /// </summary>
+        protected void ClearBreakpoints(MondProgram program)
+        {
+            lock (SyncRoot)
+            {
+                if (ProgramBreakpoints.TryGetValue(program, out var breakpoints))
+                    breakpoints.Clear();
             }
         }
 
@@ -102,24 +99,29 @@ namespace Mond.Debugger
 
         internal bool ShouldBreak(MondProgram program, int address)
         {
-            lock (_sync)
+            lock (SyncRoot)
             {
+                var breakpointsFound = ProgramBreakpoints.TryGetValue(program, out var breakpoints);
+                if (!breakpointsFound)
+                {
+                    ProgramBreakpoints.Add(program, new List<int>());
+                    Programs.Add(program);
+                    OnProgramAdded(program);
+                }
+
                 if (IsBreakRequested)
                 {
                     IsBreakRequested = false;
                     return true;
                 }
 
-                if (!_programBreakpoints.TryGetValue(program, out var breakpoints))
-                    return false;
-
-                return breakpoints.Contains(address);
+                return breakpointsFound && breakpoints.Contains(address);
             }
         }
 
         internal bool TryAttach()
         {
-            lock (_sync)
+            lock (SyncRoot)
             {
                 if (_attached)
                     return false;
@@ -135,10 +137,12 @@ namespace Mond.Debugger
         {
             bool detached;
 
-            lock (_sync)
+            lock (SyncRoot)
             {
                 detached = _attached;
                 _attached = false;
+                
+                ProgramBreakpoints.Clear();
             }
 
             if (detached)
