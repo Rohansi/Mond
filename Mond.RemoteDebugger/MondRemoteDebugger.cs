@@ -129,7 +129,7 @@ namespace Mond.RemoteDebugger
             lock (SyncRoot)
             {
                 if (programId < 0 || programId >= Programs.Count)
-                    return null;
+                    return new List<MondDebugInfo.Statement>();
 
                 var program = Programs[programId];
                 ClearBreakpoints(program);
@@ -156,7 +156,7 @@ namespace Mond.RemoteDebugger
             lock (SyncRoot)
             {
                 if (programId < 0 || programId >= Programs.Count)
-                    return null;
+                    return new List<MondDebugInfo.Statement>();
                     
                 var program = Programs[programId];
                 return program.DebugInfo.FindStatements(startLine, startColumn, endLine, endColumn).ToList();

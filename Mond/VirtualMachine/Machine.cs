@@ -1131,8 +1131,11 @@ namespace Mond.VirtualMachine
             var context = new MondDebugContext(
                 _state, program, address, locals, args, _callStack, _callStackSize, initialCallDepth);
 
-            _debugAction = Debugger.Break(context, address);
+            // so eval can work
             _debugAlign = false;
+            _debugAction = MondDebugAction.Run;
+
+            _debugAction = Debugger.Break(context, address);
             _debugDepth = 0;
         }
 #endif
