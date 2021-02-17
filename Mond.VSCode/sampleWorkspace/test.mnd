@@ -1,0 +1,10 @@
+debugger;
+
+@test
+fun test(i) {
+    printLn('hello ' + i);
+}
+
+for (var i = 0; i < 100; i++) {
+    test(i);
+}

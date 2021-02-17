@@ -1,0 +1,71 @@
+// hello
+
+global
+Infinity
+NaN
+undefined
+true
+false
+
+0x012_3456789ABCDEFabc__def
+0X0123456789ABCDEFabcdef
+0x_
+
+0b101010_10_101
+0B10101010__101
+0b_
+
+123.456
+123e10
+123.456e10
+1e-1
+1e+1
+
+/* test */
+
+/* test
+   test */
+
+/*
+    /*
+        asdasd
+    */
+*/
+
+var x = 100;
+const y = 400;
+if (x > y) {
+    printLn("hello \n world");
+} else if (x == y) {
+    printLn('test \n 123');
+} else {
+
+}
+
+for (var i = 0; i < 100; i++) {
+
+}
+
+foreach (var x in y) {
+
+}
+
+switch (x) {
+    case 1:
+    case 2:
+        break;
+    default:
+        return;
+}
+
+do {
+
+} while (false);
+
+fun foo() {
+
+}
+
+seq bar() {
+    yield 1;
+}

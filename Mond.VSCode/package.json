@@ -1,0 +1,200 @@
+{
+  "name": "mond.vscode",
+  "displayName": "Mond",
+  "version": "0.0.1",
+  "publisher": "Rohansi",
+  "description": "Language support for the Mond scripting language",
+  "author": {
+    "name": "Rohans",
+    "email": "rohan-singh@hotmail.com"
+  },
+  "license": "MIT",
+  "keywords": [
+    "multi-root ready"
+  ],
+  "engines": {
+    "vscode": "^1.49.0"
+  },
+  "icon": "images/mond-icon.png",
+  "categories": [
+    "Programming Languages",
+    "Debuggers"
+  ],
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Rohansi/Mond.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Rohansi/Mond/issues"
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package-ext",
+    "compile": "tsc -p ./",
+    "lint": "eslint src --ext ts",
+    "watch": "webpack --watch --devtool nosources-source-map --info-verbosity verbose --config ./build/extension.webpack.config.js",
+    "watch2": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "package": "vsce package",
+    "publish": "vsce publish",
+    "package-ext": "webpack --mode production --config ./build/extension.webpack.config.js"
+  },
+  "dependencies": {
+    "isomorphic-ws": "^4.0.1",
+    "vscode-debugadapter": "^1.44.0",
+    "ws": "^7.4.3"
+  },
+  "devDependencies": {
+    "@types/glob": "^7.1.3",
+    "@types/mocha": "^8.0.0",
+    "@types/node": "^14.0.27",
+    "@types/vscode": "^1.49.0",
+    "@types/ws": "^7.4.0",
+    "@typescript-eslint/eslint-plugin": "^3.8.0",
+    "@typescript-eslint/parser": "^3.8.0",
+    "eslint": "^7.6.0",
+    "glob": "^7.1.6",
+    "mocha": "^8.0.1",
+    "ts-loader": "^8.0.3",
+    "typescript": "^3.8.3",
+    "vsce": "^1.81.1",
+    "vscode-debugadapter-testsupport": "^1.44.0",
+    "webpack": "^4.44.1",
+    "webpack-cli": "^3.3.12"
+  },
+  "main": "./dist/ext/extension.js",
+  "activationEvents": [
+    "onDebugDynamicConfigurations:mond",
+    "onCommand:extension.mond.getProgramName",
+    "onCommand:extension.mond.runEditorContents",
+    "onCommand:extension.mond.debugEditorContents"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "mond",
+        "aliases": [
+          "Mond",
+          "mond"
+        ],
+        "extensions": [
+          ".mnd"
+        ],
+        "configuration": "./syntaxes/language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "mond",
+        "scopeName": "source.mond",
+        "path": "./syntaxes/mond.tmLanguage.json"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "extension.mond.runEditorContents",
+          "when": "resourceLangId == mond",
+          "group": "1_run@10"
+        },
+        {
+          "command": "extension.mond.debugEditorContents",
+          "when": "resourceLangId == mond",
+          "group": "1_run@20"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "extension.mond.debugEditorContents",
+          "when": "resourceLangId == mond"
+        },
+        {
+          "command": "extension.mond.runEditorContents",
+          "when": "resourceLangId == mond"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "extension.mond.debugEditorContents",
+        "title": "Debug File",
+        "category": "Mond",
+        "enablement": "!inDebugMode",
+        "icon": "$(debug-alt)"
+      },
+      {
+        "command": "extension.mond.runEditorContents",
+        "title": "Run File",
+        "category": "Mond",
+        "enablement": "!inDebugMode",
+        "icon": "$(play)"
+      }
+    ],
+    "breakpoints": [
+      {
+        "language": "mond"
+      }
+    ],
+    "debuggers": [
+      {
+        "type": "mond",
+        "label": "Mond",
+        "program": "./out/debugAdapter.js",
+        "runtime": "node",
+        "configurationAttributes": {
+          "launch": {
+            "required": [
+              "program"
+            ],
+            "properties": {
+              "program": {
+                "type": "string",
+                "description": "Absolute path to a text file.",
+                "default": "${workspaceFolder}/${command:AskForProgramName}"
+              },
+              "stopOnEntry": {
+                "type": "boolean",
+                "description": "Automatically stop after launch.",
+                "default": true
+              },
+              "trace": {
+                "type": "boolean",
+                "description": "Enable logging of the Debug Adapter Protocol.",
+                "default": true
+              }
+            }
+          }
+        },
+        "initialConfigurations": [
+          {
+            "type": "mond",
+            "request": "launch",
+            "name": "Ask for file name",
+            "program": "${workspaceFolder}/${command:AskForProgramName}",
+            "stopOnEntry": true
+          }
+        ],
+        "configurationSnippets": [
+          {
+            "label": "Mond: Launch",
+            "description": "A new configuration for debugging a user selected Mond script.",
+            "body": {
+              "type": "mock",
+              "request": "launch",
+              "name": "Ask for file name",
+              "program": "^\"\\${workspaceFolder}/\\${command:AskForProgramName}\"",
+              "stopOnEntry": true
+            }
+          }
+        ],
+        "variables": {
+          "AskForProgramName": "extension.mond.getProgramName"
+        }
+      }
+    ]
+  },
+  "optionalDependencies": {
+    "bufferutil": "^4.0.3",
+    "utf-8-validate": "^5.0.4"
+  }
+}

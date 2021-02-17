@@ -1,0 +1,134 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "Mond",
+	"patterns": [
+		{ "include": "#comment" },
+		{ "include": "#blockComment" },
+		{ "include": "#keywords" },
+		{ "include": "#stringsDouble" },
+		{ "include": "#stringsSingle" },
+		{ "include": "#numbers" },
+		{ "include": "#builtins" },
+		{ "include": "#variables" },
+		{ "include": "#operators" }
+	],
+	"repository": {
+		"comment": {
+            "name": "comment.line.double-slash.mond",
+            "match": "//.*"
+        },
+        "blockComment": {
+            "name": "comment.block.mond",
+            "begin": "/\\*",
+            "end": "\\*/",
+            "patterns": [ { "include": "#blockComment" } ]
+        },
+		"keywords": {
+			"patterns": [
+				{
+					"name": "keyword.control.mond",
+					"match": "\\b(if|else|while|foreach|for|do|switch|case|default|return|continue|break|yield|in|debugger)\\b"
+				},
+				{
+					"name": "keyword.operator.mond",
+					"match": "\\b(!?in)\\b"
+				},
+				{
+					"name": "storage.type.mond",
+					"match": "\\b(var|const)\\b"
+				},
+				{
+					"name": "storage.type.function.mond",
+					"match": "\\b(fun|seq)\\b"
+				},
+				{
+					"name": "constant.language.mond",
+					"match": "\\b(undefined|null|true|false|NaN|Infinity)\\b"
+				},
+				{
+					"name": "variable.language.mond",
+					"match": "\\b(global)\\b"
+				}
+			]
+		},
+		"stringsDouble": {
+			"name": "string.quoted.double.mond",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [
+				{
+					"name": "constant.character.escape.mond",
+					"match": "\\\\."
+				}
+			]
+		},
+		"stringsSingle": {
+			"name": "string.quoted.single.mond",
+			"begin": "'",
+			"end": "'",
+			"patterns": [
+				{
+					"name": "constant.character.escape.mond",
+					"match": "\\\\."
+				}
+			]
+		},
+		"numbers": {
+			"patterns": [
+				{
+					"name": "constant.numeric.mond",
+					"match": "0[xX][0-9a-fA-F](_?[0-9a-fA-F])+"
+				},
+				{
+					"name": "constant.numeric.mond",
+					"match": "0[bB][0-9](_?[0-9])+"
+				},
+				{
+					"name": "constant.numeric.mond",
+					"match": "([0-9]+(\\.[0-9]+)?([eE][+-]?[0-9]+)?)"
+				}
+			]
+		},
+		"builtins": {
+			"patterns": [
+				{
+					"name": "support.function.mond",
+					"match": "\\b(require|error|try|Math|Char|Random|print|printLn|readLn|Json)\\b"
+				},
+				{
+					"name": "support.function.mond",
+					"match": "\\b(Async|Task|TaskCompletionSource|CancellationTokenSource|CancellationToken)\\b"
+				}
+			]
+		},
+		"variables": {
+			"patterns": [
+				{
+					"name": "storage.modifier.mond",
+					"match": "@[a-zA-Z_][0-9a-zA-Z_]*\\b"
+				},
+				{
+					"name": "entity.name.type.mond",
+					"match": "\\b[A-Z][0-9a-zA-Z_]*\\b"
+				},
+				{
+					"name": "entity.name.function.mond",
+					"match": "\\b([a-zA-Z_][0-9a-zA-Z_]*)(?=\\s*\\()"
+				},
+				{
+					"name": "variable.other.mond",
+					"match": "\\b([a-zA-Z_][0-9a-zA-Z_]*)\\b"
+				}
+			]
+		},
+		"operators": {
+			"patterns": [
+				{
+					"name": "keyword.operator.mond",
+					"match": "[.=+%&|^~<>!?@#$\\\\-]+"
+				}
+			]
+		}
+	},
+	"scopeName": "source.mond"
+}
