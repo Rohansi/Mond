@@ -104,6 +104,21 @@ namespace Mond.RemoteDebugger
                         break;
                     }
 
+                    case "eval":
+                    {
+                        var expression = (string)obj["expression"];
+                        var value = string.IsNullOrEmpty(expression)
+                            ? _debugger.GetLocals()
+                            : _debugger.Evaluate(expression);
+
+                        var response = MondValue.Object();
+                        response["value"] = value.ToString();
+                        response["type"] = value.Type.GetName();
+                        response["properties"] = Utility.JsonValueProperties(value);
+                        ReplyWithOk(response);
+                        break;
+                    }
+
                     default:
                     {
                         Console.WriteLine("Unhandled message type: " + obj.Type);

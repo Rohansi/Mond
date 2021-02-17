@@ -14,9 +14,8 @@ namespace Mond.RemoteDebugger
 
         private readonly Server _server;
         
-        private readonly List<Watch> _watches;
-        private SemaphoreSlim _watchSemaphore;
-        private bool _watchTimedOut;
+        private SemaphoreSlim _evalSemaphore;
+        private bool _evalTimedOut;
 
         private MondDebugContext _context;
         private TaskCompletionSource<MondDebugAction> _breaker;
@@ -25,8 +24,6 @@ namespace Mond.RemoteDebugger
         public MondRemoteDebugger(IPEndPoint endpoint)
         {
             _server = new Server(this, endpoint);
-            
-            _watches = new List<Watch>();
         }
 
         public void RequestBreak()
@@ -41,8 +38,8 @@ namespace Mond.RemoteDebugger
 
         protected override void OnAttached()
         {
-            _watchSemaphore = new SemaphoreSlim(1);
-            _watchTimedOut = false;
+            _evalSemaphore = new SemaphoreSlim(1);
+            _evalTimedOut = false;
             _breaker = null;
         }
 
@@ -60,13 +57,13 @@ namespace Mond.RemoteDebugger
 
         protected override MondDebugAction OnBreak(MondDebugContext context, int address)
         {
-            if (_watchTimedOut)
+            if (_evalTimedOut)
             {
-                _watchTimedOut = false;
+                _evalTimedOut = false;
                 throw new MondRuntimeException("Execution timed out");
             }
 
-            if (_watchSemaphore.CurrentCount == 0)
+            if (_evalSemaphore.CurrentCount == 0)
                 return MondDebugAction.Run;
 
             // if missing debug info, leave the function
@@ -166,70 +163,6 @@ namespace Mond.RemoteDebugger
             }
         }
 
-        internal void AddWatch(string expression)
-        {
-            Watch watch;
-
-            lock (SyncRoot)
-            {
-                watch = new Watch(_watches.Count, expression);
-                _watches.Add(watch);
-            }
-
-            RefreshWatch(_context, watch);
-
-            var message = MondValue.Object();
-            message["Type"] = "AddedWatch";
-            message["Id"] = watch.Id;
-            message["Expression"] = watch.Expression;
-            message["Value"] = watch.Value;
-
-            Broadcast(message);
-        }
-
-        internal void RemoveWatch(int id)
-        {
-            int removed;
-
-            lock (SyncRoot)
-                removed = _watches.RemoveAll(w => w.Id == id);
-
-            if (removed == 0)
-                return;
-
-            var message = MondValue.Object();
-            message["Type"] = "RemovedWatch";
-            message["Id"] = id;
-
-            Broadcast(message);
-        }
-
-        private void RefreshWatch(MondDebugContext context, Watch watch)
-        {
-            _watchSemaphore.Wait();
-
-            try
-            {
-                var timer = new Timer(state =>
-                {
-                    _watchTimedOut = true;
-                    IsBreakRequested = true;
-                }, null, -1, -1);
-
-                _watchTimedOut = false;
-                timer.Change(500, -1);
-
-                watch.Refresh(context);
-
-                timer.Change(-1, -1);
-                _watchTimedOut = false;
-            }
-            finally
-            {
-                _watchSemaphore.Release();
-            }
-        }
-
         private void UpdateState(MondDebugContext context, int address)
         {
             var program = context.Program;
@@ -251,17 +184,6 @@ namespace Mond.RemoteDebugger
                 {
                     statement = new MondDebugInfo.Statement(0, -1, -1, -1, -1);
                 }
-            }
-
-            // refresh all watches
-            List<Watch> watches;
-
-            lock (SyncRoot)
-                watches = _watches.ToList();
-
-            foreach (var watch in watches)
-            {
-                RefreshWatch(_context, watch);
             }
 
             // apply new state and broadcast it
@@ -303,6 +225,47 @@ namespace Mond.RemoteDebugger
             }
 
             return MondValue.Array(objs);
+        }
+
+        internal MondValue GetLocals()
+        {
+            return _context.GetLocals();
+        }
+
+        internal MondValue Evaluate(string expression)
+        {
+            try
+            {
+                _evalSemaphore.Wait();
+
+                Timer timer = null;
+                try
+                {
+                    timer = new Timer(_ =>
+                    {
+                        _evalTimedOut = true;
+                        IsBreakRequested = true;
+                    }, null, -1, -1);
+
+                    _evalTimedOut = false;
+                    timer.Change(500, -1);
+                    
+                    return _context.Evaluate(expression);
+
+                }
+                finally
+                {
+                    timer?.Change(-1, -1);
+                    _evalTimedOut = false;
+
+                    _evalSemaphore.Release();
+                }
+                
+            }
+            catch (Exception e)
+            {
+                return e.Message;
+            }
         }
 
         internal int FindProgramIndex(MondProgram program)

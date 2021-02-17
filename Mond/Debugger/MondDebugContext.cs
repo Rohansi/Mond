@@ -15,6 +15,7 @@ namespace Mond.Debugger
         private readonly Frame _locals;
         private readonly Frame _args;
 
+        private readonly Dictionary<string, (Func<MondValue> Getter, Action<MondValue> Setter)> _localAccessors;
         private readonly MondValue _localObject;
 
         public MondProgram Program { get; }
@@ -33,7 +34,28 @@ namespace Mond.Debugger
             Program = program;
             CallStack = GenerateCallStack(address, callStack, callStackTop, callStackBottom).AsReadOnly();
 
+            _localAccessors = GetLocalAccessors();
             _localObject = CreateLocalObject();
+        }
+
+        public MondValue GetLocals()
+        {
+            var result = MondValue.Object();
+            var globalDict = _state.Global.AsDictionary;
+
+            foreach (var kvp in _localAccessors)
+            {
+                var name = kvp.Key;
+                var localValue = kvp.Value.Getter();
+                var globalValue = _state[name];
+
+                if (!globalDict.ContainsKey(name) || localValue != globalValue)
+                {
+                    result[name] = localValue;
+                }
+            }
+
+            return result;
         }
 
         public MondValue Evaluate(string expression)
@@ -52,12 +74,15 @@ namespace Mond.Debugger
             var oldLocal = _state[LocalObjectName];
             _state[LocalObjectName] = _localObject;
 
-            var program = new ExpressionCompiler(options).Compile(expr);
-            var result = _state.Load(program);
-
-            _state[LocalObjectName] = oldLocal;
-
-            return result;
+            try
+            {
+                var program = new ExpressionCompiler(options).Compile(expr);
+                return _state.Load(program);
+            }
+            finally
+            {
+                _state[LocalObjectName] = oldLocal;
+            }
         }
 
         private MondValue CreateLocalObject()
@@ -72,10 +97,10 @@ namespace Mond.Debugger
 
                 var name = (string)args[1];
                 
-                if (!TryGetLocalAccessor(name, out var getter, out var setter))
+                if (!_localAccessors.TryGetValue(name, out var accessors))
                     throw new MondRuntimeException("`{0}` is not defined", name);
 
-                return getter();
+                return accessors.Getter();
             });
 
             obj["__set"] = new MondFunction((_, args) =>
@@ -86,31 +111,30 @@ namespace Mond.Debugger
                 var name = (string)args[1];
                 var value = args[2];
                 
-                if (!TryGetLocalAccessor(name, out var getter, out var setter))
+                if (!_localAccessors.TryGetValue(name, out var accessors))
                     throw new MondRuntimeException("`{0}` is not defined", name);
 
-                if (setter == null)
+                if (accessors.Setter == null)
                     throw new MondRuntimeException("`{0}` is read-only", name);
 
-                setter(value);
+                accessors.Setter(value);
                 return value;
             });
 
             return obj;
         }
 
-        private bool TryGetLocalAccessor(string name, out Func<MondValue> getter, out Action<MondValue> setter)
+        private Dictionary<string, (Func<MondValue>, Action<MondValue>)> GetLocalAccessors()
         {
-            getter = null;
-            setter = null;
+            var result = new Dictionary<string, (Func<MondValue>, Action<MondValue>)>();
 
             var debugInfo = Program.DebugInfo;
-            if (string.IsNullOrEmpty(name) || debugInfo == null || debugInfo.Scopes == null || _locals == null)
-                return false;
+            if (debugInfo?.Scopes == null || _locals == null)
+                return result;
 
             var scope = debugInfo.FindScope(_address);
             if (scope == null)
-                return false;
+                return result;
 
             var scopes = debugInfo.Scopes;
             var id = scope.Id;
@@ -123,11 +147,15 @@ namespace Mond.Debugger
 
                 foreach (var ident in identifiers)
                 {
-                    if (Program.Strings[ident.Name] != name)
+                    var name = Program.Strings[ident.Name];
+                    if (result.ContainsKey(name))
                         continue;
 
                     var frameIndex = ident.FrameIndex;
                     var localId = ident.Id;
+
+                    Func<MondValue> getter;
+                    Action<MondValue> setter;
 
                     if (ident.FrameIndex >= 0)
                     {
@@ -143,13 +171,13 @@ namespace Mond.Debugger
                     if (ident.IsReadOnly)
                         setter = null;
 
-                    return true;
+                    result.Add(name, (getter, setter));
                 }
 
                 id = scope.ParentId;
             } while (id >= 0);
 
-            return false;
+            return result;
         }
 
         private List<CallStackEntry> GenerateCallStack(int address, ReturnAddress[] callStack, int callStackTop, int callStackBottom)
@@ -221,6 +249,8 @@ namespace Mond.Debugger
 
             if (function == null)
                 function = address.ToString("X8");
+            else if (string.IsNullOrEmpty(function))
+                function = "<top level>";
 
             return new CallStackEntry(
                 program, address, fileName, function, startLineNumber, startColumnNumber, endLineNumber, endColumnNumber);
