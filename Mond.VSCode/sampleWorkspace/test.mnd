@@ -1,5 +1,3 @@
-debugger;
-
 fun test(i) {
     printLn('hello ' + i);
 }

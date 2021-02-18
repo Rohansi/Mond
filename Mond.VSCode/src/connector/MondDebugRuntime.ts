@@ -29,21 +29,18 @@ export class MondDebugRuntime extends EventEmitter {
 		super();
 	}
 
-	public async start(program: string, stopOnEntry: boolean, noDebug: boolean): Promise<void> {
-		this._noDebug = noDebug;
-
+	public async getLaunchConfig(program: string, noDebug: boolean) {
 		let mondPath: string | undefined = undefined;
 		try {
 			mondPath = await findMondAsync();
 		} catch (e) {
-			console.error('Failed to locate Mond REPL: ', e);
-			return;
+			console.error(e);
+			throw new Error(`Failed to locate Mond REPL: ${e}`);
 		}
 
 		if (!mondPath) {
 			mondPath = undefined;
-			console.log('Mond REPL not found on system - will not be able to run scripts');
-			return;
+			throw new Error('Mond REPL not found on system - will not be able to run scripts');
 		}
 
 		console.log(`Mond REPL found: ${mondPath}`);
@@ -52,16 +49,23 @@ export class MondDebugRuntime extends EventEmitter {
 
 		if (!noDebug) {
 			args.push('--debug');
-
-			if (stopOnEntry) {
-				args.push('--wait');
-			}
+			args.push('--wait'); // always wait so we can set breakpoints etc - we will resume after initialize
 		}
 
 		args.push(program);
 
-		this._repl = spawn(mondPath, args, { windowsHide: false });
-		console.log(`Spawned Mond REPL (PID=${this._repl.pid})`, mondPath, args);
+		return {
+			command: mondPath,
+			args,
+		};
+	}
+
+	public async start(program: string, noDebug: boolean): Promise<void> {
+		this._noDebug = noDebug;
+
+		const { command, args } = await this.getLaunchConfig(program, noDebug);
+		this._repl = spawn(command, args, { windowsHide: false });
+		console.log(`Spawned Mond REPL (PID=${this._repl.pid})`, command, args);
 
 		this._repl.on('error', e => {
 			console.error('Mond REPL process error: ', e);
@@ -78,14 +82,14 @@ export class MondDebugRuntime extends EventEmitter {
 			this.emit('output', data.toString());
 		});
 
-		// TODO: what if it takes too much time to load? do we need a delay/retry loop
-
 		if (!noDebug) {
-			await this.attach('ws://127.0.0.1:1597');
+			await this.attach();
 		}
 	}
 
-	public async attach(endpoint: string): Promise<void> {
+	public async attach(endpoint = 'ws://127.0.0.1:1597'): Promise<void> {
+		// TODO: what if it takes too much time to load? do we need a delay/retry loop
+
 		const socket = await connect(endpoint);
 		
 		socket.onmessage = e => {

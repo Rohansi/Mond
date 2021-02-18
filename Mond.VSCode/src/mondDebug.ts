@@ -32,8 +32,9 @@ export class MondDebugSession extends LoggingDebugSession {
 	private static threadID = 1;
 
 	private _runtime: MondDebugRuntime;
-
+	private _supportsRunInTerminal = false;
 	private _variableHandles = new StringHandles();
+	private _stopOnEntry = false;
 
 	public constructor() {
 		super();
@@ -55,7 +56,9 @@ export class MondDebugSession extends LoggingDebugSession {
 			this._variableHandles.reset();
 		});
 		this._runtime.on('stopOnEntry', () => {
-			this.sendEvent(new StoppedEvent('entry', MondDebugSession.threadID));
+			if (!this._stopOnEntry) {
+				this.sendEvent(new StoppedEvent('entry', MondDebugSession.threadID));
+			}
 		});
 		this._runtime.on('stopOnStep', () => {
 			this.sendEvent(new StoppedEvent('step', MondDebugSession.threadID));
@@ -82,7 +85,21 @@ export class MondDebugSession extends LoggingDebugSession {
 		//response.body.supportsCompletionsRequest = true;
 		//response.body.completionTriggerCharacters = [ '.', '[' ];
 
+		this._supportsRunInTerminal = !!args.supportsRunInTerminalRequest;
+
 		this.sendResponse(response);
+	}
+
+	protected configurationDoneRequest(
+		response: DebugProtocol.ConfigurationDoneResponse,
+		args: DebugProtocol.ConfigurationDoneArguments,
+		request?: DebugProtocol.Request
+	): void {
+		if (!this._stopOnEntry) {
+			this._runtime.continue();
+		}
+
+		super.configurationDoneRequest(response, args, request);
 	}
 
 	protected async launchRequest(response: DebugProtocol.LaunchResponse, args: ILaunchRequestArguments) {
@@ -90,7 +107,8 @@ export class MondDebugSession extends LoggingDebugSession {
 		logger.setup(args.trace ? Logger.LogLevel.Verbose : Logger.LogLevel.Stop, false);
 
 		// start the program in the runtime
-		await this._runtime.start(args.program, !!args.stopOnEntry, !!args.noDebug);
+		this._stopOnEntry = !!args.stopOnEntry;
+		await this._runtime.start(args.program, !!args.noDebug);
 
 		this.sendResponse(response);
 	}

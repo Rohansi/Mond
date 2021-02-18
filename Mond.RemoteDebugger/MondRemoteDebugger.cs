@@ -215,6 +215,9 @@ namespace Mond.RemoteDebugger
 
         internal MondValue GetStackFramesArray()
         {
+            if (_context == null)
+                return MondValue.Array();
+
             var entries = _context.CallStack;
             var objs = new List<MondValue>(entries.Count);
 
@@ -229,11 +232,14 @@ namespace Mond.RemoteDebugger
 
         internal MondValue GetLocals()
         {
-            return _context.GetLocals();
+            return _context?.GetLocals() ?? MondValue.Object();
         }
 
         internal MondValue Evaluate(string expression)
         {
+            if (_context == null)
+                return MondValue.Undefined;
+
             try
             {
                 _evalSemaphore.Wait();
