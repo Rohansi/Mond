@@ -1,6 +1,5 @@
 debugger;
 
-@test
 fun test(i) {
     printLn('hello ' + i);
 }

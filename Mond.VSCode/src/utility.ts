@@ -47,7 +47,7 @@ export function delay(ms: number) {
 }
 
 export function buildIndexerValue(value: string, valueType: ValueType) {
-	if (valueType == 'string') {
+	if (valueType === 'string') {
 		return quoteString(value);
 	} else {
 		return value;

@@ -1,7 +1,7 @@
 import {
 	Logger, logger,
 	LoggingDebugSession,
-	InitializedEvent, TerminatedEvent, StoppedEvent,
+	InitializedEvent, TerminatedEvent, StoppedEvent, OutputEvent,
 	Thread, StackFrame, Source, ContinuedEvent, Breakpoint, Scope,
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
@@ -62,6 +62,9 @@ export class MondDebugSession extends LoggingDebugSession {
 		});
 		this._runtime.on('stopOnBreakpoint', () => {
 			this.sendEvent(new StoppedEvent('breakpoint', MondDebugSession.threadID));
+		});
+		this._runtime.on('output', data => {
+			this.sendEvent(new OutputEvent(data, 'stdout'));
 		});
 	}
 
@@ -246,7 +249,7 @@ export class MondDebugSession extends LoggingDebugSession {
 			const result = await this._runtime.eval(expression);
 			const variables: DebugProtocol.Variable[] = result.properties.map(p => {
 				const hasChildren = isComplexType(p.valueType);
-				const subExpr = expression.length == 0 ? p.name : `(${expression})[${buildIndexerValue(p.name, p.nameType)}]`;
+				const subExpr = expression.length === 0 ? p.name : `(${expression})[${buildIndexerValue(p.name, p.nameType)}]`;
 				const name = result.type === 'array' ? `[${p.name}]` : p.name;
 
 				return {
@@ -256,7 +259,7 @@ export class MondDebugSession extends LoggingDebugSession {
 					variablesReference: hasChildren
 						? this._variableHandles.create(subExpr)
 						: 0,
-				}
+				};
 			});
 
 			response.body = { variables };

@@ -66,12 +66,17 @@ export class MondDebugRuntime extends EventEmitter {
 		this._repl.on('error', e => {
 			console.error('Mond REPL process error: ', e);
 			this._repl?.kill();
-		})
+			this.close();
+		});
 
 		this._repl.on('exit', (code, signal) => {
 			console.log(`Mond REPL terminated (PID=${this._repl?.pid}, code=${code}, signal=${signal})`);
 			this.close();
-		})
+		});
+
+		this._repl.stdout.on('data', data => {
+			this.emit('output', data.toString());
+		});
 
 		// TODO: what if it takes too much time to load? do we need a delay/retry loop
 

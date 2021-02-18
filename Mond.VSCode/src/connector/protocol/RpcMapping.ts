@@ -10,7 +10,7 @@ import type {
 
 type RequestTypeToResponseMap = {
     [key in RpcRequestType]: RpcResponse;
-}
+};
 
 export type RpcRequestType = RpcRequest['type'];
 
