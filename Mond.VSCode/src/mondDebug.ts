@@ -32,7 +32,6 @@ export class MondDebugSession extends LoggingDebugSession {
 	private static threadID = 1;
 
 	private _runtime: MondDebugRuntime;
-	private _supportsRunInTerminal = false;
 	private _variableHandles = new StringHandles();
 	private _stopOnEntry = false;
 
@@ -66,8 +65,8 @@ export class MondDebugSession extends LoggingDebugSession {
 		this._runtime.on('stopOnBreakpoint', () => {
 			this.sendEvent(new StoppedEvent('breakpoint', MondDebugSession.threadID));
 		});
-		this._runtime.on('output', data => {
-			this.sendEvent(new OutputEvent(data, 'stdout'));
+		this._runtime.on('output', (type, data) => {
+			this.sendEvent(new OutputEvent(data, type));
 		});
 	}
 
@@ -80,12 +79,6 @@ export class MondDebugSession extends LoggingDebugSession {
 		response.body.supportTerminateDebuggee = true;
 		response.body.supportsBreakpointLocationsRequest = true;
 		response.body.supportsEvaluateForHovers = true;
-
-		// make VS Code support completion in REPL
-		//response.body.supportsCompletionsRequest = true;
-		//response.body.completionTriggerCharacters = [ '.', '[' ];
-
-		this._supportsRunInTerminal = !!args.supportsRunInTerminalRequest;
 
 		this.sendResponse(response);
 	}

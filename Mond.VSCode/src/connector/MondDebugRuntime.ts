@@ -64,7 +64,7 @@ export class MondDebugRuntime extends EventEmitter {
 		this._noDebug = noDebug;
 
 		const { command, args } = await this.getLaunchConfig(program, noDebug);
-		this._repl = spawn(command, args, { windowsHide: false });
+		this._repl = spawn(command, args, { windowsHide: true });
 		console.log(`Spawned Mond REPL (PID=${this._repl.pid})`, command, args);
 
 		this._repl.on('error', e => {
@@ -79,7 +79,11 @@ export class MondDebugRuntime extends EventEmitter {
 		});
 
 		this._repl.stdout.on('data', data => {
-			this.emit('output', data.toString());
+			this.emit('output', 'stdout', data.toString());
+		});
+
+		this._repl.stderr.on('data', data => {
+			this.emit('output', 'stderr', data.toString());
 		});
 
 		if (!noDebug) {
