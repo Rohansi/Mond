@@ -44,6 +44,10 @@
     "vscode-debugadapter": "^1.44.0",
     "ws": "^7.4.3"
   },
+  "optionalDependencies": {
+    "bufferutil": "^4.0.3",
+    "utf-8-validate": "^5.0.4"
+  },
   "devDependencies": {
     "@types/glob": "^7.1.3",
     "@types/mocha": "^8.0.0",
@@ -64,8 +68,7 @@
   },
   "main": "./dist/ext/extension.js",
   "activationEvents": [
-    "onDebugDynamicConfigurations:mond",
-    "onCommand:extension.mond.getProgramName",
+    "onDebugResolve:mond",
     "onCommand:extension.mond.runEditorContents",
     "onCommand:extension.mond.debugEditorContents"
   ],
@@ -150,7 +153,7 @@
               "program": {
                 "type": "string",
                 "description": "Absolute path to a text file.",
-                "default": "${workspaceFolder}/${command:AskForProgramName}"
+                "default": "${workspaceFolder}/main.mnd"
               },
               "stopOnEntry": {
                 "type": "boolean",
@@ -163,38 +166,50 @@
                 "default": true
               }
             }
+          },
+          "attach": {
+            "required": [
+              "endpoint"
+            ],
+            "properties": {
+              "endpoint": {
+                "type": "string",
+                "description": "WebSocket endpoint the debugger is running on.",
+                "default": "ws://127.0.0.1:1597"
+              },
+              "trace": {
+                "type": "boolean",
+                "description": "Enable logging of the Debug Adapter Protocol.",
+                "default": true
+              }
+            }
           }
         },
-        "initialConfigurations": [
-          {
-            "type": "mond",
-            "request": "launch",
-            "name": "Ask for file name",
-            "program": "${workspaceFolder}/${command:AskForProgramName}",
-            "stopOnEntry": true
-          }
-        ],
+        "initialConfigurations": [],
         "configurationSnippets": [
           {
             "label": "Mond: Launch",
-            "description": "A new configuration for debugging a user selected Mond script.",
+            "description": "A new configuration for debugging a Mond script.",
             "body": {
-              "type": "mock",
+              "name": "Run Mond script",
               "request": "launch",
-              "name": "Ask for file name",
-              "program": "^\"\\${workspaceFolder}/\\${command:AskForProgramName}\"",
+              "type": "mond",
+              "program": "^\"\\${workspaceFolder}/\\${file}\"",
               "stopOnEntry": true
             }
+          },
+          {
+            "label": "Mond: Attach",
+            "description": "A new configuration for debugging a running Mond process.",
+            "body": {
+              "name": "Attach to Mond process",
+              "request": "attach",
+              "type": "mond",
+              "endpoint": "^\"ws://127.0.0.1:1597\""
+            }
           }
-        ],
-        "variables": {
-          "AskForProgramName": "extension.mond.getProgramName"
-        }
+        ]
       }
     ]
-  },
-  "optionalDependencies": {
-    "bufferutil": "^4.0.3",
-    "utf-8-validate": "^5.0.4"
   }
 }

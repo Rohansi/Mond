@@ -5,6 +5,12 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
+			"name": "Attach to Mond process",
+			"request": "attach",
+			"type": "mond",
+			"endpoint": "ws://127.0.0.1:1597"
+		},
+		{
 			"type": "mond",
 			"request": "launch",
 			"name": "Debug test.mnd",

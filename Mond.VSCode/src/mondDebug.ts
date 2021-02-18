@@ -10,12 +10,6 @@ import { MondDebugRuntime } from './connector/MondDebugRuntime';
 import { buildIndexerValue, isComplexType } from './utility';
 import { StringHandles } from './StringHandles';
 
-/**
- * This interface describes the mock-debug specific launch attributes
- * (which are not part of the Debug Adapter Protocol).
- * The schema for these attributes lives in the package.json of the mock-debug extension.
- * The interface should always match this schema.
- */
 interface ILaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
 	/** An absolute path to the 'program' to debug. */
 	program: string;
@@ -27,12 +21,20 @@ interface ILaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
 	noDebug?: boolean;
 }
 
+interface IAttachRequestArguments extends DebugProtocol.AttachRequestArguments {
+	/** WebSocket endpoint to attach to. */
+	endpoint: string;
+	/** enable logging the Debug Adapter Protocol */
+	trace?: boolean;
+}
+
 export class MondDebugSession extends LoggingDebugSession {
 	// we don't support multiple threads, so we can use a hardcoded ID for the default thread
 	private static threadID = 1;
 
 	private _runtime: MondDebugRuntime;
 	private _variableHandles = new StringHandles();
+	private _launchedScript = false;
 	private _stopOnEntry = false;
 
 	public constructor() {
@@ -55,7 +57,7 @@ export class MondDebugSession extends LoggingDebugSession {
 			this._variableHandles.reset();
 		});
 		this._runtime.on('stopOnEntry', () => {
-			if (!this._stopOnEntry) {
+			if (!this._launchedScript || !this._stopOnEntry) {
 				this.sendEvent(new StoppedEvent('entry', MondDebugSession.threadID));
 			}
 		});
@@ -88,7 +90,7 @@ export class MondDebugSession extends LoggingDebugSession {
 		args: DebugProtocol.ConfigurationDoneArguments,
 		request?: DebugProtocol.Request
 	): void {
-		if (!this._stopOnEntry) {
+		if (this._launchedScript && !this._stopOnEntry) {
 			this._runtime.continue();
 		}
 
@@ -96,24 +98,54 @@ export class MondDebugSession extends LoggingDebugSession {
 	}
 
 	protected async launchRequest(response: DebugProtocol.LaunchResponse, args: ILaunchRequestArguments) {
-		// make sure to 'Stop' the buffered logging if 'trace' is not set
-		logger.setup(args.trace ? Logger.LogLevel.Verbose : Logger.LogLevel.Stop, false);
+		try {
+			// make sure to 'Stop' the buffered logging if 'trace' is not set
+			logger.setup(args.trace ? Logger.LogLevel.Verbose : Logger.LogLevel.Stop, false);
 
-		// start the program in the runtime
-		this._stopOnEntry = !!args.stopOnEntry;
-		await this._runtime.start(args.program, !!args.noDebug);
+			// start the program in the runtime
+			this._launchedScript = true;
+			this._stopOnEntry = !!args.stopOnEntry;
+			await this._runtime.start(args.program, !!args.noDebug);
+			this.sendResponse(response);
+		} catch (e) {
+			console.error(e);
+			this.sendErrorResponse(response, 0, e.message);
+		}
+	}
 
-		this.sendResponse(response);
+	protected async attachRequest(response: DebugProtocol.AttachResponse, args: IAttachRequestArguments, request?: DebugProtocol.Request): Promise<void> {
+		try {
+			// make sure to 'Stop' the buffered logging if 'trace' is not set
+			logger.setup(args.trace ? Logger.LogLevel.Verbose : Logger.LogLevel.Stop, false);
+			
+			this._launchedScript = false;
+			this._stopOnEntry = true;
+			await this._runtime.attach(args.endpoint);
+			this.sendResponse(response);
+		} catch (e) {
+			console.error(e);
+			this.sendErrorResponse(response, 0, e.message);
+		}
 	}
 
 	protected terminateRequest(response: DebugProtocol.TerminateResponse, args: DebugProtocol.TerminateArguments, request?: DebugProtocol.Request): void {
-		this._runtime.close(true);
-		this.sendResponse(response);
+		try {
+			this._runtime.close(true);
+			this.sendResponse(response);
+		} catch (e) {
+			console.error(e);
+			this.sendErrorResponse(response, 0, e.message);
+		}
 	}
 
 	protected disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments, request?: DebugProtocol.Request): void {
-		this._runtime.close(args.terminateDebuggee);
-		this.sendResponse(response);
+		try {
+			this._runtime.close(args.terminateDebuggee);
+			this.sendResponse(response);
+		} catch (e) {
+			console.error(e);
+			this.sendErrorResponse(response, 0, e.message);
+		}
 	}
 
 	protected async setBreakPointsRequest(
@@ -137,6 +169,7 @@ export class MondDebugSession extends LoggingDebugSession {
 			};
 			this.sendResponse(response);
 		} catch (e) {
+			console.error(e);
 			this.sendErrorResponse(response, 0, e.message);
 		}
 	}
@@ -157,6 +190,7 @@ export class MondDebugSession extends LoggingDebugSession {
 				};
 				this.sendResponse(response);
 			} catch (e) {
+				console.error(e);
 				this.sendErrorResponse(response, 0, e.message);
 			}
 		} else {
@@ -189,6 +223,7 @@ export class MondDebugSession extends LoggingDebugSession {
 			};
 			this.sendResponse(response);
 		} catch (e) {
+			console.error(e);
 			this.sendErrorResponse(response, 0, e.message);
 		}
 	}
@@ -198,6 +233,7 @@ export class MondDebugSession extends LoggingDebugSession {
 			await this._runtime.continue();
 			this.sendResponse(response);
 		} catch (e) {
+			console.error(e);
 			this.sendErrorResponse(response, 0, e.message);
 		}
 	}
@@ -207,6 +243,7 @@ export class MondDebugSession extends LoggingDebugSession {
 			await this._runtime.step();
 			this.sendResponse(response);
 		} catch (e) {
+			console.error(e);
 			this.sendErrorResponse(response, 0, e.message);
 		}
 	}
@@ -216,6 +253,7 @@ export class MondDebugSession extends LoggingDebugSession {
 			await this._runtime.stepIn();
 			this.sendResponse(response);
 		} catch (e) {
+			console.error(e);
 			this.sendErrorResponse(response, 0, e.message);
 		}
 	}
@@ -225,6 +263,7 @@ export class MondDebugSession extends LoggingDebugSession {
 			await this._runtime.stepOut();
 			this.sendResponse(response);
 		} catch (e) {
+			console.error(e);
 			this.sendErrorResponse(response, 0, e.message);
 		}
 	}
@@ -243,6 +282,7 @@ export class MondDebugSession extends LoggingDebugSession {
 			};
 			this.sendResponse(response);
 		} catch (e) {
+			console.error(e);
 			this.sendErrorResponse(response, 0, e.message);
 		}
 	}
@@ -276,6 +316,7 @@ export class MondDebugSession extends LoggingDebugSession {
 			response.body = { variables };
 			this.sendResponse(response);
 		} catch (e) {
+			console.error(e);
 			this.sendErrorResponse(response, 0, e.message);
 		}
 	}

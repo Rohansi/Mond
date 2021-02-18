@@ -10,12 +10,6 @@ import type { RpcRequestTypeToResponse } from './protocol/RpcMapping';
 import type { BreakpointTarget, RpcRequest } from './protocol/RpcRequests';
 import type { BreakpointLocation, EvalResponse, RpcResponse, StackFrame } from './protocol/RpcResponses';
 
-export interface IMondBreakpoint {
-	id: number;
-	line: number;
-	verified: boolean;
-}
-
 const protocolVersion = 1;
 
 export class MondDebugRuntime extends EventEmitter {
