@@ -1,4 +1,3 @@
-
 import { platform } from 'process';
 import { exec } from 'child_process';
 import WebSocket from 'isomorphic-ws';
@@ -25,7 +24,7 @@ export function connect(endpoint: string): Promise<WebSocket> {
 }
 
 export function findMondAsync() {
-	return 'C:\\Git\\Mond\\Mond.Repl\\bin\\Debug\\net5.0\\publish\\Mond.Repl.exe';
+	//return 'C:\\Git\\Mond\\Mond.Repl\\bin\\Debug\\net5.0\\publish\\Mond.Repl.exe';
 
 	const command = platform === 'win32'
 		? 'where'
