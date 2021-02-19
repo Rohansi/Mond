@@ -1,11 +1,11 @@
-<p align="center"><img src="https://i.imgur.com/As4LMO6.png" alt="Mond Logo"/>
+<p align="center"><img src="https://i.imgur.com/As4LMO6.png" alt="Mond Logo"/></p>
 
 ### Features
 * [sequences](https://github.com/Rohansi/Mond/wiki/Sequences) that can also be used for [async/await](https://fpp.literallybrian.com/mond/#e24f0a629859b38e2c27efa8aebaf60cf2cc4aed)
 * [prototype-based inheritance](https://github.com/Rohansi/Mond/wiki/Prototypes)
 * [metamethods](https://github.com/Rohansi/Mond/wiki/Metamethods)
 * [simple embedding](https://github.com/Rohansi/Mond/wiki/Basic-Usage) with a [great binding API](https://github.com/Rohansi/Mond/wiki/Binding-API)
-* and a [useful debugger](https://github.com/Rohansi/Mond/wiki/Debugging)
+* and a [useful debugger](https://github.com/Rohansi/Mond/wiki/Debugging) that integrates with [VS Code](https://marketplace.visualstudio.com/items?itemName=Rohansi.mond-vscode)
 
 ### Trying it
 [You can try it in your browser!](https://rohbot.net/mond/) If you're interested, the backend code for that website is [available here](https://github.com/Rohansi/Mondbot).
@@ -55,6 +55,8 @@ The remote debugger is [also available on NuGet](https://www.nuget.org/packages/
 ```
 PM> Install-Package Mond.RemoteDebugger
 ```
+
+Syntax highlighting and debugging functionality is provided in Visual Studio Code with [the Mond VSCode extension](https://marketplace.visualstudio.com/items?itemName=Rohansi.mond-vscode).
 
 ### Documentation
 Please check the [wiki](https://github.com/Rohansi/Mond/wiki) for documentation.

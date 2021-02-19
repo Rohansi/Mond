@@ -10,7 +10,7 @@
     <PackageId>Mond.RemoteDebugger</PackageId>
     <PackageVersion>$(AssemblyVersion)</PackageVersion>
     <Authors>Rohans</Authors>
-    <Description>A browser-based, remote debugger for Mond scripts.</Description>
+    <Description>A remote debugger for Mond scripts.</Description>
     <PackageIconUrl>http://i.imgur.com/zbqVSaz.png</PackageIconUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/Rohansi/Mond</PackageProjectUrl>
