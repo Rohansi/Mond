@@ -42,7 +42,7 @@ namespace Mond.VirtualMachine
                 if (_callStackSize == -1)
                     throw new InvalidOperationException("No scripts are running");
 
-                return _callStack[_callStackSize - 1].Program.DebugInfo?.FileName;
+                return _callStack[_callStackSize].Program.DebugInfo?.FileName;
             }
         }
 
