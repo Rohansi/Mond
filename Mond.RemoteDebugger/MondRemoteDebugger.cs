@@ -286,7 +286,7 @@ namespace Mond.RemoteDebugger
         {
             lock (SyncRoot)
             {
-                return Programs.FindIndex(p => p.DebugInfo?.FileName?.EndsWith(path) ?? false);
+                return Programs.FindIndex(p => p.DebugInfo?.FileName?.EndsWith(path, StringComparison.InvariantCultureIgnoreCase) ?? false);
             }
         }
 
