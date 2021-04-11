@@ -41,8 +41,8 @@
   },
   "dependencies": {
     "isomorphic-ws": "^4.0.1",
-    "vscode-debugadapter": "^1.44.0",
-    "ws": "^7.4.3"
+    "vscode-debugadapter": "^1.46.0",
+    "ws": "^7.4.4"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.3",
@@ -50,21 +50,21 @@
   },
   "devDependencies": {
     "@types/glob": "^7.1.3",
-    "@types/mocha": "^8.0.0",
-    "@types/node": "^14.0.27",
+    "@types/mocha": "^8.2.2",
+    "@types/node": "^14.14.37",
     "@types/vscode": "^1.49.0",
-    "@types/ws": "^7.4.0",
-    "@typescript-eslint/eslint-plugin": "^3.8.0",
-    "@typescript-eslint/parser": "^3.8.0",
-    "eslint": "^7.6.0",
+    "@types/ws": "^7.4.1",
+    "@typescript-eslint/eslint-plugin": "^4.21.0",
+    "@typescript-eslint/parser": "^4.21.0",
+    "eslint": "^7.24.0",
     "glob": "^7.1.6",
-    "mocha": "^8.0.1",
-    "ts-loader": "^8.0.3",
-    "typescript": "^3.8.3",
-    "vsce": "^1.81.1",
-    "vscode-debugadapter-testsupport": "^1.44.0",
-    "webpack": "^4.44.1",
-    "webpack-cli": "^3.3.12"
+    "mocha": "^8.3.2",
+    "ts-loader": "^8.1.0",
+    "typescript": "^4.2.4",
+    "vsce": "^1.87.1",
+    "vscode-debugadapter-testsupport": "^1.46.0",
+    "webpack": "^5.31.2",
+    "webpack-cli": "^4.6.0"
   },
   "main": "./dist/ext/extension.js",
   "activationEvents": [

@@ -51,4 +51,4 @@ module.exports = /** @type WebpackConfig */ {
 		devtoolModuleFilenameTemplate: "../../[resource-path]"
 	},
 	devtool: 'source-map'
-}
+};
