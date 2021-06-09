@@ -42,9 +42,6 @@ export function activateMondDebug(context: vscode.ExtensionContext) {
 
 	const factory = new InlineDebugAdapterFactory();
 	context.subscriptions.push(vscode.debug.registerDebugAdapterDescriptorFactory('mond', factory));
-	if ('dispose' in factory) {
-		context.subscriptions.push(factory);
-	}
 }
 
 class MondConfigurationProvider implements vscode.DebugConfigurationProvider {
