@@ -4,6 +4,6 @@ namespace Mond.Libraries
 {
     public interface IMondLibrary
     {
-        IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions();
+        IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions(MondState state);
     }
 }

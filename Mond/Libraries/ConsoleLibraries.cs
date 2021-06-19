@@ -29,7 +29,7 @@ namespace Mond.Libraries
     {
         public IEnumerable<IMondLibrary> Create(MondState state)
         {
-            yield return new ConsoleOutputLibrary(state);
+            yield return new ConsoleOutputLibrary();
         }
     }
 
@@ -40,7 +40,7 @@ namespace Mond.Libraries
     {
         public IEnumerable<IMondLibrary> Create(MondState state)
         {
-            yield return new ConsoleInputLibrary(state);
+            yield return new ConsoleInputLibrary();
         }
     }
 
@@ -49,20 +49,16 @@ namespace Mond.Libraries
     /// </summary>
     public class ConsoleOutputLibrary : IMondLibrary
     {
-        private readonly MondState _state;
-
         public TextWriter Out { get; set; }
 
-        public ConsoleOutputLibrary(MondState state)
+        public ConsoleOutputLibrary()
         {
-            _state = state;
-
             Out = System.Console.Out;
         }
 
-        public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions()
+        public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions(MondState state)
         {
-            var consoleOutputClass = ConsoleOutputClass.Create(_state, this);
+            var consoleOutputClass = ConsoleOutputClass.Create(state, this);
 
             yield return new KeyValuePair<string, MondValue>("print", consoleOutputClass["print"]);
             yield return new KeyValuePair<string, MondValue>("printLn", consoleOutputClass["printLn"]);
@@ -74,20 +70,16 @@ namespace Mond.Libraries
     /// </summary>
     public class ConsoleInputLibrary : IMondLibrary
     {
-        private readonly MondState _state;
-
         public TextReader In { get; set; }
 
-        public ConsoleInputLibrary(MondState state)
+        public ConsoleInputLibrary()
         {
-            _state = state;
-
             In = System.Console.In;
         }
 
-        public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions()
+        public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions(MondState state)
         {
-            var consoleInputClass = ConsoleInputClass.Create(_state, this);
+            var consoleInputClass = ConsoleInputClass.Create(state, this);
 
             yield return new KeyValuePair<string, MondValue>("readLn", consoleInputClass["readLn"]);
         }

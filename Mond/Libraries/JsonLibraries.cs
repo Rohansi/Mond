@@ -11,7 +11,7 @@ namespace Mond.Libraries
     {
         public IEnumerable<IMondLibrary> Create(MondState state)
         {
-            yield return new JsonLibrary(state);
+            yield return new JsonLibrary();
         }
     }
 
@@ -20,13 +20,9 @@ namespace Mond.Libraries
     /// </summary>
     public class JsonLibrary : IMondLibrary
     {
-        private readonly MondState _state;
-
-        public JsonLibrary(MondState state) => _state = state;
-
-        public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions()
+        public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions(MondState state)
         {
-            var jsonModule = MondModuleBinder.Bind<JsonModule>(_state);
+            var jsonModule = MondModuleBinder.Bind<JsonModule>(state);
             yield return new KeyValuePair<string, MondValue>("Json", jsonModule);
         }
     }

@@ -15,12 +15,12 @@ namespace Mond.Libraries
     {
         public IEnumerable<IMondLibrary> Create(MondState state)
         {
-            yield return new ErrorLibrary(state);
-            yield return new RequireLibrary(state);
-            yield return new CharLibrary(state);
-            yield return new MathLibrary(state);
-            yield return new RandomLibrary(state);
-            yield return new OperatorLibrary(state);
+            yield return new ErrorLibrary();
+            yield return new RequireLibrary();
+            yield return new CharLibrary();
+            yield return new MathLibrary();
+            yield return new RandomLibrary();
+            yield return new OperatorLibrary();
         }
     }
 
@@ -29,13 +29,9 @@ namespace Mond.Libraries
     /// </summary>
     public class ErrorLibrary : IMondLibrary
     {
-        private readonly MondState _state;
-
-        public ErrorLibrary(MondState state) => _state = state;
-
-        public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions()
+        public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions(MondState state)
         {
-            var errorModule = MondModuleBinder.Bind<ErrorModule>(_state);
+            var errorModule = MondModuleBinder.Bind<ErrorModule>(state);
             yield return new KeyValuePair<string, MondValue>("error", errorModule["error"]);
             yield return new KeyValuePair<string, MondValue>("try", errorModule["try"]);
         }
@@ -48,9 +44,7 @@ namespace Mond.Libraries
     {
         public delegate string ModuleResolver(string name, IEnumerable<string> searchDirectories);
         public delegate string ModuleLoader(string resolvedName);
-
-        private readonly MondState _state;
-
+        
         /// <summary>
         /// The options to use when compiling modules. <c>FirstLineNumber</c> will be set to its proper value.
         /// </summary>
@@ -83,10 +77,8 @@ namespace Mond.Libraries
         /// </summary>
         public ModuleLoader Loader { get; set; }
 
-        public RequireLibrary(MondState state)
+        public RequireLibrary()
         {
-            _state = state;
-
             Definitions = "\n";
             SearchDirectories = new[] { "." };
             SearchBesideScript = true;
@@ -107,9 +99,9 @@ namespace Mond.Libraries
             Loader = File.ReadAllText;
         } 
 
-        public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions()
+        public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions(MondState state)
         {
-            var requireClass = RequireClass.Create(_state, this);
+            var requireClass = RequireClass.Create(state, this);
             yield return new KeyValuePair<string, MondValue>("require", requireClass["require"]);
         }
     }
@@ -119,13 +111,9 @@ namespace Mond.Libraries
     /// </summary>
     public class CharLibrary : IMondLibrary
     {
-        private readonly MondState _state;
-
-        public CharLibrary(MondState state) => _state = state;
-
-        public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions()
+        public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions(MondState state)
         {
-            var charModule = MondModuleBinder.Bind<CharModule>(_state);
+            var charModule = MondModuleBinder.Bind<CharModule>(state);
             yield return new KeyValuePair<string, MondValue>("Char", charModule);
         }
     }
@@ -135,13 +123,9 @@ namespace Mond.Libraries
     /// </summary>
     public class MathLibrary : IMondLibrary
     {
-        private readonly MondState _state;
-
-        public MathLibrary(MondState state) => _state = state;
-
-        public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions()
+        public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions(MondState state)
         {
-            var mathModule = MondModuleBinder.Bind<MathModule>(_state);
+            var mathModule = MondModuleBinder.Bind<MathModule>(state);
 
             mathModule["PI"] = System.Math.PI;
             mathModule["E"] = System.Math.E;
@@ -155,13 +139,9 @@ namespace Mond.Libraries
     /// </summary>
     public class OperatorLibrary : IMondLibrary
     {
-        private readonly MondState _state;
-
-        public OperatorLibrary(MondState state) => _state = state;
-
-        public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions()
+        public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions(MondState state)
         {
-            var operatorModule = MondModuleBinder.Bind<OperatorModule>(_state);
+            var operatorModule = MondModuleBinder.Bind<OperatorModule>(state);
             foreach (var pair in operatorModule.AsDictionary)
                 yield return new KeyValuePair<string, MondValue>(pair.Key, pair.Value);
         }
@@ -172,13 +152,9 @@ namespace Mond.Libraries
     /// </summary>
     public class RandomLibrary : IMondLibrary
     {
-        private readonly MondState _state;
-
-        public RandomLibrary(MondState state) => _state = state;
-
-        public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions()
+        public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions(MondState state)
         {
-            var randomClass = MondClassBinder.Bind<RandomClass>(_state);
+            var randomClass = MondClassBinder.Bind<RandomClass>(state);
             yield return new KeyValuePair<string, MondValue>("Random", randomClass);
         }
     }

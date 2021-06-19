@@ -70,7 +70,7 @@ namespace Mond.Libraries
 
             var definitions = libraries
                 .Distinct(new MondLibraryEqualityComparer())
-                .SelectMany(l => l.GetDefinitions());
+                .SelectMany(l => l.GetDefinitions(state));
 
             // copy definitions into state
             foreach (var definition in definitions)
@@ -144,6 +144,17 @@ namespace Mond.Libraries
             _factories.Add(item);
         }
 
+        public void Add(IMondLibrary item)
+        {
+            if (item == null)
+                throw new ArgumentNullException(nameof(item));
+
+            if (_locked)
+                throw new InvalidOperationException(LockedError);
+
+            _factories.Add(new SingleLibraryCollection(item));
+        }
+
         public IEnumerator<IMondLibraryCollection> GetEnumerator()
         {
             return _factories.GetEnumerator();
@@ -164,6 +175,24 @@ namespace Mond.Libraries
             public int GetHashCode(IMondLibrary obj)
             {
                 return obj.GetType().GetHashCode();
+            }
+        }
+
+        class SingleLibraryCollection : IMondLibraryCollection
+        {
+            private readonly IMondLibrary _library;
+
+            public SingleLibraryCollection(IMondLibrary library)
+            {
+                if (library == null)
+                    throw new ArgumentNullException(nameof(library));
+
+                _library = library;
+            }
+
+            public IEnumerable<IMondLibrary> Create(MondState state)
+            {
+                yield return _library;
             }
         }
     }

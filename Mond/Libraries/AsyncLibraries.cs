@@ -15,7 +15,7 @@ namespace Mond.Libraries
     {
         public IEnumerable<IMondLibrary> Create(MondState state)
         {
-            yield return new AsyncLibrary(state);
+            yield return new AsyncLibrary();
         }
     }
 
@@ -25,25 +25,21 @@ namespace Mond.Libraries
     /// </summary>
     public class AsyncLibrary : IMondLibrary
     {
-        private readonly MondState _state;
-
-        public AsyncLibrary(MondState state) => _state = state;
-
-        public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions()
+        public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions(MondState state)
         {
-            var asyncClass = AsyncClass.Create(_state);
+            var asyncClass = AsyncClass.Create(state);
             yield return new KeyValuePair<string, MondValue>("Async", asyncClass);
 
-            var taskModule = MondModuleBinder.Bind<TaskModule>(_state);
+            var taskModule = MondModuleBinder.Bind<TaskModule>(state);
             yield return new KeyValuePair<string, MondValue>("Task", taskModule);
 
-            var tcsClass = MondClassBinder.Bind<TaskCompletionSourceClass>(_state);
+            var tcsClass = MondClassBinder.Bind<TaskCompletionSourceClass>(state);
             yield return new KeyValuePair<string, MondValue>("TaskCompletionSource", tcsClass);
 
-            var ctsClass = MondClassBinder.Bind<CancellationTokenSourceClass>(_state);
+            var ctsClass = MondClassBinder.Bind<CancellationTokenSourceClass>(state);
             yield return new KeyValuePair<string, MondValue>("CancellationTokenSource", ctsClass);
 
-            var ctClass = MondClassBinder.Bind<CancellationTokenClass>(_state);
+            var ctClass = MondClassBinder.Bind<CancellationTokenClass>(state);
             yield return new KeyValuePair<string, MondValue>("CancellationToken", ctClass);
         }
     }
