@@ -81,7 +81,7 @@ namespace Mond.Libraries.Core
                 var moduleSource = _require.Loader(resovledName);
 
                 // wrap the module script in a function so we can pass out exports object to it
-                var source = _require.Definitions + "return fun (exports) {\n" + moduleSource + " return exports; };";
+                var source = _require.Definitions + "return fun (exports) {\n" + moduleSource + "\n return exports; };";
 
                 var options = new MondCompilerOptions
                 {
