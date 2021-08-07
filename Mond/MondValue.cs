@@ -213,7 +213,7 @@ namespace Mond
                 }
 
                 var i = 0;
-                ref var prototype = ref GetPrototypeReadOnly();
+                ref readonly var prototype = ref GetPrototypeReadOnly();
 
                 while (prototype.Type == MondValueType.Object)
                 {
@@ -262,7 +262,7 @@ namespace Mond
                 }
 
                 var i = 0;
-                ref var prototype = ref GetPrototypeReadOnly();
+                ref readonly var prototype = ref GetPrototypeReadOnly();
 
                 while (prototype.Type == MondValueType.Object)
                 {
@@ -324,7 +324,7 @@ namespace Mond
             }
         }
 
-        private ref MondValue GetPrototypeReadOnly()
+        private ref readonly MondValue GetPrototypeReadOnly()
         {
             switch (Type)
             {
@@ -440,8 +440,9 @@ namespace Mond
 
             if (Type == MondValueType.Array)
                 return ArrayValue.Contains(search);
-
-            throw new MondRuntimeException(RuntimeError.CantUseOperatorOnTypes, "in", Type.GetName(), search.Type.GetName());
+                
+            ThrowCantUseOperatorOnTypes("in", Type, search.Type);
+            return false; // impossible
         }
 
         private static T[] SliceImpl<T>(IList<T> values, MondValue? start, MondValue? end, MondValue? step)
