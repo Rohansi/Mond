@@ -318,7 +318,7 @@ namespace Mond
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public static MondValue RShiftSlow(in MondValue left, int right)
+        private static MondValue RShiftSlow(in MondValue left, int right)
         {
             if (left.Type == MondValueType.Object)
             {
