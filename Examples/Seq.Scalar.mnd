@@ -13,7 +13,7 @@ const Seq = {
             if (source.getType) {
                 var type = source.getType();
 
-                if (type == "array" || type == "object" || type == "string")
+                if (type == "array" || type == "string")
                     return source.length();
             }
 
