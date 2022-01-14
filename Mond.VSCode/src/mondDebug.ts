@@ -107,7 +107,7 @@ export class MondDebugSession extends LoggingDebugSession {
 			this._stopOnEntry = !!args.stopOnEntry;
 			await this._runtime.start(args.program, !!args.noDebug);
 			this.sendResponse(response);
-		} catch (e) {
+		} catch (e: any) {
 			console.error(e);
 			this.sendErrorResponse(response, 0, e.message);
 		}
@@ -122,7 +122,7 @@ export class MondDebugSession extends LoggingDebugSession {
 			this._stopOnEntry = true;
 			await this._runtime.attach(args.endpoint);
 			this.sendResponse(response);
-		} catch (e) {
+		} catch (e: any) {
 			console.error(e);
 			this.sendErrorResponse(response, 0, e.message);
 		}
@@ -132,7 +132,7 @@ export class MondDebugSession extends LoggingDebugSession {
 		try {
 			this._runtime.close(true);
 			this.sendResponse(response);
-		} catch (e) {
+		} catch (e: any) {
 			console.error(e);
 			this.sendErrorResponse(response, 0, e.message);
 		}
@@ -142,7 +142,7 @@ export class MondDebugSession extends LoggingDebugSession {
 		try {
 			this._runtime.close(args.terminateDebuggee);
 			this.sendResponse(response);
-		} catch (e) {
+		} catch (e: any) {
 			console.error(e);
 			this.sendErrorResponse(response, 0, e.message);
 		}
@@ -168,7 +168,7 @@ export class MondDebugSession extends LoggingDebugSession {
 				breakpoints: breakpointResponses,
 			};
 			this.sendResponse(response);
-		} catch (e) {
+		} catch (e: any) {
 			console.error(e);
 			this.sendErrorResponse(response, 0, e.message);
 		}
@@ -189,7 +189,7 @@ export class MondDebugSession extends LoggingDebugSession {
 					breakpoints: locations,
 				};
 				this.sendResponse(response);
-			} catch (e) {
+			} catch (e: any) {
 				console.error(e);
 				this.sendErrorResponse(response, 0, e.message);
 			}
@@ -222,7 +222,7 @@ export class MondDebugSession extends LoggingDebugSession {
 				totalFrames: stack.length,
 			};
 			this.sendResponse(response);
-		} catch (e) {
+		} catch (e: any) {
 			console.error(e);
 			this.sendErrorResponse(response, 0, e.message);
 		}
@@ -232,7 +232,7 @@ export class MondDebugSession extends LoggingDebugSession {
 		try {
 			await this._runtime.continue();
 			this.sendResponse(response);
-		} catch (e) {
+		} catch (e: any) {
 			console.error(e);
 			this.sendErrorResponse(response, 0, e.message);
 		}
@@ -242,7 +242,7 @@ export class MondDebugSession extends LoggingDebugSession {
 		try {
 			await this._runtime.step();
 			this.sendResponse(response);
-		} catch (e) {
+		} catch (e: any) {
 			console.error(e);
 			this.sendErrorResponse(response, 0, e.message);
 		}
@@ -252,7 +252,7 @@ export class MondDebugSession extends LoggingDebugSession {
 		try {
 			await this._runtime.stepIn();
 			this.sendResponse(response);
-		} catch (e) {
+		} catch (e: any) {
 			console.error(e);
 			this.sendErrorResponse(response, 0, e.message);
 		}
@@ -262,7 +262,7 @@ export class MondDebugSession extends LoggingDebugSession {
 		try {
 			await this._runtime.stepOut();
 			this.sendResponse(response);
-		} catch (e) {
+		} catch (e: any) {
 			console.error(e);
 			this.sendErrorResponse(response, 0, e.message);
 		}
@@ -281,7 +281,7 @@ export class MondDebugSession extends LoggingDebugSession {
 					: 0,
 			};
 			this.sendResponse(response);
-		} catch (e) {
+		} catch (e: any) {
 			console.error(e);
 			this.sendErrorResponse(response, 0, e.message);
 		}
@@ -315,7 +315,7 @@ export class MondDebugSession extends LoggingDebugSession {
 
 			response.body = { variables };
 			this.sendResponse(response);
-		} catch (e) {
+		} catch (e: any) {
 			console.error(e);
 			this.sendErrorResponse(response, 0, e.message);
 		}
