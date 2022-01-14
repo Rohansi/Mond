@@ -3,7 +3,7 @@ import { EventEmitter } from 'events';
 import WebSocket from 'isomorphic-ws';
 import { PendingCall } from './PendingCall';
 import { RpcError } from './RpcError';
-import { connect, findMondAsync } from '../utility';
+import { connect, delay, findMondAsync } from '../utility';
 
 import type { DebuggerState } from './protocol/DebuggerState';
 import type { RpcRequestTypeToResponse } from './protocol/RpcMapping';
@@ -81,13 +81,20 @@ export class MondDebugRuntime extends EventEmitter {
 		});
 
 		if (!noDebug) {
+			for (let i = 0; i < 9; i++) {
+				try {
+					await this.attach();
+					return;
+				} catch {
+					await delay(1000);
+				}
+			}
+
 			await this.attach();
 		}
 	}
 
 	public async attach(endpoint = 'ws://127.0.0.1:1597'): Promise<void> {
-		// TODO: what if it takes too much time to load? do we need a delay/retry loop
-
 		const socket = await connect(endpoint);
 		
 		socket.onmessage = e => {
