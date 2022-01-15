@@ -57,7 +57,7 @@ export class MondDebugSession extends LoggingDebugSession {
 			this._variableHandles.reset();
 		});
 		this._runtime.on('stopOnEntry', () => {
-			if (!this._launchedScript || !this._stopOnEntry) {
+			if (!this._launchedScript || this._stopOnEntry) {
 				this.sendEvent(new StoppedEvent('entry', MondDebugSession.threadID));
 			}
 		});
