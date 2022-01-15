@@ -6,6 +6,7 @@ import {
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { basename } from 'path';
+import { find } from 'lodash-es';
 import { MondDebugRuntime } from './connector/MondDebugRuntime';
 import { buildIndexerValue, isComplexType } from './utility';
 import { StringHandles } from './StringHandles';
@@ -158,13 +159,17 @@ export class MondDebugSession extends LoggingDebugSession {
 			const path = this.convertClientPathToDebugger(args.source.path as string);
 
 			const breakpointRequests = args.breakpoints?.map(b => ({ line: b.line, column: b.column }))
-				?? args.lines?.map(l => ({ line: l }))
+				?? args.lines?.map(l => ({ line: l, column: undefined }))
 				?? [];
 
 			const [programId, createdBreakpoints] = await this._runtime.setBreakpoints(path, breakpointRequests);
+			const source = this.createSource(programId, path);
 
-			const breakpointResponses = createdBreakpoints
-				.map(b => new Breakpoint(true, b.line, b.column, this.createSource(programId, path)));
+			const breakpointResponses: Breakpoint[] = [];
+			for (const req of breakpointRequests) {
+				const valid = !!find(createdBreakpoints, bp => bp.line === req.line && bp.column === req.column);
+				breakpointResponses.push(new Breakpoint(valid, req.line, req.column, source));
+			}
 
 			response.body = {
 				breakpoints: breakpointResponses,
