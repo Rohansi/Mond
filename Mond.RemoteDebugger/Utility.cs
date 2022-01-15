@@ -18,9 +18,9 @@ namespace Mond.RemoteDebugger
             var obj = MondValue.Object();
             obj["address"] = statement.Address;
             obj["line"] = statement.StartLineNumber;
-            obj["column"] = statement.StartColumnNumber;
-            obj["endLine"] = statement.EndLineNumber;
-            obj["endColumn"] = statement.EndColumnNumber;
+            obj["column"] = statement.StartColumnNumber != int.MinValue ? statement.StartColumnNumber : MondValue.Undefined;
+            obj["endLine"] = statement.EndLineNumber != int.MinValue ? statement.EndLineNumber : MondValue.Undefined;
+            obj["endColumn"] = statement.EndColumnNumber != int.MinValue ? statement.EndColumnNumber : MondValue.Undefined;
             return obj;
         }
 

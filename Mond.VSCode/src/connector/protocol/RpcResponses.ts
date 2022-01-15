@@ -30,9 +30,9 @@ export interface GetBreakpointLocationsResponse extends RpcSuccess {
 export interface BreakpointLocation {
     readonly address: number;
     readonly line: number;
-    readonly column: number;
-    readonly endLine: number;
-    readonly endColumn: number;
+    readonly column?: number;
+    readonly endLine?: number;
+    readonly endColumn?: number;
 }
 
 export interface StackTraceResponse extends RpcSuccess {

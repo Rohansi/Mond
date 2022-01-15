@@ -124,7 +124,7 @@ namespace Mond.RemoteDebugger
             breaker?.SetResult(action);
         }
 
-        internal List<MondDebugInfo.Statement> SetBreakpoints(int programId, IEnumerable<(int Line, int? Column)> breakpoints)
+        internal List<MondDebugInfo.Statement> SetBreakpoints(int programId, List<(int Line, int? Column)> breakpoints)
         {
             lock (SyncRoot)
             {
@@ -134,13 +134,16 @@ namespace Mond.RemoteDebugger
                 var program = Programs[programId];
                 ClearBreakpoints(program);
 
-                var statementsQuery =
-                    from bp in breakpoints
-                    from s in program.DebugInfo.Statements
-                    where s.StartLineNumber == bp.Line && (!bp.Column.HasValue || bp.Column.Value == s.StartColumnNumber)
-                    select s;
+                var linesQuery = breakpoints
+                    .Where(bp => bp.Column == null)
+                    .SelectMany(bp => program.DebugInfo.Lines.Where(l => l.LineNumber == bp.Line).OrderBy(l => l.Address).Take(1))
+                    .Select(l => new MondDebugInfo.Statement(l.Address, l.LineNumber, int.MinValue, int.MinValue, int.MinValue));
 
-                var statements = statementsQuery.ToList();
+                var statementsQuery = breakpoints
+                    .Where(bp => bp.Column != null)
+                    .SelectMany(bp => program.DebugInfo.Statements.Where(s => s.StartLineNumber == bp.Line && s.StartColumnNumber == bp.Column).Take(1));
+
+                var statements = linesQuery.Concat(statementsQuery).ToList();
                 
                 foreach (var statement in statements)
                 {

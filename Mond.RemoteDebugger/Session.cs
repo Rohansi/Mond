@@ -76,7 +76,9 @@ namespace Mond.RemoteDebugger
                     {
                         var programId = GetProgramId();
                         var breakpoints = obj["breakpoints"].AsList
-                            .Select(o => (Line: (int)o["line"], Column: o.GetInt("column")));
+                            .Select(o => (Line: (int)o["line"], Column: o.GetInt("column")))
+                            .Distinct()
+                            .ToList();
 
                         var breakpointStatements = _debugger.SetBreakpoints(programId, breakpoints);
 
