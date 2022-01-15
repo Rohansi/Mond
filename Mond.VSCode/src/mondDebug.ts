@@ -81,7 +81,9 @@ export class MondDebugSession extends LoggingDebugSession {
 		response.body.supportTerminateDebuggee = true;
 		response.body.supportsBreakpointLocationsRequest = true;
 		response.body.supportsEvaluateForHovers = true;
-
+		response.body.supportsConditionalBreakpoints = false;
+		response.body.supportsLogPoints = false;
+		
 		this.sendResponse(response);
 	}
 
