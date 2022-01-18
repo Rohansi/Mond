@@ -19,22 +19,45 @@ namespace Mond.Compiler.Parselets.Statements
                 exprs.Add(parser.ParseExpression());
 
             var stmt = parser.ParseStatement(trailingSemicolon);
-            if (!(stmt is FunctionExpression) && !(stmt is SequenceExpression))
-                throw new MondCompilerException(stmt, CompilerError.DecoratorOnlyOnFuncs);
 
-            var name = GetName(stmt);
-            stmt = MakeAnonymous(stmt);
-            
-            var decorator = MakeCallable(exprs.First(), stmt);
-            foreach (var expr in exprs.Skip(1))
-                decorator = MakeCallable(expr, decorator);
-
-            var decls = new List<VarExpression.Declaration>
+            if (stmt is VarExpression varExpr)
             {
-                new VarExpression.Declaration(name, decorator)
-            };
+                if (varExpr.Declarations.Count != 1)
+                    throw new MondCompilerException(stmt, CompilerError.DecoratorCantApplyMultiple);
 
-            return new VarExpression(token, decls, true);
+                var decl = varExpr.Declarations[0];
+                stmt = decl.Initializer;
+
+                var decorator = MakeCallable(exprs.First(), stmt);
+                foreach (var expr in exprs.Skip(1))
+                    decorator = MakeCallable(expr, decorator);
+
+                var decls = new List<VarExpression.Declaration>
+                {
+                    new VarExpression.Declaration(decl.Name, decorator),
+                };
+
+                return new VarExpression(token, decls, varExpr.IsReadOnly);
+            }
+            else
+            {
+                if (stmt is not FunctionExpression && stmt is not SequenceExpression)
+                    throw new MondCompilerException(stmt, CompilerError.DecoratorOnlyOnDeclarations);
+
+                var name = GetName(stmt);
+                stmt = MakeAnonymous(stmt);
+
+                var decorator = MakeCallable(exprs.First(), stmt);
+                foreach (var expr in exprs.Skip(1))
+                    decorator = MakeCallable(expr, decorator);
+
+                var decls = new List<VarExpression.Declaration>
+                {
+                    new VarExpression.Declaration(name, decorator),
+                };
+
+                return new VarExpression(token, decls, true);
+            }
         }
 
         private static Expression MakeAnonymous(Expression stmt)

@@ -1,0 +1,46 @@
+fun class(declaration) {
+    if (declaration.getType() != 'object') {
+        error('class: declaration must be an object');
+    }
+
+    const constructor = declaration['constructor'];
+    if (constructor && constructor.getType() != 'function') {
+        error('class: constructor must be a function');
+    }
+    declaration.remove('constructor');
+
+    return (...ctorArgs) -> {
+        const instance = {
+            __get: (self, key) -> {
+                const value = declaration[key];
+                if (value.getType() == 'function') {
+                    const wrapper = (...args) -> value(instance, ...args);
+                    instance[key] = wrapper; // cache it
+                    return wrapper;
+                }
+                return value;
+            },
+        };
+
+        if (constructor) {
+            constructor(instance, ...ctorArgs);
+        }
+
+        return instance;
+    };
+}
+
+@class
+const Person = {
+    constructor: (self, name) -> {
+        self.name = name;
+    },
+    greet: (self) -> {
+        printLn('hello {0}!'.format(self.name));
+    }
+};
+
+const rohan = Person('rohan');
+const brian = Person('brian');
+rohan.greet();
+brian.greet();
