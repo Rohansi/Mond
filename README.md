@@ -63,6 +63,4 @@ Please check the [wiki](https://github.com/Rohansi/Mond/wiki) for documentation.
 
 
 ### Build Status
-| .NET | Mono |
-|------|------|
-| [![Build status](https://ci.appveyor.com/api/projects/status/di5tqqt73bu6aire)](https://ci.appveyor.com/project/Rohansi/mond) | [![Build Status](https://travis-ci.org/Rohansi/Mond.svg?branch=master)](https://travis-ci.org/Rohansi/Mond)
+[![Build status](https://ci.appveyor.com/api/projects/status/di5tqqt73bu6aire)](https://ci.appveyor.com/project/Rohansi/mond)
