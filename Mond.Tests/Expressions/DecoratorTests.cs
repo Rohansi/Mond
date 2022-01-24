@@ -6,6 +6,19 @@ namespace Mond.Tests.Expressions
     public class DecoratorTests
     {
         [Test]
+        public void Decorator_ParsesTrailingSemicolon()
+        {
+            Assert.Throws<MondCompilerException>(() => Script.Run(@"
+                fun identity(x) -> x;
+
+                @identity
+                fun add(x, y) -> x + y
+
+                return add(2, 2);
+            "));
+        }
+
+        [Test]
         public void FunctionDecorator()
         {
             var result = Script.Run(@"

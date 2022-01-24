@@ -100,11 +100,10 @@ namespace Mond.Compiler
 
         public void Print()
         {
-            if (Type >= InstructionType.DebugInfo)
-                return;
-
             if (Type == InstructionType.Label)
                 Console.ForegroundColor = ConsoleColor.DarkGreen;
+            else if (Type >= InstructionType.DebugInfo)
+                Console.ForegroundColor = ConsoleColor.DarkYellow;
 
             Console.Write("{0:X4} {1,-15} ", Offset, Type.ToString().ToLower());
 

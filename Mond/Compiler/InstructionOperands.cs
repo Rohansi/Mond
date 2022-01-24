@@ -226,7 +226,11 @@ namespace Mond.Compiler
             Id = id;
         }
 
-        public virtual void Print() => throw new NotSupportedException();
+        public virtual void Print()
+        {
+            var desc = $"{FrameIndex}:{Id}={Name.Value}[{(IsReadOnly ? "r" : "rw")}]";
+            Console.Write("{0,-30} (dbgident)", desc);
+        }
 
         public int Length => 0;
 

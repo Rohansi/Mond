@@ -18,7 +18,7 @@ namespace Mond.Compiler.Parselets.Statements
             while (parser.MatchAndTake(TokenType.Decorator))
                 exprs.Add(parser.ParseExpression());
 
-            var stmt = parser.ParseStatement(trailingSemicolon);
+            var stmt = parser.ParseStatement();
 
             if (stmt is VarExpression varExpr)
             {
