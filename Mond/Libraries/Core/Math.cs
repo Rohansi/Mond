@@ -25,6 +25,14 @@ namespace Mond.Libraries.Core
         public static double Ceiling(double d) => Math.Ceiling(d);
 
         [MondFunction]
+        public static double Clamp(double value, double min, double max)
+        {
+            if (value < min) return min;
+            if (value > max) return max;
+            return value;
+        }
+
+        [MondFunction]
         public static double Cos(double d) => Math.Cos(d);
 
         [MondFunction]
@@ -40,10 +48,19 @@ namespace Mond.Libraries.Core
         public static double Log(double d) => Math.Log(d);
 
         [MondFunction]
+        public static double Log(double d, double b) => Math.Log(d, b);
+
+        [MondFunction]
+        public static double Log10(double d) => Math.Log10(d);
+
+        [MondFunction]
         public static double Max(double x, double y) => Math.Max(x, y);
 
         [MondFunction]
         public static double Min(double x, double y) => Math.Min(x, y);
+
+        [MondFunction]
+        public static double Pow(double x, double y) => Math.Pow(x, y);
 
         [MondFunction]
         public static double Round(double d) => Math.Round(d);

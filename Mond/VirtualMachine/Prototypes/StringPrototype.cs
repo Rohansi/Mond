@@ -188,6 +188,15 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
+        /// normalize(): string
+        /// </summary>
+        [MondFunction]
+        public static string Normalize([MondInstance] MondValue instance)
+        {
+            return ((string)instance).Normalize();
+        }
+
+        /// <summary>
         /// format(): string
         /// </summary>
         [MondFunction]
