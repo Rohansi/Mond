@@ -20,15 +20,37 @@ namespace Mond.Compiler.Expressions
 
         public override int Compile(FunctionContext context)
         {
-            var stack = Arguments.Sum(argument => argument.Compile(context));
+            if (Method is FieldExpression field)
+            {
+                var methodIdent = context.DefineInternal("method", true);
 
-            stack += Method.Compile(context);
+                // compile as a 'this' call using uniform function call syntax: o.f(a, b) is equivalent to f(o, a, b)
+                var stack = field.CompilePreLoadStore(context, 2); // o, o]
+                stack += field.CompileLoad(context); // o, f]
+                stack += context.Store(methodIdent); // o]
+                
+                stack += Arguments.Sum(argument => argument.Compile(context)); // f, o, a, b]
 
-            context.Position(Token); // debug info
-            stack += context.Call(Arguments.Count, GetUnpackIndices());
+                stack += context.Load(methodIdent);
 
-            CheckStack(stack, 1);
-            return stack;
+                context.Position(Token); // debug info
+                stack += context.Call(Arguments.Count + 1, GetUnpackIndices(1));
+
+                CheckStack(stack, 1);
+                return stack;
+            }
+            else
+            {
+                var stack = Arguments.Sum(argument => argument.Compile(context));
+
+                stack += Method.Compile(context);
+
+                context.Position(Token); // debug info
+                stack += context.Call(Arguments.Count, GetUnpackIndices(0));
+
+                CheckStack(stack, 1);
+                return stack;
+            }
         }
 
         public int CompileTailCall(FunctionContext context)
@@ -36,16 +58,16 @@ namespace Mond.Compiler.Expressions
             var stack = Arguments.Sum(argument => argument.Compile(context));
 
             context.Position(Token); // debug info
-            stack += context.TailCall(Arguments.Count, context.Label, GetUnpackIndices());
+            stack += context.TailCall(Arguments.Count, context.Label, GetUnpackIndices(0));
 
             CheckStack(stack, 0);
             return stack;
         }
 
-        private List<ImmediateOperand> GetUnpackIndices()
+        private List<ImmediateOperand> GetUnpackIndices(int offset)
         {
             var unpackIndices = Arguments
-                .Select((e, i) => new { Expression = e, Index = i })
+                .Select((e, i) => new { Expression = e, Index = offset + i })
                 .Where(e => e.Expression is UnpackExpression)
                 .Select(e => new ImmediateOperand(e.Index))
                 .OrderByDescending(i => i.Value)

@@ -50,7 +50,7 @@ namespace Mond.Tests
             var state = new MondState();
 
             state["value"] = 123;
-            state["function"] = new MondInstanceFunction((_, instance, arguments) => instance[arguments[0]]);
+            state["function"] = new MondFunction((_, arguments) => arguments[0][arguments[1]]);
 
             var result = state.Run(@"
                 return global.function('value');

@@ -65,8 +65,9 @@ namespace Mond.Compiler.Expressions.Statements
             var fixedSize = headSize + tailSize;
             
             stack += context.Dup();
+            stack += context.Dup();
             stack += context.LoadField(context.String("length"));
-            stack += context.Call(0, new List<ImmediateOperand>());
+            stack += context.Call(1, new List<ImmediateOperand>());
 
             var inTail = false;
             var fixedI = 0;

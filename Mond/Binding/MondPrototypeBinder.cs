@@ -18,7 +18,7 @@ namespace Mond.Binding
             return obj;
         }
 
-        private static IEnumerable<Tuple<string, MondInstanceFunction>> BindImpl(Type type)
+        private static IEnumerable<Tuple<string, MondFunction>> BindImpl(Type type)
         {
             var moduleAttrib = type.Attribute<MondModuleAttribute>();
 

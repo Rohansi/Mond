@@ -37,13 +37,19 @@ namespace Mond.Compiler.Expressions.Statements
             Block.Accept(containsFunction);
 
             var enumerator = context.DefineInternal("enumerator", true);
+            var enumeratorNext = context.DefineInternal("enumeratorNext", true);
 
             // set enumerator
             context.Statement(Expression);
             stack += Expression.Compile(context);
+            stack += context.Dup();
             stack += context.LoadField(context.String("getEnumerator"));
-            stack += context.Call(0, new List<ImmediateOperand>());
+            stack += context.Call(1, new List<ImmediateOperand>());
+            stack += context.Dup();
             stack += context.Store(enumerator);
+
+            stack += context.LoadField(context.String("moveNext"));
+            stack += context.Store(enumeratorNext);
 
             var loopContext = containsFunction.Value ? new LoopContext(context) : context;
 
@@ -73,8 +79,8 @@ namespace Mond.Compiler.Expressions.Statements
             // loop while moveNext returns true
             context.Statement(InToken, InToken);
             stack += loopContext.Load(enumerator);
-            stack += loopContext.LoadField(context.String("moveNext"));
-            stack += loopContext.Call(0, new List<ImmediateOperand>());
+            stack += loopContext.Load(enumeratorNext);
+            stack += loopContext.Call(1, new List<ImmediateOperand>());
             stack += loopContext.JumpFalse(containsFunction.Value ? brk : end);
 
             stack += loopContext.Load(enumerator);
@@ -109,8 +115,9 @@ namespace Mond.Compiler.Expressions.Statements
             // after loop
             stack += context.Bind(end); // break (without function)
             stack += context.Load(enumerator);
+            stack += context.Dup();
             stack += context.LoadField(context.String("dispose"));
-            stack += context.Call(0, new List<ImmediateOperand>());
+            stack += context.Call(1, new List<ImmediateOperand>());
             stack += context.Drop();
 
             CheckStack(stack, 0);

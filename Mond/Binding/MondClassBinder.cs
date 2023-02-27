@@ -12,9 +12,9 @@ namespace Mond.Binding
         {
             public string Name { get; }
             public MondConstructor Constructor { get; }
-            public Dictionary<string, MondInstanceFunction> PrototypeFunctions { get; }
+            public Dictionary<string, MondFunction> PrototypeFunctions { get; }
 
-            public ClassBinding(string name, MondConstructor constructor, Dictionary<string, MondInstanceFunction> prototypeFunctions)
+            public ClassBinding(string name, MondConstructor constructor, Dictionary<string, MondFunction> prototypeFunctions)
             {
                 Name = name;
                 Constructor = constructor;
@@ -96,7 +96,7 @@ namespace Mond.Binding
             };
         }
 
-        private static MondValue CopyToObject(Dictionary<string, MondInstanceFunction> functions, MondState state)
+        private static MondValue CopyToObject(Dictionary<string, MondFunction> functions, MondState state)
         {
             var obj = MondValue.Object(state);
             obj.Prototype = MondValue.Null;
@@ -119,7 +119,7 @@ namespace Mond.Binding
 
             var className = classAttrib.Name ?? type.Name;
 
-            var functions = new Dictionary<string, MondInstanceFunction>();
+            var functions = new Dictionary<string, MondFunction>();
 
             var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Instance);
             foreach (var method in MondFunctionBinder.BindInstance(className, methods, type))

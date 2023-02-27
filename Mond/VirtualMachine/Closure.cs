@@ -1,13 +1,13 @@
 ﻿namespace Mond.VirtualMachine
 {
-    enum ClosureType
+    internal enum ClosureType
     {
-        Native, InstanceNative, Mond
+        Native, Mond
     }
 
-    class Closure
+    internal class Closure
     {
-        public readonly ClosureType Type;
+        public ClosureType Type => NativeFunction != null ? ClosureType.Native : ClosureType.Mond;
 
         public readonly MondProgram Program;
         public readonly int Address;
@@ -15,12 +15,9 @@
         public readonly Frame Locals;
 
         public readonly MondFunction NativeFunction;
-        public readonly MondInstanceFunction InstanceNativeFunction;
 
         public Closure(MondProgram program, int address, Frame arguments, Frame locals)
         {
-            Type = ClosureType.Mond;
-            
             Program = program;
             Address = address;
             Arguments = arguments;
@@ -29,16 +26,7 @@
 
         public Closure(MondFunction function)
         {
-            Type = ClosureType.Native;
-
             NativeFunction = function;
-        }
-
-        public Closure(MondInstanceFunction function)
-        {
-            Type = ClosureType.InstanceNative;
-
-            InstanceNativeFunction = function;
         }
     }
 }

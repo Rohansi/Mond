@@ -396,21 +396,6 @@ namespace Mond.Tests
         }
 
         [Test]
-        public void WrappedInstanceFunction()
-        {
-            var obj = MondValue.Object();
-
-            var func = MondValue.Function((state, instance, args) => MondValue.Undefined);
-            Assert.True(func.FunctionValue.Type == ClosureType.InstanceNative);
-
-            obj["test"] = func;
-            var closure = obj["test"];
-            Assert.True(closure.FunctionValue.Type == ClosureType.Native);
-
-            Assert.True(new MondState().Call(obj["test"]) == MondValue.Undefined);
-        }
-
-        [Test]
         public void UserData()
         {
             const string data = "test";

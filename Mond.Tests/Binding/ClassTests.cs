@@ -15,7 +15,8 @@ namespace Mond.Tests.Binding
             _state["Person"] = MondClassBinder.Bind<Person>(_state);
 
             _state.Run(@"
-                global.brian = global.Person('Brian');
+                const Person = global.Person;
+                global.brian = Person('Brian');
             ");
         }
 

@@ -48,7 +48,7 @@ namespace Mond.Binding
         /// <summary>
         /// Generates MondInstanceFunction bindings for the given methods.
         /// </summary>
-        internal static IEnumerable<Tuple<string, MondInstanceFunction>> BindInstance(
+        internal static IEnumerable<Tuple<string, MondFunction>> BindInstance(
             string className,
             ICollection<MethodInfo> methods,
             Type type = null,

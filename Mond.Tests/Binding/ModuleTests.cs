@@ -20,15 +20,18 @@ namespace Mond.Tests.Binding
         public void Methods()
         {
             Assert.True(_state.Run(@"
-                return global.Test.sin(10);
+                const func = global.Test.sin;
+                return func(10);
             ") == Math.Sin(10));
 
             Assert.Throws<MondRuntimeException>(() => _state.Run(@"
-                return global.Test.unmarkedFunction();
+                const func = global.Test.unmarkedFunction;
+                return func();
             "));
 
             Assert.Throws<MondRuntimeException>(() => _state.Run(@"
-                return global.Test.instanceFunction();
+                const func = global.Test.instanceFunction;
+                return func();
             "));
         }
 

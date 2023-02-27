@@ -44,7 +44,8 @@ namespace Mond.Tests.Binding
         public void Arguments()
         {
             var result = _state.Run(@"
-                return global.ArgumentTypes(1, 2, 3, 4, 5, 6, 7, 8, '9', true);
+                const func = global.ArgumentTypes;
+                return func(1, 2, 3, 4, 5, 6, 7, 8, '9', true);
             ");
 
             Assert.True(result["a"] == 1);
@@ -87,7 +88,8 @@ namespace Mond.Tests.Binding
             for (var i = 0; i < types.Count; i++)
             {
                 var result = _state.Run(string.Format(@"
-                    return global.Return{0}();
+                    const func = global.Return{0};
+                    return func();
                 ", types[i]));
 
                 Assert.True(result == results[i], types[i]);
@@ -95,7 +97,8 @@ namespace Mond.Tests.Binding
 
             {
                 var result = _state.Run(@"
-                    return global.ReturnClass();
+                    const func = global.ReturnClass;
+                    return func();
                 ");
 
                 Assert.True(result.Type == MondValueType.Object);
@@ -164,12 +167,14 @@ namespace Mond.Tests.Binding
         public void StateArgument()
         {
             Assert.True(_state.Run(@"
-                global.Add(1, 2);
+                const func = global.Add;
+                func(1, 2);
                 return global.result;
             ") == 3);
 
             Assert.Throws<MondRuntimeException>(() => _state.Run(@"
-                global.Add(1, 2, 3);
+                const func = global.Add;
+                func(1, 2, 3);
             "));
         }
 
@@ -177,11 +182,13 @@ namespace Mond.Tests.Binding
         public void ParamsArgument()
         {
             Assert.True(_state.Run(@"
-                return global.Concat('test');
+                const func = global.Concat;
+                return func('test');
             ") == "test");
 
             Assert.True(_state.Run(@"
-                return global.Concat('hello', ' world', '!');
+                const func = global.Concat;
+                return func('hello', ' world', '!');
             ") == "hello world!");
         }
 
@@ -196,19 +203,22 @@ namespace Mond.Tests.Binding
             _state["rohan"] = personValue;
 
             Assert.True(_state.Run(@"
-                return global.Greet(global.rohan);
+                const func = global.Greet;
+                return func(global.rohan);
             ") == "hello Rohan!");
 
             personValue.UserData = "something";
 
             Assert.Throws<MondRuntimeException>(() => _state.Run(@"
-                global.Greet(global.rohan);
+                const func = global.Greet;
+                func(global.rohan);
             "));
 
             personValue.UserData = null;
 
             Assert.Throws<MondRuntimeException>(() => _state.Run(@"
-                global.Greet(global.rohan);
+                const func = global.Greet;
+                func(global.rohan);
             "));
         }
 

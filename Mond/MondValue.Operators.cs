@@ -38,15 +38,6 @@ namespace Mond
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator MondValue(MondInstanceFunction function)
-        {
-            if (ReferenceEquals(function, null))
-                return Null;
-
-            return new MondValue(new Closure(function));
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator bool(in MondValue value)
         {
             if (value.Type == MondValueType.True)

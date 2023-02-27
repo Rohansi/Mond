@@ -18,29 +18,29 @@ namespace Mond.Tests.Binding
         [Test]
         public void Resolution()
         {
-            Assert.True(_state.Run("return global.Ov.test();") == 0, "0.0");
+            Assert.True(_state.Run("const func = global.Ov.test; return func();") == 0, "0.0");
 
-            Assert.True(_state.Run("return global.Ov.test(true);") == 0, "0.1");
-            Assert.True(_state.Run("return global.Ov.test(false);") == 0, "0.2");
+            Assert.True(_state.Run("const func = global.Ov.test; return func(true);") == 0, "0.1");
+            Assert.True(_state.Run("const func = global.Ov.test; return func(false);") == 0, "0.2");
 
-            Assert.True(_state.Run("return global.Ov.test('hi');") == 1, "1.0");
+            Assert.True(_state.Run("const func = global.Ov.test; return func('hi');") == 1, "1.0");
 
-            Assert.True(_state.Run("return global.Ov.test(10);") == 2, "2.0");
-            Assert.True(_state.Run("return global.Ov.test(10, 20);") == 2, "2.1");
+            Assert.True(_state.Run("const func = global.Ov.test; return func(10);") == 2, "2.0");
+            Assert.True(_state.Run("const func = global.Ov.test; return func(10, 20);") == 2, "2.1");
 
-            Assert.True(_state.Run("return global.Ov.test(undefined, 20);") == 3, "3.0");
-            Assert.True(_state.Run("return global.Ov.test(null, 20);") == 3, "3.1");
-            Assert.True(_state.Run("return global.Ov.test([], 20);") == 3, "3.2");
+            Assert.True(_state.Run("const func = global.Ov.test; return func(undefined, 20);") == 3, "3.0");
+            Assert.True(_state.Run("const func = global.Ov.test; return func(null, 20);") == 3, "3.1");
+            Assert.True(_state.Run("const func = global.Ov.test; return func([], 20);") == 3, "3.2");
 
-            Assert.True(_state.Run("return global.Ov.test('hi', 20);") == 4, "4.0");
-            Assert.True(_state.Run("return global.Ov.test('hi', 20, 30);") == 4, "4.1");
+            Assert.True(_state.Run("const func = global.Ov.test; return func('hi', 20);") == 4, "4.0");
+            Assert.True(_state.Run("const func = global.Ov.test; return func('hi', 20, 30);") == 4, "4.1");
 
-            Assert.True(_state.Run("return global.Ov.test(10, 20, 30);") == 5, "5.0");
-            Assert.True(_state.Run("return global.Ov.test(10, 20, 30, 40);") == 5, "5.1");
+            Assert.True(_state.Run("const func = global.Ov.test; return func(10, 20, 30);") == 5, "5.0");
+            Assert.True(_state.Run("const func = global.Ov.test; return func(10, 20, 30, 40);") == 5, "5.1");
 
-            Assert.True(_state.Run("return global.Ov.test([], 'hi');") == 6, "6.0");
-            Assert.True(_state.Run("return global.Ov.test('hi', 'hi');") == 6, "6.1");
-            Assert.True(_state.Run("return global.Ov.test('hi', 20, 'hi');") == 6, "6.2");
+            Assert.True(_state.Run("const func = global.Ov.test; return func([], 'hi');") == 6, "6.0");
+            Assert.True(_state.Run("const func = global.Ov.test; return func('hi', 'hi');") == 6, "6.1");
+            Assert.True(_state.Run("const func = global.Ov.test; return func('hi', 20, 'hi');") == 6, "6.2");
         }
 
         [Test]

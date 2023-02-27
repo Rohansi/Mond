@@ -16,23 +16,23 @@ namespace Mond.Binding
             {
                 MethodBase function;
                 ReturnConverter returnConversion;
-                var parameters = BuildParameterArray(errorPrefix, method, state, MondValue.Undefined, args, out function, out returnConversion);
+                var parameters = BuildParameterArray(errorPrefix, method, false, state, args, out _, out function, out returnConversion);
 
                 return returnConversion(errorPrefix, state, Call(() => function.Invoke(null, parameters)));
             };
         }
 
-        private static MondInstanceFunction BindInstanceImpl(string className, MethodTable method, string nameOverride = null, bool fakeInstance = false)
+        private static MondFunction BindInstanceImpl(string className, MethodTable method, string nameOverride = null, bool fakeInstance = false)
         {
             var errorPrefix = BindingError.ErrorPrefix(className, nameOverride ?? method.Name);
 
             if (!fakeInstance)
             {
-                return (state, instance, args) =>
+                return (state, args) =>
                 {
                     MethodBase function;
                     ReturnConverter returnConversion;
-                    var parameters = BuildParameterArray(errorPrefix, method, state, instance, args, out function, out returnConversion);
+                    var parameters = BuildParameterArray(errorPrefix, method, true, state, args, out var instance, out function, out returnConversion);
 
                     var classInstance = instance.UserData;
 
@@ -43,11 +43,11 @@ namespace Mond.Binding
                 };
             }
 
-            return (state, instance, args) =>
+            return (state, args) =>
             {
                 MethodBase function;
                 ReturnConverter returnConversion;
-                var parameters = BuildParameterArray(errorPrefix, method, state, instance, args, out function, out returnConversion);
+                var parameters = BuildParameterArray(errorPrefix, method, true, state, args, out _, out function, out returnConversion);
 
                 return returnConversion(errorPrefix, state, Call(() => function.Invoke(null, parameters)));
             };
@@ -61,7 +61,7 @@ namespace Mond.Binding
             {
                 MethodBase constructor;
                 ReturnConverter returnConversion;
-                var parameters = BuildParameterArray(errorPrefix, method, state, instance, args, out constructor, out returnConversion);
+                var parameters = BuildParameterArray(errorPrefix, method, false, state, args, out _, out constructor, out returnConversion);
 
                 return Call(() => ((ConstructorInfo)constructor).Invoke(parameters));
             };
@@ -86,29 +86,41 @@ namespace Mond.Binding
         private static object[] BuildParameterArray(
             string errorPrefix,
             MethodTable methodTable,
+            bool expectsInstance,
             MondState state,
-            in MondValue instance,
             MondValue[] args,
+            out MondValue instance,
             out MethodBase methodBase,
             out ReturnConverter returnConversion)
         {
+            instance = MondValue.Undefined;
+            
             Method method = null;
 
-            if (args.Length < methodTable.Methods.Count)
-                method = FindMatch(methodTable.Methods[args.Length], args);
+            var argCount = args.Length - (expectsInstance ? 1 : 0);
+            if (argCount < methodTable.Methods.Count)
+                method = FindMatch(methodTable.Methods[argCount], args, expectsInstance);
 
             if (method == null)
-                method = FindMatch(methodTable.ParamsMethods, args);
+                method = FindMatch(methodTable.ParamsMethods, args, expectsInstance);
 
             if (method != null)
             {
                 methodBase = method.Info;
                 returnConversion = method.ReturnConversion;
 
+                var j = 0;
+                if (expectsInstance)
+                {
+                    if (args.Length == 0)
+                        throw new MondRuntimeException(errorPrefix + BindingError.RequiresInstance);
+
+                    instance = args[j++]; // first argument is the instance
+                }
+
                 var parameters = method.Parameters;
                 var result = new object[parameters.Count];
 
-                var j = 0;
                 for (var i = 0; i < result.Length; i++)
                 {
                     var param = parameters[i];
@@ -145,23 +157,26 @@ namespace Mond.Binding
             throw new MondBindingException(BindingError.ParameterTypeError(errorPrefix, methodTable));
         }
 
-        private static Method FindMatch(List<Method> methods, MondValue[] args)
+        private static Method FindMatch(List<Method> methods, MondValue[] args, bool expectsInstance)
         {
+            var argOffset = expectsInstance ? 1 : 0;
+            var argCount = expectsInstance ? args.Length - 1 : args.Length;
+
             for (var i = 0; i < methods.Count; i++)
             {
                 var method = methods[i];
                 var parameters = method.ValueParameters;
 
-                if (method.RequiredMondParameterCount == 0 && (args.Length == 0 || method.HasParams))
+                if (method.RequiredMondParameterCount == 0 && (args.Length == argOffset || method.HasParams))
                     return methods[i];
 
                 for (var j = 0; j < parameters.Count; j++)
                 {
                     var param = parameters[j];
 
-                    if (!(param.IsOptional && j >= args.Length) && param.MondTypes[0] != MondValueType.Undefined)
+                    if (!(param.IsOptional && j >= argCount) && param.MondTypes[0] != MondValueType.Undefined)
                     {
-                        var arg = args[j];
+                        var arg = args[argOffset + j];
 
                         if (!param.MondTypes.Contains(arg.Type))
                             break;
