@@ -65,7 +65,7 @@
     "typescript": "^4.5.4",
     "vsce": "^2.14.0",
     "vscode-debugadapter-testsupport": "^1.47.0",
-    "webpack": "^5.66.0",
+    "webpack": "^5.76.0",
     "webpack-cli": "^4.9.1"
   },
   "main": "./dist/ext/extension.js",
