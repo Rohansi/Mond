@@ -1,0 +1,9 @@
+var result = 0;
+for (var i = 0; i < 1000; i++) {
+	for (var j = 0; j < 100; j++) {
+		for (var k = 0; k < 100; k++) {
+			result += i * j / k;
+		}
+	}
+}
+printLn(result);
