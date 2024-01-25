@@ -3,7 +3,7 @@
 namespace Mond.Libraries.Core
 {
     [MondModule]
-    internal class OperatorModule
+    internal partial class OperatorModule
     {
         [MondFunction("op_Dot")]
         public static MondValue Dot(MondValue x, MondValue y) => x[y];

@@ -3,7 +3,7 @@
 namespace Mond.Libraries.Console
 {
     [MondClass("ConsoleOutput")]
-    internal class ConsoleOutputClass
+    internal partial class ConsoleOutputClass
     {
         private ConsoleOutputLibrary _consoleOutput;
 

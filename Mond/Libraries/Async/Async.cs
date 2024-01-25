@@ -8,7 +8,7 @@ using Mond.Binding;
 namespace Mond.Libraries.Async
 {
     [MondClass("Async")]
-    internal class AsyncClass
+    internal partial class AsyncClass
     {
         private readonly MondTaskScheduler _scheduler;
         private readonly TaskFactory _factory;

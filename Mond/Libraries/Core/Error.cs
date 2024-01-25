@@ -4,7 +4,7 @@ using Mond.Binding;
 namespace Mond.Libraries.Core
 {
     [MondModule("Error")]
-    internal class ErrorModule
+    internal partial class ErrorModule
     {
         [MondFunction]
         public static void Error(string message)

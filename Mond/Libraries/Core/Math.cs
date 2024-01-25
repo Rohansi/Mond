@@ -4,7 +4,7 @@ using Mond.Binding;
 namespace Mond.Libraries.Core
 {
     [MondModule("Math")]
-    internal class MathModule
+    internal partial class MathModule
     {
         [MondFunction]
         public static double Abs(double value) => Math.Abs(value);

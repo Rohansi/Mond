@@ -121,6 +121,7 @@ namespace Mond.Compiler
                 'A', 'B', 'C', 'D', 'E', 'F',
             };
 
+            // Note: A copy of this table is in Mond.SourceGenerator MondUtil.cs
             _operatorChars = new Dictionary<char, string>
             {
                 { '.', "Dot" },

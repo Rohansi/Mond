@@ -5,7 +5,7 @@ using Mond.Binding;
 namespace Mond.VirtualMachine.Prototypes
 {
     [MondModule("String")]
-    internal static class StringPrototype
+    internal static partial class StringPrototype
     {
         internal static MondValue ValueReadOnly;
         public static MondValue Value => ValueReadOnly;

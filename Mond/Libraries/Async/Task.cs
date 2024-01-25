@@ -5,7 +5,7 @@ using Mond.Binding;
 namespace Mond.Libraries.Async
 {
     [MondModule("Task")]
-    internal class TaskModule
+    internal partial class TaskModule
     {
         [MondFunction]
         public static MondValue Delay(double seconds, MondValue? cancellationToken = null)

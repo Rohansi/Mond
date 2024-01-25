@@ -7,7 +7,7 @@ using Mond.Binding;
 namespace Mond.Libraries.Core
 {
     [MondClass("Require")]
-    internal class RequireClass
+    internal partial class RequireClass
     {
         private RequireLibrary _require;
 

@@ -4,7 +4,7 @@ using Mond.Binding;
 namespace Mond.VirtualMachine.Prototypes
 {
     [MondModule("Array")]
-    internal static class ArrayPrototype
+    internal static partial class ArrayPrototype
     {
         internal static MondValue ValueReadOnly;
         public static MondValue Value => ValueReadOnly;

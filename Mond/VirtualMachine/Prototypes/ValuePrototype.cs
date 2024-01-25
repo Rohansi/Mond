@@ -6,7 +6,7 @@ namespace Mond.VirtualMachine.Prototypes
     /// Contains members common to ALL values.
     /// </summary>
     [MondModule("Value")]
-    internal static class ValuePrototype
+    internal static partial class ValuePrototype
     {
         internal static MondValue ValueReadOnly;
         public static MondValue Value => ValueReadOnly;

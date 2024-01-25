@@ -4,7 +4,7 @@ using Mond.Binding;
 namespace Mond.Libraries.Async
 {
     [MondClass("TaskCompletionSource")]
-    internal class TaskCompletionSourceClass
+    internal partial class TaskCompletionSourceClass
     {
         private readonly TaskCompletionSource<MondValue> _tcs;
 

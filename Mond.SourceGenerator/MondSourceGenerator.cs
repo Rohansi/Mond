@@ -1,58 +1,183 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis;
 
-namespace Mond.SourceGenerator
+namespace Mond.SourceGenerator;
+
+[Generator]
+public class MondSourceGenerator : ISourceGenerator
 {
-    [Generator]
-    public class MondSourceGenerator : ISourceGenerator
+    public void Initialize(GeneratorInitializationContext context)
     {
-        private const string Category = "Mond";
-
-        private static readonly DiagnosticDescriptor MissingSyntaxReceiver = new DiagnosticDescriptor(
-            "MOND001",
-            "Internal error - syntax receiver is null",
-            "The syntax receiver was not set or is an unexpected type - cannot generate Mond bindings.", Category,
-            DiagnosticSeverity.Error, true);
-
-        private static readonly DiagnosticDescriptor CannotBindGeneric = new DiagnosticDescriptor(
-            "MOND002",
-            "Cannot generate Mond bindings for generic types",
-            "Open generic types cannot be bound to Mond. Either remove the generic parameters from this or bind closed types which derive from this type instead.", Category,
-            DiagnosticSeverity.Error, true);
-
-        public void Initialize(GeneratorInitializationContext context)
+#if DEBUG
+        if (!Debugger.IsAttached)
         {
-            context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
+            Debugger.Launch();
+        }
+#endif
+
+        context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
+        
+    }
+
+    public void Execute(GeneratorExecutionContext context)
+    {
+        if (context.SyntaxContextReceiver is not SyntaxReceiver syntaxReceiver)
+        {
+            context.ReportDiagnostic(Diagnostic.Create(Diagnostics.MissingSyntaxReceiver, Location.None));
+            return;
         }
 
-        public void Execute(GeneratorExecutionContext context)
+        if (!TypeLookup.Initialize(context))
         {
-            if (!(context.SyntaxContextReceiver is SyntaxReceiver syntaxReceiver))
+            return;
+        }
+
+        foreach (var location in syntaxReceiver.MissingPartials)
+        {
+            context.ReportDiagnostic(Diagnostic.Create(Diagnostics.BoundClassesMustBePartial, location));
+        }
+
+        foreach (var module in syntaxReceiver.Modules)
+        {
+            if (module.Arity != 0)
             {
-                context.ReportDiagnostic(Diagnostic.Create(MissingSyntaxReceiver, Location.None));
-                return;
+                context.ReportDiagnostic(Diagnostic.Create(Diagnostics.CannotBindGeneric, module.Locations.First()));
+                continue;
             }
 
-            // https://stackoverflow.com/questions/64623689/get-all-types-from-compilation-using-roslyn
-            context.Compilation.GlobalNamespace.GetMembers();
+            context.AddSource($"{module.Name}.Module.g.cs", GenerateWith(context, module, ModuleBindings));
+        }
 
-            foreach (var module in syntaxReceiver.Modules)
+        foreach (var klass in syntaxReceiver.Classes)
+        {
+            if (klass.Arity != 0)
             {
-                if (module.Arity != 0)
+                context.ReportDiagnostic(Diagnostic.Create(Diagnostics.CannotBindGeneric, klass.Locations.First()));
+                continue;
+            }
+
+            if (klass.IsStatic)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(Diagnostics.ClassesCannotBeStatic, klass.Locations.First()));
+                continue;
+            }
+
+            context.AddSource($"{klass.Name}.Class.g.cs", GenerateWith(context, klass, ClassBindings));
+        }
+    }
+
+    private static void ModuleBindings(GeneratorExecutionContext context, INamedTypeSymbol module, IndentTextWriter writer)
+    {
+        var methods = new List<IMethodSymbol>();
+        foreach (var member in module.GetMembers())
+        {
+            if (member is not IMethodSymbol { IsStatic: true, MethodKind: MethodKind.Ordinary } method)
+            {
+                continue;
+            }
+
+            var attributes = method.GetAttributes();
+            if (!attributes.TryGetAttribute("MondFunctionAttribute", out var attr))
+            {
+                continue;
+            }
+
+            if (method.DeclaredAccessibility != Accessibility.Public)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(Diagnostics.BoundMembersMustBePublic, method.Locations.First()));
+                continue;
+            }
+
+            methods.Add(method);
+        }
+
+        var methodTables = MethodTable.Build(methods, MethodTable.MethodType.Normal);
+
+        writer.WriteLine("public sealed class Library : IMondLibrary");
+        writer.OpenBracket();
+
+        writer.WriteLine("IEnumerable<KeyValuePair<string, MondValue>> IMondLibrary.GetDefinitions(MondState state)");
+        writer.OpenBracket();
+
+        foreach (var table in methodTables)
+        {
+            writer.WriteLine($"yield return new KeyValuePair<string, MondValue>(\"{table.Name}\", MondValue.Function({table.Name}__Binds));");
+        }
+
+        if (methods.Count == 0)
+        {
+            writer.WriteLine("yield break;");
+        }
+
+        writer.CloseBracket();
+        writer.WriteLine();
+
+        foreach (var table in methodTables)
+        {
+            writer.WriteLine($"private static MondValue {table.Name}__Binds(MondState state, params MondValue[] arguments)");
+            writer.OpenBracket();
+
+            for (var i = 0; i < table.Methods.Count; i++)
+            {
+                foreach (var method in table.Methods[i])
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(CannotBindGeneric, module.Locations.First()));
-                    continue;
+                    writer.WriteLine($"// {method}");
                 }
             }
 
-            foreach (var klass in syntaxReceiver.Classes)
-            {
-                if (klass.Arity != 0)
-                {
-                    context.ReportDiagnostic(Diagnostic.Create(CannotBindGeneric, klass.Locations.First()));
-                    continue;
-                }
-            }
+            writer.WriteLine("return default;");
+
+            writer.CloseBracket();
+            writer.WriteLine();
         }
+
+        writer.CloseBracket();
+    }
+
+    private static void ClassBindings(GeneratorExecutionContext context, INamedTypeSymbol module, IndentTextWriter writer)
+    {
+    }
+
+    private delegate void GeneratorAction(GeneratorExecutionContext context, INamedTypeSymbol symbol, IndentTextWriter writer);
+
+    private static string GenerateWith(GeneratorExecutionContext context, INamedTypeSymbol symbol, GeneratorAction generator)
+    {
+        var stringBuilder = new StringBuilder();
+        using var stringWriter = new StringWriter(stringBuilder);
+        using var writer = new IndentTextWriter(stringWriter);
+
+        writer.WriteLine("// <auto-generated />");
+        writer.WriteLine();
+        writer.WriteLine("using System;");
+        writer.WriteLine("using System.Collections.Generic;");
+        writer.WriteLine("using Mond;");
+        writer.WriteLine("using Mond.Libraries;");
+        writer.WriteLine();
+
+        var ns = symbol.GetFullNamespace();
+        if (ns != null)
+        {
+            writer.WriteLine($"namespace {ns}");
+            writer.OpenBracket();
+        }
+
+        writer.WriteLine($"partial class {symbol.Name}");
+        writer.OpenBracket();
+
+        generator(context, symbol, writer);
+
+        writer.CloseBracket();
+
+        if (ns != null)
+        {
+            writer.CloseBracket();
+        }
+
+        return stringBuilder.ToString();
     }
 }
