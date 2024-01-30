@@ -2,7 +2,7 @@
 
 namespace Mond.VirtualMachine.Prototypes
 {
-    [MondModule("Function")]
+    [MondPrototype("Function")]
     internal static partial class FunctionPrototype
     {
         internal static MondValue ValueReadOnly;

@@ -7,6 +7,7 @@ namespace Mond.SourceGenerator;
 
 internal class SyntaxReceiver : ISyntaxContextReceiver
 {
+    public HashSet<INamedTypeSymbol> Prototypes { get; } = new(SymbolEqualityComparer.Default);
     public HashSet<INamedTypeSymbol> Modules { get; } = new(SymbolEqualityComparer.Default);
     public HashSet<INamedTypeSymbol> Classes { get; } = new(SymbolEqualityComparer.Default);
     public HashSet<Location> MissingPartials { get; } = new();
@@ -23,10 +24,11 @@ internal class SyntaxReceiver : ISyntaxContextReceiver
             }
 
             var attributes = classSymbol.GetAttributes();
+            var isPrototype = attributes.HasAttribute("MondPrototypeAttribute");
             var isModule = attributes.HasAttribute("MondModuleAttribute");
             var isClass = attributes.HasAttribute("MondClassAttribute");
 
-            if (!isModule && !isClass)
+            if (!isPrototype && !isModule && !isClass)
             {
                 return;
             }
@@ -34,6 +36,11 @@ internal class SyntaxReceiver : ISyntaxContextReceiver
             if (!classDecl.Modifiers.Any(SyntaxKind.PartialKeyword))
             {
                 MissingPartials.Add(classDecl.Identifier.GetLocation());
+            }
+
+            if (isPrototype)
+            {
+                Prototypes.Add(classSymbol);
             }
 
             if (isModule)

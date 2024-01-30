@@ -3,9 +3,9 @@
 namespace Mond.Binding
 {
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-    public class MondModuleAttribute : MondBindClassAttribute
+    internal class MondPrototypeAttribute : MondBindClassAttribute
     {
-        public MondModuleAttribute(string name = null)
+        public MondPrototypeAttribute(string name = null)
             : base(name)
         {
         }

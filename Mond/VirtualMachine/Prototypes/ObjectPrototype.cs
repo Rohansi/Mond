@@ -3,7 +3,7 @@ using Mond.Binding;
 
 namespace Mond.VirtualMachine.Prototypes
 {
-    [MondModule("Object")]
+    [MondPrototype("Object")]
     internal static partial class ObjectPrototype
     {
         internal static MondValue ValueReadOnly;
