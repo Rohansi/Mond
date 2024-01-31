@@ -9,61 +9,25 @@ internal partial class MethodTable
 {
     #region MethodTables
 
-    internal enum MethodType
+    public static List<MethodTable> Build(IEnumerable<(IMethodSymbol Method, string Name)> source)
     {
-        Normal, Property, Constructor
-    }
-
-    public static List<MethodTable> Build(IEnumerable<IMethodSymbol> source, MethodType methodType, string nameOverride = null)
-    {
-        switch (methodType)
-        {
-            case MethodType.Normal:
-                {
-                    return source
-                        .Select(m => new
-                        {
-                            Method = m,
-                            FunctionAttribute = m.GetAttributes().GetAttribute("MondFunctionAttribute"),
-                            OperatorAttribute = m.GetAttributes().GetAttribute("MondOperatorAttribute"),
-                        })
-                        .Where(m => m.FunctionAttribute != null || m.OperatorAttribute != null)
-                        .GroupBy(m =>
-                        {
-                            if (nameOverride != null) return nameOverride;
-                            if (m.OperatorAttribute != null) return MondUtil.GetOperatorIdentifier(m.OperatorAttribute.GetArgument());
-                            return m.FunctionAttribute?.GetArgument() ?? m.Method.Name.ToCamelCase();
-                        })
-                        .Select(g => BuildMethodTable(g.Select(m => new Method(g.Key, m.Method))))
-                        .ToList();
-                }
-
-            case MethodType.Property:
-                {
-                    if (string.IsNullOrEmpty(nameOverride))
-                        throw new ArgumentNullException(nameof(nameOverride));
-
-                    return new List<MethodTable>
-                    {
-                        BuildMethodTable(source.Select(m => new Method(nameOverride, m)))
-                    };
-                }
-
-            case MethodType.Constructor:
-                {
-                    var methods = source
-                        .Where(m => m.GetAttributes().GetAttribute("MondConstructorAttribute") != null)
-                        .ToList();
-
-                    return new List<MethodTable>
-                    {
-                        BuildMethodTable(methods.Select(m => new Method("#ctor", m)))
-                    };
-                }
-
-            default:
-                throw new NotSupportedException();
-        }
+        return source
+            .Select(m => new
+            {
+                Method = m.Method,
+                Name = m.Name,
+                FunctionAttribute = m.Method.GetAttributes().GetAttribute("MondFunctionAttribute"),
+                OperatorAttribute = m.Method.GetAttributes().GetAttribute("MondOperatorAttribute"),
+            })
+            .Where(m => m.FunctionAttribute != null || m.OperatorAttribute != null)
+            .GroupBy(m =>
+            {
+                if (m.Name != null) return m.Name.ToCamelCase();
+                if (m.OperatorAttribute != null) return MondUtil.GetOperatorIdentifier(m.OperatorAttribute.GetArgument());
+                return m.FunctionAttribute?.GetArgument() ?? m.Method.Name.ToCamelCase();
+            })
+            .Select(g => BuildMethodTable(g.Select(m => new Method(g.Key, m.Method))))
+            .ToList();
     }
 
     private static MethodTable BuildMethodTable(IEnumerable<Method> source)

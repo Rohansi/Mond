@@ -6,6 +6,7 @@ namespace Mond.SourceGenerator;
 
 internal static class TypeLookup
 {
+    public static INamedTypeSymbol Void { get; private set; }
     public static INamedTypeSymbol String { get; private set; }
     public static INamedTypeSymbol Bool { get; private set; }
     public static INamedTypeSymbol MondValue { get; private set; }
@@ -29,6 +30,7 @@ internal static class TypeLookup
         var ushortSym = compilation.GetSpecialType(SpecialType.System_UInt16);
         var sbyteSym = compilation.GetSpecialType(SpecialType.System_SByte);
         var byteSym = compilation.GetSpecialType(SpecialType.System_Byte);
+        var voidSym = compilation.GetSpecialType(SpecialType.System_Void);
         var stringSym = compilation.GetSpecialType(SpecialType.System_String);
         var boolSym = compilation.GetSpecialType(SpecialType.System_Boolean);
         var nullableSym = compilation.GetSpecialType(SpecialType.System_Nullable_T);
@@ -51,6 +53,7 @@ internal static class TypeLookup
             return false;
         }
 
+        Void = voidSym;
         String = stringSym;
         Bool = boolSym;
         MondValue = mondValueSym;
