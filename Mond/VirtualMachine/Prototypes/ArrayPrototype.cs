@@ -11,10 +11,7 @@ namespace Mond.VirtualMachine.Prototypes
 
         static ArrayPrototype()
         {
-            ValueReadOnly = MondPrototypeBinder.Bind(typeof(ArrayPrototype));
-            ValueReadOnly.Prototype = ValuePrototype.Value;
-
-            ValueReadOnly.Lock();
+            ValueReadOnly = PrototypeObject.Build(ValuePrototype.Value);
         }
 
         private const string MustBeAnArray = "Array.{0}: must be called on an array";

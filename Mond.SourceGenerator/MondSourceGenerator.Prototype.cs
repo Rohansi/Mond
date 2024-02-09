@@ -17,28 +17,39 @@ public partial class MondSourceGenerator
         writer.WriteLine("private sealed class PrototypeObject");
         writer.OpenBracket();
 
-        writer.WriteLine("public static MondValue Build()");
+        writer.WriteLine("public static MondValue Build(MondValue? basePrototype = null)");
         writer.OpenBracket();
         writer.WriteLine("var result = MondValue.Object();");
+        writer.WriteLine("var dict = result.ObjectValue.Values;");
+        writer.WriteLine();
 
         foreach (var (property, name) in properties)
         {
             if (property.GetMethod is { DeclaredAccessibility: Accessibility.Public })
             {
-                writer.WriteLine($"result[\"get{name}\"] = MondValue.Function({name}__Getter);");
+                writer.WriteLine($"dict[\"get{name}\"] = MondValue.Function({name}__Getter);");
             }
 
             if (property.SetMethod is { DeclaredAccessibility: Accessibility.Public })
             {
-                writer.WriteLine($"result[\"set{name}\"] = MondValue.Function({name}__Setter);");
+                writer.WriteLine($"dict[\"set{name}\"] = MondValue.Function({name}__Setter);");
             }
         }
 
         foreach (var table in methodTables)
         {
-            writer.WriteLine($"result[\"{table.Name}\"] = MondValue.Function({table.Name}__Dispatch);");
+            writer.WriteLine($"dict[\"{table.Name}\"] = MondValue.Function({table.Name}__Dispatch);");
         }
 
+        writer.WriteLine();
+        writer.WriteLine("if (basePrototype != null)");
+        writer.OpenBracket();
+        writer.WriteLine("result.ObjectValue.HasPrototype = true;");
+        writer.WriteLine("result.ObjectValue.Prototype = basePrototype.Value;");
+        writer.CloseBracket();
+        writer.WriteLine();
+
+        writer.WriteLine("result.Lock();");
         writer.WriteLine("return result;");
         writer.CloseBracket();
         writer.WriteLine();
@@ -122,7 +133,8 @@ public partial class MondSourceGenerator
                 writer.CloseBracket();
             }
 
-            writer.WriteLine("return default;"); // todo: throw exception - no method matched
+            var errorMessage = GetMethodNotMatchedErrorMessage($"{prototypeName}.{table.Name}: ", table);
+            writer.WriteLine($"throw new MondRuntimeException(\"{EscapeForStringLiteral(errorMessage)}\");");
 
             writer.CloseBracket();
             writer.WriteLine();

@@ -11,10 +11,7 @@ namespace Mond.VirtualMachine.Prototypes
 
         static ObjectPrototype()
         {
-            ValueReadOnly = MondPrototypeBinder.Bind(typeof(ObjectPrototype));
-            ValueReadOnly.Prototype = ValuePrototype.Value;
-
-            ValueReadOnly.Lock();
+            ValueReadOnly = PrototypeObject.Build(ValuePrototype.Value);
         }
 
         private const string MustBeAnObject = "Object.{0}: must be called on an object";

@@ -13,13 +13,7 @@ namespace Mond.VirtualMachine.Prototypes
 
         static ValuePrototype()
         {
-            ValueReadOnly = MondPrototypeBinder.Bind(typeof(ValuePrototype));
-
-            // we dont use MondValue.Prototype here because this should not have a prototype
-            ValueReadOnly.ObjectValue.HasPrototype = true;
-            ValueReadOnly.ObjectValue.Prototype = MondValue.Undefined;
-
-            ValueReadOnly.Lock();
+            ValueReadOnly = PrototypeObject.Build(MondValue.Undefined);
         }
 
         /// <summary>

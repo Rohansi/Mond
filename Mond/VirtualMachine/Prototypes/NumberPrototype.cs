@@ -10,10 +10,7 @@ namespace Mond.VirtualMachine.Prototypes
 
         static NumberPrototype()
         {
-            ValueReadOnly = MondPrototypeBinder.Bind(typeof(NumberPrototype));
-            ValueReadOnly.Prototype = ValuePrototype.Value;
-
-            ValueReadOnly.Lock();
+            ValueReadOnly = PrototypeObject.Build(ValuePrototype.Value);
         }
 
         [MondFunction]

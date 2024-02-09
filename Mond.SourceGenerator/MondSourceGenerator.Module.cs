@@ -125,7 +125,8 @@ public partial class MondSourceGenerator
                 writer.CloseBracket();
             }
 
-            writer.WriteLine("return default;"); // todo: throw exception - no method matched
+            var errorMessage = GetMethodNotMatchedErrorMessage($"{moduleName}.{table.Name}: ", table);
+            writer.WriteLine($"throw new MondRuntimeException(\"{EscapeForStringLiteral(errorMessage)}\");");
 
             writer.CloseBracket();
             writer.WriteLine();

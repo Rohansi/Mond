@@ -12,10 +12,7 @@ namespace Mond.VirtualMachine.Prototypes
 
         static StringPrototype()
         {
-            ValueReadOnly = MondPrototypeBinder.Bind(typeof(StringPrototype));
-            ValueReadOnly.Prototype = ValuePrototype.Value;
-
-            ValueReadOnly.Lock();
+            ValueReadOnly = PrototypeObject.Build(ValuePrototype.Value);
         }
 
         private const string IndexOutOfBounds = "String.{0}: index out of bounds";

@@ -10,10 +10,7 @@ namespace Mond.VirtualMachine.Prototypes
 
         static FunctionPrototype()
         {
-            ValueReadOnly = MondPrototypeBinder.Bind(typeof(FunctionPrototype));
-            ValueReadOnly.Prototype = ValuePrototype.Value;
-
-            ValueReadOnly.Lock();
+            ValueReadOnly = PrototypeObject.Build(ValuePrototype.Value);
         }
 
         private const string MustBeAFunction = "Function.{0}: must be called on a function";

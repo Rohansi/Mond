@@ -217,6 +217,35 @@ public partial class MondSourceGenerator : ISourceGenerator
         return "(" + string.Join(" || ", types.Select(t => $"args[{i}].Type == MondValueType.{t}")) + ")";
     }
 
+    private static string GetMethodNotMatchedErrorMessage(string prefix, MethodTable methodTable)
+    {
+        var sb = new StringBuilder();
+
+        sb.Append(prefix);
+        sb.AppendLine("argument types do not match any available functions");
+
+        var methods = methodTable.Methods
+            .SelectMany(l => l)
+            .Concat(methodTable.ParamsMethods)
+            .Distinct();
+
+        foreach (var method in methods)
+        {
+            sb.Append("- ");
+            sb.AppendLine(method.ToString());
+        }
+
+        return sb.ToString().Trim();
+    }
+
+    private static string EscapeForStringLiteral(string str)
+    {
+        return str
+            .Replace("\r", "")
+            .Replace(@"\", @"\\")
+            .Replace("\n", @"\n");
+    }
+
     private static List<(IMethodSymbol Method, string Name)> GetMethods(GeneratorExecutionContext context, INamedTypeSymbol klass, bool isStatic)
     {
         var result = new List<(IMethodSymbol, string)>();
