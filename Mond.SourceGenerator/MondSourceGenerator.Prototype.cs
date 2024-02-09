@@ -88,7 +88,7 @@ public partial class MondSourceGenerator
 
                 writer.WriteLine($"{qualifier}.{property.Name} = {ConvertFromMondValue("args[0]", property.Type)};");
 
-                writer.WriteLine("return default;");
+                writer.WriteLine("return MondValue.Undefined;");
                 writer.CloseBracket();
                 writer.WriteLine();
             }
