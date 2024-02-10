@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using JetBrains.Annotations;
 
 namespace Mond
@@ -69,6 +70,26 @@ namespace Mond
             }
 
             return new MondValue(values);
+        }
+
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static MondValue ClassInstance<T>([NotNull] MondState state, [NotNull] T instance, string prototypeName)
+            where T : class
+        {
+            if (state == null)
+                throw new ArgumentNullException(nameof(state));
+
+            if (instance == null)
+                throw new ArgumentNullException(nameof(instance));
+
+            if (!state.TryFindPrototype(prototypeName, out var prototype))
+                throw new MondRuntimeException($"Could not find prototype for bound class in the current Mond state: {prototypeName}");
+
+            var obj = new MondValue(state);
+            obj.Prototype = prototype;
+            obj.UserData = instance;
+            obj.Lock();
+            return obj;
         }
     }
 }

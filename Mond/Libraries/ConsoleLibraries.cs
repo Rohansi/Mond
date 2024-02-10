@@ -58,10 +58,11 @@ namespace Mond.Libraries
 
         public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions(MondState state)
         {
-            var consoleOutputClass = ConsoleOutputClass.Create(state, this);
-
-            yield return new KeyValuePair<string, MondValue>("print", consoleOutputClass["print"]);
-            yield return new KeyValuePair<string, MondValue>("printLn", consoleOutputClass["printLn"]);
+            var library = new ConsoleOutput.Library(new ConsoleOutput(this));
+            foreach (var t in library.GetDefinitions(state))
+            {
+                yield return t;
+            }
         }
     }
 
@@ -79,9 +80,11 @@ namespace Mond.Libraries
 
         public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions(MondState state)
         {
-            var consoleInputClass = ConsoleInputClass.Create(state, this);
-
-            yield return new KeyValuePair<string, MondValue>("readLn", consoleInputClass["readLn"]);
+            var library = new ConsoleInput.Library(new ConsoleInput(this));
+            foreach (var t in library.GetDefinitions(state))
+            {
+                yield return t;
+            }
         }
     }
 }

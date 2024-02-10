@@ -9,38 +9,18 @@ using Mond.Libraries.Async;
 namespace Mond.Libraries
 {
     /// <summary>
-    /// Contains all of the async related libraries.
+    /// Library containing <c>Async</c>, <c>Task</c>, <c>TaskCompletionSource</c>,
+    /// <c>CancellationTokenSource</c>, and <c>CancellationToken</c>.
     /// </summary>
-    public class AsyncLibraries : IMondLibraryCollection
+    public class AsyncLibrary : IMondLibraryCollection
     {
         public IEnumerable<IMondLibrary> Create(MondState state)
         {
-            yield return new AsyncLibrary();
-        }
-    }
-
-    /// <summary>
-    /// Library containing the <c>Async</c>, <c>Task</c>, <c>TaskCompletionSource</c>,
-    /// <c>CancellationTokenSource</c>, and <c>CancellationToken</c>.
-    /// </summary>
-    public class AsyncLibrary : IMondLibrary
-    {
-        public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions(MondState state)
-        {
-            var asyncClass = AsyncClass.Create(state);
-            yield return new KeyValuePair<string, MondValue>("Async", asyncClass);
-
-            var taskModule = MondModuleBinder.Bind<TaskModule>(state);
-            yield return new KeyValuePair<string, MondValue>("Task", taskModule);
-
-            var tcsClass = MondClassBinder.Bind<TaskCompletionSourceClass>(state);
-            yield return new KeyValuePair<string, MondValue>("TaskCompletionSource", tcsClass);
-
-            var ctsClass = MondClassBinder.Bind<CancellationTokenSourceClass>(state);
-            yield return new KeyValuePair<string, MondValue>("CancellationTokenSource", ctsClass);
-
-            var ctClass = MondClassBinder.Bind<CancellationTokenClass>(state);
-            yield return new KeyValuePair<string, MondValue>("CancellationToken", ctClass);
+            yield return new AsyncClass.Library();
+            yield return new TaskModule.Library();
+            yield return new TaskCompletionSourceClass.Library();
+            yield return new CancellationTokenSourceClass.Library();
+            yield return new CancellationTokenClass.Library();
         }
     }
 

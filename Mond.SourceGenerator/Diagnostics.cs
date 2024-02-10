@@ -38,13 +38,19 @@ internal static class Diagnostics
 
     public static readonly DiagnosticDescriptor BoundClassesMustBePartial = new DiagnosticDescriptor(
         "MOND005",
-        "Bound classes must have the partial modifier",
-        "Bound classes must have the partial modifier to support source generation.", Category,
+        "Bound classes and all parent types must have the partial modifier",
+        "Bound classes and all parent types must have the partial modifier to support source generation.", Category,
         DiagnosticSeverity.Error, true);
 
     public static readonly DiagnosticDescriptor BoundMembersMustBePublic = new DiagnosticDescriptor(
         "MOND006",
         "Bound members must be public",
         "Bound class members must have public visibility.", Category,
+        DiagnosticSeverity.Error, true);
+
+    public static readonly DiagnosticDescriptor BoundMethodsCannotBeFunctionAndOperator = new DiagnosticDescriptor(
+        "MOND007",
+        "Bound methods cannot have both MondFunctionAttribute and MondOperatorAttribute",
+        "Methods cannot have both the MondFunctionAttribute and MondOperatorAttribute attributes applied.", Category,
         DiagnosticSeverity.Error, true);
 }

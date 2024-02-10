@@ -7,7 +7,7 @@ public partial class MondSourceGenerator
     private static void PrototypeBindings(GeneratorExecutionContext context, INamedTypeSymbol prototype, IndentTextWriter writer)
     {
         var prototypeName = prototype.GetAttributes().TryGetAttribute("MondPrototypeAttribute", out var prototypeAttr)
-            ? prototypeAttr.GetArgument() ?? prototype.Name
+            ? prototypeAttr.GetArgument<string>() ?? prototype.Name
             : prototype.Name;
 
         var properties = GetProperties(context, prototype, true);
@@ -38,7 +38,7 @@ public partial class MondSourceGenerator
 
         foreach (var table in methodTables)
         {
-            writer.WriteLine($"dict[\"{table.Name}\"] = MondValue.Function({table.Name}__Dispatch);");
+            writer.WriteLine($"dict[\"{table.Identifier}\"] = MondValue.Function({table.Identifier}__Dispatch);");
         }
 
         writer.WriteLine();
@@ -54,7 +54,7 @@ public partial class MondSourceGenerator
         writer.CloseBracket();
         writer.WriteLine();
 
-        var qualifier = $"global::{prototype.GetFullNamespace()}.{prototype.Name}";
+        var qualifier = $"global::{prototype.GetFullyQualifiedName()}";
 
         foreach (var (property, name) in properties)
         {
@@ -81,12 +81,12 @@ public partial class MondSourceGenerator
                 writer.WriteLine($"private static MondValue {name}__Setter(MondState state, MondValue instance, params MondValue[] args)");
                 writer.OpenBracket();
 
-                writer.WriteLine($"if (args.Length != 1 || !{CompareArgument(0, parameter.MondTypes)})");
+                writer.WriteLine($"if (args.Length != 1 || !{CompareArgument(0, parameter)})");
                 writer.OpenBracket();
                 writer.WriteLine($"throw new MondRuntimeException(\"{prototypeName}.set{name}: expected 1 argument of type {parameter.TypeName}\");");
                 writer.CloseBracket();
 
-                writer.WriteLine($"{qualifier}.{property.Name} = {ConvertFromMondValue("args[0]", property.Type)};");
+                writer.WriteLine($"{qualifier}.{property.Name} = {ConvertFromMondValue(0, property.Type)};");
 
                 writer.WriteLine("return MondValue.Undefined;");
                 writer.CloseBracket();
@@ -96,7 +96,7 @@ public partial class MondSourceGenerator
 
         foreach (var table in methodTables)
         {
-            writer.WriteLine($"private static MondValue {table.Name}__Dispatch(MondState state, MondValue instance, params MondValue[] args)");
+            writer.WriteLine($"private static MondValue {table.Identifier}__Dispatch(MondState state, MondValue instance, params MondValue[] args)");
             writer.OpenBracket();
 
             writer.WriteLine("switch (args.Length)");
@@ -114,9 +114,9 @@ public partial class MondSourceGenerator
                 writer.OpenBracket();
                 foreach (var method in tableMethods)
                 {
-                    writer.WriteLine($"if ({CompareArguments(method)})");
+                    writer.WriteLine($"if ({CompareArguments(method, i)})");
                     writer.OpenBracket();
-                    CallMethod(writer, qualifier, method);
+                    CallMethod(writer, qualifier, method, i);
                     writer.CloseBracket();
                 }
                 writer.WriteLine("break;");
@@ -125,7 +125,7 @@ public partial class MondSourceGenerator
 
             writer.CloseBracket();
 
-            foreach (var method in table.ParamsMethods)
+            foreach (var method in table.ParamsMethods) 
             {
                 writer.WriteLine($"if (args.Length >= {method.RequiredMondParameterCount} && {CompareArguments(method)})");
                 writer.OpenBracket();
@@ -133,6 +133,7 @@ public partial class MondSourceGenerator
                 writer.CloseBracket();
             }
 
+            writer.WriteLine();
             var errorMessage = GetMethodNotMatchedErrorMessage($"{prototypeName}.{table.Name}: ", table);
             writer.WriteLine($"throw new MondRuntimeException(\"{EscapeForStringLiteral(errorMessage)}\");");
 

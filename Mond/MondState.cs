@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Mond.Debugger;
 using Mond.Libraries;
@@ -156,20 +157,22 @@ namespace Mond
         public string CurrentScript => _machine.CurrentScript;
 
         /// <summary>
-        /// Finds the generated prototype for a bound class or module.
+        /// Finds the generated prototype for a bound class.
         /// </summary>
-        public MondValue FindPrototype(string name)
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public bool TryFindPrototype(string name, out MondValue prototype)
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentNullException(nameof(name));
 
-            if (!_prototypeCache.TryGetValue(name, out var value))
-                value = MondValue.Undefined;
-
-            return value;
+            return _prototypeCache.TryGetValue(name, out prototype);
         }
 
-        internal bool TryAddPrototype(string name, MondValue value)
+        /// <summary>
+        /// Adds a generated prototype for a bound class.
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public bool TryAddPrototype(string name, MondValue value)
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentNullException(nameof(name));
@@ -177,11 +180,7 @@ namespace Mond
             if (value.Type != MondValueType.Object)
                 throw new ArgumentException("Prototype value must be an object.", nameof(value));
 
-            if (_prototypeCache.ContainsKey(name))
-                return false;
-
-            _prototypeCache.Add(name, value);
-            return true;
+            return _prototypeCache.TryAdd(name, value);
         }
     }
 }

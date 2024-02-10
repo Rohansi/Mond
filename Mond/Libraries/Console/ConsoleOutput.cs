@@ -1,26 +1,16 @@
-﻿using Mond.Binding;
+﻿using System;
+using Mond.Binding;
 
 namespace Mond.Libraries.Console
 {
-    [MondClass("ConsoleOutput")]
-    internal partial class ConsoleOutputClass
+    [MondModule("ConsoleOutput", bareMethods: true)]
+    internal partial class ConsoleOutput
     {
-        private ConsoleOutputLibrary _consoleOutput;
+        private readonly ConsoleOutputLibrary _consoleOutput;
 
-        public static MondValue Create(MondState state, ConsoleOutputLibrary consoleOutput)
+        public ConsoleOutput(ConsoleOutputLibrary consoleOutput)
         {
-            MondValue prototype;
-            MondClassBinder.Bind<ConsoleOutputClass>(state, out prototype);
-
-            var instance = new ConsoleOutputClass();
-            instance._consoleOutput = consoleOutput;
-
-            var obj = MondValue.Object();
-            obj.UserData = instance;
-            obj.Prototype = prototype;
-            obj.Lock();
-
-            return obj;
+            _consoleOutput = consoleOutput ?? throw new ArgumentNullException(nameof(consoleOutput));
         }
 
         [MondFunction]

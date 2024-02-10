@@ -4,7 +4,7 @@ using Mond.Binding;
 namespace Mond.Libraries.Json
 {
     [MondModule("Json")]
-    internal partial class JsonModule
+    internal static partial class JsonModule
     {
         private const string SerializePrefix = "Json.serialize: ";
         private const string CantSerializePrefix = SerializePrefix + "can't serialize ";

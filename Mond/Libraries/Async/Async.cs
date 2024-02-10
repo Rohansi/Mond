@@ -7,7 +7,7 @@ using Mond.Binding;
 
 namespace Mond.Libraries.Async
 {
-    [MondClass("Async")]
+    [MondModule("Async")]
     internal partial class AsyncClass
     {
         private readonly MondTaskScheduler _scheduler;
@@ -23,20 +23,6 @@ namespace Mond.Libraries.Async
             _activeTasks = 0;
 
             _exceptions = new Queue<Exception>();
-        }
-
-        public static MondValue Create(MondState state)
-        {
-            MondClassBinder.Bind<AsyncClass>(state, out var prototype);
-
-            var instance = new AsyncClass();
-
-            var obj = MondValue.Object();
-            obj.UserData = instance;
-            obj.Prototype = prototype;
-            obj.Lock();
-
-            return obj;
         }
 
         [MondFunction]

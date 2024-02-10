@@ -50,7 +50,7 @@ public partial class MondSourceGenerator : ISourceGenerator
                 continue;
             }
 
-            context.AddSource($"{prototype.Name}.Prototype.g.cs", GenerateWith(context, prototype, PrototypeBindings));
+            context.AddSource($"{FullName(prototype)}.Prototype.g.cs", GenerateWith(context, prototype, PrototypeBindings));
         }
 
         foreach (var module in syntaxReceiver.Modules)
@@ -61,7 +61,7 @@ public partial class MondSourceGenerator : ISourceGenerator
                 continue;
             }
 
-            context.AddSource($"{module.Name}.Module.g.cs", GenerateWith(context, module, ModuleBindings));
+            context.AddSource($"{FullName(module)}.Module.g.cs", GenerateWith(context, module, ModuleBindings));
         }
 
         foreach (var klass in syntaxReceiver.Classes)
@@ -78,29 +78,45 @@ public partial class MondSourceGenerator : ISourceGenerator
                 continue;
             }
 
-            context.AddSource($"{klass.Name}.Class.g.cs", GenerateWith(context, klass, ClassBindings));
+            context.AddSource($"{FullName(klass)}.Class.g.cs", GenerateWith(context, klass, ClassBindings));
+        }
+
+        static string FullName(INamedTypeSymbol type)
+        {
+            return type.GetFullyQualifiedName();
         }
     }
 
-    private static void CallMethod(IndentTextWriter writer, string qualifier, Method method)
+    private static void CallMethod(IndentTextWriter writer, string qualifier, Method method, int argCount = 10000)
     {
-        var hasReturn = !method.Info.ReturnsVoid;
+        var isConstructor = method.Info.MethodKind == MethodKind.Constructor;
+        var returnType = isConstructor
+            ? method.Info.ContainingType
+            : method.Info.ReturnType;
+        var hasReturn = !SymbolEqualityComparer.Default.Equals(returnType, TypeLookup.Void);
         if (hasReturn)
         {
             writer.Write("var result = ");
         }
-        writer.WriteLine($"{qualifier}.{method.Info.Name}({BindArguments(method)});");
+        writer.WriteLine(isConstructor
+            ? $"new {method.Info.ContainingType.GetFullyQualifiedName()}({BindArguments(method, argCount)});"
+            : $"{qualifier}.{method.Info.Name}({BindArguments(method, argCount)});");
         writer.WriteLine(hasReturn
-            ? $"return {ConvertToMondValue("result", method.Info.ReturnType)};"
+            ? $"return {ConvertToMondValue("result", returnType)};"
             : "return MondValue.Undefined;");
     }
 
-    private static string BindArguments(Method method)
+    private static string BindArguments(Method method, int argCount)
     {
         var valueIdx = 0;
         var args = new List<string>();
         foreach (var param in method.Parameters)
         {
+            if (valueIdx >= argCount && param.Type == ParameterType.Value)
+            {
+                continue;
+            }
+
             args.Add(BindArgument(valueIdx, param));
 
             if (param.Type == ParameterType.Value)
@@ -116,7 +132,7 @@ public partial class MondSourceGenerator : ISourceGenerator
     {
         return parameter.Type switch
         {
-            ParameterType.Value => ConvertFromMondValue($"args[{i}]", parameter.Info.Type),
+            ParameterType.Value => ConvertFromMondValue(i, parameter.Info.Type),
             ParameterType.Params => $"args[{i}..]",
             ParameterType.State => "state",
             ParameterType.Instance => "instance",
@@ -124,8 +140,9 @@ public partial class MondSourceGenerator : ISourceGenerator
         };
     }
 
-    private static string ConvertFromMondValue(string input, ITypeSymbol type)
+    private static string ConvertFromMondValue(int i, ITypeSymbol type)
     {
+        var input = $"args[{i}]";
         switch (type.SpecialType)
         {
             case SpecialType.System_Double:
@@ -157,6 +174,12 @@ public partial class MondSourceGenerator : ISourceGenerator
                 if (SymbolEqualityComparer.Default.Equals(type, TypeLookup.MondValueNullable))
                 {
                     return $"({input} == MondValue.Undefined ? null : (MondValue?){input})";
+                }
+
+                if (type.TryGetAttribute("MondClassAttribute", out var attr))
+                {
+                    var name = attr.GetArgument<string>() ?? type.Name;
+                    return $"({input}.UserData as global::{type.GetFullyQualifiedName()} ?? throw new MondRuntimeException(\"Unable to convert argument {i} to {name}\"))"; 
                 }
 
                 return $"TODO({input})";
@@ -191,30 +214,36 @@ public partial class MondSourceGenerator : ISourceGenerator
                     return $"({input} ?? MondValue.Undefined)";
                 }
 
+                if (type.HasAttribute("MondClassAttribute"))
+                {
+                    return $"MondValue.ClassInstance(state, {input}, \"{type.GetFullyQualifiedName()}\")";
+                }
+
                 return $"TODO({input})";
         }
     }
 
-    private static string CompareArguments(Method method)
+    private static string CompareArguments(Method method, int limit = 10000)
     {
         var argComparers = method.Parameters
+            .Take(limit)
             .Where(p => p.Type == ParameterType.Value)
-            .Select((p, i) => CompareArgument(i, p.MondTypes))
+            .Select((p, i) => CompareArgument(i, p))
             .ToList();
         return argComparers.Count > 0
             ? string.Join(" && ", argComparers)
             : "true /* no arguments */";
     }
 
-    private static string CompareArgument(int i, MondValueType[] types)
+    private static string CompareArgument(int i, Parameter p)
     {
-        if (types.Length == 1 && types[0] == MondValueType.Undefined)
-        {
-            // special value for any
-            return $"(true /* arg[{i}] is any */)";
-        }
+        var comparer = p.MondTypes.Length == 1 && p.MondTypes[0] == MondValueType.Undefined // special value for any
+            ? $"(true /* args[{i}] is any */)"
+            : "(" + string.Join(" || ", p.MondTypes.Select(t => $"args[{i}].Type == MondValueType.{t}")) + ")";
 
-        return "(" + string.Join(" || ", types.Select(t => $"args[{i}].Type == MondValueType.{t}")) + ")";
+        return p.IsOptional
+            ? $"(args.Length > {i} && {comparer})"
+            : comparer;
     }
 
     private static string GetMethodNotMatchedErrorMessage(string prefix, MethodTable methodTable)
@@ -246,19 +275,28 @@ public partial class MondSourceGenerator : ISourceGenerator
             .Replace("\n", @"\n");
     }
 
-    private static List<(IMethodSymbol Method, string Name)> GetMethods(GeneratorExecutionContext context, INamedTypeSymbol klass, bool isStatic)
+    private static List<(IMethodSymbol Method, string Name, string Identifier)> GetMethods(GeneratorExecutionContext context, INamedTypeSymbol klass, bool? isStatic = null)
     {
-        var result = new List<(IMethodSymbol, string)>();
+        var result = new List<(IMethodSymbol, string, string)>();
         foreach (var member in klass.GetMembers())
         {
-            if (member is not IMethodSymbol { MethodKind: MethodKind.Ordinary } method || method.IsStatic != isStatic)
+            if (member is not IMethodSymbol { MethodKind: MethodKind.Ordinary } method || (isStatic != null && method.IsStatic != isStatic))
             {
                 continue;
             }
 
             var attributes = method.GetAttributes();
-            if (!attributes.TryGetAttribute("MondFunctionAttribute", out var attr))
+            var hasFuncAttr = attributes.TryGetAttribute("MondFunctionAttribute", out var funcAttr);
+            var hasOpAttr = attributes.TryGetAttribute("MondOperatorAttribute", out var opAttr);
+
+            if (!hasFuncAttr && !hasOpAttr)
             {
+                continue;
+            }
+
+            if (hasFuncAttr && hasOpAttr)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(Diagnostics.BoundMethodsCannotBeFunctionAndOperator, method.Locations.First()));
                 continue;
             }
 
@@ -268,24 +306,29 @@ public partial class MondSourceGenerator : ISourceGenerator
                 continue;
             }
 
-            result.Add((method, attr.GetArgument() ?? method.Name));
+            var name = hasFuncAttr
+                ? (funcAttr.GetArgument<string>() ?? method.Name).ToCamelCase()
+                : opAttr.GetArgument<string>();
+            var ident = hasFuncAttr
+                ? name
+                : MondUtil.GetOperatorIdentifier(name);
+            result.Add((method, name, ident));
         }
 
         return result;
     }
 
-    private static List<(IPropertySymbol Property, string Name)> GetProperties(GeneratorExecutionContext context, INamedTypeSymbol klass, bool isStatic)
+    private static List<(IPropertySymbol Property, string Name)> GetProperties(GeneratorExecutionContext context, INamedTypeSymbol klass, bool? isStatic = null)
     {
         var result = new List<(IPropertySymbol, string)>();
         foreach (var member in klass.GetMembers())
         {
-            if (member is not IPropertySymbol property || property.IsStatic != isStatic)
+            if (member is not IPropertySymbol property || (isStatic != null && property.IsStatic != isStatic))
             {
                 continue;
             }
 
-            var attributes = property.GetAttributes();
-            if (!attributes.TryGetAttribute("MondFunctionAttribute", out var attr))
+            if (!property.TryGetAttribute("MondFunctionAttribute", out var attr))
             {
                 continue;
             }
@@ -296,7 +339,34 @@ public partial class MondSourceGenerator : ISourceGenerator
                 continue;
             }
 
-            result.Add((property, attr.GetArgument() ?? property.Name));
+            result.Add((property, attr.GetArgument<string>() ?? property.Name));
+        }
+
+        return result;
+    }
+
+    private static List<IMethodSymbol> GetConstructors(GeneratorExecutionContext context, INamedTypeSymbol klass)
+    {
+        var result = new List<IMethodSymbol>();
+        foreach (var member in klass.GetMembers())
+        {
+            if (member is not IMethodSymbol { MethodKind: MethodKind.Constructor } method)
+            {
+                continue;
+            }
+
+            if (!method.HasAttribute("MondConstructorAttribute"))
+            {
+                continue;
+            }
+
+            if (method.DeclaredAccessibility != Accessibility.Public)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(Diagnostics.BoundMembersMustBePublic, method.Locations.First()));
+                continue;
+            }
+
+            result.Add(method);
         }
 
         return result;
@@ -327,12 +397,24 @@ public partial class MondSourceGenerator : ISourceGenerator
             writer.OpenBracket();
         }
 
+        var parents = symbol.GetParentTypes();
+        for (var i = parents.Count - 1; i >= 0; i--)
+        {
+            writer.WriteLine($"partial class {parents[i].Name}");
+            writer.OpenBracket();
+        }
+
         writer.WriteLine($"partial class {symbol.Name}");
         writer.OpenBracket();
 
         generator(context, symbol, writer);
 
         writer.CloseBracket();
+
+        for (var i = 0; i < parents.Count; i++)
+        {
+            writer.CloseBracket();
+        }
 
         if (ns != null)
         {

@@ -5,7 +5,7 @@ using NUnit.Framework;
 namespace Mond.Tests.Binding
 {
     [TestFixture]
-    public class ModuleTests
+    public partial class ModuleTests
     {
         private MondState _state;
 
@@ -13,7 +13,11 @@ namespace Mond.Tests.Binding
         public void SetUp()
         {
             _state = new MondState();
-            _state["Test"] = MondModuleBinder.Bind<Test>(_state);
+
+            foreach (var t in new Test.Library().GetDefinitions(_state))
+            {
+                _state[t.Key] = t.Value;
+            }
         }
 
         [Test]
@@ -27,7 +31,7 @@ namespace Mond.Tests.Binding
                 return global.Test.unmarkedFunction();
             "));
 
-            Assert.Throws<MondRuntimeException>(() => _state.Run(@"
+            Assert.DoesNotThrow(() => _state.Run(@"
                 return global.Test.instanceFunction();
             "));
         }
@@ -61,14 +65,8 @@ namespace Mond.Tests.Binding
             "));
         }
 
-        [Test]
-        public void Duplicates()
-        {
-            Assert.DoesNotThrow(() => MondModuleBinder.Bind<TestDuplicate>(_state));
-        }
-
         [MondModule]
-        public class Test
+        public partial class Test
         {
             static Test()
             {
@@ -105,7 +103,7 @@ namespace Mond.Tests.Binding
         }
 
         [MondModule]
-        public class TestDuplicate
+        public partial class TestDuplicate
         {
             [MondFunction]
             public static void Method()

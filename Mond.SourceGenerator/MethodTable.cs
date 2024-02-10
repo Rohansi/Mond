@@ -9,13 +9,14 @@ namespace Mond.SourceGenerator;
 internal partial class MethodTable
 {
     public readonly string Name;
+    public readonly string Identifier;
     public readonly List<List<Method>> Methods;
     public readonly List<Method> ParamsMethods;
 
-    public MethodTable(string name, List<List<Method>> methods, List<Method> paramsMethods)
+    public MethodTable(string name, string identifier, List<List<Method>> methods, List<Method> paramsMethods)
     {
         Name = name;
-
+        Identifier = identifier;
         Methods = methods;
         ParamsMethods = paramsMethods;
     }
@@ -26,6 +27,7 @@ internal class Method : IComparable<Method>
     public readonly IMethodSymbol Info;
 
     public readonly string Name;
+    public readonly string Identifier;
 
     public readonly int MondParameterCount;         // maximum number of ParameterType.Value parameters
     public readonly int RequiredMondParameterCount; // number of required ParameterType.Value parameters
@@ -35,9 +37,10 @@ internal class Method : IComparable<Method>
 
     public readonly bool HasParams;
 
-    public Method(string name, IMethodSymbol info)
+    public Method(string name, string identifier, IMethodSymbol info)
     {
         Name = name;
+        Identifier = identifier;
         Info = info;
 
         var parameters = info.Parameters;
@@ -206,7 +209,7 @@ internal class Parameter
         if (paramType.TryGetAttribute("MondClassAttribute", out var mondClass))
         {
             Type = ParameterType.Value;
-            TypeName = mondClass.GetArgument() ?? paramType.Name;
+            TypeName = mondClass.GetArgument<string>() ?? paramType.Name;
             MondTypes = ObjectTypes;
             UserDataType = info.Type;
             return;

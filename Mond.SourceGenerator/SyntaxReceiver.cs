@@ -14,44 +14,61 @@ internal class SyntaxReceiver : ISyntaxContextReceiver
 
     public void OnVisitSyntaxNode(GeneratorSyntaxContext context)
     {
-        if (context.Node is ClassDeclarationSyntax classDecl)
+        if (context.Node is not ClassDeclarationSyntax classDecl)
         {
-            var symbol = ModelExtensions.GetDeclaredSymbol(context.SemanticModel, classDecl);
-            if (!(symbol is INamedTypeSymbol classSymbol))
+            return;
+        }
+        
+        var symbol = ModelExtensions.GetDeclaredSymbol(context.SemanticModel, classDecl);
+        if (!(symbol is INamedTypeSymbol classSymbol))
+        {
+            // todo: can we log somewhere?
+            return;
+        }
+
+        var attributes = classSymbol.GetAttributes();
+        var isPrototype = attributes.HasAttribute("MondPrototypeAttribute");
+        var isModule = attributes.HasAttribute("MondModuleAttribute");
+        var isClass = attributes.HasAttribute("MondClassAttribute");
+
+        if (!isPrototype && !isModule && !isClass)
+        {
+            return;
+        }
+
+        if (IsMissingPartial(classDecl))
+        {
+            MissingPartials.Add(classDecl.Identifier.GetLocation());
+        }
+
+        if (isPrototype)
+        {
+            Prototypes.Add(classSymbol);
+        }
+
+        if (isModule)
+        {
+            Modules.Add(classSymbol);
+        }
+
+        if (isClass)
+        {
+            Classes.Add(classSymbol);
+        }
+
+        static bool IsMissingPartial(ClassDeclarationSyntax klass)
+        {
+            while (klass != null)
             {
-                // todo: can we log somewhere?
-                return;
+                if (!klass.Modifiers.Any(SyntaxKind.PartialKeyword))
+                {
+                    return true;
+                }
+
+                klass = klass.Parent as ClassDeclarationSyntax;
             }
 
-            var attributes = classSymbol.GetAttributes();
-            var isPrototype = attributes.HasAttribute("MondPrototypeAttribute");
-            var isModule = attributes.HasAttribute("MondModuleAttribute");
-            var isClass = attributes.HasAttribute("MondClassAttribute");
-
-            if (!isPrototype && !isModule && !isClass)
-            {
-                return;
-            }
-
-            if (!classDecl.Modifiers.Any(SyntaxKind.PartialKeyword))
-            {
-                MissingPartials.Add(classDecl.Identifier.GetLocation());
-            }
-
-            if (isPrototype)
-            {
-                Prototypes.Add(classSymbol);
-            }
-
-            if (isModule)
-            {
-                Modules.Add(classSymbol);
-            }
-
-            if (isClass)
-            {
-                Classes.Add(classSymbol);
-            }
+            return false;
         }
     }
 }

@@ -4,18 +4,23 @@ using NUnit.Framework;
 namespace Mond.Tests.Binding
 {
     [TestFixture]
-    public class ClassTests
+    public partial class ClassTests
     {
         private MondState _state;
 
         [SetUp]
         public void SetUp()
         {
-            _state = new MondState();
-            _state["Person"] = MondClassBinder.Bind<Person>(_state);
+            _state = new MondState
+            {
+                Libraries =
+                {
+                    new Person.Library(),
+                },
+            };
 
             _state.Run(@"
-                global.brian = global.Person('Brian');
+                global.brian = Person('Brian');
             ");
         }
 
@@ -25,11 +30,6 @@ namespace Mond.Tests.Binding
             Assert.True(_state.Run(@"
                 return global.brian.generateGreeting();
             ") == "hello Brian!");
-
-            Assert.True(_state.Run(@"
-                global.brian.changeInstance();
-                return global.brian.test;
-            ") == 100);
 
             Assert.True(_state.Run(@"
                 global.brian.changeState();
@@ -77,29 +77,18 @@ namespace Mond.Tests.Binding
         [Test]
         public void Constructor()
         {
-            Assert.True(_state.Run("return global.brian.test;") == 123);
-
-            Assert.True(MondClassBinder.Bind<NoConstructor>(_state) == null);
-
-            Assert.DoesNotThrow(() => MondClassBinder.Bind<MultipleConstructors>(_state));
-        }
-
-        [Test]
-        public void Duplicates()
-        {
-            Assert.DoesNotThrow(() => MondClassBinder.Bind<TestDuplicate>(_state));
+            var type = _state.Run("return global.brian.getType();");
+            Assert.True(type == "object");
         }
 
         [MondClass]
-        public class Person
+        public partial class Person
         {
             [MondConstructor]
-            public Person([MondInstance] MondValue instance, string name)
+            public Person(string name)
             {
                 Name = name;
                 Age = -1;
-
-                instance["test"] = 123;
             }
 
             [MondFunction]
@@ -112,12 +101,6 @@ namespace Mond.Tests.Binding
             public string GenerateGreeting()
             {
                 return string.Format("hello {0}!", Name);
-            }
-
-            [MondFunction("changeInstance")]
-            public void ChangeInstance([MondInstance] MondValue instance)
-            {
-                instance["test"] = 100;
             }
 
             [MondFunction("changeState")]
@@ -141,13 +124,13 @@ namespace Mond.Tests.Binding
         }
 
         [MondClass]
-        public class NoConstructor
+        public partial class NoConstructor
         {
             
         }
 
         [MondClass]
-        public class MultipleConstructors
+        public partial class MultipleConstructors
         {
             public int N;
 
@@ -165,7 +148,7 @@ namespace Mond.Tests.Binding
         }
 
         [MondClass]
-        public class TestDuplicate
+        public partial class TestDuplicate
         {
             [MondConstructor]
             public TestDuplicate()

@@ -9,24 +9,11 @@ internal partial class MethodTable
 {
     #region MethodTables
 
-    public static List<MethodTable> Build(IEnumerable<(IMethodSymbol Method, string Name)> source)
+    public static List<MethodTable> Build(IEnumerable<(IMethodSymbol Method, string Name, string Identifier)> source)
     {
         return source
-            .Select(m => new
-            {
-                Method = m.Method,
-                Name = m.Name,
-                FunctionAttribute = m.Method.GetAttributes().GetAttribute("MondFunctionAttribute"),
-                OperatorAttribute = m.Method.GetAttributes().GetAttribute("MondOperatorAttribute"),
-            })
-            .Where(m => m.FunctionAttribute != null || m.OperatorAttribute != null)
-            .GroupBy(m =>
-            {
-                if (m.Name != null) return m.Name.ToCamelCase();
-                if (m.OperatorAttribute != null) return MondUtil.GetOperatorIdentifier(m.OperatorAttribute.GetArgument());
-                return m.FunctionAttribute?.GetArgument() ?? m.Method.Name.ToCamelCase();
-            })
-            .Select(g => BuildMethodTable(g.Select(m => new Method(g.Key, m.Method))))
+            .GroupBy(m => m.Name)
+            .Select(g => BuildMethodTable(g.Select(m => new Method(g.Key, m.Identifier, m.Method))))
             .ToList();
     }
 
@@ -35,14 +22,16 @@ internal partial class MethodTable
         var sourceList = source.ToList();
 
         string name = null;
+        string identifier = null;
         var methods = new List<List<Method>>();
         var paramsMethods = new List<Method>();
 
         foreach (var method in sourceList)
         {
-            if (name == null)
+            if (name == null || identifier == null)
             {
                 name = method.Name;
+                identifier = method.Identifier;
             }
 
             if (method.HasParams)
@@ -84,7 +73,7 @@ internal partial class MethodTable
             throw new Exception("method has overloads with parameters which map to the same mond types (conflict)");
         }
 
-        return new MethodTable(name, methods, paramsMethods);
+        return new MethodTable(name, identifier, methods, paramsMethods);
     }
 
     private class MethodParameterEqualityComparer : IEqualityComparer<Method>

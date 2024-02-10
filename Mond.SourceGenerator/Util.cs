@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 
@@ -31,18 +32,61 @@ namespace Mond.SourceGenerator
             return attribute != null;
         }
 
-        public static string? GetArgument(this AttributeData attribute, int i = 0)
+        public static T GetArgument<T>(this AttributeData attribute, int i = 0)
         {
             var args = attribute.ConstructorArguments;
             if (i >= args.Length)
             {
-                return null;
+                return default;
             }
 
-            return args[i].Value as string;
+            return (T)args[i].Value;
         }
 
-        public static string GetFullNamespace(this INamedTypeSymbol symbol)
+        public static bool HasDefaultConstructor(this INamedTypeSymbol klass)
+        {
+            return !klass.IsStatic && (klass.InstanceConstructors.Length == 0 || klass.InstanceConstructors.Any(c => c.Parameters.Length == 0));
+        }
+
+        public static List<INamedTypeSymbol> GetParentTypes(this ITypeSymbol type)
+        {
+            var result = new List<INamedTypeSymbol>();
+
+            var parent = type.ContainingType;
+            while (parent != null)
+            {
+                result.Add(parent);
+                parent = parent.ContainingType;
+            }
+
+            return result;
+        }
+
+        public static string GetFullyQualifiedName(this ITypeSymbol symbol)
+        {
+            string result = null;
+
+            var parent = symbol.ContainingType;
+            while (parent != null)
+            {
+                result = result != null
+                    ? parent.Name + "." + result
+                    : parent.Name;
+
+                parent = parent.ContainingType;
+            }
+
+            var ns = GetFullNamespace(symbol);
+            var withNs = result != null
+                ? ns + "." + result
+                : ns;
+
+            return string.IsNullOrEmpty(withNs)
+                ? symbol.Name
+                : withNs + "." + symbol.Name;
+        }
+
+        public static string GetFullNamespace(this ITypeSymbol symbol)
         {
             string result = null;
 
