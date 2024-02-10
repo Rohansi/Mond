@@ -3,18 +3,15 @@ using Mond.Binding;
 
 namespace Mond.VirtualMachine.Prototypes
 {
-    [MondModule("Array")]
-    internal static class ArrayPrototype
+    [MondPrototype("Array")]
+    internal static partial class ArrayPrototype
     {
         internal static MondValue ValueReadOnly;
         public static MondValue Value => ValueReadOnly;
 
         static ArrayPrototype()
         {
-            ValueReadOnly = MondPrototypeBinder.Bind(typeof(ArrayPrototype));
-            ValueReadOnly.Prototype = ValuePrototype.Value;
-
-            ValueReadOnly.Lock();
+            ValueReadOnly = PrototypeObject.Build(ValuePrototype.Value);
         }
 
         private const string MustBeAnArray = "Array.{0}: must be called on an array";

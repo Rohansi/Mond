@@ -3,13 +3,14 @@
 namespace Mond.Binding
 {
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-    public class MondModuleAttribute : Attribute
+    public class MondModuleAttribute : MondBindClassAttribute
     {
-        public string Name { get; }
+        public bool BareMethods { get; }
 
-        public MondModuleAttribute(string name = null)
+        public MondModuleAttribute(string name = null, bool bareMethods = false)
+            : base(name)
         {
-            Name = name;
+            BareMethods = bareMethods;
         }
     }
 }

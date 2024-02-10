@@ -3,18 +3,15 @@ using Mond.Binding;
 
 namespace Mond.VirtualMachine.Prototypes
 {
-    [MondModule("Object")]
-    internal static class ObjectPrototype
+    [MondPrototype("Object")]
+    internal static partial class ObjectPrototype
     {
         internal static MondValue ValueReadOnly;
         public static MondValue Value => ValueReadOnly;
 
         static ObjectPrototype()
         {
-            ValueReadOnly = MondPrototypeBinder.Bind(typeof(ObjectPrototype));
-            ValueReadOnly.Prototype = ValuePrototype.Value;
-
-            ValueReadOnly.Lock();
+            ValueReadOnly = PrototypeObject.Build(ValuePrototype.Value);
         }
 
         private const string MustBeAnObject = "Object.{0}: must be called on an object";

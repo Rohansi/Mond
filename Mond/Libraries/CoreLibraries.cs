@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Mond.Binding;
 using Mond.Libraries.Core;
 
 namespace Mond.Libraries
@@ -15,25 +14,23 @@ namespace Mond.Libraries
     {
         public IEnumerable<IMondLibrary> Create(MondState state)
         {
-            yield return new ErrorLibrary();
+            foreach (var m in new ErrorLibrary().Create(state)) yield return m;
             yield return new RequireLibrary();
-            yield return new CharLibrary();
-            yield return new MathLibrary();
-            yield return new RandomLibrary();
-            yield return new OperatorLibrary();
+            foreach (var m in new CharLibrary().Create(state)) yield return m;
+            foreach (var m in new MathLibrary().Create(state)) yield return m;
+            foreach (var m in new RandomLibrary().Create(state)) yield return m;
+            foreach (var m in new OperatorLibrary().Create(state)) yield return m;
         }
     }
 
     /// <summary>
     /// Library containing the <c>error</c> and <c>try</c> functions.
     /// </summary>
-    public class ErrorLibrary : IMondLibrary
+    public class ErrorLibrary : IMondLibraryCollection
     {
-        public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions(MondState state)
+        public IEnumerable<IMondLibrary> Create(MondState state)
         {
-            var errorModule = MondModuleBinder.Bind<ErrorModule>(state);
-            yield return new KeyValuePair<string, MondValue>("error", errorModule["error"]);
-            yield return new KeyValuePair<string, MondValue>("try", errorModule["try"]);
+            yield return new ErrorModule.Library();
         }
     }
 
@@ -101,61 +98,55 @@ namespace Mond.Libraries
 
         public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions(MondState state)
         {
-            var requireClass = RequireClass.Create(state, this);
-            yield return new KeyValuePair<string, MondValue>("require", requireClass["require"]);
+            var library = new RequireModule.Library(new RequireModule(this));
+            foreach (var t in library.GetDefinitions(state))
+            {
+                yield return t;
+            }
         }
     }
 
     /// <summary>
     /// Library containing the <c>Char</c> module.
     /// </summary>
-    public class CharLibrary : IMondLibrary
+    public class CharLibrary : IMondLibraryCollection
     {
-        public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions(MondState state)
+        public IEnumerable<IMondLibrary> Create(MondState state)
         {
-            var charModule = MondModuleBinder.Bind<CharModule>(state);
-            yield return new KeyValuePair<string, MondValue>("Char", charModule);
+            yield return new CharModule.Library();
         }
     }
 
     /// <summary>
     /// Library containing the <c>Math</c> module.
     /// </summary>
-    public class MathLibrary : IMondLibrary
+    public class MathLibrary : IMondLibraryCollection
     {
-        public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions(MondState state)
+        public IEnumerable<IMondLibrary> Create(MondState state)
         {
-            var mathModule = MondModuleBinder.Bind<MathModule>(state);
-
-            mathModule["PI"] = System.Math.PI;
-            mathModule["E"] = System.Math.E;
-
-            yield return new KeyValuePair<string, MondValue>("Math", mathModule);
+            yield return new MathModule.Library();
         }
     }
 
     /// <summary>
     /// Library containing the built-in operators.
     /// </summary>
-    public class OperatorLibrary : IMondLibrary
+    public class OperatorLibrary : IMondLibraryCollection
     {
-        public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions(MondState state)
+        public IEnumerable<IMondLibrary> Create(MondState state)
         {
-            var operatorModule = MondModuleBinder.Bind<OperatorModule>(state);
-            foreach (var pair in operatorModule.AsDictionary)
-                yield return new KeyValuePair<string, MondValue>(pair.Key, pair.Value);
+            yield return new OperatorModule.Library();
         }
     }
 
     /// <summary>
     /// Library containing the <c>Random</c> class.
     /// </summary>
-    public class RandomLibrary : IMondLibrary
+    public class RandomLibrary : IMondLibraryCollection
     {
-        public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions(MondState state)
+        public IEnumerable<IMondLibrary> Create(MondState state)
         {
-            var randomClass = MondClassBinder.Bind<RandomClass>(state);
-            yield return new KeyValuePair<string, MondValue>("Random", randomClass);
+            yield return new RandomClass.Library();
         }
     }
 }

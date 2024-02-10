@@ -14,7 +14,7 @@ namespace Mond.RemoteDebugger
             {
                 Libraries = new MondLibraryManager
                 {
-                    new JsonLibraries()
+                    new JsonLibrary()
                 }
             };
 

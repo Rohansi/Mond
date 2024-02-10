@@ -2,18 +2,15 @@
 
 namespace Mond.VirtualMachine.Prototypes
 {
-    [MondModule("Number")]
-    internal static class NumberPrototype
+    [MondPrototype("Number")]
+    internal static partial class NumberPrototype
     {
         internal static MondValue ValueReadOnly;
         public static MondValue Value => ValueReadOnly;
 
         static NumberPrototype()
         {
-            ValueReadOnly = MondPrototypeBinder.Bind(typeof(NumberPrototype));
-            ValueReadOnly.Prototype = ValuePrototype.Value;
-
-            ValueReadOnly.Lock();
+            ValueReadOnly = PrototypeObject.Build(ValuePrototype.Value);
         }
 
         [MondFunction]

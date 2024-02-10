@@ -3,8 +3,8 @@ using Mond.Binding;
 
 namespace Mond.Libraries.Core
 {
-    [MondModule("Error")]
-    internal class ErrorModule
+    [MondModule("Error", bareMethods: true)]
+    internal static partial class ErrorModule
     {
         [MondFunction]
         public static void Error(string message)

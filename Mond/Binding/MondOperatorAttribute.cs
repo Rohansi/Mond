@@ -11,10 +11,10 @@ namespace Mond.Binding
         public MondOperatorAttribute(string @operator)
         {
             if (!Lexer.IsOperatorToken(@operator))
-                throw new MondBindingException(BindingError.NameIsntValidOperator, @operator);
+                throw new ArgumentException($"`{@operator}` is not a valid operator name");
 
             if (Lexer.OperatorExists(@operator))
-                throw new MondBindingException(CompilerError.CantOverrideBuiltInOperator, @operator);
+                throw new ArgumentException(CompilerError.CantOverrideBuiltInOperator, @operator);
 
             Operator = @operator;
         }

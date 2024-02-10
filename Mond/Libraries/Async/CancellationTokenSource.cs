@@ -5,7 +5,7 @@ using Mond.Binding;
 namespace Mond.Libraries.Async
 {
     [MondClass("CancellationTokenSource")]
-    internal class CancellationTokenSourceClass
+    internal partial class CancellationTokenSourceClass
     {
         private readonly CancellationTokenSource _cts;
 

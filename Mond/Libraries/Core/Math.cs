@@ -4,8 +4,17 @@ using Mond.Binding;
 namespace Mond.Libraries.Core
 {
     [MondModule("Math")]
-    internal class MathModule
+    internal static partial class MathModule
     {
+        partial class Library
+        {
+            partial void ModifyObject(MondValue obj)
+            {
+                obj["PI"] = Math.PI;
+                obj["E"] = Math.E;
+            }
+        }
+
         [MondFunction]
         public static double Abs(double value) => Math.Abs(value);
 

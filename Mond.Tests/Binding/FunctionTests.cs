@@ -1,50 +1,34 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using Mond.Binding;
 using NUnit.Framework;
 
 namespace Mond.Tests.Binding
 {
     [TestFixture]
-    public class FunctionTests
+    [MondModule(bareMethods: true)]
+    public partial class FunctionTests
     {
         private MondState _state;
 
         [SetUp]
         public void SetUp()
         {
-            _state = new MondState();
-            MondClassBinder.Bind<ClassTests.Person>(_state);
-
-            var functions = new List<string>
+            _state = new MondState
             {
-                "ArgumentTypes",
-
-                "ReturnDouble", "ReturnFloat",
-                "ReturnInt", "ReturnUInt",
-                "ReturnShort", "ReturnUShort",
-                "ReturnSByte", "ReturnByte",
-                "ReturnString", "ReturnBool",
-                "ReturnVoid",
-                "ReturnNullString",
-
-                "ReturnClass",
-
-                "Add", "Concat", "Greet"
+                Libraries =
+                {
+                    new ClassTests.Person.Library(),
+                    new Library(),
+                },
             };
-
-            foreach (var func in functions)
-            {
-                _state[func] = MondFunctionBinder.Bind(typeof(FunctionTests).GetTypeInfo().GetMethod(func));
-            }
         }
 
         [Test]
         public void Arguments()
         {
             var result = _state.Run(@"
-                return global.ArgumentTypes(1, 2, 3, 4, 5, 6, 7, 8, '9', true);
+                return argumentTypes(1, 2, 3, 4, 5, 6, 7, 8, '9', true);
             ");
 
             Assert.True(result["a"] == 1);
@@ -87,7 +71,7 @@ namespace Mond.Tests.Binding
             for (var i = 0; i < types.Count; i++)
             {
                 var result = _state.Run(string.Format(@"
-                    return global.Return{0}();
+                    return return{0}();
                 ", types[i]));
 
                 Assert.True(result == results[i], types[i]);
@@ -95,7 +79,7 @@ namespace Mond.Tests.Binding
 
             {
                 var result = _state.Run(@"
-                    return global.ReturnClass();
+                    return returnClass();
                 ");
 
                 Assert.True(result.Type == MondValueType.Object);
@@ -112,51 +96,51 @@ namespace Mond.Tests.Binding
         public void ArgumentChecks()
         {
             Assert.Throws<MondRuntimeException>(() => _state.Run(@"
-                return global.ArgumentTypes(1, 2, 3);
+                return argumentTypes(1, 2, 3);
             "), "too few");
 
             Assert.Throws<MondRuntimeException>(() => _state.Run(@"
-                return global.ArgumentTypes(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+                return argumentTypes(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
             "), "too many");
 
             Assert.Throws<MondRuntimeException>(() => _state.Run(@"
-                return global.ArgumentTypes('1', 2, 3, 4, 5, 6, 7, 8, '9', true);
+                return argumentTypes('1', 2, 3, 4, 5, 6, 7, 8, '9', true);
             "), "check double");
 
             Assert.Throws<MondRuntimeException>(() => _state.Run(@"
-                return global.ArgumentTypes(1, '2', 3, 4, 5, 6, 7, 8, '9', true);
+                return argumentTypes(1, '2', 3, 4, 5, 6, 7, 8, '9', true);
             "), "check float");
 
             Assert.Throws<MondRuntimeException>(() => _state.Run(@"
-                return global.ArgumentTypes(1, 2, '3', 4, 5, 6, 7, 8, '9', true);
+                return argumentTypes(1, 2, '3', 4, 5, 6, 7, 8, '9', true);
             "), "check int");
 
             Assert.Throws<MondRuntimeException>(() => _state.Run(@"
-                return global.ArgumentTypes(1, 2, 3, '4', 5, 6, 7, 8, '9', true);
+                return argumentTypes(1, 2, 3, '4', 5, 6, 7, 8, '9', true);
             "), "check uint");
 
             Assert.Throws<MondRuntimeException>(() => _state.Run(@"
-                return global.ArgumentTypes(1, 2, 3, 4, '5', 6, 7, 8, '9', true);
+                return argumentTypes(1, 2, 3, 4, '5', 6, 7, 8, '9', true);
             "), "check short");
 
             Assert.Throws<MondRuntimeException>(() => _state.Run(@"
-                return global.ArgumentTypes(1, 2, 3, 4, 5, '6', 7, 8, '9', true);
+                return argumentTypes(1, 2, 3, 4, 5, '6', 7, 8, '9', true);
             "), "check ushort");
 
             Assert.Throws<MondRuntimeException>(() => _state.Run(@"
-                return global.ArgumentTypes(1, 2, 3, 4, 5, 6, '7', 8, '9', true);
+                return argumentTypes(1, 2, 3, 4, 5, 6, '7', 8, '9', true);
             "), "check sbyte");
 
             Assert.Throws<MondRuntimeException>(() => _state.Run(@"
-                return global.ArgumentTypes(1, 2, 3, 4, 5, 6, 7, '8', '9', true);
+                return argumentTypes(1, 2, 3, 4, 5, 6, 7, '8', '9', true);
             "), "check byte");
 
             Assert.Throws<MondRuntimeException>(() => _state.Run(@"
-                return global.ArgumentTypes(1, 2, 3, 4, 5, 6, 7, 8, 9, true);
+                return argumentTypes(1, 2, 3, 4, 5, 6, 7, 8, 9, true);
             "), "check string");
 
             Assert.Throws<MondRuntimeException>(() => _state.Run(@"
-                return global.ArgumentTypes(1, 2, 3, 4, 5, 6, 7, 8, '9', 10);
+                return argumentTypes(1, 2, 3, 4, 5, 6, 7, 8, '9', 10);
             "), "check bool");
         }
 
@@ -164,12 +148,12 @@ namespace Mond.Tests.Binding
         public void StateArgument()
         {
             Assert.True(_state.Run(@"
-                global.Add(1, 2);
+                add(1, 2);
                 return global.result;
             ") == 3);
 
             Assert.Throws<MondRuntimeException>(() => _state.Run(@"
-                global.Add(1, 2, 3);
+                add(1, 2, 3);
             "));
         }
 
@@ -177,18 +161,18 @@ namespace Mond.Tests.Binding
         public void ParamsArgument()
         {
             Assert.True(_state.Run(@"
-                return global.Concat('test');
+                return concat('test');
             ") == "test");
 
             Assert.True(_state.Run(@"
-                return global.Concat('hello', ' world', '!');
+                return concat('hello', ' world', '!');
             ") == "hello world!");
         }
 
         [Test]
         public void ClassArgument()
         {
-            var person = new ClassTests.Person(MondValue.Object(), "Rohan");
+            var person = new ClassTests.Person("Rohan");
 
             var personValue = MondValue.Object(_state);
             personValue.UserData = person;
@@ -196,19 +180,19 @@ namespace Mond.Tests.Binding
             _state["rohan"] = personValue;
 
             Assert.True(_state.Run(@"
-                return global.Greet(global.rohan);
+                return greet(global.rohan);
             ") == "hello Rohan!");
 
             personValue.UserData = "something";
 
             Assert.Throws<MondRuntimeException>(() => _state.Run(@"
-                global.Greet(global.rohan);
+                greet(global.rohan);
             "));
 
             personValue.UserData = null;
 
             Assert.Throws<MondRuntimeException>(() => _state.Run(@"
-                global.Greet(global.rohan);
+                greet(global.rohan);
             "));
         }
 
@@ -313,7 +297,7 @@ namespace Mond.Tests.Binding
         [MondFunction]
         public static ClassTests.Person ReturnClass()
         {
-            return new ClassTests.Person(MondValue.Object(), "Test");
+            return new ClassTests.Person("Test");
         }
 
         #endregion

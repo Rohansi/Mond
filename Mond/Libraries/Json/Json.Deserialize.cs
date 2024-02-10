@@ -7,7 +7,7 @@ using Mond.Binding;
 
 namespace Mond.Libraries.Json
 {
-    internal partial class JsonModule
+    internal static partial class JsonModule
     {
         private const string DeserializePrefix = "Json.deserialize: ";
 

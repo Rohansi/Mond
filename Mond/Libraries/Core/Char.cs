@@ -5,7 +5,7 @@ using Mond.Binding;
 namespace Mond.Libraries.Core
 {
     [MondModule("Char")]
-    internal class CharModule
+    internal static partial class CharModule
     {
         [MondFunction]
         public static short ToNumber(string s, int index = 0)

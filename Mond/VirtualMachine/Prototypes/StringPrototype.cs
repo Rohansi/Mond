@@ -4,18 +4,15 @@ using Mond.Binding;
 
 namespace Mond.VirtualMachine.Prototypes
 {
-    [MondModule("String")]
-    internal static class StringPrototype
+    [MondPrototype("String")]
+    internal static partial class StringPrototype
     {
         internal static MondValue ValueReadOnly;
         public static MondValue Value => ValueReadOnly;
 
         static StringPrototype()
         {
-            ValueReadOnly = MondPrototypeBinder.Bind(typeof(StringPrototype));
-            ValueReadOnly.Prototype = ValuePrototype.Value;
-
-            ValueReadOnly.Lock();
+            ValueReadOnly = PrototypeObject.Build(ValuePrototype.Value);
         }
 
         private const string IndexOutOfBounds = "String.{0}: index out of bounds";

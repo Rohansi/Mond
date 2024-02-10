@@ -4,7 +4,7 @@ using Mond.Binding;
 namespace Mond.Libraries.Core
 {
     [MondClass("Random")]
-    internal class RandomClass
+    internal partial class RandomClass
     {
         private readonly Random _random;
 

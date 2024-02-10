@@ -1,0 +1,7 @@
+fun identity(x) -> x;
+
+@identity
+fun add(x, y) -> x + y;
+
+const value = add(2, 2);
+printLn(value);

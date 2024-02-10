@@ -6,24 +6,14 @@ using Mond.Binding;
 
 namespace Mond.Libraries.Core
 {
-    [MondClass("Require")]
-    internal class RequireClass
+    [MondModule("Require", bareMethods: true)]
+    internal partial class RequireModule
     {
-        private RequireLibrary _require;
+        private readonly RequireLibrary _require;
 
-        public static MondValue Create(MondState state, RequireLibrary require)
+        public RequireModule(RequireLibrary require)
         {
-            MondClassBinder.Bind<RequireClass>(state, out var prototype);
-
-            var instance = new RequireClass();
-            instance._require = require;
-
-            var obj = MondValue.Object();
-            obj.UserData = instance;
-            obj.Prototype = prototype;
-            obj.Lock();
-
-            return obj;
+            _require = require ?? throw new ArgumentNullException(nameof(require));
         }
 
         [MondFunction]

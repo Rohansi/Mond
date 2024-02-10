@@ -7,10 +7,10 @@ using NUnit.Framework;
 namespace Mond.Tests.Binding
 {
     [TestFixture]
-    public class OperatorTests
+    public partial class OperatorTests
     {
-        [MondModule]
-        public class MyOperators
+        [MondModule(bareMethods: true)]
+        public partial class MyOperators
         {
             [MondOperator("<..>")]
             public static MondValue InclusiveRange(double begin, double end)
@@ -61,10 +61,7 @@ namespace Mond.Tests.Binding
         [SetUp]
         public void SetUp()
         {
-            _state = new MondState();
-            var ops = MondModuleBinder.Bind<MyOperators>(_state);
-            foreach( var pair in ops.AsDictionary )
-                this._state[pair.Key] = pair.Value;
+            _state = new MondState { Libraries = { new MyOperators.Library() } };
         }
 
         [Test]
