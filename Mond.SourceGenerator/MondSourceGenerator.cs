@@ -13,7 +13,7 @@ public partial class MondSourceGenerator : ISourceGenerator
 {
     public void Initialize(GeneratorInitializationContext context)
     {
-#if DEBUG
+#if DEBUG && false
         if (!Debugger.IsAttached)
         {
             Debugger.Launch();

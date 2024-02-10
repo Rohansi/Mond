@@ -1,10 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.1</TargetFrameworks>
+    <TargetFrameworks>netstandard2.1;net8.0</TargetFrameworks>
     <AssemblyVersion>0.9.4</AssemblyVersion>
     <DebugType>portable</DebugType>
     <LangVersion>latest</LangVersion>
+    <IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">true</IsAotCompatible>
 	
     <!-- NuGet Package -->
     <PackageId>Mond.RemoteDebugger</PackageId>

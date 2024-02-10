@@ -1,11 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.1</TargetFrameworks>
+    <TargetFrameworks>netstandard2.1;net8.0</TargetFrameworks>
     <AssemblyVersion>0.9.4</AssemblyVersion>
     <DebugType>portable</DebugType>
     <LangVersion>latest</LangVersion>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">true</IsAotCompatible>
 
     <PackageId>Mond</PackageId>
     <PackageVersion>$(AssemblyVersion)</PackageVersion>
@@ -14,7 +15,7 @@
     <PackageIconUrl>http://i.imgur.com/zbqVSaz.png</PackageIconUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/Rohansi/Mond</PackageProjectUrl>
-    <PackageTags>Mond Embedded Scripting Language</PackageTags>
+    <PackageTags>Mond Embedded Scripting Language AOT</PackageTags>
     
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <RepositoryUrl>https://github.com/Rohansi/Mond.git</RepositoryUrl> 

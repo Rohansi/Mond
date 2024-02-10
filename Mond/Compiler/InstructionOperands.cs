@@ -27,27 +27,43 @@ namespace Mond.Compiler
 
     class DeferredOperand<T> : IInstructionOperand where T : IInstructionOperand
     {
-        private readonly Lazy<T> _lazy;
+        private readonly Func<T> _valueFactory;
+        private bool _hasValue;
+        private T _value;
 
-        public T Value => _lazy.Value;
+        public T Value
+        {
+            get
+            {
+                if (!_hasValue)
+                {
+                    _value = _valueFactory();
+                    _hasValue = true;
+                }
+
+                return _value;
+            }
+        }
 
         public DeferredOperand(Func<T> valueFactory)
         {
-            _lazy = new Lazy<T>(valueFactory);
+            _valueFactory = valueFactory ?? throw new ArgumentNullException(nameof(valueFactory));
+            _hasValue = false;
+            _value = default;
         }
 
         public void Print()
         {
-            _lazy.Value.Print();
+            Value.Print();
         }
 
-        public int Length => _lazy.Value.Length;
+        public int Length => Value.Length;
 
-        public int? FirstValue => _lazy.Value.FirstValue;
+        public int? FirstValue => Value.FirstValue;
 
         public void Write(BytecodeWriter writer)
         {
-            _lazy.Value.Write(writer);
+            Value.Write(writer);
         }
     }
 
