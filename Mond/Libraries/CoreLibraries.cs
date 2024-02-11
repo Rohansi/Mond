@@ -14,23 +14,23 @@ namespace Mond.Libraries
     {
         public IEnumerable<IMondLibrary> Create(MondState state)
         {
-            foreach (var m in new ErrorLibrary().Create(state)) yield return m;
+            yield return new ErrorLibrary();
             yield return new RequireLibrary();
-            foreach (var m in new CharLibrary().Create(state)) yield return m;
-            foreach (var m in new MathLibrary().Create(state)) yield return m;
-            foreach (var m in new RandomLibrary().Create(state)) yield return m;
-            foreach (var m in new OperatorLibrary().Create(state)) yield return m;
+            yield return new CharLibrary();
+            yield return new MathLibrary();
+            yield return new RandomLibrary();
+            yield return new OperatorLibrary();
         }
     }
 
     /// <summary>
     /// Library containing the <c>error</c> and <c>try</c> functions.
     /// </summary>
-    public class ErrorLibrary : IMondLibraryCollection
+    public class ErrorLibrary : IMondLibrary
     {
-        public IEnumerable<IMondLibrary> Create(MondState state)
+        public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions(MondState state)
         {
-            yield return new ErrorModule.Library();
+            return new ErrorModule.Library().GetDefinitions(state);
         }
     }
 
@@ -109,44 +109,44 @@ namespace Mond.Libraries
     /// <summary>
     /// Library containing the <c>Char</c> module.
     /// </summary>
-    public class CharLibrary : IMondLibraryCollection
+    public class CharLibrary : IMondLibrary
     {
-        public IEnumerable<IMondLibrary> Create(MondState state)
+        public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions(MondState state)
         {
-            yield return new CharModule.Library();
+            return new CharModule.Library().GetDefinitions(state);
         }
     }
 
     /// <summary>
     /// Library containing the <c>Math</c> module.
     /// </summary>
-    public class MathLibrary : IMondLibraryCollection
+    public class MathLibrary : IMondLibrary
     {
-        public IEnumerable<IMondLibrary> Create(MondState state)
+        public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions(MondState state)
         {
-            yield return new MathModule.Library();
+            return new MathModule.Library().GetDefinitions(state);
         }
     }
 
     /// <summary>
     /// Library containing the built-in operators.
     /// </summary>
-    public class OperatorLibrary : IMondLibraryCollection
+    public class OperatorLibrary : IMondLibrary
     {
-        public IEnumerable<IMondLibrary> Create(MondState state)
+        public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions(MondState state)
         {
-            yield return new OperatorModule.Library();
+            return new OperatorModule.Library().GetDefinitions(state);
         }
     }
 
     /// <summary>
     /// Library containing the <c>Random</c> class.
     /// </summary>
-    public class RandomLibrary : IMondLibraryCollection
+    public class RandomLibrary : IMondLibrary
     {
-        public IEnumerable<IMondLibrary> Create(MondState state)
+        public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions(MondState state)
         {
-            yield return new RandomClass.Library();
+            return new RandomClass.Library().GetDefinitions(state);
         }
     }
 }

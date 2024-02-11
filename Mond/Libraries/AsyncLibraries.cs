@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Mond.Binding;
 using Mond.Libraries.Async;
 
 namespace Mond.Libraries
@@ -12,7 +11,7 @@ namespace Mond.Libraries
     /// Library containing <c>Async</c>, <c>Task</c>, <c>TaskCompletionSource</c>,
     /// <c>CancellationTokenSource</c>, and <c>CancellationToken</c>.
     /// </summary>
-    public class AsyncLibrary : IMondLibraryCollection
+    public class AsyncLibraries : IMondLibraryCollection
     {
         public IEnumerable<IMondLibrary> Create(MondState state)
         {

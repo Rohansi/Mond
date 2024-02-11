@@ -14,8 +14,8 @@ namespace Mond.Libraries
             {
                 new CoreLibraries(),
                 new ConsoleLibraries(),
-                new JsonLibrary(),
-                new AsyncLibrary(),
+                new JsonLibraries(),
+                new AsyncLibraries(),
             };
 
             return libraries.SelectMany(l => l.Create(state));
