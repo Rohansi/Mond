@@ -8,7 +8,7 @@
 * and a [useful debugger](https://github.com/Rohansi/Mond/wiki/Debugging) that integrates with [VS Code](https://marketplace.visualstudio.com/items?itemName=Rohansi.mond-vscode)
 
 ### Trying it
-[You can try it in your browser!](https://rohbot.net/mond/) If you're interested, the backend code for that website is [available here](https://github.com/Rohansi/Mondbot).
+[You can try it in your browser!](https://mond.rohan.dev/)
 
 ![The Mond REPL in action](https://files.facepunch.com/Rohan/2019/January/21_11-14-04.gif)
 
