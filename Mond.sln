@@ -11,7 +11,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mond.Repl", "Mond.Repl\Mond
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mond.RemoteDebugger", "Mond.RemoteDebugger\Mond.RemoteDebugger.csproj", "{02B39787-7210-4B0A-B5E0-D31D466F9239}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mond.SourceGenerator", "Mond.SourceGenerator\Mond.SourceGenerator.csproj", "{9DCAA2B4-D0E1-49FD-9A2F-AC872F999410}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mond.SourceGenerator", "Mond.SourceGenerator\Mond.SourceGenerator.csproj", "{9DCAA2B4-D0E1-49FD-9A2F-AC872F999410}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TryMond", "TryMond\TryMond.csproj", "{CC3689AA-A57A-449E-9519-7C60ADD7C482}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{9DCAA2B4-D0E1-49FD-9A2F-AC872F999410}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9DCAA2B4-D0E1-49FD-9A2F-AC872F999410}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9DCAA2B4-D0E1-49FD-9A2F-AC872F999410}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CC3689AA-A57A-449E-9519-7C60ADD7C482}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CC3689AA-A57A-449E-9519-7C60ADD7C482}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CC3689AA-A57A-449E-9519-7C60ADD7C482}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CC3689AA-A57A-449E-9519-7C60ADD7C482}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

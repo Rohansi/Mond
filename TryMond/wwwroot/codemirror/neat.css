@@ -1,0 +1,32 @@
+.CodeMirror {
+    font-family: "Courier New", monospace;
+    font-size: 12pt;
+    background: #111;
+}
+
+.CodeMirror-gutters {
+    border-right: 1px solid #333;
+    background-color: #222;
+}
+
+.CodeMirror-sizer {
+    border-right: 0;
+}
+
+.CodeMirror.cm-s-neat div.CodeMirror-cursor {
+    border-left: 1px solid #fff;
+}
+
+.cm-s-neat span.cm-keyword { line-height: 1em; font-weight: bold; color: #59f; }
+.cm-s-neat span.cm-string { color: #f65; }
+.cm-s-neat span.cm-builtin { line-height: 1em; font-weight: bold; color: #0aa; }
+.cm-s-neat span.cm-special { line-height: 1em; font-weight: bold; color: #0aa; }
+.cm-s-neat span.cm-variable { color: #fff; }
+.cm-s-neat span.cm-number, .cm-s-neat span.cm-atom { color: #dd9; }
+.cm-s-neat span.cm-meta {color: #eee;}
+.cm-s-neat span.cm-link { color: #3a3; }
+.cm-s-neat span.cm-other { color: #ccc; }
+.cm-s-neat span.cm-comment { color: #3a3; }
+
+.cm-s-neat .CodeMirror-activeline-background {background: #e8f2ff !important;}
+.cm-s-neat .CodeMirror-matchingbracket {outline:1px solid grey; color:#fff !important;}

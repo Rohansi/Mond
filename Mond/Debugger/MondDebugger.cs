@@ -97,22 +97,22 @@ namespace Mond.Debugger
             return OnBreak(context, address);
         }
 
-        internal bool ShouldBreak(MondProgram program, int address)
+        protected internal virtual bool ShouldBreak(MondProgram program, int address)
         {
             lock (SyncRoot)
             {
+                if (IsBreakRequested)
+                {
+                    IsBreakRequested = false;
+                    return true;
+                }
+
                 var breakpointsFound = ProgramBreakpoints.TryGetValue(program, out var breakpoints);
                 if (!breakpointsFound)
                 {
                     ProgramBreakpoints.Add(program, new List<int>());
                     Programs.Add(program);
                     OnProgramAdded(program);
-                }
-
-                if (IsBreakRequested)
-                {
-                    IsBreakRequested = false;
-                    return true;
                 }
 
                 return breakpointsFound && breakpoints.Contains(address);

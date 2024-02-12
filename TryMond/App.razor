@@ -1,0 +1,104 @@
+﻿@page "/"
+
+@using Mond
+@using Mond.Libraries
+@using System.Text
+
+<div class="editor-root">
+    <div class="toolbar">
+        <button @onclick="Run">Run</button>
+        <span class="spacer"></span>
+        <a class="github" href="https://github.com/Rohansi/Mond">
+            <img src="github-small.png" alt="GitHub logo" />
+            GitHub
+        </a>
+    </div>
+    <div class="content">
+        <div class="editor">
+            <textarea id="codeEditor" @ref="CodeEditorElem">printLn('hello world!');</textarea>
+        </div>
+        <div class="output">
+            <div>@Output</div>
+        </div>
+    </div>
+</div>
+
+@code {
+    public ElementReference CodeEditorElem;
+    public IJSObjectReference CodeEditor;
+
+    public string Output = "";
+
+    [Inject] public IJSRuntime JS { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+        if (firstRender)
+        {
+            CodeEditor = await JS.InvokeAsync<IJSObjectReference>("CodeMirror.fromTextArea", CodeEditorElem, new
+            {
+                mode = "mond",
+                theme = "neat",
+                lineNumbers = true,
+                indentUnit = 4,
+                smartIndent = true,
+                styleActiveLine = true,
+                viewportMargin = double.MaxValue,
+                extraKeys = new Dictionary<string, string> { { "Tab", "indentMore" }, { "Shift-Tab", "indentLess" } },
+            });
+
+            await CodeEditor.InvokeVoidAsync("setSize", "100%", "100%");
+        }
+    }
+
+    private async void Run()
+    {
+        const int maxOutputChars = 5 * 1024;
+        const int maxOutputLines = 1000;
+
+        Output = "";
+
+        var script = await CodeEditor.InvokeAsync<string>("getValue");
+
+        var outputBuffer = new StringBuilder();
+        var output = new LimitedTextWriter(new StringWriter(outputBuffer), maxOutputChars, maxOutputLines);
+
+        var state = new MondState
+        {
+            Options = new MondCompilerOptions
+            {
+                DebugInfo = MondDebugInfoLevel.StackTrace,
+            },
+            Libraries = new MondLibraryManager
+            {
+                new ErrorLibrary(),
+                new CharLibrary(),
+                new MathLibrary(),
+                new RandomLibrary(),
+                new OperatorLibrary(),
+                new ConsoleOutputLibrary(),
+                new JsonLibraries(),
+            },
+            Debugger = new AutoAbortDebugger(),
+        };
+        state.Libraries.Configure(libs =>
+        {
+            var consoleOut = libs.Get<ConsoleOutputLibrary>();
+            consoleOut.Out = output;
+        });
+
+        try
+        {
+            state.Run(script, "TryMond");
+        }
+        catch (Exception e)
+        {
+            output.WriteLine(e.Message);
+        }
+
+        Output = outputBuffer.ToString();
+        StateHasChanged();
+    }
+}
