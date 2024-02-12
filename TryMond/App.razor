@@ -18,7 +18,7 @@
             <textarea id="codeEditor" @ref="CodeEditorElem">printLn('hello world!');</textarea>
         </div>
         <div class="output">
-            @Output
+            <div>@Output</div>
         </div>
     </div>
 </div>
@@ -81,6 +81,7 @@
                 new ConsoleOutputLibrary(),
                 new JsonLibraries(),
             },
+            Debugger = new AutoAbortDebugger(),
         };
         state.Libraries.Configure(libs =>
         {
@@ -88,7 +89,14 @@
             consoleOut.Out = output;
         });
 
-        state.Run(script);
+        try
+        {
+            state.Run(script, "TryMond");
+        }
+        catch (Exception e)
+        {
+            output.WriteLine(e.Message);
+        }
 
         Output = outputBuffer.ToString();
         StateHasChanged();
