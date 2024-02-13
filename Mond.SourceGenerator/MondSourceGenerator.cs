@@ -87,7 +87,7 @@ public partial class MondSourceGenerator : ISourceGenerator
         }
     }
 
-    private static void CallMethod(IndentTextWriter writer, string qualifier, Method method, int argCount = 10000)
+    private static void CallMethod(GeneratorExecutionContext context, IndentTextWriter writer, string qualifier, Method method, int argCount = 10000)
     {
         var isConstructor = method.Info.MethodKind == MethodKind.Constructor;
         var returnType = isConstructor
@@ -99,14 +99,14 @@ public partial class MondSourceGenerator : ISourceGenerator
             writer.Write("var result = ");
         }
         writer.WriteLine(isConstructor
-            ? $"new {method.Info.ContainingType.GetFullyQualifiedName()}({BindArguments(method, argCount)});"
-            : $"{qualifier}.{method.Info.Name}({BindArguments(method, argCount)});");
+            ? $"new {method.Info.ContainingType.GetFullyQualifiedName()}({BindArguments(context, method, argCount)});"
+            : $"{qualifier}.{method.Info.Name}({BindArguments(context, method, argCount)});");
         writer.WriteLine(hasReturn
-            ? $"return {ConvertToMondValue("result", returnType)};"
+            ? $"return {ConvertToMondValue(context, "result", returnType, method.Info)};"
             : "return MondValue.Undefined;");
     }
 
-    private static string BindArguments(Method method, int argCount)
+    private static string BindArguments(GeneratorExecutionContext context, Method method, int argCount)
     {
         var valueIdx = 0;
         var args = new List<string>();
@@ -117,7 +117,7 @@ public partial class MondSourceGenerator : ISourceGenerator
                 continue;
             }
 
-            args.Add(BindArgument(valueIdx, param));
+            args.Add(BindArgument(context, valueIdx, param));
 
             if (param.Type == ParameterType.Value)
             {
@@ -128,11 +128,12 @@ public partial class MondSourceGenerator : ISourceGenerator
         return string.Join(", ", args);
     }
 
-    private static string BindArgument(int i, Parameter parameter)
+    private static string BindArgument(GeneratorExecutionContext context, int i, Parameter parameter)
     {
         return parameter.Type switch
         {
-            ParameterType.Value => ConvertFromMondValue(i, parameter.Info.Type),
+            ParameterType.Unsupported => $"default /* unsupported type {parameter.Info.Type.GetFullyQualifiedName()} */",
+            ParameterType.Value => ConvertFromMondValue(context, i, parameter.Info.Type, parameter.Info),
             ParameterType.Params => $"args[{i}..]",
             ParameterType.State => "state",
             ParameterType.Instance => "instance",
@@ -140,7 +141,7 @@ public partial class MondSourceGenerator : ISourceGenerator
         };
     }
 
-    private static string ConvertFromMondValue(int i, ITypeSymbol type)
+    private static string ConvertFromMondValue(GeneratorExecutionContext context, int i, ITypeSymbol type, ISymbol typeSource)
     {
         var input = $"args[{i}]";
         switch (type.SpecialType)
@@ -182,11 +183,13 @@ public partial class MondSourceGenerator : ISourceGenerator
                     return $"({input}.UserData as global::{type.GetFullyQualifiedName()} ?? throw new MondRuntimeException(\"Unable to convert argument {i} to {name}\"))"; 
                 }
 
-                return $"TODO({input})";
+                var typeName = type.GetFullyQualifiedName();
+                context.ReportDiagnostic(Diagnostic.Create(Diagnostics.CannotConvertFromMondValue, typeSource.Locations.First(), typeName));
+                return $"default /* cannot convert MondValue -> {typeName} */";
         }
     }
 
-    private static string ConvertToMondValue(string input, ITypeSymbol type)
+    private static string ConvertToMondValue(GeneratorExecutionContext context, string input, ITypeSymbol type, ISymbol typeSource)
     {
         switch (type.SpecialType)
         {
@@ -219,7 +222,9 @@ public partial class MondSourceGenerator : ISourceGenerator
                     return $"MondValue.ClassInstance(state, {input}, \"{type.GetFullyQualifiedName()}\")";
                 }
 
-                return $"TODO({input})";
+                var typeName = type.GetFullyQualifiedName();
+                context.ReportDiagnostic(Diagnostic.Create(Diagnostics.CannotConvertToMondValue, typeSource.Locations.First(), typeName));
+                return $"MondValue.Undefined /* cannot convert {typeName} -> MondValue */";
         }
     }
 
@@ -237,7 +242,9 @@ public partial class MondSourceGenerator : ISourceGenerator
 
     private static string CompareArgument(int i, Parameter p)
     {
-        var comparer = p.MondTypes.Length == 1 && p.MondTypes[0] == MondValueType.Undefined // special value for any
+        var isAny = p.MondTypes == null || p.MondTypes.Length == 0 ||
+                    (p.MondTypes.Length == 1 && p.MondTypes[0] == MondValueType.Undefined); // special value for any
+        var comparer = isAny
             ? $"(true /* args[{i}] is any */)"
             : "(" + string.Join(" || ", p.MondTypes.Select(t => $"args[{i}].Type == MondValueType.{t}")) + ")";
 

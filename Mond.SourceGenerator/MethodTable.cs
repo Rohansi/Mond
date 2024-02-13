@@ -37,7 +37,7 @@ internal class Method : IComparable<Method>
 
     public readonly bool HasParams;
 
-    public Method(string name, string identifier, IMethodSymbol info)
+    public Method(GeneratorExecutionContext context, string name, string identifier, IMethodSymbol info)
     {
         Name = name;
         Identifier = identifier;
@@ -46,7 +46,7 @@ internal class Method : IComparable<Method>
         var parameters = info.Parameters;
 
         Parameters = parameters
-            .Select(p => new Parameter(p))
+            .Select(p => Parameter.Create(context, p))
             .ToList();
 
         ValueParameters = Parameters
@@ -112,10 +112,11 @@ internal class Method : IComparable<Method>
 
 internal enum ParameterType
 {
+    Unsupported,
     Value,
     Params,
     State,
-    Instance
+    Instance,
 }
 
 internal class Parameter
@@ -124,102 +125,101 @@ internal class Parameter
     private static readonly MondValueType[] ObjectTypes = [MondValueType.Object];
 
     public readonly IParameterSymbol Info;
-
-    public readonly ParameterType Type;
-    public readonly string TypeName;
-
     public readonly bool IsOptional;
 
-    public readonly int Priority;
+    public ParameterType Type { get; private set; }
+    public string TypeName { get; private set; }
 
-    public readonly MondValueType[] MondTypes;
+    public int Priority { get; private set; }
 
-    public readonly ITypeSymbol UserDataType;
+    public MondValueType[] MondTypes { get; private set; }
 
-    public Parameter(IParameterSymbol info)
+    public ITypeSymbol UserDataType { get; private set; }
+
+    private Parameter(IParameterSymbol info)
     {
         Info = info;
-
         IsOptional = info.IsOptional;
-
-        var paramType = info.Type;
-
-        if (TypeLookup.TypeCheckMap.TryGetValue(paramType, out var mondTypes))
-        {
-            Type = ParameterType.Value;
-            TypeName = mondTypes[0].GetName();
-
-            if (SymbolEqualityComparer.Default.Equals(paramType, TypeLookup.Bool))
-            {
-                Priority = 10;
-            }
-            else if (TypeLookup.NumberTypes.Contains(paramType))
-            {
-                Priority = 20;
-            }
-            else if (SymbolEqualityComparer.Default.Equals(paramType, TypeLookup.String))
-            {
-                Priority = 30;
-            }
-
-            MondTypes = mondTypes;
-            return;
-        }
-
-        if (SymbolEqualityComparer.Default.Equals(paramType, TypeLookup.MondValue))
-        {
-            if (info.HasAttribute("MondInstanceAttribute"))
-            {
-                Type = ParameterType.Instance;
-                TypeName = "instance";
-                return;
-            }
-
-            Type = ParameterType.Value;
-            TypeName = "any";
-            Priority = 100;
-            MondTypes = AnyTypes;
-            return;
-        }
-
-        if (SymbolEqualityComparer.Default.Equals(paramType, TypeLookup.MondValueNullable))
-        {
-            Type = ParameterType.Value;
-            TypeName = "any?";
-            Priority = 100;
-            MondTypes = AnyTypes;
-            return;
-        }
-
-        if (SymbolEqualityComparer.Default.Equals(paramType, TypeLookup.MondValueArray) && info.IsParams)
-        {
-            Type = ParameterType.Params;
-            TypeName = "...";
-            Priority = 75;
-            return;
-        }
-
-        if (SymbolEqualityComparer.Default.Equals(paramType, TypeLookup.MondState))
-        {
-            Type = ParameterType.State;
-            TypeName = "state";
-            return;
-        }
-
-        if (paramType.TryGetAttribute("MondClassAttribute", out var mondClass))
-        {
-            Type = ParameterType.Value;
-            TypeName = mondClass.GetArgument<string>() ?? paramType.Name;
-            MondTypes = ObjectTypes;
-            UserDataType = info.Type;
-            return;
-        }
-
-        throw new Exception("unsupported parameter type");
     }
 
     public override string ToString()
     {
         return TypeName;
+    }
+
+    public static Parameter Create(GeneratorExecutionContext context, IParameterSymbol info)
+    {
+        var param = new Parameter(info);
+        var paramType = info.Type;
+
+        if (TypeLookup.TypeCheckMap.TryGetValue(paramType, out var mondTypes))
+        {
+            param.Type = ParameterType.Value;
+            param.TypeName = mondTypes[0].GetName();
+
+            if (SymbolEqualityComparer.Default.Equals(paramType, TypeLookup.Bool))
+            {
+                param.Priority = 10;
+            }
+            else if (TypeLookup.NumberTypes.Contains(paramType))
+            {
+                param.Priority = 20;
+            }
+            else if (SymbolEqualityComparer.Default.Equals(paramType, TypeLookup.String))
+            {
+                param.Priority = 30;
+            }
+
+            param.MondTypes = mondTypes;
+        }
+        else if (SymbolEqualityComparer.Default.Equals(paramType, TypeLookup.MondValue))
+        {
+            if (info.HasAttribute("MondInstanceAttribute"))
+            {
+                param.Type = ParameterType.Instance;
+                param.TypeName = "instance";
+            }
+            else
+            {
+                param.Type = ParameterType.Value;
+                param.TypeName = "any";
+                param.Priority = 100;
+                param.MondTypes = AnyTypes;
+            }
+        }
+        else if (SymbolEqualityComparer.Default.Equals(paramType, TypeLookup.MondValueNullable))
+        {
+            param.Type = ParameterType.Value;
+            param.TypeName = "any?";
+            param.Priority = 100;
+            param.MondTypes = AnyTypes;
+        }
+        else if (SymbolEqualityComparer.Default.Equals(paramType, TypeLookup.MondValueArray) && info.IsParams)
+        {
+            param.Type = ParameterType.Params;
+            param.TypeName = "...";
+            param.Priority = 75;
+        }
+        else if (SymbolEqualityComparer.Default.Equals(paramType, TypeLookup.MondState))
+        {
+            param.Type = ParameterType.State;
+            param.TypeName = "state";
+        }
+        else if (paramType.TryGetAttribute("MondClassAttribute", out var mondClass))
+        {
+            param.Type = ParameterType.Value;
+            param.TypeName = mondClass.GetArgument<string>() ?? paramType.Name;
+            param.MondTypes = ObjectTypes;
+            param.UserDataType = info.Type;
+        }
+        else
+        {
+            param.Type = ParameterType.Unsupported;
+            param.TypeName = "unknown";
+
+            context.ReportDiagnostic(Diagnostic.Create(Diagnostics.UnsupportedParameterType, info.Locations.First(), info.Type.GetFullyQualifiedName()));
+        }
+
+        return param;
     }
 }

@@ -319,5 +319,21 @@ namespace Mond.Tests.Binding
         {
             return person.GenerateGreeting();
         }
+
+#if false
+        [MondFunction]
+        public static decimal UnsupportedReturn()
+        {
+            return default;
+        }
+
+        [MondFunction]
+        public static void UnsupportedParameter(decimal x)
+        {
+        }
+
+        [MondFunction]
+        public decimal UnsupportedProperty { get; set; }
+#endif
     }
 }
