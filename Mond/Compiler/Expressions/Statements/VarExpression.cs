@@ -21,7 +21,7 @@ namespace Mond.Compiler.Expressions.Statements
         public ReadOnlyCollection<Declaration> Declarations { get; private set; }
         public bool IsReadOnly { get; }
 
-        public bool HasChildren => false;
+        public bool HasChildren => true;
 
         public VarExpression(Token token, List<Declaration> declarations, bool isReadOnly = false)
             : base(token)
@@ -33,6 +33,10 @@ namespace Mond.Compiler.Expressions.Statements
         public override int Compile(FunctionContext context)
         {
             context.Position(Token);
+
+            var isSingleInitialized = Declarations.Count == 1 && Declarations[0].Initializer != null;
+            if (isSingleInitialized)
+                context.Statement(this);
 
             var stack = 0;
             var shouldBeGlobal = context.ArgIndex == 0 && context.Compiler.Options.MakeRootDeclarationsGlobal;
@@ -49,6 +53,9 @@ namespace Mond.Compiler.Expressions.Statements
 
                 if (declaration.Initializer == null)
                     continue;
+
+                if (!isSingleInitialized)
+                    context.Statement(declaration.Initializer);
 
                 if (!shouldBeGlobal)
                 {

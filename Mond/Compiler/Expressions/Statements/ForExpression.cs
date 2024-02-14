@@ -38,20 +38,6 @@ namespace Mond.Compiler.Expressions.Statements
 
             if (Initializer != null)
             {
-                var hasCode = true;
-
-                if (Initializer.Statements.Count > 0)
-                {
-                    if (Initializer.Statements[0] is VarExpression initializerVar &&
-                        initializerVar.Declarations.All(d => d.Initializer == null))
-                    {
-                        hasCode = false;
-                    }
-                }
-
-                if (hasCode)
-                    context.Statement(Initializer);
-
                 stack += Initializer.Compile(context);
             }
 
@@ -83,7 +69,7 @@ namespace Mond.Compiler.Expressions.Statements
 
             if (Increment != null)
             {
-                context.Statement(Increment);
+                // no need to output a statement, block will do it for us
                 stack += Increment.Compile(context);
             }
 

@@ -5,9 +5,15 @@ namespace Mond.Compiler.Expressions
     class ScopeExpression : BlockExpression
     {
         public ScopeExpression(BlockExpression block)
-            : base(block.Statements)
+            : base(block.Token, block.Statements)
         {
             
+        }
+
+        public ScopeExpression(Token token, IList<Expression> statements)
+            : base(token, statements)
+        {
+
         }
 
         public ScopeExpression(IList<Expression> statements)

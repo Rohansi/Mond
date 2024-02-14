@@ -93,9 +93,13 @@
         {
             state.Run(script, "TryMond");
         }
-        catch (Exception e)
+        catch (MondRuntimeException e)
         {
             output.WriteLine(e.Message);
+        }
+        catch (Exception e)
+        {
+            output.WriteLine(e.ToString());
         }
 
         Output = outputBuffer.ToString();

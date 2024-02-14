@@ -5,7 +5,7 @@
         public EmptyExpression(Token token)
             : base(token)
         {
-            
+            EndToken = token;
         }
 
         public override int Compile(FunctionContext context)

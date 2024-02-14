@@ -41,17 +41,11 @@ namespace Mond.Compiler.Expressions
 
         public override int Compile(FunctionContext context)
         {
-            var needStatements = context.Compiler.Options.DebugInfo >= MondDebugInfoLevel.Full;
-
             foreach (var expression in Statements)
             {
-                if (needStatements)
-                {
-                    var statement = expression as IStatementExpression;
-
-                    if (statement == null || !statement.HasChildren)
-                        context.Statement(expression);
-                }
+                var statement = expression as IStatementExpression;
+                if (statement == null || !statement.HasChildren)
+                    context.Statement(expression);
 
                 var stack = expression.Compile(context);
 

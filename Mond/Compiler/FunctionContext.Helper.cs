@@ -35,7 +35,8 @@ namespace Mond.Compiler
                 new ImmediateOperand(end.Column + end.Contents.Length - 1)
             }));
 
-            Emit(new Instruction(InstructionType.DebugCheckpoint));
+            if (start.Line > 0 && end.Line > 0)
+                Emit(new Instruction(InstructionType.DebugCheckpoint));
         }
 
         public void Statement(Expression expression)

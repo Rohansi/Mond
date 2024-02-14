@@ -17,7 +17,7 @@ namespace Mond.Compiler.Parselets.Statements
             }
 
             parser.Take(TokenType.RightBrace);
-            return new ScopeExpression(statements);
+            return new ScopeExpression(token, statements);
         }
     }
 }

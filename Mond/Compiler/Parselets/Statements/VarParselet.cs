@@ -6,32 +6,6 @@ namespace Mond.Compiler.Parselets.Statements
 {
     class VarParselet : IStatementParselet
     {
-        public class DestructuringField
-        {
-            public Token FieldName { get; }
-            public Token AliasName { get; }
-
-            internal DestructuringField(Token field, Token alias)
-            {
-                FieldName = field;
-                AliasName = alias;
-            }
-        }
-
-        public class DestructuringIndex
-        {
-            public Token Name { get; }
-            public bool IsSlice { get; }
-            public Expression StartIndex { get; internal set; }
-            public Expression EndIndex { get; internal set; }
-
-            internal DestructuringIndex(Token name, bool slice)
-            {
-                Name = name;
-                IsSlice = slice;
-            }
-        }
-
         private readonly bool _isReadOnly;
 
         public VarParselet(bool isReadOnly)
