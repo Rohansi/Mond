@@ -71,4 +71,10 @@ internal static class Diagnostics
         "Cannot convert type from MondValue",
         "The type `{0}` cannot be automatically converted from a MondValue in generated bindings.", Category,
         DiagnosticSeverity.Error, true);
+
+    public static readonly DiagnosticDescriptor BoundMethodOverloadConflicts = new DiagnosticDescriptor(
+        "MOND11",
+        "Bound method has overloads which map to the same MondValue types",
+        "The method `{0}` has parameters which map to the same MondValue types as other overloads. Method would not be callable.", Category,
+        DiagnosticSeverity.Error, true);
 }

@@ -13,11 +13,11 @@ internal partial class MethodTable
     {
         return source
             .GroupBy(m => m.Name)
-            .Select(g => BuildMethodTable(g.Select(m => new Method(context, g.Key, m.Identifier, m.Method))))
+            .Select(g => BuildMethodTable(context, g.Select(m => new Method(context, g.Key, m.Identifier, m.Method))))
             .ToList();
     }
 
-    private static MethodTable BuildMethodTable(IEnumerable<Method> source)
+    private static MethodTable BuildMethodTable(GeneratorExecutionContext context, IEnumerable<Method> source)
     {
         var sourceList = source.ToList();
 
@@ -68,9 +68,10 @@ internal partial class MethodTable
             .Except(tableMethodInfo.Concat(paramsMethodInfo))
             .ToList();
 
-        if (difference.Count > 0)
+        foreach (var method in difference)
         {
-            throw new Exception("method has overloads with parameters which map to the same mond types (conflict)");
+            var methodName = method.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat);
+            context.ReportDiagnostic(Diagnostic.Create(Diagnostics.BoundMethodOverloadConflicts, method.Locations.First(), methodName));
         }
 
         return new MethodTable(name, identifier, methods, paramsMethods);
