@@ -57,6 +57,12 @@ namespace Mond.Debugger
                     Programs.Add(program);
                 }
 
+                // snap breakpoints to the statement's address if it isn't already
+                // the VM will only check checkpoint instructions which align with statement addresses
+                var statement = program.DebugInfo?.FindStatement(address);
+                if (statement != null)
+                    address = statement.Value.Address;
+
                 if (breakpoints.Contains(address))
                     return;
 

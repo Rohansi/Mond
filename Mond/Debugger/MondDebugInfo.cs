@@ -168,15 +168,6 @@ namespace Mond.Debugger
                             (s.StartLineNumber > startLine && s.EndLineNumber < endLine));
         }
 
-        public bool IsStatementStart(int address)
-        {
-            if (_statements == null)
-                return false;
-
-            var search = new Statement(address, 0, 0, 0, 0);
-            return _statements.BinarySearch(search, StatementAddressComparer) >= 0;
-        }
-
         public Scope FindScope(int address)
         {
             if (_scopes == null)

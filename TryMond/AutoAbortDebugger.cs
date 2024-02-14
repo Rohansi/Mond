@@ -9,7 +9,7 @@ public class AutoAbortDebugger : MondDebugger
 
     protected override bool ShouldBreak(MondProgram program, int address)
     {
-        return ++_count >= 5_000_000;
+        return ++_count >= 1_000_000;
     }
 
     protected override MondDebugAction OnBreak(MondDebugContext context, int address)

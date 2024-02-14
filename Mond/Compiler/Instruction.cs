@@ -44,6 +44,7 @@ namespace Mond.Compiler
         JmpTable,                           // jump to one of multiple locations
 
         Breakpoint,                         // break if a debugger is attached
+        DebugCheckpoint,                    // break if a debugger is attached and wants to break here
 
         // ----------------- //
 

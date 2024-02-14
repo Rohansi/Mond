@@ -14,8 +14,6 @@ namespace Mond.VirtualMachine
 
 #if !NO_DEBUG
         private MondDebugAction _debugAction;
-        private bool _debugSkip;
-        private bool _debugAlign;
         private int _debugDepth;
         internal MondDebugger Debugger;
 #endif
@@ -28,8 +26,6 @@ namespace Mond.VirtualMachine
 
 #if !NO_DEBUG
             _debugAction = MondDebugAction.Run;
-            _debugSkip = false;
-            _debugAlign = false;
             _debugDepth = 0;
             Debugger = null;
 #endif
@@ -89,6 +85,8 @@ namespace Mond.VirtualMachine
 
                     PushCall(new ReturnAddress(closure.Program, closure.Address, argFrame, _evalStackSize));
                     PushLocal(closure.Locals);
+
+                    DebuggerOnCall();
                     break;
 
                 case ClosureType.Native:
@@ -127,27 +125,6 @@ namespace Mond.VirtualMachine
             {
                 while (true)
                 {
-#if !NO_DEBUG
-                    if (Debugger != null)
-                    {
-                        var skip = _debugSkip;
-                        _debugSkip = false;
-
-                        var shouldStopAtStmt =
-                            (_debugAction == MondDebugAction.StepInto) ||
-                            (_debugAction == MondDebugAction.StepOver && _debugDepth == 0);
-
-                        var shouldBreak =
-                            (_debugAlign && program.DebugInfo == null) ||
-                            (_debugAlign && program.DebugInfo.IsStatementStart(ip)) ||
-                            (Debugger.ShouldBreak(program, ip)) ||
-                            (shouldStopAtStmt && program.DebugInfo != null && program.DebugInfo.IsStatementStart(ip));
-
-                        if (!skip && shouldBreak)
-                            DebuggerBreak(program, locals, args, ip, initialCallDepth);
-                    }
-#endif
-
                     errorIp = ip;
 
                     var opcode = code[ip++];
@@ -684,7 +661,9 @@ namespace Mond.VirtualMachine
 
                                 args = _callStackSize >= 0 ? PeekCall().Arguments : null;
                                 locals = _localStackSize >= 0 ? PeekLocal() : null;
-                                
+
+                                DebuggerOnReturn();
+
                                 if (_callStackSize == initialCallDepth)
                                 {
                                     var result = Pop();
@@ -698,11 +677,6 @@ namespace Mond.VirtualMachine
                                 }
 
                                 ClearDirty();
-
-#if !NO_DEBUG
-                                if (Debugger != null && DebuggerCheckReturn())
-                                    DebuggerBreak(program, locals, args, ip, initialCallDepth);
-#endif
 
                                 break;
                             }
@@ -798,14 +772,29 @@ namespace Mond.VirtualMachine
                         case (int)InstructionType.Breakpoint:
                             {
 #if !NO_DEBUG
-                                if (Debugger == null)
-                                    break;
+                                if (Debugger != null)
+                                {
+                                    DebuggerBreak(program, locals, args, ip, initialCallDepth);
+                                }
+#endif
+                                break;
+                            }
 
-                                DebuggerBreak(program, locals, args, ip, initialCallDepth);
+                        case (int)InstructionType.DebugCheckpoint:
+                            {
+#if !NO_DEBUG
+                                if (Debugger != null)
+                                {
+                                    var shouldStopAtStmt =
+                                        (_debugAction == MondDebugAction.StepInto) ||
+                                        (_debugAction == MondDebugAction.StepOver && _debugDepth == 0) ||
+                                        (_debugAction == MondDebugAction.StepOut && _debugDepth < 0);
 
-                                // we stop for the statement *after* the debugger statement so we
-                                // skip the next break opportunity, otherwise we break twice
-                                _debugSkip = true;
+                                    var shouldBreak = shouldStopAtStmt || Debugger.ShouldBreak(program, ip);
+
+                                    if (shouldBreak)
+                                        DebuggerBreak(program, locals, args, ip, initialCallDepth);
+                                }
 #endif
                                 break;
                             }
@@ -1025,11 +1014,7 @@ namespace Mond.VirtualMachine
                     args = argFrame;
                     locals = closure.Locals;
 
-#if !NO_DEBUG
-                    if (Debugger != null)
-                        DebuggerCheckCall();
-#endif
-
+                    DebuggerOnCall();
                     break;
 
                 case ClosureType.Native:
@@ -1086,53 +1071,33 @@ namespace Mond.VirtualMachine
             return unpackedArgs;
         }
 
+        private void DebuggerOnCall()
+        {
 #if !NO_DEBUG
-        private void DebuggerCheckCall()
-        {
-            switch (_debugAction)
+            if (Debugger != null && _debugAction != MondDebugAction.Run)
             {
-                case MondDebugAction.StepInto:
-                    _debugAlign = true;
-                    return;
-
-                case MondDebugAction.StepOver:
-                case MondDebugAction.StepOut:
-                    _debugDepth++;
-                    _debugAlign = false;
-                    return;
+                _debugDepth++;
             }
+#endif
         }
 
-        private bool DebuggerCheckReturn()
+        private void DebuggerOnReturn()
         {
-            switch (_debugAction)
+#if !NO_DEBUG
+            if (Debugger != null && _debugAction != MondDebugAction.Run)
             {
-                case MondDebugAction.StepInto:
-                    return !_debugAlign;
-
-                case MondDebugAction.StepOver:
-                    --_debugDepth;
-
-                    if (_debugDepth < 0)
-                        return true;
-
-                    _debugAlign = _debugDepth == 0;
-                    return false;
-
-                case MondDebugAction.StepOut:
-                    return --_debugDepth < 0;
+                _debugDepth--;
             }
-
-            return false;
+#endif
         }
 
+#if !NO_DEBUG
         private void DebuggerBreak(MondProgram program, Frame locals, Frame args, int address, int initialCallDepth)
         {
             var context = new MondDebugContext(
                 _state, program, address, locals, args, _callStack, _callStackSize, initialCallDepth);
 
             // so eval can work
-            _debugAlign = false;
             _debugAction = MondDebugAction.Run;
 
             _debugAction = Debugger.Break(context, address);
