@@ -4,7 +4,7 @@
 * [sequences](https://github.com/Rohansi/Mond/wiki/Sequences) that can also be used for async/await
 * [prototype-based inheritance](https://github.com/Rohansi/Mond/wiki/Prototypes)
 * [metamethods](https://github.com/Rohansi/Mond/wiki/Metamethods)
-* [simple embedding](https://github.com/Rohansi/Mond/wiki/Basic-Usage) with a [great binding API](https://github.com/Rohansi/Mond/wiki/Binding-API)
+* [simple embedding](https://github.com/Rohansi/Mond/wiki/Basic-Usage) with a [great binding API](https://github.com/Rohansi/Mond/wiki/Automatic-Binding)
 * and a [useful debugger](https://github.com/Rohansi/Mond/wiki/Debugging) that integrates with [VS Code](https://marketplace.visualstudio.com/items?itemName=Rohansi.mond-vscode)
 
 ### Trying it
