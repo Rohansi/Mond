@@ -6,6 +6,9 @@
     <LangVersion>latest</LangVersion>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <IsRoslynComponent>true</IsRoslynComponent>
+    <IsPackable>True</IsPackable>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
 
     <!-- NuGet Package -->
     <PackageId>Mond.SourceGenerator</PackageId>
@@ -21,6 +24,10 @@
     <RepositoryUrl>https://github.com/Rohansi/Mond.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="$(OutputPath)/$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" PrivateAssets="all" />
