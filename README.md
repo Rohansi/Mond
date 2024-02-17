@@ -1,7 +1,7 @@
 <p align="center"><img src="https://i.imgur.com/As4LMO6.png" alt="Mond Logo"/></p>
 
 ### Features
-* [sequences](https://github.com/Rohansi/Mond/wiki/Sequences) that can also be used for [async/await](https://fpp.literallybrian.com/mond/#e24f0a629859b38e2c27efa8aebaf60cf2cc4aed)
+* [sequences](https://github.com/Rohansi/Mond/wiki/Sequences) that can also be used for async/await
 * [prototype-based inheritance](https://github.com/Rohansi/Mond/wiki/Prototypes)
 * [metamethods](https://github.com/Rohansi/Mond/wiki/Metamethods)
 * [simple embedding](https://github.com/Rohansi/Mond/wiki/Basic-Usage) with a [great binding API](https://github.com/Rohansi/Mond/wiki/Binding-API)
@@ -49,6 +49,7 @@ Async.runToCompletion();
 Mond is [available on NuGet](https://www.nuget.org/packages/Mond/). To install it, use the following command in the Package Manager Console.
 ```
 PM> Install-Package Mond
+PM> Install-Package Mond.SourceGenerator
 ```
 
 The remote debugger is [also available on NuGet](https://www.nuget.org/packages/Mond.RemoteDebugger/).
@@ -60,7 +61,3 @@ Syntax highlighting and debugging functionality is provided in Visual Studio Cod
 
 ### Documentation
 Please check the [wiki](https://github.com/Rohansi/Mond/wiki) for documentation.
-
-
-### Build Status
-[![Build status](https://ci.appveyor.com/api/projects/status/di5tqqt73bu6aire)](https://ci.appveyor.com/project/Rohansi/mond)
