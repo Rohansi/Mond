@@ -4,7 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFrameworks>net8.0</TargetFrameworks>
     <RuntimeIdentifiers>any</RuntimeIdentifiers>
-    <AssemblyVersion>0.9.4</AssemblyVersion>
+    <AssemblyVersion>0.10.0</AssemblyVersion>
     <DebugType>portable</DebugType>
     <LangVersion>latest</LangVersion>
     <PublishAot>true</PublishAot>
