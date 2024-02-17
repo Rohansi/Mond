@@ -7,10 +7,15 @@
     <AssemblyVersion>0.10.0</AssemblyVersion>
     <DebugType>portable</DebugType>
     <LangVersion>latest</LangVersion>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+
+    <!--For testing AOT compilation -->
+    <!--
     <PublishAot>true</PublishAot>
     <PublishTrimmed>true</PublishTrimmed>
     <TrimMode>full</TrimMode>
     <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    -->
 
     <!-- NuGet Package -->
     <PackageId>Mond.Repl</PackageId>
