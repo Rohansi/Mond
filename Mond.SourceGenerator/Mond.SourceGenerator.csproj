@@ -4,6 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 
     <!-- NuGet Package -->
     <PackageId>Mond.SourceGenerator</PackageId>
@@ -13,7 +14,7 @@
     <PackageIconUrl>http://i.imgur.com/zbqVSaz.png</PackageIconUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/Rohansi/Mond</PackageProjectUrl>
-    <PackageTags>Mond Embedded Scripting Language Debugger</PackageTags>
+    <PackageTags>Mond Embedded Scripting Language Analyzer SourceGenerator</PackageTags>
 
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <RepositoryUrl>https://github.com/Rohansi/Mond.git</RepositoryUrl>

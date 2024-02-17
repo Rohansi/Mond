@@ -6,6 +6,7 @@
     <DebugType>portable</DebugType>
     <LangVersion>latest</LangVersion>
     <IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">true</IsAotCompatible>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 	
     <!-- NuGet Package -->
     <PackageId>Mond.RemoteDebugger</PackageId>

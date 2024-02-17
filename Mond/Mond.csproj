@@ -7,11 +7,12 @@
     <LangVersion>latest</LangVersion>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">true</IsAotCompatible>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 
     <PackageId>Mond</PackageId>
     <PackageVersion>$(AssemblyVersion)</PackageVersion>
     <Authors>Rohans</Authors>
-    <Description>A scripting language for C# (.NET, Mono)</Description>
+    <Description>A scripting language for C# (.NET, Mono, fully managed)</Description>
     <PackageIconUrl>http://i.imgur.com/zbqVSaz.png</PackageIconUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/Rohansi/Mond</PackageProjectUrl>
