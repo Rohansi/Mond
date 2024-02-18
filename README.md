@@ -5,7 +5,8 @@
 * [prototype-based inheritance](https://github.com/Rohansi/Mond/wiki/Prototypes)
 * [metamethods](https://github.com/Rohansi/Mond/wiki/Metamethods)
 * [simple embedding](https://github.com/Rohansi/Mond/wiki/Basic-Usage) with a [great binding API](https://github.com/Rohansi/Mond/wiki/Automatic-Binding)
-* and a [useful debugger](https://github.com/Rohansi/Mond/wiki/Debugging) that integrates with [VS Code](https://marketplace.visualstudio.com/items?itemName=Rohansi.mond-vscode)
+* a [useful debugger](https://github.com/Rohansi/Mond/wiki/Debugging) that integrates with [VS Code](https://marketplace.visualstudio.com/items?itemName=Rohansi.mond-vscode)
+* fully compatible with Native AOT deployments (.NET 8+)
 
 ### Trying it
 [You can try it in your browser!](https://mond.rohan.dev/)
