@@ -217,6 +217,18 @@ public partial class MondSourceGenerator : ISourceGenerator
                     return $"({input} ?? MondValue.Undefined)";
                 }
 
+                if (SymbolEqualityComparer.Default.Equals(type, TypeLookup.Task))
+                {
+                    return $"Mond.Libraries.AsyncUtil.ToObject({input});";
+                }
+
+                if (type is INamedTypeSymbol { Arity: 1 } namedType && SymbolEqualityComparer.Default.Equals(namedType.ConstructedFrom, TypeLookup.TaskOfT))
+                {
+                    var returnType = namedType.TypeArguments[0];
+                    var returnWrapper = ConvertToMondValue(context, "t.Result", returnType, typeSource);
+                    return $"Mond.Libraries.AsyncUtil.ToObject({input}.ContinueWith(t => t.IsFaulted ? AsyncUtil.RethrowAsyncException(t.Exception) : {returnWrapper}));";
+                }
+
                 if (type.HasAttribute("MondClassAttribute"))
                 {
                     return $"MondValue.ClassInstance(state, {input}, \"{type.GetFullyQualifiedName()}\")";

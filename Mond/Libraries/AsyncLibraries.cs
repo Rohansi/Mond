@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using Mond.Libraries.Async;
 
 namespace Mond.Libraries
@@ -136,6 +138,17 @@ namespace Mond.Libraries
                 return null;
 
             return token.CancellationToken;
+        }
+
+        /// <summary>
+        /// Used to rethrow exceptions thrown in async methods that have bindings generated for them.
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never), UsedImplicitly]
+        public static MondValue RethrowAsyncException(AggregateException e)
+        {
+            var exception = e.InnerExceptions.Count != 1 ? e : e.InnerException ?? e;
+            System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(exception).Throw();
+            throw exception;
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Mond.Binding;
 using NUnit.Framework;
 
@@ -318,6 +319,19 @@ namespace Mond.Tests.Binding
         public static string Greet(ClassTests.Person person)
         {
             return person.GenerateGreeting();
+        }
+
+        [MondFunction]
+        public static async Task AsyncMethod(int ms)
+        {
+            await Task.Delay(ms);
+        }
+
+        [MondFunction]
+        public static async Task<int> AsyncMethodWithReturn(int ms)
+        {
+            await Task.Delay(ms);
+            return ms;
         }
 
 #if false
