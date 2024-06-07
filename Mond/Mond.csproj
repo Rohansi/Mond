@@ -32,6 +32,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Mond.SourceGenerator\Mond.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <None Include="$(OutputPath)\..\..\..\Mond.SourceGenerator\bin\$(Configuration)\netstandard2.0\Mond.SourceGenerator.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
 
 </Project>
