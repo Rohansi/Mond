@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Globalization;
+using System.Text;
 using Mond.Binding;
 
 namespace Mond.Libraries.Json
@@ -50,7 +51,7 @@ namespace Mond.Libraries.Json
                     if (double.IsInfinity(number))
                         throw new MondRuntimeException(CantSerializePrefix + "Infinity");
 
-                    sb.Append(number);
+                    sb.Append(number.ToString(CultureInfo.InvariantCulture));
                     break;
 
                 case MondValueType.String:
