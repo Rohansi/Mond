@@ -50,7 +50,6 @@ Async.runToCompletion();
 Mond is [available on NuGet](https://www.nuget.org/packages/Mond/). To install it, use the following command in the Package Manager Console.
 ```
 PM> Install-Package Mond
-PM> Install-Package Mond.SourceGenerator
 ```
 
 The remote debugger is [also available on NuGet](https://www.nuget.org/packages/Mond.RemoteDebugger/).
