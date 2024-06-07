@@ -7,7 +7,7 @@ namespace Mond.Libraries
 {
     /// <summary>
     /// Contains the basic libraries that should be supported everywhere. This
-    /// includes the <c>error</c>, <c>try</c> and <c>require</c> functions, the
+    /// includes the <c>error</c>, <c>try</c>, <c>require</c>, and parse functions, the
     /// <c>Char</c> and <c>Math</c> modules, and the <c>Random</c> class.
     /// </summary>
     public class CoreLibraries : IMondLibraryCollection
@@ -20,6 +20,7 @@ namespace Mond.Libraries
             yield return new MathLibrary();
             yield return new RandomLibrary();
             yield return new OperatorLibrary();
+            yield return new ParseLibrary();
         }
     }
 
@@ -136,6 +137,17 @@ namespace Mond.Libraries
         public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions(MondState state)
         {
             return new OperatorModule.Library().GetDefinitions(state);
+        }
+    }
+
+    /// <summary>
+    /// Library containing the built-in parse functions.
+    /// </summary>
+    public class ParseLibrary : IMondLibrary
+    {
+        public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions(MondState state)
+        {
+            return new ParseModule.Library().GetDefinitions(state);
         }
     }
 
