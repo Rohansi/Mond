@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 
 namespace Mond.VirtualMachine
 {
-    class Frame
+    internal class Frame
     {
         public readonly int Depth;
         public readonly Frame Previous;
@@ -17,7 +17,14 @@ namespace Mond.VirtualMachine
         {
             Depth = depth;
             Previous = previous;
-            Values = new MondValue[valueCount];
+            Values = valueCount > 0 ? new MondValue[valueCount] : [];
+        }
+
+        public Frame(int depth, Frame previous, MondValue[] values)
+        {
+            Depth = depth;
+            Previous = previous;
+            Values = values ?? [];
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

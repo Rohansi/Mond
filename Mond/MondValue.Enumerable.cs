@@ -26,14 +26,14 @@ namespace Mond
                 if (getEnumerator.Type != MondValueType.Function)
                     throw new MondRuntimeException("Value is not enumerable");
 
-                enumerator = state.Call(getEnumerator);
+                enumerator = state.Call(getEnumerator, this);
 
                 moveNext = enumerator["moveNext"];
                 if (moveNext.Type != MondValueType.Function)
                     throw new MondRuntimeException("Value is not enumerable");
             }
 
-            while (state.Call(moveNext))
+            while (state.Call(moveNext, this))
             {
                 yield return enumerator["current"];
             }

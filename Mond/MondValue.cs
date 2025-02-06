@@ -132,24 +132,6 @@ namespace Mond
         }
 
         /// <summary>
-        /// Construct a new Function MondValue with the specified value. Instance functions will
-        /// bind themselves to their parent object when being retrieved.
-        /// </summary>
-        private MondValue(MondInstanceFunction function)
-        {
-            if (ReferenceEquals(function, null))
-                throw new ArgumentNullException(nameof(function));
-
-            _type = MondValueType.Function;
-            _numberValue = 0;
-
-            ObjectValue = null;
-            ArrayValue = null;
-            _stringValue = null;
-            FunctionValue = new Closure(function);
-        }
-
-        /// <summary>
         /// Construct a new Array MondValue with the specified values.
         /// </summary>
         private MondValue(IEnumerable<MondValue> values)
@@ -209,7 +191,7 @@ namespace Mond
                 if (Type == MondValueType.Object)
                 {
                     if (ObjectValue.Values.TryGetValue(index, out indexValue))
-                        return CheckWrapFunction(indexValue);
+                        return indexValue;
                 }
 
                 var i = 0;
@@ -219,7 +201,7 @@ namespace Mond
                 {
                     var currentObjValue = prototype.ObjectValue;
                     if (currentObjValue.Values.TryGetValue(index, out indexValue))
-                        return CheckWrapFunction(indexValue);
+                        return indexValue;
 
                     prototype = ref prototype.GetPrototypeReadOnly();
                     i++;
@@ -231,7 +213,7 @@ namespace Mond
                 if (Type == MondValueType.Object)
                 {
                     if (TryDispatch("__get", out indexValue, this, index))
-                        return CheckWrapFunction(indexValue);
+                        return indexValue;
                 }
 
                 return Undefined;
@@ -267,12 +249,22 @@ namespace Mond
                 while (prototype.Type == MondValueType.Object)
                 {
                     var values = prototype.ObjectValue.Values;
+
+#if NET8_0_OR_GREATER
+                    ref var objValue = ref CollectionsMarshal.GetValueRefOrNullRef(values, index);
+                    if (!Unsafe.IsNullRef(ref objValue))
+#else
                     if (values.ContainsKey(index))
+#endif
                     {
                         if (prototype.ObjectValue.Locked)
                             break; // hit a wall in the prototype chain, don't continue
 
+#if NET8_0_OR_GREATER
+                        objValue = value;
+#else
                         values[index] = value;
+#endif
                         return;
                     }
 
@@ -650,26 +642,12 @@ namespace Mond
                         return "object";
                     }
                 case MondValueType.Number:
-                    return string.Format("{0:R}", _numberValue);
+                    return _numberValue.ToString("R");
                 case MondValueType.String:
                     return _stringValue;
                 default:
                     return Type.GetName();
             }
-        }
-
-        private MondValue CheckWrapFunction(in MondValue value)
-        {
-            if (value.Type != MondValueType.Function)
-                return value;
-
-            var funcValue = value.FunctionValue;
-            if (funcValue.Type != ClosureType.InstanceNative)
-                return value;
-
-            var func = funcValue.InstanceNativeFunction;
-            var inst = this;
-            return new MondValue((state, args) => func(state, inst, args));
         }
         
         internal bool TryDispatch(string name, out MondValue result, params MondValue[] args)
@@ -694,9 +672,6 @@ namespace Mond
                 {
                     // we need to use the state from the metamethod's object
                     state = current.ObjectValue.State;
-
-                    // and we need to wrap functions if needed
-                    callable = CheckWrapFunction(callable);
                     break;
                 }
 

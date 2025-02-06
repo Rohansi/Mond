@@ -46,6 +46,8 @@ namespace Mond.Compiler
         Breakpoint,                         // break if a debugger is attached
         DebugCheckpoint,                    // break if a debugger is attached and wants to break here
 
+        InstanceCall,                       // call a field = x.y(z) -> x.y(x, z), but only evaluate x once
+
         // ----------------- //
 
         Label = 200,                        // label binding

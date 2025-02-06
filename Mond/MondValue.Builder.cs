@@ -22,11 +22,6 @@ namespace Mond
             return new MondValue(value);
         }
 
-        public static MondValue Function([NotNull] MondInstanceFunction value)
-        {
-            return new MondValue(value);
-        }
-
         public static MondValue Object([NotNull] MondState state, IEnumerable<KeyValuePair<MondValue, MondValue>> entries = null)
         {
             if (state == null)

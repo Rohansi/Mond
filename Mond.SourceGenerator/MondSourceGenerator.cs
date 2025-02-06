@@ -87,7 +87,7 @@ public partial class MondSourceGenerator : ISourceGenerator
         }
     }
 
-    private static void CallMethod(GeneratorExecutionContext context, IndentTextWriter writer, string qualifier, Method method, int argCount = 10000)
+    private static void CallMethod(GeneratorExecutionContext context, IndentTextWriter writer, string qualifier, Method method, int offset, int argCount = 10000)
     {
         var isConstructor = method.Info.MethodKind == MethodKind.Constructor;
         var returnType = isConstructor
@@ -99,14 +99,14 @@ public partial class MondSourceGenerator : ISourceGenerator
             writer.Write("var result = ");
         }
         writer.WriteLine(isConstructor
-            ? $"new {method.Info.ContainingType.GetFullyQualifiedName()}({BindArguments(context, method, argCount)});"
-            : $"{qualifier}.{method.Info.Name}({BindArguments(context, method, argCount)});");
+            ? $"new {method.Info.ContainingType.GetFullyQualifiedName()}({BindArguments(context, method, offset, argCount)});"
+            : $"{qualifier}.{method.Info.Name}({BindArguments(context, method, offset, argCount)});");
         writer.WriteLine(hasReturn
             ? $"return {ConvertToMondValue(context, "result", returnType, method.Info)};"
             : "return MondValue.Undefined;");
     }
 
-    private static string BindArguments(GeneratorExecutionContext context, Method method, int argCount)
+    private static string BindArguments(GeneratorExecutionContext context, Method method, int offset, int argCount)
     {
         var valueIdx = 0;
         var args = new List<string>();
@@ -117,7 +117,7 @@ public partial class MondSourceGenerator : ISourceGenerator
                 continue;
             }
 
-            args.Add(BindArgument(context, valueIdx, param));
+            args.Add(BindArgument(context, offset + valueIdx, param));
 
             if (param.Type == ParameterType.Value)
             {
@@ -240,12 +240,12 @@ public partial class MondSourceGenerator : ISourceGenerator
         }
     }
 
-    private static string CompareArguments(Method method, int limit = 10000)
+    private static string CompareArguments(Method method, int offset = 0, int limit = 10000)
     {
         var argComparers = method.Parameters
             .Take(limit)
             .Where(p => p.Type == ParameterType.Value)
-            .Select((p, i) => CompareArgument(i, p))
+            .Select((p, i) => CompareArgument(offset + i, p))
             .ToList();
         return argComparers.Count > 0
             ? string.Join(" && ", argComparers)

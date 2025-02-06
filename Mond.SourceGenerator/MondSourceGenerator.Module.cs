@@ -179,9 +179,9 @@ public partial class MondSourceGenerator
                 foreach (var method in tableMethods)
                 {
                     var methodQualifier = method.Info.IsStatic ? qualifier : "_instance";
-                    writer.WriteLine($"if ({CompareArguments(method, i)})");
+                    writer.WriteLine($"if ({CompareArguments(method, 0, i)})");
                     writer.OpenBracket();
-                    CallMethod(context, writer, methodQualifier, method, i);
+                    CallMethod(context, writer, methodQualifier, method, 0, i);
                     writer.CloseBracket();
                 }
                 writer.WriteLine("break;");
@@ -195,7 +195,7 @@ public partial class MondSourceGenerator
                 var methodQualifier = method.Info.IsStatic ? qualifier : "_instance";
                 writer.WriteLine($"if (args.Length >= {method.RequiredMondParameterCount} && {CompareArguments(method)})");
                 writer.OpenBracket();
-                CallMethod(context, writer, methodQualifier, method);
+                CallMethod(context, writer, methodQualifier, method, 0);
                 writer.CloseBracket();
             }
 

@@ -10,9 +10,9 @@ namespace Mond.Tests.Expressions
         public void Array()
         {
             var result = Script.Run(@"
-                var array = [ 1, 2, 3, 4, 5 ];      
+                var array = [ 1, 2, 3, 4, 5 ];
                 var [ a, b ] = array;
-                return [ a, b ];     
+                return [ a, b ];
             ");
 
             var expected = new MondValue[] { 1, 2 };

@@ -243,7 +243,7 @@ namespace Mond.Compiler
                 new ImmediateOperand(unpackIndices.Count),
                 new ListOperand<ImmediateOperand>(unpackIndices)));
 
-            return -argumentCount - 1 + 1;
+            return -argumentCount - 1 + 1; // pop arguments, pop function, push result
         }
 
         public int TailCall(int argumentCount, LabelOperand label, List<ImmediateOperand> unpackIndices)
@@ -255,7 +255,19 @@ namespace Mond.Compiler
                 new ImmediateOperand(unpackIndices.Count),
                 new ListOperand<ImmediateOperand>(unpackIndices)));
 
-            return -argumentCount;
+            return -argumentCount; // pop arguments
+        }
+
+        public int InstanceCall(ConstantOperand<string> field, int argumentCount, List<ImmediateOperand> unpackIndices)
+        {
+            Emit(new Instruction(
+                InstructionType.InstanceCall,
+                field,
+                new ImmediateOperand(argumentCount),
+                new ImmediateOperand(unpackIndices.Count),
+                new ListOperand<ImmediateOperand>(unpackIndices)));
+
+            return -argumentCount - 1 + 1; // pop arguments, pop instance, push result
         }
 
         public int Return()

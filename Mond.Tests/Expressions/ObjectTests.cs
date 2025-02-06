@@ -66,14 +66,14 @@ namespace Mond.Tests.Expressions
             var result = Script.Run(@"
                 fun Base() {
                     return {
-                        number: fun () -> 10,
-                        add: fun (x, y) -> x + y
+                        number: fun (_) -> 10,
+                        add: fun (_, x, y) -> x + y
                     };
                 }
 
                 fun Class() {
                     var base, this = {
-                        number: fun () -> this.add(base.number(), 5)
+                        number: fun (_) -> this.add(base.number(), 5)
                     };
 
                     base = Base();

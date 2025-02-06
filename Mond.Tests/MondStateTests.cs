@@ -45,21 +45,6 @@ namespace Mond.Tests
         }
 
         [Test]
-        public void NativeInstanceFunction()
-        {
-            var state = new MondState();
-
-            state["value"] = 123;
-            state["function"] = new MondInstanceFunction((_, instance, arguments) => instance[arguments[0]]);
-
-            var result = state.Run(@"
-                return global.function('value');
-            ");
-
-            Assert.True(result == 123);
-        }
-
-        [Test]
         [TestCase("runtime", false)]
         [TestCase("generic", false)]
         [TestCase("indirect", true)]
