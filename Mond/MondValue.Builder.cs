@@ -67,6 +67,18 @@ namespace Mond
             return new MondValue(values);
         }
 
+        public static MondValue ProxyObject(MondValue target, MondValue handler, [NotNull] MondState state)
+        {
+            if (handler.Type != MondValueType.Object)
+                throw new ArgumentException("Proxy handler must be an object");
+
+            if (state == null)
+                throw new ArgumentNullException(nameof(state));
+
+            var value = new MondValue(target, handler, state);
+            return value;
+        }
+
         [EditorBrowsable(EditorBrowsableState.Never)]
         public static MondValue ClassInstance<T>([NotNull] MondState state, [NotNull] T instance, string prototypeName)
             where T : class

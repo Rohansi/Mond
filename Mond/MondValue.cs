@@ -79,7 +79,22 @@ namespace Mond
         private MondValue(MondState state)
             : this(MondValueType.Object)
         {
-            ObjectValue.State = state;
+            ObjectValue.State = state ?? throw new ArgumentNullException(nameof(state));
+        }
+
+        /// <summary>
+        /// Construct a new proxy Object MondValue.
+        /// </summary>
+        private MondValue(MondValue target, MondValue handler, MondState state)
+        {
+            if (handler.Type != MondValueType.Object)
+                throw new ArgumentException("Proxy handler must be an object", nameof(handler));
+
+            if (state == null)
+                throw new ArgumentNullException(nameof(state));
+            
+            _type = MondValueType.Object;
+            ObjectValue = new VirtualMachine.Object(target, handler.ObjectValue.Values, state);
         }
 
         /// <summary>
@@ -190,6 +205,9 @@ namespace Mond
                 MondValue indexValue;
                 if (Type == MondValueType.Object)
                 {
+                    if (ObjectValue.IsProxy && TryDispatch("get", out indexValue, ObjectValue.ProxyTarget, index))
+                        return indexValue;
+
                     if (ObjectValue.Values.TryGetValue(index, out indexValue))
                         return indexValue;
                 }
@@ -210,12 +228,6 @@ namespace Mond
                         throw new MondRuntimeException(RuntimeError.CircularPrototype);
                 }
 
-                if (Type == MondValueType.Object)
-                {
-                    if (TryDispatch("__get", out indexValue, this, index))
-                        return indexValue;
-                }
-
                 return Undefined;
             }
             set
@@ -234,57 +246,19 @@ namespace Mond
                     return;
                 }
 
-                if (Type == MondValueType.Object && ObjectValue.Values.ContainsKey(index))
+                if (Type == MondValueType.Object)
                 {
                     if (ObjectValue.Locked)
                         throw new MondRuntimeException(RuntimeError.ObjectIsLocked);
+
+                    if (ObjectValue.IsProxy && TryDispatch("set", out _, ObjectValue.ProxyTarget, index, value))
+                        return;
 
                     ObjectValue.Values[index] = value;
                     return;
                 }
 
-                var i = 0;
-                ref readonly var prototype = ref GetPrototypeReadOnly();
-
-                while (prototype.Type == MondValueType.Object)
-                {
-                    var values = prototype.ObjectValue.Values;
-
-#if NET8_0_OR_GREATER
-                    ref var objValue = ref CollectionsMarshal.GetValueRefOrNullRef(values, index);
-                    if (!Unsafe.IsNullRef(ref objValue))
-#else
-                    if (values.ContainsKey(index))
-#endif
-                    {
-                        if (prototype.ObjectValue.Locked)
-                            break; // hit a wall in the prototype chain, don't continue
-
-#if NET8_0_OR_GREATER
-                        objValue = value;
-#else
-                        values[index] = value;
-#endif
-                        return;
-                    }
-
-                    prototype = ref prototype.GetPrototypeReadOnly();
-                    i++;
-
-                    if (i > 100)
-                        throw new MondRuntimeException(RuntimeError.CircularPrototype);
-                }
-
-                if (Type != MondValueType.Object)
-                    throw new MondRuntimeException(RuntimeError.CantCreateField, Type.GetName());
-
-                if (ObjectValue.Locked)
-                    throw new MondRuntimeException(RuntimeError.ObjectIsLocked);
-
-                if (TryDispatch("__set", out _, this, index, value))
-                    return;
-
-                ObjectValue.Values[index] = value;
+                throw new MondRuntimeException(RuntimeError.CantCreateField, Type.GetName());
             }
         }
 
@@ -362,6 +336,9 @@ namespace Mond
 
                 if (ObjectValue.Locked)
                     throw new MondRuntimeException(RuntimeError.ObjectIsLocked);
+
+                if (ObjectValue.IsProxy)
+                    throw new MondRuntimeException(RuntimeError.ProxyObjectCannotSetPrototype);
 
                 if (value.Type == MondValueType.Undefined)
                 {

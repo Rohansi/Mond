@@ -1,12 +1,22 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace Mond.VirtualMachine
 {
-    class Object
+    internal sealed class Object
     {
+        [Flags]
+        private enum Flags
+        {
+            Locked = 1 << 0,
+            HasPrototype = 1 << 1,
+            IsProxy = 1 << 2,
+        }
+
+        private Flags _flags;
+
         public readonly Dictionary<MondValue, MondValue> Values;
-        public bool Locked;
-        public bool HasPrototype;
         public MondValue Prototype;
         public object UserData;
 
@@ -14,21 +24,58 @@ namespace Mond.VirtualMachine
 
         public MondState State
         {
-            get { return _dispatcherState; }
-            set
-            {
-                if (_dispatcherState == null)
-                    _dispatcherState = value;
-            }
+            get => _dispatcherState;
+            set => _dispatcherState ??= value;
+        }
+
+        public MondValue ProxyTarget =>
+            IsProxy
+                ? Prototype
+                : throw new InvalidOperationException("Object is not a proxy, cannot get target");
+
+        public bool Locked
+        {
+            get => _flags.HasFlag(Flags.Locked);
+            set => SetFlag(ref _flags, Flags.Locked, value);
+        }
+
+        public bool HasPrototype
+        {
+            get => _flags.HasFlag(Flags.HasPrototype);
+            set => SetFlag(ref _flags, Flags.HasPrototype, value);
+        }
+
+        public bool IsProxy
+        {
+            get => _flags.HasFlag(Flags.IsProxy);
+            set => SetFlag(ref _flags, Flags.IsProxy, value);
         }
 
         public Object()
         {
             Values = new Dictionary<MondValue, MondValue>();
-            Locked = false;
-            HasPrototype = false;
             Prototype = MondValue.Undefined;
             UserData = null;
+        }
+
+        public Object(MondValue target, Dictionary<MondValue, MondValue> handler, MondState state)
+        {
+            Prototype = target;
+            Values = handler ?? throw new ArgumentNullException(nameof(handler));
+            _dispatcherState = state ?? throw new ArgumentNullException(nameof(state));
+            IsProxy = true;
+        }
+
+        private static void SetFlag(ref Flags flags, Flags flag, bool value)
+        {
+            if (value)
+            {
+                flags |= flag;
+            }
+            else
+            {
+                flags &= ~flag;
+            }
         }
     }
 }

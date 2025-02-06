@@ -12,6 +12,7 @@
         public const string CantCreateField = "Fields cannot be created on type {0}";
 
         public const string ObjectIsLocked = "Object is locked and cannot be modified";
+        public const string ProxyObjectCannotSetPrototype = "Cannot set a prototype for proxy objects";
 
         public const string CircularPrototype = "Circular prototype definition";
 

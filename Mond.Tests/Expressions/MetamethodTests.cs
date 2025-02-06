@@ -11,20 +11,20 @@ namespace Mond.Tests.Expressions
             // __get, __set
 
             var result = Script.Run(@"
-                var inner = {};
-                var obj = {
-                    __get: fun (this, index) {
-                        if (index.getType() == 'string')
-                            return inner[index];
+                var target = {};
+                var handler = {
+                    get: fun (this, index) {
+                        if (this == target && index.getType() == 'string')
+                            return target[index];
                         return undefined;
                     },
-                    __set: fun (this, index, value) {
-                        if (index.getType() == 'string')
-                            inner[index] = value;
+                    set: fun (this, index, value) {
+                        if (this == target && index.getType() == 'string')
+                            target[index] = value;
                     }
                 };
 
-                return obj;
+                return proxyCreate(target, handler);
             ");
 
             result["test"] = 123;
