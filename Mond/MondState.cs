@@ -10,8 +10,7 @@ using Mond.VirtualMachine;
 
 namespace Mond
 {
-    public delegate MondValue MondFunction(MondState state, params MondValue[] arguments);
-    public delegate MondValue MondInstanceFunction(MondState state, MondValue instance, params MondValue[] arguments);
+    public delegate MondValue MondFunction(MondState state, params Span<MondValue> arguments);
 
     public class MondState
     {
@@ -121,7 +120,7 @@ namespace Mond
         /// <summary>
         /// Calls a Mond function.
         /// </summary>
-        public MondValue Call(MondValue function, params MondValue[] arguments)
+        public MondValue Call(MondValue function, params Span<MondValue> arguments)
         {
             return _machine.Call(function, arguments);
         }

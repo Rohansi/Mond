@@ -77,4 +77,16 @@ internal static class Diagnostics
         "Bound method has overloads which map to the same MondValue types",
         "The method `{0}` has parameters which map to the same MondValue types as other overloads. Method would not be callable.", Category,
         DiagnosticSeverity.Error, true);
+
+    public static readonly DiagnosticDescriptor SpanTypeNotFound = new DiagnosticDescriptor(
+        "MOND12",
+        "Span<T> type symbol was not found",
+        "The System.Span<T> type symbol was not found. You may need to install the System.Memory package if you are trying to build on an older version of .NET.", Category,
+        DiagnosticSeverity.Error, true);
+
+    public static readonly DiagnosticDescriptor BoundMethodParamsMustBeSpan = new DiagnosticDescriptor(
+        "MOND13",
+        "Bound method using `params` must use Span<MondValue> as its argument type",
+        "The type `{0}` cannot be used for `params` in bound methods - you must use `params Span<MondValue>` instead.", Category,
+        DiagnosticSeverity.Error, true);
 }

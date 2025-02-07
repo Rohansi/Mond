@@ -7,9 +7,11 @@ using Mond.Debugger;
 
 namespace Mond.VirtualMachine
 {
-    partial class Machine
+    internal partial class Machine
     {
         private readonly MondState _state;
+        private readonly ArrayPool<MondValue> _arrayPool = new(4, 16);
+
         internal MondValue Global;
 
 #if !NO_DEBUG
@@ -40,6 +42,7 @@ namespace Mond.VirtualMachine
 
                 return _callStack[_callStackSize].Program.DebugInfo?.FileName;
             }
+            
         }
 
         public MondValue Load(MondProgram program)
@@ -51,16 +54,17 @@ namespace Mond.VirtualMachine
             return Call(function);
         }
 
-        public MondValue Call(MondValue function, params MondValue[] arguments)
+        public MondValue Call(MondValue function, params Span<MondValue> arguments)
         {
             if (function.Type == MondValueType.Object)
             {
                 // insert "this" value into argument array
-                Array.Resize(ref arguments, arguments.Length + 1);
-                Array.Copy(arguments, 0, arguments, 1, arguments.Length - 1);
-                arguments[0] = function;
+                using var argsCopyHandle = _arrayPool.Rent(arguments.Length + 1);
+                var argsCopy = argsCopyHandle.Span;
+                arguments.CopyTo(argsCopy[1..]);
+                argsCopy[0] = function;
 
-                if (function.TryDispatch("__call", out var result, arguments))
+                if (function.TryDispatch("__call", out var result, argsCopy))
                     return result;
             }
 
@@ -933,15 +937,17 @@ namespace Mond.VirtualMachine
         private void DoCall(int argCount, ref int[] code, ref int ip, ref MondProgram program, ref Frame args, ref Frame locals)
         {
             var unpackCount = code[ip++];
-            var argValues = GetArgsArray(code, ref ip, argCount, unpackCount);
+            using var argValuesHandle = GetArgsArray(code, ref ip, argCount, unpackCount);
+            var argValues = argValuesHandle.Span;
             var function = Pop();
 
             var returnAddress = ip;
 
             if (function.Type == MondValueType.Object)
             {
-                var argArr = new MondValue[argValues.Length + 1];
-                Array.Copy(argValues, 0, argArr, 1, argValues.Length);
+                using var argArrHandle = _arrayPool.Rent(argValues.Length + 1);
+                var argArr = argArrHandle.Span;
+                argValues.CopyTo(argArr[1..]);
                 argArr[0] = function;
 
                 if (function.TryDispatch("__call", out var result, argArr))
@@ -962,7 +968,8 @@ namespace Mond.VirtualMachine
         private bool DoInstanceCall(MondValue function, int argCount, ref int[] code, ref int ip, ref MondProgram program, ref Frame args, ref Frame locals)
         {
             var unpackCount = code[ip++];
-            var argValues = GetArgsArray(code, ref ip, argCount, unpackCount, 1);
+            using var argValuesHandle = GetArgsArray(code, ref ip, argCount, unpackCount, 1);
+            var argValues = argValuesHandle.Span;
             var instance = Pop();
             argValues[0] = instance;
 
@@ -970,8 +977,9 @@ namespace Mond.VirtualMachine
 
             if (function.Type == MondValueType.Object)
             {
-                var argArr = new MondValue[argValues.Length + 1];
-                Array.Copy(argValues, 0, argArr, 1, argValues.Length);
+                using var argArrHandle = _arrayPool.Rent(argValues.Length + 1);
+                var argArr = argArrHandle.Span;
+                argValues.CopyTo(argArr[1..]);
                 argArr[0] = function;
 
                 if (function.TryDispatch("__call", out var result, argArr))
@@ -990,7 +998,7 @@ namespace Mond.VirtualMachine
             return true;
         }
 
-        private void CallImpl(Closure closure, MondValue[] argValues, int returnAddress, ref MondProgram program,
+        private void CallImpl(Closure closure, Span<MondValue> argValues, int returnAddress, ref MondProgram program,
             ref int[] code, ref int ip, ref Frame args, ref Frame locals)
         {
             var argFrame = closure.Arguments;
@@ -1023,34 +1031,45 @@ namespace Mond.VirtualMachine
             }
         }
 
-        private MondValue[] GetArgsArray(int[] code, ref int ip, int argCount, int unpackCount, int offset = 0)
+        private ArrayPoolHandle<MondValue> GetArgsArray(int[] code, ref int ip, int argCount, int unpackCount, int offset = 0)
         {
             if (argCount == 0 && unpackCount == 0 && offset == 0)
             {
-                return [];
+                return _arrayPool.Rent(0);
             }
 
             if (unpackCount > 0)
             {
-                return UnpackArgs(code, ref ip, argCount, unpackCount).ToArray();
+                var unpackArgs = UnpackArgs(code, ref ip, argCount, unpackCount);
+                var unpackHandle = _arrayPool.Rent(unpackArgs.Count + offset);
+                var unpackSpan = unpackHandle.Span;
+                for (var i = 0; i < unpackArgs.Count; i++)
+                {
+                    unpackSpan[offset + i] = unpackArgs[i];
+                }
+
+                return unpackHandle;
             }
 
-            var values = new MondValue[argCount + offset];
+            var handle = _arrayPool.Rent(argCount + offset);
+            var span = handle.Span;
             for (var i = argCount - 1; i >= 0; i--)
             {
-                values[offset + i] = Pop();
+                span[offset + i] = Pop();
             }
 
-            return values;
+            return handle;
         }
 
         private List<MondValue> UnpackArgs(int[] code, ref int ip, int argCount, int unpackCount)
         {
-            var unpackIndices = new List<int>(unpackCount);
+            var unpackIndices = unpackCount < 32 
+                ? stackalloc int[unpackCount]
+                : new int[unpackCount];
 
             for (var i = 0; i < unpackCount; i++)
             {
-                unpackIndices.Add(code[ip++]);
+                unpackIndices[i] = code[ip++];
             }
 
             var unpackedArgs = new List<MondValue>(argCount + unpackCount * 16);
@@ -1061,7 +1080,7 @@ namespace Mond.VirtualMachine
             {
                 var value = Pop();
 
-                if (unpackIndex < unpackIndices.Count && i == unpackIndices[unpackIndex])
+                if (unpackIndex < unpackIndices.Length && i == unpackIndices[unpackIndex])
                 {
                     unpackIndex++;
 

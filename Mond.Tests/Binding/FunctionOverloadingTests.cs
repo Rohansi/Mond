@@ -1,4 +1,5 @@
-﻿using Mond.Binding;
+﻿using System;
+using Mond.Binding;
 using NUnit.Framework;
 
 namespace Mond.Tests.Binding
@@ -76,13 +77,13 @@ namespace Mond.Tests.Binding
             }
 
             [MondFunction]
-            public static int Test(int x, int y, params MondValue[] args)
+            public static int Test(int x, int y, params Span<MondValue> args)
             {
                 return 5;
             }
 
             [MondFunction]
-            public static int Test(params MondValue[] args)
+            public static int Test(params Span<MondValue> args)
             {
                 return 6;
             }

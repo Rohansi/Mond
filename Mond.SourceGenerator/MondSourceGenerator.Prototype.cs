@@ -44,7 +44,7 @@ public partial class MondSourceGenerator
 
         foreach (var table in methodTables)
         {
-            writer.WriteLine($"private static MondValue {table.Identifier}__Dispatch(MondState state, params MondValue[] args)");
+            writer.WriteLine($"private static MondValue {table.Identifier}__Dispatch(MondState state, params Span<MondValue> args)");
             writer.OpenBracket();
 
             writer.WriteLine("if (args.Length < 1)");

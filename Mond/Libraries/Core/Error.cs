@@ -13,7 +13,7 @@ namespace Mond.Libraries.Core
         }
 
         [MondFunction]
-        public static MondValue Try(MondState state, MondValue function, params MondValue[] arguments)
+        public static MondValue Try(MondState state, MondValue function, params Span<MondValue> arguments)
         {
             if (function.Type != MondValueType.Function)
                 throw new MondRuntimeException("try: first argument must be a function");

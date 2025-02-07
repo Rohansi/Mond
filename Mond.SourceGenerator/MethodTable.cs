@@ -194,8 +194,17 @@ internal class Parameter
             param.Priority = 100;
             param.MondTypes = AnyTypes;
         }
-        else if (SymbolEqualityComparer.Default.Equals(paramType, TypeLookup.MondValueArray) && info.IsParams)
+        else if (info.IsParams)
         {
+            if (TypeLookup.MondValueSpan == null)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(Diagnostics.SpanTypeNotFound, info.Locations.First()));
+            }
+            else if (!SymbolEqualityComparer.Default.Equals(paramType, TypeLookup.MondValueSpan))
+            {
+                context.ReportDiagnostic(Diagnostic.Create(Diagnostics.BoundMethodParamsMustBeSpan, info.Locations.First(), info.Type.GetFullyQualifiedName()));
+            }
+
             param.Type = ParameterType.Params;
             param.TypeName = "...";
             param.Priority = 75;

@@ -197,25 +197,25 @@ namespace Mond.VirtualMachine.Prototypes
         /// format(): string
         /// </summary>
         [MondFunction]
-        public static string Format([MondInstance] MondValue instance, params MondValue[] arguments)
+        public static string Format([MondInstance] MondValue instance, params Span<MondValue> arguments)
         {
-            var values = arguments.Select<MondValue, object>(x =>
+            var values = new object[arguments.Length];
+            for (var i = 0; i < arguments.Length; i++)
             {
-                // System.String.Format has certain format specifiers
-                // that are valid for integers but not floats
-                // (ex. String.Format( "{0:x2}", 1.23f ); throws FormatException
-                // So we treat all whole numbers as integers, everything else
-                // remains unchanged.
+                var x = arguments[i];
                 if (x.Type == MondValueType.Number)
                 {
-                    if (x % 1.0 == 0.0)
-                        return (int)x;
-
-                    return (double)x;
+                    var value = (double)x;
+                    if (value % 1.0 == 0.0)
+                        values[i] = (int)value;
+                    else
+                        values[i] = value;
                 }
-
-                return x.ToString();
-            }).ToArray();
+                else
+                {
+                    values[i] = x.ToString();
+                }
+            }
 
             return string.Format(instance.ToString(), values);
         }

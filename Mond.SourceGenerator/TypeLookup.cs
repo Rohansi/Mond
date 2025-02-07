@@ -13,7 +13,7 @@ internal static class TypeLookup
     public static INamedTypeSymbol TaskOfT { get; private set; }
     public static INamedTypeSymbol MondValue { get; private set; }
     public static INamedTypeSymbol MondValueNullable { get; private set; }
-    public static IArrayTypeSymbol MondValueArray { get; private set; }
+    public static INamedTypeSymbol MondValueSpan { get; private set; }
     public static INamedTypeSymbol MondState { get; private set; }
 
     public static Dictionary<ITypeSymbol, MondValueType[]> TypeCheckMap { get; private set; }
@@ -36,6 +36,7 @@ internal static class TypeLookup
         var stringSym = compilation.GetSpecialType(SpecialType.System_String);
         var boolSym = compilation.GetSpecialType(SpecialType.System_Boolean);
         var nullableSym = compilation.GetSpecialType(SpecialType.System_Nullable_T);
+        var spanSym = compilation.GetTypeByMetadataName("System.Span`1");
         var taskSym = compilation.GetTypeByMetadataName("System.Threading.Tasks.Task");
         var taskOfTSym = compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1");
 
@@ -64,7 +65,7 @@ internal static class TypeLookup
         TaskOfT = taskOfTSym;
         MondValue = mondValueSym;
         MondValueNullable = nullableSym.Construct(mondValueSym);
-        MondValueArray = compilation.CreateArrayTypeSymbol(mondValueSym);
+        MondValueSpan = spanSym?.Construct(mondValueSym);
         MondState = mondStateSym;
 
         var numberTypesArray = new[] { MondValueType.Number, MondValueType.Object };

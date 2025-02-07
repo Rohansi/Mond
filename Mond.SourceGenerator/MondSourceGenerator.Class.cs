@@ -65,7 +65,7 @@ public partial class MondSourceGenerator
         {
             if (property.GetMethod is { DeclaredAccessibility: Accessibility.Public })
             {
-                writer.WriteLine($"public static MondValue {name}__Getter(MondState state, params MondValue[] args)");
+                writer.WriteLine($"public static MondValue {name}__Getter(MondState state, params Span<MondValue> args)");
                 writer.OpenBracket();
 
                 Prologue($"get{name}");
@@ -80,7 +80,7 @@ public partial class MondSourceGenerator
             {
                 var parameter = Parameter.Create(context, property.SetMethod.Parameters[0]);
 
-                writer.WriteLine($"public static MondValue {name}__Setter(MondState state, params MondValue[] args)");
+                writer.WriteLine($"public static MondValue {name}__Setter(MondState state, params Span<MondValue> args)");
                 writer.OpenBracket();
 
                 Prologue($"set{name}");
@@ -102,7 +102,7 @@ public partial class MondSourceGenerator
         {
             var isNormalMethod = table.Name != "#ctor";
 
-            writer.WriteLine($"public static MondValue {table.Identifier}__Dispatch(MondState state, params MondValue[] args)");
+            writer.WriteLine($"public static MondValue {table.Identifier}__Dispatch(MondState state, params Span<MondValue> args)");
             writer.OpenBracket();
 
             var firstArg = 0;

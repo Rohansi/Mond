@@ -104,20 +104,20 @@ namespace Mond.Libraries
         /// <summary>
         /// Converts an array of MondValues to an array of Tasks.
         /// </summary>
-        public static Task<MondValue>[] ToTaskArray(MondState state, params MondValue[] tasks)
+        public static Task<MondValue>[] ToTaskArray(MondState state, params Span<MondValue> tasks)
         {
             if (tasks.Length == 1 && tasks[0].Type == MondValueType.Array)
+            {
                 tasks = tasks[0].AsList.ToArray();
+            }
 
-            return tasks
-                .Select(t =>
-                {
-                    if (t.UserData is Task<MondValue> task)
-                        return task;
+            var actualTasks = new Task<MondValue>[tasks.Length];
+            for (var i = 0; i < tasks.Length; i++)
+            {
+                actualTasks[i] = tasks[i].UserData as Task<MondValue> ?? RunMondTask(state, tasks[i]);
+            }
 
-                    return RunMondTask(state, t);
-                })
-                .ToArray();
+            return actualTasks;
         }
 
         /// <summary>

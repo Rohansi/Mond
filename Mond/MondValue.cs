@@ -627,7 +627,7 @@ namespace Mond
             }
         }
         
-        internal bool TryDispatch(string name, out MondValue result, params MondValue[] args)
+        internal bool TryDispatch(string name, out MondValue result, params Span<MondValue> args)
         {
             if (Type != MondValueType.Object)
             {

@@ -14,7 +14,7 @@ namespace Mond.Libraries.Console
         }
 
         [MondFunction]
-        public void Print(params MondValue[] arguments)
+        public void Print(params Span<MondValue> arguments)
         {
             foreach (var v in arguments)
             {
@@ -23,7 +23,7 @@ namespace Mond.Libraries.Console
         }
 
         [MondFunction]
-        public void PrintLn(params MondValue[] arguments)
+        public void PrintLn(params Span<MondValue> arguments)
         {
             foreach (var v in arguments)
             {

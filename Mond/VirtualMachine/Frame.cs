@@ -20,11 +20,11 @@ namespace Mond.VirtualMachine
             Values = valueCount > 0 ? new MondValue[valueCount] : [];
         }
 
-        public Frame(int depth, Frame previous, MondValue[] values)
+        public Frame(int depth, Frame previous, Span<MondValue> values)
         {
             Depth = depth;
             Previous = previous;
-            Values = values ?? [];
+            Values = values.Length == 0 ? [] : values.ToArray();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

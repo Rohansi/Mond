@@ -124,7 +124,7 @@ public partial class MondSourceGenerator
             var propertyQualifier = property.IsStatic ? qualifier : "_instance";
             if (property.GetMethod is { DeclaredAccessibility: Accessibility.Public })
             {
-                writer.WriteLine($"public MondValue {name}__Getter(MondState state, params MondValue[] args)");
+                writer.WriteLine($"public MondValue {name}__Getter(MondState state, params Span<MondValue> args)");
                 writer.OpenBracket();
                 
                 writer.WriteLine("if (args.Length != 0)");
@@ -142,7 +142,7 @@ public partial class MondSourceGenerator
             {
                 var parameter = Parameter.Create(context, property.SetMethod.Parameters[0]);
 
-                writer.WriteLine($"public MondValue {name}__Setter(MondState state, params MondValue[] args)");
+                writer.WriteLine($"public MondValue {name}__Setter(MondState state, params Span<MondValue> args)");
                 writer.OpenBracket();
 
                 writer.WriteLine($"if (args.Length != 1 || !{CompareArgument(0, parameter)})");
@@ -160,7 +160,7 @@ public partial class MondSourceGenerator
 
         foreach (var table in methodTables)
         {
-            writer.WriteLine($"public MondValue {table.Identifier}__Dispatch(MondState state, params MondValue[] args)");
+            writer.WriteLine($"public MondValue {table.Identifier}__Dispatch(MondState state, params Span<MondValue> args)");
             writer.OpenBracket();
 
             writer.WriteLine("switch (args.Length)");

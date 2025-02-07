@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Mond.Binding;
@@ -310,9 +311,9 @@ namespace Mond.Tests.Binding
         }
 
         [MondFunction]
-        public static string Concat(string first, params MondValue[] values)
+        public static string Concat(string first, params Span<MondValue> values)
         {
-            return first + string.Concat(values.Select(v => (string)v));
+            return first + string.Concat(values.ToArray().Select(v => (string)v));
         }
 
         [MondFunction]

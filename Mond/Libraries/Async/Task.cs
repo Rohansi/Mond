@@ -25,7 +25,7 @@ namespace Mond.Libraries.Async
         }
 
         [MondFunction]
-        public static MondValue WhenAll(MondState state, params MondValue[] tasks)
+        public static MondValue WhenAll(MondState state, params Span<MondValue> tasks)
         {
             AsyncUtil.EnsureAsync();
 
@@ -42,16 +42,16 @@ namespace Mond.Libraries.Async
         }
 
         [MondFunction]
-        public static MondValue WhenAny(MondState state, params MondValue[] tasks)
+        public static MondValue WhenAny(MondState state, params Span<MondValue> tasks)
         {
             AsyncUtil.EnsureAsync();
 
+            var sourceTasks = tasks.ToArray(); // need a copy here to reference in the continuation
             var taskArray = AsyncUtil.ToTaskArray(state, tasks);
-
             var task = Task.WhenAny(taskArray).ContinueWith(t =>
             {
                 var index = Array.IndexOf(taskArray, t.Result);
-                return tasks[index];
+                return sourceTasks[index];
             });
 
             return AsyncUtil.ToObject(task);
