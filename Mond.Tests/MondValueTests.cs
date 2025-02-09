@@ -500,5 +500,21 @@ namespace Mond.Tests
             var empty = MondValue.Array();
             Assert.True(!empty.Slice().Enumerate(state).Any(), "clone empty");
         }
+
+        [Test]
+        public void IndexerSetDoesNotModifyPrototype()
+        {
+            var prototype = MondValue.Object();
+            prototype["test"] = 123;
+
+            var obj = MondValue.Object();
+            obj.Prototype = prototype;
+            
+            Assert.AreEqual(obj["test"], (MondValue)123);
+
+            obj["test"] = 456;
+            Assert.AreEqual(obj["test"], (MondValue)456);
+            Assert.AreEqual(prototype["test"], (MondValue)123);
+        }
     }
 }

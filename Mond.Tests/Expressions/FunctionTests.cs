@@ -507,5 +507,66 @@ namespace Mond.Tests.Expressions
 
             StringAssert.Contains("testMethod", ex?.Message);
         }
+
+        [Test]
+        public void FunctionExecutionOrder()
+        {
+            var script =
+                """
+                const arr = [];
+                fun x() { arr.add(1); return () -> {}; }
+                fun y() { arr.add(2); }
+                fun z() { arr.add(3); }
+                x()(y(), z());
+                return arr;
+                """;
+            var result = Script.Run(script);
+            CollectionAssert.AreEqual(result.ArrayValue, new MondValue[] { 1, 2, 3 });
+        }
+
+        [Test]
+        public void FunctionInstanceCall()
+        {
+            const string script =
+                """
+                const prototype = {
+                    method: fun (this, x, y) -> this.value + x + y,
+                };
+                const obj = { value: 10 };
+                obj.setPrototype(prototype);
+                return obj.method(1, 2);
+                """;
+
+            var result = Script.Run(script);
+            Assert.AreEqual((MondValue)13, result);
+        }
+
+        [Test]
+        public void FunctionNoInstanceCallOnGlobal()
+        {
+            const string script =
+                """
+                global.method = fun (x, y) -> x + y;
+                return global.method(1, 2);
+                """;
+
+            var result = Script.Run(script);
+            Assert.AreEqual((MondValue)3, result);
+        }
+
+        [Test]
+        public void FunctionNoInstanceCallOnCapitalized()
+        {
+            const string script =
+                """
+                const Module = {
+                    method: fun (x, y) -> x + y,
+                };
+                return Module.method(1, 2);
+                """;
+
+            var result = Script.Run(script);
+            Assert.AreEqual((MondValue)3, result);
+        }
     }
 }
