@@ -135,6 +135,12 @@ namespace Mond.Compiler
             return Scope.Get(name);
         }
 
+        public bool TryGetIdentifier(string name, out IdentifierOperand identifier)
+        {
+            identifier = Identifier(name);
+            return identifier != null;
+        }
+
         public virtual LabelOperand ContinueLabel()
         {
             for (var i = _loopLabels.Count - 1; i >= 0; i--)

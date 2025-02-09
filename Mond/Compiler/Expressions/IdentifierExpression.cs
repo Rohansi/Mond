@@ -81,5 +81,12 @@
         {
             return visitor.Visit(this);
         }
+        
+        public bool SupportsIncDecF(FunctionContext context, out IdentifierOperand operand)
+        {
+            return context.TryGetIdentifier(Name, out operand) &&
+                   operand.FrameIndex == context.LocalIndex &&
+                   !operand.IsReadOnly;
+        }
     }
 }

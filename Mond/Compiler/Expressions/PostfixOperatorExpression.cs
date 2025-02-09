@@ -18,43 +18,62 @@ namespace Mond.Compiler.Expressions
 
         public override int Compile(FunctionContext context)
         {
-            var storable = Left as IStorableExpression;
-            if (storable == null)
+            if (Left is not IStorableExpression storable)
                 throw new MondCompilerException(this, CompilerError.LeftSideMustBeStorable);
 
             var stack = 0;
-            var needResult = !(Parent is IBlockExpression);
+            var needResult = Parent is not IBlockExpression;
 
-            if (needResult)
+            if (!needResult && Left is IdentifierExpression identExpr &&
+                identExpr.SupportsIncDecF(context, out var operand))
             {
-                stack += Left.Compile(context);
-                stack += context.Dup();
-                stack += context.Load(context.Number(1));
+                context.Position(Token); // debug info
+
+                switch (Operation)
+                {
+                    case TokenType.Increment:
+                        stack += context.IncrementF(operand);
+                        break;
+                    case TokenType.Decrement:
+                        stack += context.DecrementF(operand);
+                        break;
+                    default:
+                        throw new NotSupportedException();
+                }
             }
             else
             {
-                stack += Left.Compile(context);
-                stack += context.Load(context.Number(1));
+                if (needResult)
+                {
+                    stack += Left.Compile(context);
+                    stack += context.Dup();
+                    stack += context.Load(context.Number(1));
+                }
+                else
+                {
+                    stack += Left.Compile(context);
+                    stack += context.Load(context.Number(1));
+                }
+
+                context.Position(Token); // debug info
+
+                switch (Operation)
+                {
+                    case TokenType.Increment:
+                        stack += context.BinaryOperation(TokenType.Add);
+                        break;
+
+                    case TokenType.Decrement:
+                        stack += context.BinaryOperation(TokenType.Subtract);
+                        break;
+
+                    default:
+                        throw new NotSupportedException();
+                }
+
+                stack += storable.CompilePreLoadStore(context, 1);
+                stack += storable.CompileStore(context);
             }
-
-            context.Position(Token); // debug info
-
-            switch (Operation)
-            {
-                case TokenType.Increment:
-                    stack += context.BinaryOperation(TokenType.Add);
-                    break;
-
-                case TokenType.Decrement:
-                    stack += context.BinaryOperation(TokenType.Subtract);
-                    break;
-
-                default:
-                    throw new NotSupportedException();
-            }
-
-            stack += storable.CompilePreLoadStore(context, 1);
-            stack += storable.CompileStore(context);
 
             CheckStack(stack, needResult ? 1 : 0);
             return stack;

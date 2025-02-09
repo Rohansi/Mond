@@ -229,6 +229,24 @@ namespace Mond.Compiler
             return -1 + 1;
         }
 
+        public int IncrementF(IdentifierOperand local)
+        {
+            if (local.FrameIndex != LocalIndex)
+                throw new ArgumentException("Cannot use IncF on out of frame locals");
+
+            Emit(new Instruction(InstructionType.IncF, new ImmediateOperand(local.Id)));
+            return 0;
+        }
+
+        public int DecrementF(IdentifierOperand local)
+        {
+            if (local.FrameIndex != LocalIndex)
+                throw new ArgumentException("Cannot use DecF on out of frame locals");
+
+            Emit(new Instruction(InstructionType.DecF, new ImmediateOperand(local.Id)));
+            return 0;
+        }
+
         public int Closure(LabelOperand label)
         {
             Emit(new Instruction(InstructionType.Closure, label));

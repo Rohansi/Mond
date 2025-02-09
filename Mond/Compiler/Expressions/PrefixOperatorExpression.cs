@@ -18,11 +18,19 @@ namespace Mond.Compiler.Expressions
         {
             var stack = 0;
             var isAssignment = false;
-            var needResult = !(Parent is IBlockExpression);
+            var needResult = Parent is not IBlockExpression;
             
             switch (Operation)
             {
                 case TokenType.Increment:
+                    if (!needResult && Right is IdentifierExpression incIdentExpr &&
+                        incIdentExpr.SupportsIncDecF(context, out var incOperand))
+                    {
+                        context.Position(Token); // debug info
+                        stack += context.IncrementF(incOperand);
+                        break;
+                    }
+
                     stack += Right.Compile(context);
                     stack += context.Load(context.Number(1));
 
@@ -32,6 +40,14 @@ namespace Mond.Compiler.Expressions
                     break;
 
                 case TokenType.Decrement:
+                    if (!needResult && Right is IdentifierExpression decIdentExpr &&
+                        decIdentExpr.SupportsIncDecF(context, out var decOperand))
+                    {
+                        context.Position(Token); // debug info
+                        stack += context.IncrementF(decOperand);
+                        break;
+                    }
+
                     stack += Right.Compile(context);
                     stack += context.Load(context.Number(1));
 
@@ -55,8 +71,7 @@ namespace Mond.Compiler.Expressions
 
             if (isAssignment)
             {
-                var storable = Right as IStorableExpression;
-                if (storable == null)
+                if (Right is not IStorableExpression storable)
                     throw new MondCompilerException(this, CompilerError.LeftSideMustBeStorable);
 
                 if (needResult)

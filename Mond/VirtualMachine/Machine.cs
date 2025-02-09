@@ -498,6 +498,22 @@ namespace Mond.VirtualMachine
                                 value = ~value;
                                 break;
                             }
+
+                        case (int)InstructionType.IncF:
+                            {
+                                var index = UnpackFirstOperand(opcode);
+                                ref var value = ref locals.Values[index];
+                                value++;
+                                break;
+                            }
+
+                        case (int)InstructionType.DecF:
+                            {
+                                var index = UnpackFirstOperand(opcode);
+                                ref var value = ref locals.Values[index];
+                                value--;
+                                break;
+                            }
                         #endregion
 
                         #region Logic
