@@ -510,11 +510,11 @@ namespace Mond.Tests
             var obj = MondValue.Object();
             obj.Prototype = prototype;
             
-            Assert.AreEqual(obj["test"], (MondValue)123);
+            Assert.AreEqual((MondValue)123, obj["test"]);
 
             obj["test"] = 456;
-            Assert.AreEqual(obj["test"], (MondValue)456);
-            Assert.AreEqual(prototype["test"], (MondValue)123);
+            Assert.AreEqual((MondValue)456, obj["test"]);
+            Assert.AreEqual((MondValue)123, prototype["test"]);
         }
     }
 }

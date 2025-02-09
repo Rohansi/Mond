@@ -88,5 +88,65 @@ namespace Mond.Tests.Expressions
 
             Assert.AreEqual((MondValue)15, result);
         }
+
+        [Test]
+        public void MethodSyntaxWithoutSpecifier()
+        {
+            const string script =
+                """
+                var obj = {
+                    method(this, x, y) -> x + y,
+                };
+                return obj.method(1, 2);
+                """;
+            var result = Script.Run(script);
+            Assert.AreEqual((MondValue)3, result);
+        }
+
+        [Test]
+        public void MethodSyntaxFunctionSpecifier()
+        {
+            const string script =
+                """
+                var obj = {
+                    fun method(this, x, y) -> x + y,
+                };
+                return obj.method(1, 2);
+                """;
+            var result = Script.Run(script);
+            Assert.AreEqual((MondValue)3, result);
+        }
+
+        [Test]
+        public void MethodSyntaxFunctionSpecifierRequiresName()
+        {
+            const string script =
+                """
+                var obj = {
+                    fun (this, x, y) -> x + y,
+                };
+                return obj.method(1, 2);
+                """;
+            Assert.Throws<MondCompilerException>(() => Script.Run(script));
+        }
+
+        [Test]
+        public void MethodSyntaxSequenceSpecifier()
+        {
+            const string script =
+                """
+                var obj = {
+                    seq method(this, x, y) {
+                        yield x;
+                        yield y;
+                    },
+                };
+                return obj.method(1, 2);
+                """;
+            var state = new MondState();
+            var result = state.Run(script);
+            var values = result.Enumerate(state);
+            Assert.AreEqual(new MondValue[] { 1, 2 }, values);
+        }
     }
 }

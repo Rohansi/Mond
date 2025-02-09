@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Mond.Compiler.Expressions;
 using Mond.Compiler.Expressions.Statements;
+using Mond.Compiler.Parselets.Statements;
 
 namespace Mond.Compiler.Parselets
 {
@@ -17,17 +18,47 @@ namespace Mond.Compiler.Parselets
 
                 if (parser.Match(TokenType.Identifier))
                 {
-                    var identifier = parser.Take(TokenType.Identifier);
-                    key = identifier.Contents;
-
-                    if (parser.Match(TokenType.Comma) || parser.Match(TokenType.RightBrace))
+                    if (parser.Match(TokenType.LeftParen, 1))
                     {
-                        value = new IdentifierExpression(identifier);
+                        var identToken = parser.Peek();
+                        FunctionParselet.ParseFunction(parser, identToken, true, out _,
+                            out var name,
+                            out var arguments,
+                            out var otherArgs,
+                            out var body);
+
+                        key = name;
+                        value = new FunctionExpression(identToken, name, arguments, otherArgs, body);
+                    }
+                    else
+                    {
+                        
+                        var identifier = parser.Take(TokenType.Identifier);
+                        key = identifier.Contents;
+
+                        if (parser.Match(TokenType.Comma) || parser.Match(TokenType.RightBrace))
+                        {
+                            value = new IdentifierExpression(identifier);
+                        }
                     }
                 }
                 else if (parser.Match(TokenType.String))
                 {
                     key = parser.Take(TokenType.String).Contents;
+                }
+                else if (parser.Match(TokenType.Fun) || parser.Match(TokenType.Seq))
+                {
+                    var typeToken = parser.Take();
+                    FunctionParselet.ParseFunction(parser, typeToken, true, out _,
+                        out var name,
+                        out var arguments,
+                        out var otherArgs,
+                        out var body);
+
+                    key = name;
+                    value = typeToken.Type == TokenType.Fun
+                        ? new FunctionExpression(typeToken, name, arguments, otherArgs, body)
+                        : new SequenceExpression(typeToken, name, arguments, otherArgs, body);
                 }
                 else
                 {
