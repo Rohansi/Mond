@@ -90,6 +90,40 @@ namespace Mond.Tests.Expressions
         }
 
         [Test]
+        public void Classes2()
+        {
+            const string script =
+                """
+                fun class(spec) {
+                    const ctor = spec.new;
+                    fun newInst(...args) {
+                        const inst = {};
+                        if (ctor.getType() == "function") {
+                            ctor(inst, ...args);
+                        }
+                        return inst.setPrototype(spec);
+                    };
+                    spec.new = newInst;
+                    spec.lock();
+                    return spec;
+                }
+
+                const Person = class({
+                    new(this, name) {
+                        this.name = name;
+                    },
+                    
+                    greeting(this) -> "hello " + this.name
+                });
+
+                const rohan = Person.new("Rohan");
+                return rohan.greeting();
+                """;
+            var result = Script.Run(script);
+            Assert.AreEqual((MondValue)"hello Rohan", result);
+        }
+
+        [Test]
         public void MethodSyntaxWithoutSpecifier()
         {
             const string script =

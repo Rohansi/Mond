@@ -285,5 +285,29 @@ namespace Mond.Tests.Expressions
 
             Assert.AreEqual("op_Hash", result.ToString());
         }
+
+        [Test]
+        public void IncrementPrefix()
+        {
+            var resultA = Script.Run("var x = 0; ++x; return x;");
+            Assert.AreEqual((MondValue)1, resultA);
+
+            var resultB = Script.Run("var x = 0; return ++x;");
+            Assert.AreEqual((MondValue)1, resultB);
+
+            Assert.Throws<MondCompilerException>(() => Script.Run("const x = 0; ++x; return x;"));
+        }
+
+        [Test]
+        public void IncrementPostfix()
+        {
+            var resultA = Script.Run("var x = 0; x++; return x;");
+            Assert.AreEqual((MondValue)1, resultA);
+
+            var resultB = Script.Run("var x = 0; return x++;");
+            Assert.AreEqual((MondValue)0, resultB);
+
+            Assert.Throws<MondCompilerException>(() => Script.Run("const x = 0; x++; return x;"));
+        }
     }
 }
