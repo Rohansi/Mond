@@ -44,7 +44,7 @@ namespace Mond.Compiler.Expressions
                         decIdentExpr.SupportsIncDecF(context, out var decOperand))
                     {
                         context.Position(Token); // debug info
-                        stack += context.IncrementF(decOperand);
+                        stack += context.DecrementF(decOperand);
                         break;
                     }
 
