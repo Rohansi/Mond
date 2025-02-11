@@ -4,11 +4,11 @@ using Mond.Compiler.Parselets.Statements;
 
 namespace Mond.Compiler
 {
-    partial class Parser
+    internal partial class Parser
     {
-        private static Dictionary<TokenType, IPrefixParselet> _prefixParselets;
-        private static Dictionary<TokenType, IInfixParselet> _infixParselets;
-        private static Dictionary<TokenType, IStatementParselet> _statementParselets;
+        private static readonly Dictionary<TokenType, IPrefixParselet> _prefixParselets;
+        private static readonly Dictionary<TokenType, IInfixParselet> _infixParselets;
+        private static readonly Dictionary<TokenType, IStatementParselet> _statementParselets;
 
         static Parser()
         {
@@ -119,6 +119,7 @@ namespace Mond.Compiler
             RegisterStatement(TokenType.Switch, new SwitchParselet());
             RegisterStatement(TokenType.Debugger, new DebuggerParselet());
             RegisterStatement(TokenType.Decorator, new DecoratorParselet());
+            RegisterStatement(TokenType.Export, new ExportParselet());
         }
 
         static void RegisterPrefix(TokenType type, IPrefixParselet parselet)

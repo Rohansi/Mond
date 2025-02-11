@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Mond.Compiler.Expressions.Statements
 {
-    class VarExpression : Expression, IStatementExpression
+    internal class VarExpression : Expression, IStatementExpression, IDeclarationExpression
     {
         public class Declaration
         {
@@ -22,6 +22,7 @@ namespace Mond.Compiler.Expressions.Statements
         public bool IsReadOnly { get; }
 
         public bool HasChildren => true;
+        public IEnumerable<string> DeclaredIdentifiers => Declarations.Select(d => d.Name);
 
         public VarExpression(Token token, List<Declaration> declarations, bool isReadOnly = false)
             : base(token)

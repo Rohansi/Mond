@@ -376,6 +376,13 @@ namespace Mond.Compiler.Visitors
             return 0;
         }
 
+        public int Visit(ExportExpression expression)
+        {
+            _writer.Write("export ");
+            expression.DeclarationExpression.Accept(this);
+            return 0;
+        }
+
         #endregion
 
         #region Expressions

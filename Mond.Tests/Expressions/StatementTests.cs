@@ -291,5 +291,85 @@ namespace Mond.Tests.Expressions
                 }
             "));
         }
+
+        [Test]
+        public void ExportNotTopLevel()
+        {
+            const string script =
+                """
+                return fun (exports) {
+                    fun method() {
+                        export const value = 10;
+                    }
+                };
+                """;
+            Assert.Throws<MondCompilerException>(() => Script.Run(script));
+        }
+
+        [Test]
+        public void ExportConst()
+        {
+            const string script =
+                """
+                return fun (exports) {
+                    export const value = 10;
+                };
+                """;
+            var module = Script.Run(out var state, script);
+            var exports = MondValue.Object(state);
+            state.Call(module, exports);
+            Assert.AreEqual((MondValue)10, exports["value"]);
+        }
+
+        [Test]
+        public void ExportConstMultiple()
+        {
+            const string script =
+                """
+                return fun (exports) {
+                    export const x = 10, y = 20;
+                };
+                """;
+            var module = Script.Run(out var state, script);
+            var exports = MondValue.Object(state);
+            state.Call(module, exports);
+            Assert.AreEqual((MondValue)10, exports["x"]);
+            Assert.AreEqual((MondValue)20, exports["y"]);
+        }
+
+        [Test]
+        public void ExportFunction()
+        {
+            const string script =
+                """
+                return fun (exports) {
+                    export fun method() -> 10;
+                };
+                """;
+            var module = Script.Run(out var state, script);
+            var exports = MondValue.Object(state);
+            state.Call(module, exports);
+            Assert.AreEqual(MondValueType.Function, exports["method"].Type);
+            Assert.AreEqual((MondValue)10, state.Call(exports["method"]));
+        }
+
+        [Test]
+        public void ExportSequence()
+        {
+            const string script =
+                """
+                return fun (exports) {
+                    export seq method() {
+                        yield 10;
+                        yield 20;
+                    }
+                };
+                """;
+            var module = Script.Run(out var state, script);
+            var exports = MondValue.Object(state);
+            state.Call(module, exports);
+            Assert.AreEqual(MondValueType.Function, exports["method"].Type);
+            CollectionAssert.AreEqual(new MondValue[]{ 10, 20 }, state.Call(exports["method"]).Enumerate(state));
+        }
     }
 }

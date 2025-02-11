@@ -3,7 +3,7 @@ using System.Collections.ObjectModel;
 
 namespace Mond.Compiler.Expressions.Statements
 {
-    class FunctionExpression : Expression, IStatementExpression
+    internal class FunctionExpression : Expression, IStatementExpression, IDeclarationExpression
     {
         public string Name { get; }
         public ReadOnlyCollection<string> Arguments { get; }
@@ -13,6 +13,8 @@ namespace Mond.Compiler.Expressions.Statements
         public string DebugName { get; set; }
 
         public bool HasChildren => false;
+
+        public IEnumerable<string> DeclaredIdentifiers => Name != null ? new[] { Name } : [];
 
         public FunctionExpression(
             Token token, string name, List<string> arguments, string otherArgs, ScopeExpression block, string debugName = null)

@@ -31,6 +31,12 @@
         public const string DuplicateCase = "Duplicate case value";
         public const string DuplicateDefault = "Cannot have more than one default case";
 
+        public const string ExportMustBeFollowedByKeywords = "'export' modifier can only be applied to 'const', 'fun', or 'seq' declarations";
+        public const string ExportMustBeFollowedByDeclaration = "'export' modifier can only be applied to declaration expressions";
+        public const string ExportMustBeFollowedByNonEmptyDeclaration = "'export' modifier cannot be applied to expressions with no declarations";
+        public const string ExportCannotBeUsedOutsideModule = "'export' modifier can only be used in modules";
+        public const string ExportOnlyOnTopLevelDeclarations = "'export' modifier can only be used on top level declarations in modules";
+
         public const string MultipleDestructuringSlices = "Cannot have multiple ellipses in array destructuring";
 
         public const string BadForLoopInitializer = "For loop initializer cannot be statement";

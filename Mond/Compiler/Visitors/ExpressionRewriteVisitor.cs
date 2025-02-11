@@ -174,6 +174,14 @@ namespace Mond.Compiler.Visitors
             };
         }
 
+        public virtual Expression Visit(ExportExpression expression)
+        {
+            return new ExportExpression(expression.Token, expression.DeclarationExpression.Accept(this))
+            {
+                EndToken = expression.EndToken
+            };
+        }
+
         #endregion
 
         public virtual Expression Visit(ArrayExpression expression)

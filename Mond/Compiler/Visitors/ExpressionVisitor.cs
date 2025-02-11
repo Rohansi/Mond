@@ -4,7 +4,7 @@ using Mond.Compiler.Expressions.Statements;
 
 namespace Mond.Compiler
 {
-    abstract class ExpressionVisitor<T> : IExpressionVisitor<T>
+    internal abstract class ExpressionVisitor<T> : IExpressionVisitor<T>
     {
         #region Statements
 
@@ -122,6 +122,13 @@ namespace Mond.Compiler
         {
             expression.Value.Accept(this);
 
+            return default(T);
+        }
+
+        public virtual T Visit(ExportExpression expression)
+        {
+            expression.DeclarationExpression.Accept(this);
+            
             return default(T);
         }
 

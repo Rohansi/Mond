@@ -3,7 +3,7 @@ using Mond.Compiler.Expressions.Statements;
 
 namespace Mond.Compiler
 {
-    interface IExpressionVisitor<out T>
+    internal interface IExpressionVisitor<out T>
     {
         T Visit(BreakExpression expression);
         T Visit(ContinueExpression expression);
@@ -44,5 +44,6 @@ namespace Mond.Compiler
         T Visit(UnpackExpression expression);
         T Visit(DestructuredObjectExpression expression);
         T Visit(DestructuredArrayExpression expression);
+        T Visit(ExportExpression expression);
     }
 }

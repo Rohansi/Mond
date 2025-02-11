@@ -5,13 +5,13 @@ using System.Collections.Generic;
 
 namespace Mond.Compiler
 {
-    partial class Lexer
+    internal partial class Lexer
     {
-        private static OperatorDictionary _punctuation;
-        private static Dictionary<string, TokenType> _operators;
-        private static Dictionary<string, TokenType> _keywords;
-        private static HashSet<char> _hexChars;
-        private static Dictionary<char, string> _operatorChars;
+        private static readonly OperatorDictionary _punctuation;
+        private static readonly Dictionary<string, TokenType> _operators;
+        private static readonly Dictionary<string, TokenType> _keywords;
+        private static readonly HashSet<char> _hexChars;
+        private static readonly Dictionary<char, string> _operatorChars;
 
         static Lexer()
         {
@@ -111,6 +111,10 @@ namespace Mond.Compiler
                 { "switch", TokenType.Switch },
                 { "case", TokenType.Case },
                 { "default", TokenType.Default },
+
+                { "export", TokenType.Export },
+                { "import", TokenType.Import },
+                { "from", TokenType.From },
 
                 { "debugger", TokenType.Debugger },
             };

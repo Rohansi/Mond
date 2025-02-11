@@ -1,6 +1,6 @@
 ﻿namespace Mond.Compiler
 {
-    enum TokenSubType
+    internal enum TokenSubType
     {
         None,
         Keyword,
@@ -8,7 +8,7 @@
         Punctuation,
     }
 
-    enum TokenType
+    internal enum TokenType
     {
         Identifier,
         BacktickIdentifier,
@@ -42,6 +42,10 @@
         Switch,
         Case,
         Default,
+
+        Export,
+        Import,
+        From,
 
         Debugger,
 
@@ -106,7 +110,7 @@
         Eof
     }
 
-    class Token
+    internal sealed class Token
     {
         public string FileName { get; }
         public int Line { get; }
