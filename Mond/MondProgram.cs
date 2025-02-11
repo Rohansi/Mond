@@ -11,7 +11,7 @@ namespace Mond
     public sealed class MondProgram
     {
         private const uint MagicId = 0xFA57C0DE;
-        private const uint FormatVersion = 11;
+        private const uint FormatVersion = 12;
 
         internal readonly int[] Bytecode;
         internal readonly MondValue[] Numbers;
