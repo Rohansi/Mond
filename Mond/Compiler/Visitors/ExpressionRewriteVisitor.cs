@@ -182,6 +182,22 @@ namespace Mond.Compiler.Visitors
             };
         }
 
+        public virtual Expression Visit(ImportExpression expression)
+        {
+            if (expression.BindName != null)
+            {
+                return new ImportExpression(expression.Token, expression.ModuleName, expression.BindName)
+                {
+                    EndToken = expression.EndToken
+                };
+            }
+
+            return new ImportExpression(expression.Token, expression.ModuleName, expression.Fields)
+            {
+                EndToken = expression.EndToken
+            };
+        }
+
         #endregion
 
         public virtual Expression Visit(ArrayExpression expression)

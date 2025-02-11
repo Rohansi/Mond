@@ -132,6 +132,11 @@ namespace Mond.Compiler
             return default(T);
         }
 
+        public virtual T Visit(ImportExpression expression)
+        {
+            return default(T);
+        }
+
         #endregion
 
         public virtual T Visit(ArrayExpression expression)

@@ -45,5 +45,6 @@ namespace Mond.Compiler
         T Visit(DestructuredObjectExpression expression);
         T Visit(DestructuredArrayExpression expression);
         T Visit(ExportExpression expression);
+        T Visit(ImportExpression expression);
     }
 }

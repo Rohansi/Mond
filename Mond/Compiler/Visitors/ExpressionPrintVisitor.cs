@@ -346,7 +346,7 @@ namespace Mond.Compiler.Visitors
         {
             _writer.Write("{0} {{ ", expression.IsReadOnly ? "const" : "var");
 
-            var fields = expression.Fields.Select(field => field.Alias != null ? string.Format("{0}: {1}", field.Name, field.Alias) : field.Name).ToArray();
+            var fields = expression.Fields.Select(field => field.Alias != null ? $"{field.Name}: {field.Alias}" : field.Name).ToArray();
             _writer.Write(string.Join(", ", fields));
             _writer.Write(" }");
 
@@ -380,6 +380,21 @@ namespace Mond.Compiler.Visitors
         {
             _writer.Write("export ");
             expression.DeclarationExpression.Accept(this);
+            return 0;
+        }
+
+        public int Visit(ImportExpression expression)
+        {
+            var hasFields = expression.Fields.Count > 0;
+            _writer.Write(hasFields ? "from " : "import ");
+            MondValue.String(expression.ModuleName).Serialize(_writer);
+            if (hasFields)
+            {
+                _writer.Write("import ");
+                var fields = expression.Fields.Select(field => field.Alias != null ? $"{field.Name}: {field.Alias}" : field.Name).ToArray();
+                _writer.Write(string.Join(", ", fields));
+            }
+            _writer.WriteLine(";");
             return 0;
         }
 

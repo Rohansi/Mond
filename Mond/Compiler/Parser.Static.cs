@@ -120,6 +120,8 @@ namespace Mond.Compiler
             RegisterStatement(TokenType.Debugger, new DebuggerParselet());
             RegisterStatement(TokenType.Decorator, new DecoratorParselet());
             RegisterStatement(TokenType.Export, new ExportParselet());
+            RegisterStatement(TokenType.From, new ImportParselet());
+            RegisterStatement(TokenType.Import, new ImportParselet());
         }
 
         static void RegisterPrefix(TokenType type, IPrefixParselet parselet)

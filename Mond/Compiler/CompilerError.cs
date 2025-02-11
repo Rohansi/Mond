@@ -37,6 +37,12 @@
         public const string ExportCannotBeUsedOutsideModule = "'export' modifier can only be used in modules";
         public const string ExportOnlyOnTopLevelDeclarations = "'export' modifier can only be used on top level declarations in modules";
 
+        public const string ImportExpectedModuleName = "Expected identifier or string module name but found {0}";
+        public const string ImportEmptyModuleName = "Imported module name cannot be empty";
+        public const string ImportEmptyModuleFileName = "Imported module file name cannot be empty";
+        public const string ImportInvalidBoundName = "Imported module '{0}' has invalid bound name '{1}' (must be a valid identifier beginning with an uppercase letter)";
+        public const string ImportMissingRequire = "`import` statements require the `require` function to be defined";
+
         public const string MultipleDestructuringSlices = "Cannot have multiple ellipses in array destructuring";
 
         public const string BadForLoopInitializer = "For loop initializer cannot be statement";
