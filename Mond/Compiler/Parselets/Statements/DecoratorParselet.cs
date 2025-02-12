@@ -5,7 +5,7 @@ using Mond.Compiler.Expressions.Statements;
 
 namespace Mond.Compiler.Parselets.Statements
 {
-    class DecoratorParselet : IStatementParselet
+    internal class DecoratorParselet : IStatementParselet
     {
         public Expression Parse(Parser parser, Token token, out bool trailingSemicolon)
         {
@@ -18,8 +18,11 @@ namespace Mond.Compiler.Parselets.Statements
             while (parser.MatchAndTake(TokenType.Decorator))
                 exprs.Add(parser.ParseExpression());
 
-            var stmt = parser.ParseStatement();
+            var isExport = parser.MatchAndTake(TokenType.Export);
 
+            var stmt = parser.ParseStatement();
+            
+            Expression result;
             if (stmt is VarExpression varExpr)
             {
                 if (varExpr.Declarations.Count != 1)
@@ -37,7 +40,12 @@ namespace Mond.Compiler.Parselets.Statements
                     new VarExpression.Declaration(decl.Name, decorator),
                 };
 
-                return new VarExpression(token, decls, varExpr.IsReadOnly);
+                if (isExport && !varExpr.IsReadOnly)
+                {
+                    throw new MondCompilerException(stmt, CompilerError.ExportMustBeFollowedByKeywords);
+                }
+
+                result = new VarExpression(token, decls, varExpr.IsReadOnly);
             }
             else
             {
@@ -56,8 +64,12 @@ namespace Mond.Compiler.Parselets.Statements
                     new VarExpression.Declaration(name, decorator),
                 };
 
-                return new VarExpression(token, decls, true);
+                result = new VarExpression(token, decls, true);
             }
+
+            return isExport
+                ? new ExportExpression(token, result)
+                : result;
         }
 
         private static Expression MakeAnonymous(Expression stmt)

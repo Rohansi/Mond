@@ -371,5 +371,23 @@ namespace Mond.Tests.Expressions
             Assert.AreEqual(MondValueType.Function, exports["method"].Type);
             CollectionAssert.AreEqual(new MondValue[]{ 10, 20 }, state.Call(exports["method"]).Enumerate(state));
         }
+
+        [Test]
+        public void ExportDecoratedFunction()
+        {
+            const string script =
+                """
+                fun identity(x) -> x;
+                return fun (exports) {
+                    @identity
+                    export fun method() -> 10;
+                };
+                """;
+            var module = Script.Run(out var state, script);
+            var exports = MondValue.Object(state);
+            state.Call(module, exports);
+            Assert.AreEqual(MondValueType.Function, exports["method"].Type);
+            Assert.AreEqual((MondValue)10, state.Call(exports["method"]));
+        }
     }
 }
