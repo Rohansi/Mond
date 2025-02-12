@@ -29,12 +29,7 @@ namespace Mond.Compiler.Parselets.Statements
                     throw new MondCompilerException(stmt, CompilerError.DecoratorCantApplyMultiple);
 
                 var decl = varExpr.Declarations[0];
-                stmt = decl.Initializer;
-
-                var decorator = MakeCallable(exprs.First(), stmt);
-                foreach (var expr in exprs.Skip(1))
-                    decorator = MakeCallable(expr, decorator);
-
+                var decorator = WrapDecorators(decl.Initializer, exprs);
                 var decls = new List<VarExpression.Declaration>
                 {
                     new VarExpression.Declaration(decl.Name, decorator),
@@ -53,12 +48,7 @@ namespace Mond.Compiler.Parselets.Statements
                     throw new MondCompilerException(stmt, CompilerError.DecoratorOnlyOnDeclarations);
 
                 var name = GetName(stmt);
-                stmt = MakeAnonymous(stmt);
-
-                var decorator = MakeCallable(exprs.First(), stmt);
-                foreach (var expr in exprs.Skip(1))
-                    decorator = MakeCallable(expr, decorator);
-
+                var decorator = WrapDecorators(stmt, exprs);
                 var decls = new List<VarExpression.Declaration>
                 {
                     new VarExpression.Declaration(name, decorator),
@@ -70,6 +60,26 @@ namespace Mond.Compiler.Parselets.Statements
             return isExport
                 ? new ExportExpression(token, result)
                 : result;
+        }
+
+        public static Expression WrapDecorators(Expression stmt, List<Expression> decorators)
+        {
+            if (decorators == null || decorators.Count == 0)
+            {
+                return stmt;
+            }
+
+            if (stmt is FunctionExpression)
+            {
+                stmt = MakeAnonymous(stmt);
+            }
+
+            var decorator = MakeCallable(decorators.First(), stmt);
+            foreach (var expr in decorators.Skip(1))
+            {
+                decorator = MakeCallable(expr, decorator);
+            }
+            return decorator;
         }
 
         private static Expression MakeAnonymous(Expression stmt)

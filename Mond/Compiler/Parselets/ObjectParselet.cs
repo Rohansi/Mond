@@ -46,25 +46,35 @@ namespace Mond.Compiler.Parselets
                 {
                     key = parser.Take(TokenType.String).Contents;
                 }
-                else if (parser.Match(TokenType.Fun) || parser.Match(TokenType.Seq))
-                {
-                    var typeToken = parser.Take();
-                    FunctionParselet.ParseFunction(parser, typeToken, true, out _,
-                        out var name,
-                        out var arguments,
-                        out var otherArgs,
-                        out var body);
-
-                    key = name;
-                    value = typeToken.Type == TokenType.Fun
-                        ? new FunctionExpression(typeToken, name, arguments, otherArgs, body)
-                        : new SequenceExpression(typeToken, name, arguments, otherArgs, body);
-                }
                 else
                 {
-                    var errorToken = parser.Take();
+                    var decoratorExprs = new List<Expression>();
+                    while (parser.MatchAndTake(TokenType.Decorator))
+                    {
+                        decoratorExprs.Add(parser.ParseExpression());
+                    }
 
-                    throw new MondCompilerException(errorToken, CompilerError.ExpectedButFound2, TokenType.Identifier, TokenType.String, errorToken);
+                    if (parser.Match(TokenType.Fun) || parser.Match(TokenType.Seq))
+                    {
+                        var typeToken = parser.Take();
+                        FunctionParselet.ParseFunction(parser, typeToken, true, out _,
+                            out var name,
+                            out var arguments,
+                            out var otherArgs,
+                            out var body);
+
+                        key = name;
+                        value = typeToken.Type == TokenType.Fun
+                            ? new FunctionExpression(typeToken, name, arguments, otherArgs, body)
+                            : new SequenceExpression(typeToken, name, arguments, otherArgs, body);
+
+                        value = DecoratorParselet.WrapDecorators(value, decoratorExprs);
+                    }
+                    else
+                    {
+                        var errorToken = parser.Take();
+                        throw new MondCompilerException(errorToken, CompilerError.ExpectedButFound3, TokenType.Identifier, TokenType.String, "function", errorToken);
+                    }
                 }
 
                 if (value == null)

@@ -377,9 +377,11 @@ namespace Mond.Tests.Expressions
         {
             const string script =
                 """
-                fun identity(x) -> x;
+                fun offset(f) {
+                    return fun (...args) -> f(...args) + 1;
+                }
                 return fun (exports) {
-                    @identity
+                    @offset
                     export fun method() -> 10;
                 };
                 """;
@@ -387,7 +389,7 @@ namespace Mond.Tests.Expressions
             var exports = MondValue.Object(state);
             state.Call(module, exports);
             Assert.AreEqual(MondValueType.Function, exports["method"].Type);
-            Assert.AreEqual((MondValue)10, state.Call(exports["method"]));
+            Assert.AreEqual((MondValue)11, state.Call(exports["method"]));
         }
     }
 }

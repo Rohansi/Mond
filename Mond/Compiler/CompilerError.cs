@@ -11,6 +11,7 @@
         public const string UnexpectedCharacter = "Unexpected character '{0}'";
         public const string ExpectedButFound = "Expected {0} but found {1}";
         public const string ExpectedButFound2 = "Expected {0} or {1} but found {2}";
+        public const string ExpectedButFound3 = "Expected {0}, {1}, or {2} but found {3}";
         public const string CrMustBeFollowedByLf = "\\r must be followed by \\n";
 
         public const string IncorrectOperatorArity = "Incorrect operator arity ({0}). User defined operators may only accept 1 (prefix) or 2 (infix) arguments";

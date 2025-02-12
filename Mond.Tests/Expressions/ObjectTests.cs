@@ -182,5 +182,24 @@ namespace Mond.Tests.Expressions
             var values = result.Enumerate(state);
             Assert.AreEqual(new MondValue[] { 1, 2 }, values);
         }
+
+        [Test]
+        public void MethodSyntaxDecoratedFunction()
+        {
+            const string script =
+                """
+                fun offset(f) {
+                    return fun (...args) -> f(...args) + 1;
+                }
+                
+                var obj = {
+                    @offset
+                    fun method(this, x, y) -> x + y,
+                };
+                return obj.method(1, 2);
+                """;
+            var result = Script.Run(script);
+            Assert.AreEqual((MondValue)4, result);
+        }
     }
 }
