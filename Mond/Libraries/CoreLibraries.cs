@@ -87,7 +87,7 @@ namespace Mond.Libraries
             {
                 var foundModule = searchDirectories
                     .Where(p => p != null)
-                    .Select(p => Path.Combine(p, name))
+                    .SelectMany(p => AppendExtension(p, name))
                     .FirstOrDefault(File.Exists);
 
                 if (foundModule == null)
@@ -97,6 +97,18 @@ namespace Mond.Libraries
             };
 
             Loader = File.ReadAllText;
+
+            return;
+
+            static IEnumerable<string> AppendExtension(string path, string name)
+            {
+                yield return Path.Combine(path, name);
+
+                if (!name.EndsWith(".mnd"))
+                {
+                    yield return Path.Combine(path, name + ".mnd");
+                }
+            }
         } 
 
         public IEnumerable<KeyValuePair<string, MondValue>> GetDefinitions(MondState state)

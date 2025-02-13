@@ -32,7 +32,6 @@ namespace Mond.Libraries.Core
             if (state[cacheObjectName].Type != MondValueType.Object)
             {
                 cacheObject = MondValue.Object(state);
-                cacheObject.Prototype = MondValue.Null;
                 state[cacheObjectName] = cacheObject;
             }
             else
@@ -61,7 +60,6 @@ namespace Mond.Libraries.Core
 
             // create a new object to store the exports
             var exports = MondValue.Object(state);
-            exports.Prototype = MondValue.Null;
 
             // instantly cache it so we can have circular dependencies
             cacheObject[resovledName] = exports;
