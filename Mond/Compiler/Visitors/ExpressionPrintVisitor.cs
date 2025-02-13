@@ -398,6 +398,14 @@ namespace Mond.Compiler.Visitors
             return 0;
         }
 
+        public int Visit(ExportAllExpression expression)
+        {
+            _writer.Write("export * from ");
+            MondValue.String(expression.ModuleName).Serialize(_writer);
+            _writer.WriteLine(";");
+            return 0;
+        }
+
         #endregion
 
         #region Expressions

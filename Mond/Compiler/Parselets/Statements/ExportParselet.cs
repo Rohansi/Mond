@@ -21,6 +21,13 @@ namespace Mond.Compiler.Parselets.Statements
                     ? new FunctionParselet().Parse(parser, typeToken, out trailingSemicolon)
                     : new SequenceParselet().Parse(parser, typeToken, out trailingSemicolon);
             }
+            else if (parser.MatchAndTake(TokenType.Multiply))
+            {
+                parser.Take(TokenType.From);
+                var moduleName = ImportParselet.ParseModuleName(parser, out _);
+                trailingSemicolon = true;
+                return new ExportAllExpression(token, moduleName);
+            }
             else
             {
                 throw new MondCompilerException(token, CompilerError.ExportMustBeFollowedByKeywords);

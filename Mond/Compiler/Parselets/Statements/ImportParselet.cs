@@ -11,17 +11,7 @@ namespace Mond.Compiler.Parselets.Statements
         {
             trailingSemicolon = true;
 
-            var moduleNameToken = parser.Take();
-            if (moduleNameToken.Type != TokenType.Identifier && moduleNameToken.Type != TokenType.String)
-            {
-                throw new MondCompilerException(moduleNameToken, CompilerError.ImportExpectedModuleName, moduleNameToken);
-            }
-
-            var moduleName = moduleNameToken.Contents;
-            if (string.IsNullOrWhiteSpace(moduleName))
-            {
-                throw new MondCompilerException(token, CompilerError.ImportEmptyModuleName);
-            }
+            var moduleName = ParseModuleName(parser, out var moduleNameToken);
 
             if (token.Type == TokenType.From)
             {
@@ -31,21 +21,37 @@ namespace Mond.Compiler.Parselets.Statements
                 var fields = VarParselet.ParseObjectDestructuring(parser);
                 return new ImportExpression(token, moduleName, fields);
             }
-            else
+
+            var moduleBindName = Path.GetFileNameWithoutExtension(moduleName);
+            if (string.IsNullOrWhiteSpace(moduleBindName))
             {
-                var bindName = Path.GetFileNameWithoutExtension(moduleName);
-                if (string.IsNullOrWhiteSpace(bindName))
-                {
-                    throw new MondCompilerException(moduleNameToken, CompilerError.ImportEmptyModuleFileName);
-                }
-
-                if (!char.IsUpper(bindName[0]) || !bindName.All(c => char.IsLetterOrDigit(c) || c == '_'))
-                {
-                    throw new MondCompilerException(moduleNameToken, CompilerError.ImportInvalidBoundName, moduleName, bindName);
-                }
-
-                return new ImportExpression(token, moduleName, bindName);
+                throw new MondCompilerException(moduleNameToken, CompilerError.ImportEmptyModuleFileName);
             }
+
+            if (!char.IsUpper(moduleBindName[0]) || !moduleBindName.All(c => char.IsLetterOrDigit(c) || c == '_'))
+            {
+                throw new MondCompilerException(moduleNameToken, CompilerError.ImportInvalidBoundName, moduleName, moduleBindName);
+            }
+            
+            return new ImportExpression(token, moduleName, moduleBindName);
+        }
+
+        public static string ParseModuleName(Parser parser, out Token moduleNameToken)
+        {
+            moduleNameToken = parser.Take();
+            
+            if (moduleNameToken.Type != TokenType.Identifier && moduleNameToken.Type != TokenType.String)
+            {
+                throw new MondCompilerException(moduleNameToken, CompilerError.ImportExpectedModuleName, moduleNameToken);
+            }
+
+            var moduleName = moduleNameToken.Contents;
+            if (string.IsNullOrWhiteSpace(moduleName))
+            {
+                throw new MondCompilerException(moduleNameToken, CompilerError.ImportEmptyModuleName);
+            }
+
+            return moduleName;
         }
     }
 }

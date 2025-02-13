@@ -41,7 +41,7 @@ namespace Mond.Compiler.Expressions.Statements
             // set enumerator
             context.Statement(Expression);
             stack += Expression.Compile(context);
-            stack += context.InstanceCall(context.String("getEnumerator"), 0, new List<ImmediateOperand>());
+            stack += context.InstanceCall(context.String("getEnumerator"), 0, []);
             stack += context.Store(enumerator);
 
             var loopContext = containsFunction.Value ? new LoopContext(context) : context;
@@ -72,7 +72,7 @@ namespace Mond.Compiler.Expressions.Statements
             // loop while moveNext returns true
             context.Statement(InToken, InToken);
             stack += loopContext.Load(enumerator);
-            stack += loopContext.InstanceCall(context.String("moveNext"), 0, new List<ImmediateOperand>());
+            stack += loopContext.InstanceCall(context.String("moveNext"), 0, []);
             stack += loopContext.JumpFalse(containsFunction.Value ? brk : end);
 
             stack += loopContext.Load(enumerator);
@@ -107,7 +107,7 @@ namespace Mond.Compiler.Expressions.Statements
             // after loop
             stack += context.Bind(end); // break (without function)
             stack += context.Load(enumerator);
-            stack += context.InstanceCall(context.String("dispose"), 0, new List<ImmediateOperand>());
+            stack += context.InstanceCall(context.String("dispose"), 0, []);
             stack += context.Drop();
 
             CheckStack(stack, 0);

@@ -124,13 +124,51 @@ namespace Mond.Tests.Libraries
             Assert.AreEqual((MondValue)10, result);
         }
 
+        [Test]
+        public void ExportAll()
+        {
+            const string mainScript =
+                """
+                return fun (exports) {
+                    export * from 'module.mnd';
+                };
+                """;
+            const string moduleScript =
+                """
+                export fun methodA() {
+                    return 10;
+                }
+                export fun methodB() {
+                    return 20;
+                }
+                """;
+            var module = RunModule(mainScript, "module.mnd", moduleScript, out var state);
+            var exports = MondValue.Object(state);
+            state.Call(module, exports);
+
+            var methodA = exports["methodA"];
+            Assert.AreEqual(MondValueType.Function, methodA.Type);
+            var resultA = state.Call(methodA);
+            Assert.AreEqual((MondValue)10, resultA);
+
+            var methodB = exports["methodB"];
+            Assert.AreEqual(MondValueType.Function, methodB.Type);
+            var resultB = state.Call(methodB);
+            Assert.AreEqual((MondValue)20, resultB);
+        }
+
         private static MondValue RunModule(string mainScript, string moduleName, string moduleScript)
+        {
+            return RunModule(mainScript, moduleName, moduleScript, out _);
+        }
+
+        private static MondValue RunModule(string mainScript, string moduleName, string moduleScript, out MondState state)
         {
             const string mainPath = "/test/main.mnd";
             var searchPath = Path.GetDirectoryName(mainPath);
 
             var configured = false;
-            var state = new MondState();
+            state = new MondState();
 
             state.Libraries.Configure(libraries =>
             {
