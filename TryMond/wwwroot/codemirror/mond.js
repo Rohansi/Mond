@@ -32,7 +32,7 @@ CodeMirror.defineMode("mond", function(config, parserConfig) {
   ]);
   var keywords = wordRE([ "var", "const", "fun", "return", "seq", "yield", "if", "else",
                           "for", "foreach", "in", "while", "do", "break", "continue",
-                          "switch", "case", "default" ]);
+                          "switch", "case", "default", "from", "import", "export" ]);
 
   function normal(stream, state) {
     var ch = stream.next();
