@@ -69,3 +69,10 @@ fun foo() {
 seq bar() {
     yield 1;
 }
+
+import X;
+from 'test' import { x, y };
+
+export fun blah() {
+
+}

@@ -1,8 +1,7 @@
 {
   "profiles": {
     "Mond.Repl": {
-      "commandName": "Project",
-      "commandLineArgs": "C:\\Git\\Mond\\Examples\\decorator.mnd --debug"
+      "commandName": "Project"
     }
   }
 }

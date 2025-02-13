@@ -27,7 +27,7 @@
 			"patterns": [
 				{
 					"name": "keyword.control.mond",
-					"match": "\\b(if|else|while|foreach|for|do|switch|case|default|return|continue|break|yield|in|debugger)\\b"
+					"match": "\\b(if|else|while|foreach|for|do|switch|case|default|return|continue|break|yield|in|debugger|export|import|from)\\b"
 				},
 				{
 					"name": "keyword.operator.mond",

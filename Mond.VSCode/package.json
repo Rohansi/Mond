@@ -1,7 +1,7 @@
 {
   "name": "mond-vscode",
   "displayName": "Mond",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "publisher": "Rohansi",
   "description": "Language support for the Mond scripting language",
   "author": {
@@ -31,7 +31,7 @@
   "scripts": {
     "vscode:prepublish": "npm run package-ext",
     "compile": "tsc -p ./",
-    "lint": "eslint src --ext ts",
+    "lint": "eslint src/",
     "watch": "webpack --watch --devtool nosources-source-map --info-verbosity verbose --config ./build/extension.webpack.config.js",
     "watch2": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
@@ -40,9 +40,9 @@
     "package-ext": "webpack --mode production --config ./build/extension.webpack.config.js"
   },
   "dependencies": {
-    "isomorphic-ws": "^4.0.1",
-    "vscode-debugadapter": "^1.47.0",
-    "ws": "^8.4.1",
+    "isomorphic-ws": "^5.0.0",
+    "vscode-debugadapter": "^1.51.0",
+    "ws": "^8.18.0",
     "lodash-es": "^4.17.21"
   },
   "optionalDependencies": {
@@ -50,29 +50,26 @@
     "utf-8-validate": "^5.0.8"
   },
   "devDependencies": {
-    "@types/glob": "^7.2.0",
+    "@types/glob": "^8.1.0",
     "@types/mocha": "^9.0.0",
-    "@types/node": "^15.12.2",
-    "@types/vscode": "^1.56.0",
-    "@types/ws": "^8.2.2",
-    "@typescript-eslint/eslint-plugin": "^5.9.1",
-    "@typescript-eslint/parser": "^5.9.1",
-    "@types/lodash-es": "^4.17.5",
-    "eslint": "^8.6.0",
-    "glob": "^7.2.0",
-    "mocha": "^9.2.2",
-    "ts-loader": "^9.2.6",
-    "typescript": "^4.5.4",
-    "vsce": "^2.14.0",
-    "vscode-debugadapter-testsupport": "^1.47.0",
-    "webpack": "^5.76.0",
-    "webpack-cli": "^4.9.1"
+    "@types/node": "^22.13.2",
+    "@types/vscode": "^1.97.0",
+    "@types/ws": "^8.5.14",
+    "@types/lodash-es": "^4.17.12",
+    "@eslint/js": "^9.20.0",
+    "typescript-eslint": "^8.24.0",
+    "glob": "^11.0.1",
+    "mocha": "^11.1.0",
+    "ts-loader": "^9.5.2",
+    "typescript": "^5.7.3",
+    "vsce": "^2.15.0",
+    "vscode-debugadapter-testsupport": "^1.51.0",
+    "webpack": "^5.98.0",
+    "webpack-cli": "^6.0.1"
   },
   "main": "./dist/ext/extension.js",
   "activationEvents": [
-    "onDebugResolve:mond",
-    "onCommand:extension.mond.runEditorContents",
-    "onCommand:extension.mond.debugEditorContents"
+    "onDebugResolve:mond"
   ],
   "contributes": {
     "languages": [
