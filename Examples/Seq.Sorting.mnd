@@ -123,28 +123,24 @@ fun OrderedEnumerable(source, compositeSelector, compositeComparer) {
     return this;
 }
 
-const Seq = {
-    orderBy: fun (source, keySelector) {
-        return OrderedEnumerable(source, keySelector, defaultComparer);
-    },
+export fun orderBy(source, keySelector) {
+    return OrderedEnumerable(source, keySelector, defaultComparer);
+}
 
-    orderByDescending: fun (source, keySelector) {
-        return OrderedEnumerable(source, keySelector, reverseComparer(defaultComparer));
-    },
+export fun orderByDescending(source, keySelector) {
+    return OrderedEnumerable(source, keySelector, reverseComparer(defaultComparer));
+}
 
-    thenBy: fun (source, keySelector) {
-        if (!source.createOrderedEnumerable)
-            error("Seq.thenBy: must be called after an orderBy");
+export fun thenBy(source, keySelector) {
+    if (!source.createOrderedEnumerable)
+        error("Seq.thenBy: must be called after an orderBy");
 
-        return source.createOrderedEnumerable(keySelector, defaultComparer, false);
-    },
+    return source.createOrderedEnumerable(keySelector, defaultComparer, false);
+}
 
-    thenByDescending: fun (source, keySelector) {
-        if (!source.createOrderedEnumerable)
-            error("Seq.thenByDescending: must be called after an orderBy");
+export fun thenByDescending(source, keySelector) {
+    if (!source.createOrderedEnumerable)
+        error("Seq.thenByDescending: must be called after an orderBy");
 
-        return source.createOrderedEnumerable(keySelector, defaultComparer, true);
-    }
-};
-
-return Seq;
+    return source.createOrderedEnumerable(keySelector, defaultComparer, true);
+}

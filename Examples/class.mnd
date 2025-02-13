@@ -10,17 +10,8 @@ fun class(declaration) {
     declaration.remove('constructor');
 
     return (...ctorArgs) -> {
-        const instance = {
-            __get: (self, key) -> {
-                const value = declaration[key];
-                if (value.getType() == 'function') {
-                    const wrapper = (...args) -> value(instance, ...args);
-                    instance[key] = wrapper; // cache it
-                    return wrapper;
-                }
-                return value;
-            },
-        };
+        const instance = {};
+        instance.setPrototype(declaration);
 
         if (constructor) {
             constructor(instance, ...ctorArgs);
@@ -32,10 +23,10 @@ fun class(declaration) {
 
 @class
 const Person = {
-    constructor: (self, name) -> {
+    constructor(self, name) {
         self.name = name;
     },
-    greet: (self) -> {
+    greet(self) {
         printLn('hello {0}!'.format(self.name));
     }
 };

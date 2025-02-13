@@ -1,0 +1,8 @@
+import Seq;
+
+var random = Random();
+var total = Seq.range(0, 100)
+    |> Seq.select(() -> random.next(1, 10))
+    |> Seq.sum();
+
+printLn("average = {0}".format(total / 10));

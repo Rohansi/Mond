@@ -21,29 +21,14 @@ dotnet tool install -g Mond.Repl
 
 ### Example
 ```kotlin
-const Seq = require("Seq.mnd");
+import Seq;
 
-const randomApi =
-    "https://www.random.org/decimal-fractions/?num=1&dec=9&col=1&format=plain";
+var random = Random();
+var total = Seq.range(0, 100)
+    |> Seq.select(() -> random.next(1, 10))
+    |> Seq.sum();
 
-Async.start(seq() {
-    // concurrently request for 10 random numbers
-    var numberTasks = Seq.range(0, 10)
-        |> Seq.select(() -> Http.getAsync(randomApi))
-        |> Seq.toArray();
-
-    // wait for all the requests to finish
-    var numbers = yield Task.whenAll(numberTasks);
-
-    // parse and sum the numbers
-    var total = numbers
-        |> Seq.select(s -> Json.deserialize(s))
-        |> Seq.aggregate(0, (acc, n) -> acc + n);
-        
-    printLn("average = {0}".format(total / 10));
-});
-
-Async.runToCompletion();
+printLn("average = {0}".format(total / 10));
 ```
 
 ### Install

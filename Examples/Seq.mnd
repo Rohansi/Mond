@@ -64,237 +64,221 @@ fun toLookup(source, keySelector, elementSelector) {
     return lookup;
 }
 
-const Seq = {
-    where: seq (source, predicate) {
-        var n = 0;
-        foreach (var e in source) {
-            if (predicate(e, n++))
-                yield e;
-        }
-    },
-
-    select: seq (source, selector) {
-        var n = 0;
-        foreach (var e in source) {
-            yield selector(e, n++);
-        }
-    },
-
-    range: seq (start, count) {
-        var e = start;
-        for (var i = 0; i < count; i++) {
-            yield e++;
-        }
-    },
-
-    repeat: seq (element, count) {
-        for (var i = 0; i < count; i++) {
-            yield element;
-        }
-    },
-
-    concat: seq (...sources) {
-        foreach (var source in sources) {
-            foreach (var e in source) {
-                yield e;
-            }
-        }
-    },
-
-    selectMany: seq (source, selector) {
-        var n = 0;
-        foreach (var list in source) {
-            foreach (var e in selector(list, n++)) {
-                yield e;
-            }
-        }
-    },
-
-    distinct: seq (source) {
-        var seenElements = {};
-
-        foreach (var e in source) {
-            if (!seenElements.containsKey(e)) {
-                seenElements.add(e, 1);
-                yield e;
-            }
-        }
-    },
-    
-    distinctBy: seq (source, selector) {
-        var seenElements = {};
-
-        foreach (var e in source) {
-            var key = selector(e);
-            if (!seenElements.containsKey(key)) {
-                seenElements.add(key, 1);
-                yield e;
-            }
-        }
-    },
-
-    union: seq (first, second) {
-        var seenElements = {};
-
-        foreach (var e in first) {
-            if (!seenElements.containsKey(e)) {
-                seenElements.add(e, 1);
-                yield e;
-            }
-        }
-
-        foreach (var e in second) {
-            if (!seenElements.containsKey(e)) {
-                seenElements.add(e, 1);
-                yield e;
-            }
-        }
-    },
-
-    intersect: seq (first, second) {
-        var potentialElements = {};
-
-        foreach (var e in second) {
-            potentialElements.add(e, 1);
-        }
-
-        foreach (var e in first) {
-            if (potentialElements.containsKey(e)) {
-                potentialElements.remove(e);
-                yield e;
-            }
-        }
-    },
-
-    except: seq (first, second) {
-        var bannedElements = {};
-
-        foreach (var e in second) {
-            bannedElements.add(e, 1);
-        }
-
-        foreach (var e in first) {
-            if (!bannedElements.containsKey(e)) {
-                bannedElements.add(e, 1);
-                yield e;
-            }
-        }
-    },
-
-    join: seq (outer, inner, outerKeySelector, innerKeySelector, resultSelector) {
-        var lookup = toLookup(inner, innerKeySelector);
-
-        foreach (var outerElement in outer) {
-            var key = outerKeySelector(outerElement);
-
-            foreach (var innerElement in lookup.get(key)) {
-                yield resultSelector(outerElement, innerElement);
-            }
-        }
-    },
-
-    groupBy: seq (source, keySelector) {
-        var lookup = toLookup(source, keySelector);
-        foreach (var e in lookup) {
+export seq where(source, predicate) {
+    var n = 0;
+    foreach (var e in source) {
+        if (predicate(e, n++))
             yield e;
-        }
-    },
-
-    groupJoin: seq (outer, inner, outerKeySelector, innerKeySelector, resultSelector) {
-        var lookup = toLookup(inner, innerKeySelector);
-
-        foreach (var outerElement in outer) {
-            var key = outerKeySelector(outerElement);
-            yield resultSelector(outerElement, lookup.get(key));
-        }
-    },
-
-    take: seq (source, count) {
-        if (count <= 0)
-            return;
-
-        foreach (var e in source) {
-            yield e;
-
-            if (--count <= 0)
-                return;
-        }
-    },
-
-    takeWhile: seq (source, predicate) {
-        var n = 0;
-
-        foreach (var e in source) {
-            if (!predicate(e, n++))
-                return;
-
-            yield e;
-        }
-    },
-
-    skip: seq (source, count) {
-        foreach (var e in source) {
-            if (count-- > 0)
-                continue;
-
-            yield e;
-        }
-    },
-
-    skipWhile: seq (source, predicate) {
-        var n = 0;
-        var skipping = true;
-
-        foreach (var e in source) {
-            if (skipping) {
-                if (predicate(e, n++))
-                    continue;
-                else
-                    skipping = false;
-            }
-
-            yield e;
-        }
-    },
-
-    reverse: seq (source) {
-        var array = [];
-
-        foreach (var e in source) {
-            array.add(e);
-        }
-
-        for (var i = array.length() - 1; i >= 0; i--) {
-            yield array[i];
-        }
-    },
-
-    zip: seq (first, second, resultSelector) {
-        var firstEnumerator = first.getEnumerator();
-        var secondEnumerator = second.getEnumerator();
-
-        while (firstEnumerator.moveNext() && secondEnumerator.moveNext()) {
-            yield resultSelector(firstEnumerator.current, secondEnumerator.current);
-        }
-
-        firstEnumerator.dispose();
-        secondEnumerator.dispose();
-    },
-};
-
-var submodules = [ "Seq.Scalar.mnd", "Seq.Sorting.mnd" ];
-
-var submoduleFuncs = submodules
-                     |> Seq.selectMany(f -> require(f));
-
-foreach (var kv in submoduleFuncs) {
-    var key = kv.key;
-    var value = kv.value;
-
-    if (Seq.containsKey(key))
-        error("Seq: duplicate function");
-
-    Seq.add(key, value);
+    }
 }
 
-return Seq.setPrototype(null);
+export seq select(source, selector) {
+    var n = 0;
+    foreach (var e in source) {
+        yield selector(e, n++);
+    }
+}
+
+export seq range(start, count) {
+    var e = start;
+    for (var i = 0; i < count; i++) {
+        yield e++;
+    }
+}
+
+export seq repeat(element, count) {
+    for (var i = 0; i < count; i++) {
+        yield element;
+    }
+}
+
+export seq concat(...sources) {
+    foreach (var source in sources) {
+        foreach (var e in source) {
+            yield e;
+        }
+    }
+}
+
+export seq selectMany(source, selector) {
+    var n = 0;
+    foreach (var list in source) {
+        foreach (var e in selector(list, n++)) {
+            yield e;
+        }
+    }
+}
+
+export seq distinct(source) {
+    var seenElements = {};
+
+    foreach (var e in source) {
+        if (!seenElements.containsKey(e)) {
+            seenElements.add(e, 1);
+            yield e;
+        }
+    }
+}
+
+export seq distinctBy(source, selector) {
+    var seenElements = {};
+
+    foreach (var e in source) {
+        var key = selector(e);
+        if (!seenElements.containsKey(key)) {
+            seenElements.add(key, 1);
+            yield e;
+        }
+    }
+}
+
+export seq union(first, second) {
+    var seenElements = {};
+
+    foreach (var e in first) {
+        if (!seenElements.containsKey(e)) {
+            seenElements.add(e, 1);
+            yield e;
+        }
+    }
+
+    foreach (var e in second) {
+        if (!seenElements.containsKey(e)) {
+            seenElements.add(e, 1);
+            yield e;
+        }
+    }
+}
+
+export seq intersect(first, second) {
+    var potentialElements = {};
+
+    foreach (var e in second) {
+        potentialElements.add(e, 1);
+    }
+
+    foreach (var e in first) {
+        if (potentialElements.containsKey(e)) {
+            potentialElements.remove(e);
+            yield e;
+        }
+    }
+}
+
+export seq except(first, second) {
+    var bannedElements = {};
+
+    foreach (var e in second) {
+        bannedElements.add(e, 1);
+    }
+
+    foreach (var e in first) {
+        if (!bannedElements.containsKey(e)) {
+            bannedElements.add(e, 1);
+            yield e;
+        }
+    }
+}
+
+export seq join(outer, inner, outerKeySelector, innerKeySelector, resultSelector) {
+    var lookup = toLookup(inner, innerKeySelector);
+
+    foreach (var outerElement in outer) {
+        var key = outerKeySelector(outerElement);
+
+        foreach (var innerElement in lookup.get(key)) {
+            yield resultSelector(outerElement, innerElement);
+        }
+    }
+}
+
+export seq groupBy(source, keySelector) {
+    var lookup = toLookup(source, keySelector);
+    foreach (var e in lookup) {
+        yield e;
+    }
+}
+
+export seq groupJoin(outer, inner, outerKeySelector, innerKeySelector, resultSelector) {
+    var lookup = toLookup(inner, innerKeySelector);
+
+    foreach (var outerElement in outer) {
+        var key = outerKeySelector(outerElement);
+        yield resultSelector(outerElement, lookup.get(key));
+    }
+}
+
+export seq take(source, count) {
+    if (count <= 0)
+        return;
+
+    foreach (var e in source) {
+        yield e;
+
+        if (--count <= 0)
+            return;
+    }
+}
+
+export seq takeWhile(source, predicate) {
+    var n = 0;
+
+    foreach (var e in source) {
+        if (!predicate(e, n++))
+            return;
+
+        yield e;
+    }
+}
+
+export seq skip(source, count) {
+    foreach (var e in source) {
+        if (count-- > 0)
+            continue;
+
+        yield e;
+    }
+}
+
+export seq skipWhile(source, predicate) {
+    var n = 0;
+    var skipping = true;
+
+    foreach (var e in source) {
+        if (skipping) {
+            if (predicate(e, n++))
+                continue;
+            else
+                skipping = false;
+        }
+
+        yield e;
+    }
+}
+
+export seq reverse(source) {
+    var array = [];
+
+    foreach (var e in source) {
+        array.add(e);
+    }
+
+    for (var i = array.length() - 1; i >= 0; i--) {
+        yield array[i];
+    }
+}
+
+export seq zip(first, second, resultSelector) {
+    var firstEnumerator = first.getEnumerator();
+    var secondEnumerator = second.getEnumerator();
+
+    while (firstEnumerator.moveNext() && secondEnumerator.moveNext()) {
+        yield resultSelector(firstEnumerator.current, secondEnumerator.current);
+    }
+
+    firstEnumerator.dispose();
+    secondEnumerator.dispose();
+}
+
+export * from "Seq.Scalar.mnd";
+export * from "Seq.Sorting.mnd";

@@ -1,12 +1,3 @@
-const structMetas = {
-    __get: fun (this, index) {
-        error("unknown field '" + index + "' (get)");
-    },
-    __set: fun (this, index, value) {
-        error("unknown field '" + index + "' (set)");
-    }
-}.setPrototypeAndLock(null);
-
 fun struct(...properties) {
     foreach (var property in properties) {
         if (property.getType() != "string")
@@ -24,7 +15,7 @@ fun struct(...properties) {
             value[properties[i]] = values[i];
         }
         
-        return value.setPrototype(structMetas);
+        return value;
     };
 }
 
