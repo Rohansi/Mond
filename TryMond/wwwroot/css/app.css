@@ -76,7 +76,7 @@ a.github > img {
 }
 
 .editor-root > .content > .output {
-    min-width: 30%;
+    width: 30%;
     background: #222;
     display: flex;
     flex-direction: column;
@@ -87,6 +87,17 @@ a.github > img {
     padding: 8px;
     white-space: pre-wrap;
     overflow: auto;
+}
+
+@media (max-width: 1000px) {
+    .editor-root > .content {
+        flex-direction: column;
+    }
+
+    .editor-root > .content > .output {
+        width: unset;
+        height: 30%;
+    }
 }
 
 #blazor-error-ui {
