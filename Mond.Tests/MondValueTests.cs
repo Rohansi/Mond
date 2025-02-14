@@ -463,7 +463,13 @@ namespace Mond.Tests
         [Test]
         public void Slice()
         {
-            var state = new MondState();
+            var state = new MondState
+            {
+                Options =
+                {
+                    DebugInfo = MondDebugInfoLevel.Full,
+                },
+            };
 
             var arr = MondValue.Array();
             var str = MondValue.String("HelloWorld");

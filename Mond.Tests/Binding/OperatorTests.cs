@@ -61,7 +61,17 @@ namespace Mond.Tests.Binding
         [SetUp]
         public void SetUp()
         {
-            _state = new MondState { Libraries = { new MyOperators.Library() } };
+            _state = new MondState
+            {
+                Options =
+                {
+                    DebugInfo = MondDebugInfoLevel.Full,
+                },
+                Libraries =
+                {
+                    new MyOperators.Library(),
+                },
+            };
         }
 
         [Test]

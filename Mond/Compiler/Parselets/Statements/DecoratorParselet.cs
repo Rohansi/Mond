@@ -18,7 +18,7 @@ namespace Mond.Compiler.Parselets.Statements
             while (parser.MatchAndTake(TokenType.Decorator))
                 exprs.Add(parser.ParseExpression());
 
-            var isExport = parser.MatchAndTake(TokenType.Export);
+            var isExport = parser.MatchAndTake(TokenType.Export, out var exportToken);
 
             var stmt = parser.ParseStatement();
             
@@ -57,9 +57,13 @@ namespace Mond.Compiler.Parselets.Statements
                 result = new VarExpression(token, decls, true);
             }
 
-            return isExport
-                ? new ExportExpression(token, result)
-                : result;
+            if (isExport)
+            {
+                result.EndToken = parser.Previous;
+                return new ExportExpression(exportToken, result);
+            }
+
+            return result;
         }
 
         public static Expression WrapDecorators(Expression stmt, List<Expression> decorators)

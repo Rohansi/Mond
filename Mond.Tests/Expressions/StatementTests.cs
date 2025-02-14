@@ -293,6 +293,16 @@ namespace Mond.Tests.Expressions
         }
 
         [Test]
+        public void ExportNotInModule()
+        {
+            const string script =
+                """
+                export const value = 10;
+                """;
+            Assert.Throws<MondCompilerException>(() => Script.Run(script));
+        }
+
+        [Test]
         public void ExportNotTopLevel()
         {
             const string script =

@@ -11,7 +11,14 @@ namespace Mond.Tests.Expressions
         {
             var arr = MondValue.Array();
             arr.ArrayValue.AddRange(new MondValue[] { 1, 2, 3, 4, 5 });
-            _sliceState = new MondState { ["arr"] = arr };
+            _sliceState = new MondState
+            {
+                Options =
+                {
+                    DebugInfo = MondDebugInfoLevel.Full,
+                },
+                ["arr"] = arr
+            };
         }
 
         [Test]

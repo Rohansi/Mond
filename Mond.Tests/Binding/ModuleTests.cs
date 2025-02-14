@@ -12,7 +12,13 @@ namespace Mond.Tests.Binding
         [SetUp]
         public void SetUp()
         {
-            _state = new MondState();
+            _state = new MondState
+            {
+                Options =
+                {
+                    DebugInfo = MondDebugInfoLevel.Full,
+                },
+            };
 
             foreach (var t in new Test.Library().GetDefinitions(_state))
             {

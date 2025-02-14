@@ -39,7 +39,13 @@ namespace Mond.Tests.Expressions
         {
             // __call
 
-            var state = new MondState();
+            var state = new MondState
+            {
+                Options =
+                {
+                    DebugInfo = MondDebugInfoLevel.Full,
+                },
+            };
             var result = state.Run(@"
                 var obj = {
                     __call: fun (this, x, y) {

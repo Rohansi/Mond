@@ -8,10 +8,14 @@ namespace Mond.Tests
         {
             return new MondState
             {
+                Options =
+                {
+                    DebugInfo = MondDebugInfoLevel.Full, // enables additional compiler code paths
+                },
                 Libraries = new MondLibraryManager
                 {
                     new CoreLibraries()
-                }
+                },
             };
         }
 

@@ -4,11 +4,13 @@ using Mond.Compiler.Expressions;
 
 namespace Mond.Compiler
 {
-    partial class Parser
+    internal partial class Parser
     {
-        private IEnumerator<Token> _tokens;
-        private List<Token> _read;
+        private readonly IEnumerator<Token> _tokens;
+        private readonly List<Token> _read;
         private Token _previous;
+
+        public Token Previous => _previous;
 
         public Parser(IEnumerable<Token> tokens)
         {
@@ -135,12 +137,15 @@ namespace Mond.Compiler
         /// <summary>
         /// Check if the next token matches the given type. If they match, take the token.
         /// </summary>
-        public bool MatchAndTake(TokenType type)
+        public bool MatchAndTake(TokenType type) => MatchAndTake(type, out _);
+
+        /// <summary>
+        /// Check if the next token matches the given type. If they match, take the token.
+        /// </summary>
+        public bool MatchAndTake(TokenType type, out Token token)
         {
             var isMatch = Match(type);
-            if (isMatch)
-                Take();
-
+            token = isMatch ? Take() : null;
             return isMatch;
         }
 

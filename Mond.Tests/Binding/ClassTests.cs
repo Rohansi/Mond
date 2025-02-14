@@ -13,6 +13,10 @@ namespace Mond.Tests.Binding
         {
             _state = new MondState
             {
+                Options =
+                {
+                    DebugInfo = MondDebugInfoLevel.Full,
+                },
                 Libraries =
                 {
                     new Person.Library(),

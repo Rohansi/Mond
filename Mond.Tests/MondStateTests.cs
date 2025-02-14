@@ -33,7 +33,13 @@ namespace Mond.Tests
         [Test]
         public void NativeFunction()
         {
-            var state = new MondState();
+            var state = new MondState
+            {
+                Options =
+                {
+                    DebugInfo = MondDebugInfoLevel.Full,
+                },
+            };
 
             state["function"] = new MondFunction((_, args) => args[0]);
 
@@ -50,7 +56,13 @@ namespace Mond.Tests
         [TestCase("indirect", true)]
         public void NativeTransitions(string testName, bool hasNativeTransition)
         {
-            var state = new MondState();
+            var state = new MondState
+            {
+                Options =
+                {
+                    DebugInfo = MondDebugInfoLevel.Full,
+                },
+            };
 
             state["runtimeEx"] = MondValue.Function((_, args) => { throw new MondRuntimeException("runtime"); });
             state["genericEx"] = MondValue.Function((_, args) => { throw new Exception("generic"); });

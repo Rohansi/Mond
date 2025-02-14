@@ -12,6 +12,10 @@ namespace Mond.Tests.Libraries
         {
             var state = new MondState
             {
+                Options =
+                {
+                    DebugInfo = MondDebugInfoLevel.Full,
+                },
                 Libraries = new MondLibraryManager
                 {
                     new ConsoleOutputLibrary(),

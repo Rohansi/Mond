@@ -177,7 +177,13 @@ namespace Mond.Tests.Expressions
                 };
                 return obj.method(1, 2);
                 """;
-            var state = new MondState();
+            var state = new MondState
+            {
+                Options =
+                {
+                    DebugInfo = MondDebugInfoLevel.Full,
+                },
+            };
             var result = state.Run(script);
             var values = result.Enumerate(state);
             Assert.AreEqual(new MondValue[] { 1, 2 }, values);

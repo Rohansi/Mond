@@ -38,6 +38,8 @@ namespace Mond.Compiler.Parselets.Statements
                 throw new MondCompilerException(token, CompilerError.ExportMustBeFollowedByDeclaration);
             }
 
+            expr.EndToken = parser.Previous;
+
             var identifiers = declaration.DeclaredIdentifiers;
             if (identifiers == null || !identifiers.Any())
             {

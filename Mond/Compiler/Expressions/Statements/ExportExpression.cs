@@ -40,6 +40,8 @@ namespace Mond.Compiler.Expressions.Statements
                 throw new MondCompilerException(this, CompilerError.ExportOnlyOnTopLevelDeclarations);
             }
 
+            context.Position(Token);
+
             var declaration = (IDeclarationExpression)DeclarationExpression;
             foreach (var identifier in declaration.DeclaredIdentifiers)
             {

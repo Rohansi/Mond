@@ -127,8 +127,7 @@ namespace Mond.Compiler.Expressions
                 if (leftNum != null && rightNum != null)
                 {
                     var result = simplifyOp(leftNum.Value, rightNum.Value);
-                    var token = new Token(Token, TokenType.Number, null);
-                    return new NumberExpression(token, result);
+                    return new NumberExpression(Token, result) { EndToken = EndToken };
                 }
             }
 
@@ -140,8 +139,7 @@ namespace Mond.Compiler.Expressions
                 if (leftStr != null && rightStr != null)
                 {
                     var result = leftStr.Value + rightStr.Value;
-                    var token = new Token(Token, TokenType.String, null);
-                    return new StringExpression(token, result);
+                    return new StringExpression(Token, result) { EndToken = EndToken };
                 }
             }
 

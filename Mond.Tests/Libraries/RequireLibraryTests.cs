@@ -168,7 +168,13 @@ namespace Mond.Tests.Libraries
             var searchPath = Path.GetDirectoryName(mainPath);
 
             var configured = false;
-            state = new MondState();
+            state = new MondState
+            {
+                Options =
+                {
+                    DebugInfo = MondDebugInfoLevel.Full,
+                },
+            };
 
             state.Libraries.Configure(libraries =>
             {
