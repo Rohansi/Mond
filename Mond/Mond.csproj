@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.1;net8.0</TargetFrameworks>
-    <AssemblyVersion>0.11.0</AssemblyVersion>
+    <AssemblyVersion>0.11.1</AssemblyVersion>
     <DebugType>portable</DebugType>
     <LangVersion>latest</LangVersion>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
@@ -17,6 +17,7 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/Rohansi/Mond</PackageProjectUrl>
     <PackageTags>Mond Embedded Scripting Language AOT</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <RepositoryUrl>https://github.com/Rohansi/Mond.git</RepositoryUrl> 
@@ -35,4 +36,7 @@
     <None Include="$(OutputPath)\..\..\..\Mond.SourceGenerator\bin\$(Configuration)\netstandard2.0\Mond.SourceGenerator.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="..\README.md" Pack="true" PackagePath="\"/>
+  </ItemGroup>
 </Project>
