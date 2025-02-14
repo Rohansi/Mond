@@ -1,4 +1,4 @@
-<p align="center"><img src="https://i.imgur.com/As4LMO6.png" alt="Mond Logo"/></p>
+![Mond Logo](https://i.imgur.com/mCgLTQN.png)
 
 ### Features
 * [sequences](https://github.com/Rohansi/Mond/wiki/Sequences) that can also be used for async/await
@@ -11,7 +11,7 @@
 ### Trying it
 [You can try it in your browser!](https://mond.rohan.dev/)
 
-![The Mond REPL in action](https://files.facepunch.com/Rohan/2019/January/21_11-14-04.gif)
+![The Mond REPL in action](https://i.imgur.com/HBBMhGW.gif)
 
 Alternatively, the Mond REPL is available as a `dotnet` tool:
 
