@@ -13,7 +13,7 @@
     "multi-root ready"
   ],
   "engines": {
-    "vscode": "^1.56.0"
+    "vscode": "^1.97.0"
   },
   "icon": "images/mond-icon.png",
   "categories": [
