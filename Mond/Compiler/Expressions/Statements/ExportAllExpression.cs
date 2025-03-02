@@ -27,7 +27,7 @@ namespace Mond.Compiler.Expressions.Statements
                 throw new MondCompilerException(this, CompilerError.ExportCannotBeUsedOutsideModule);
             }
 
-            if (exportsOperand.FrameIndex >= 0 || exportsOperand.FrameIndex != -context.ArgIndex)
+            if (exportsOperand.FrameIndex >= 0 || exportsOperand.FrameIndex != -context.Depth)
             {
                 throw new MondCompilerException(this, CompilerError.ExportCannotBeUsedOutsideModule);
             }
@@ -95,7 +95,7 @@ namespace Mond.Compiler.Expressions.Statements
             return stack;
         }
 
-        public override Expression Simplify()
+        public override Expression Simplify(SimplifyContext context)
         {
             return this;
         }

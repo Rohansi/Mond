@@ -180,10 +180,8 @@ namespace Mond
         /// <param name="path">The file to load.</param>
         public static MondProgram LoadBytecode(string path)
         {
-            using (var fs = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read))
-            {
-                return LoadBytecode(fs);
-            }
+            using var fs = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+            return LoadBytecode(fs);
         }
 
         /// <summary>
@@ -199,7 +197,7 @@ namespace Mond
 
             byte version;
             if ((version = reader.ReadByte()) != FormatVersion)
-                throw new NotSupportedException(string.Format("Wrong bytecode version. Expected 0x{0:X2}, got 0x{1:X2}.", FormatVersion, version));
+                throw new NotSupportedException($"Wrong bytecode version. Expected 0x{FormatVersion:X2}, got 0x{version:X2}.");
 
             var hasDebugInfo = reader.ReadBoolean();
 
@@ -328,7 +326,7 @@ namespace Mond
         /// <param name="options">Compiler options</param>
         public static MondProgram Compile(string source, string fileName = null, MondCompilerOptions options = null)
         {
-            options = options ?? new MondCompilerOptions();
+            options ??= new MondCompilerOptions();
 
             var lexer = new Lexer(source, fileName, options);
             var parser = new Parser(lexer);
@@ -344,7 +342,7 @@ namespace Mond
         /// <param name="options">Compiler options</param>
         public static MondProgram Compile(IEnumerable<char> source, string fileName = null, MondCompilerOptions options = null)
         {
-            options = options ?? new MondCompilerOptions();
+            options ??= new MondCompilerOptions();
 
             var needSource = options.DebugInfo == MondDebugInfoLevel.Full;
             var lexer = new Lexer(source, fileName, options, needSource);
@@ -362,7 +360,7 @@ namespace Mond
         /// <param name="options">Compiler options</param>
         public static IEnumerable<MondProgram> CompileStatements(IEnumerable<char> source, string fileName = null, MondCompilerOptions options = null)
         {
-            options = options ?? new MondCompilerOptions();
+            options ??= new MondCompilerOptions();
 
             var needSource = options.DebugInfo == MondDebugInfoLevel.Full;
             var lexer = new Lexer(source, fileName, options, needSource);
@@ -382,12 +380,6 @@ namespace Mond
 
         private static MondProgram CompileImpl(Expression expression, MondCompilerOptions options, string debugSourceCode = null)
         {
-            expression = expression.Simplify();
-            expression.SetParent(null);
-
-            //using (var printer = new ExpressionPrintVisitor(Console.Out))
-            //    expression.Accept(printer);
-
             var compiler = new ExpressionCompiler(options);
             return compiler.Compile(expression, debugSourceCode);
         }

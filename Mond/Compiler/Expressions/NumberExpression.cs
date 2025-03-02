@@ -16,7 +16,7 @@
             return context.Load(context.Number(Value));
         }
 
-        public override Expression Simplify()
+        public override Expression Simplify(SimplifyContext context)
         {
             return this;
         }

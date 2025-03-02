@@ -5,7 +5,7 @@
         private readonly FunctionContext _parent;
 
         public LoopContext(FunctionContext parent)
-            : base(parent.Compiler, parent.ArgIndex, parent.LocalIndex + 1, parent.Scope, null, parent.Name)
+            : base(parent.Compiler, parent.Scope, null, parent.Name)
         {
             _parent = parent;
         }

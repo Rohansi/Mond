@@ -4,14 +4,14 @@ using System.Linq;
 
 namespace Mond.Compiler.Expressions.Statements
 {
-    class IfExpression : Expression, IStatementExpression
+    internal class IfExpression : Expression, IStatementExpression
     {
         public class Branch
         {
             public Expression Condition { get; }
-            public BlockExpression Block { get; }
+            public ScopeExpression Block { get; }
 
-            public Branch(Expression condition, BlockExpression block)
+            public Branch(Expression condition, ScopeExpression block)
             {
                 Condition = condition;
                 Block = block;
@@ -45,8 +45,6 @@ namespace Mond.Compiler.Expressions.Statements
             var branchElse = context.MakeLabel("ifElse");
             var branchEnd = context.MakeLabel("ifEnd");
 
-            context.PushScope();
-
             for (var i = 0; i < Branches.Count; i++)
             {
                 var branch = Branches[i];
@@ -74,21 +72,19 @@ namespace Mond.Compiler.Expressions.Statements
 
             stack += context.Bind(branchEnd);
 
-            context.PopScope();
-
             CheckStack(stack, 0);
             return 0;
         }
 
-        public override Expression Simplify()
+        public override Expression Simplify(SimplifyContext context)
         {
             Branches = Branches
-                .Select(b => new Branch(b.Condition.Simplify(), (BlockExpression)b.Block.Simplify()))
+                .Select(b => new Branch(b.Condition.Simplify(context), (ScopeExpression)b.Block.Simplify(context)))
                 .ToList()
                 .AsReadOnly();
 
             if (Else != null)
-                Else = new Branch(null, (BlockExpression)Else.Block.Simplify());
+                Else = new Branch(null, (ScopeExpression)Else.Block.Simplify(context));
 
             return this;
         }

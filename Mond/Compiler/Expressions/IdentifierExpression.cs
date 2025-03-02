@@ -72,7 +72,7 @@
             return stack;
         }
 
-        public override Expression Simplify()
+        public override Expression Simplify(SimplifyContext context)
         {
             return this;
         }
@@ -85,7 +85,7 @@
         public bool SupportsIncDecF(FunctionContext context, out IdentifierOperand operand)
         {
             return context.TryGetIdentifier(Name, out operand) &&
-                   operand.FrameIndex == context.LocalIndex &&
+                   operand.FrameIndex == context.Depth &&
                    !operand.IsReadOnly;
         }
     }

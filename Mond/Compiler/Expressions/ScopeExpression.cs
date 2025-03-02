@@ -2,8 +2,10 @@
 
 namespace Mond.Compiler.Expressions
 {
-    class ScopeExpression : BlockExpression
+    internal class ScopeExpression : BlockExpression
     {
+        private Scope _innerScope;
+
         public ScopeExpression(BlockExpression block)
             : base(block.Token, block.Statements)
         {
@@ -24,11 +26,19 @@ namespace Mond.Compiler.Expressions
 
         public override int Compile(FunctionContext context)
         {
-            context.PushScope();
+            context.PushScope(_innerScope);
             var stack = base.Compile(context);
             context.PopScope();
 
             return stack;
+        }
+
+        public override Expression Simplify(SimplifyContext context)
+        {
+            _innerScope = context.PushScope();
+            var result = base.Simplify(context);
+            context.PopScope();
+            return result;
         }
 
         public override T Accept<T>(IExpressionVisitor<T> visitor)

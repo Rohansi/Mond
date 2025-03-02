@@ -2,7 +2,7 @@
 {
     class FieldExpression : Expression, IStorableExpression
     {
-        public Expression Left { get; }
+        public Expression Left { get; private set; }
         public string Name { get; }
 
         public override Token StartToken => Left.StartToken;
@@ -60,8 +60,9 @@
             return stack;
         }
 
-        public override Expression Simplify()
+        public override Expression Simplify(SimplifyContext context)
         {
+            Left = Left.Simplify(context);
             return this;
         }
 

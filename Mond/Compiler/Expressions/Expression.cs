@@ -1,6 +1,6 @@
 ﻿namespace Mond.Compiler.Expressions
 {
-    abstract class Expression
+    internal abstract class Expression
     {
         public Token Token { get; protected set; }
         
@@ -15,7 +15,7 @@
         }
 
         public abstract int Compile(FunctionContext context);
-        public abstract Expression Simplify();
+        public abstract Expression Simplify(SimplifyContext context);
         public abstract T Accept<T>(IExpressionVisitor<T> visitor);
 
         public virtual void SetParent(Expression parent)

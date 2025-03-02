@@ -36,11 +36,11 @@
             return 1;
         }
 
-        public override Expression Simplify()
+        public override Expression Simplify(SimplifyContext context)
         {
-            Condition = Condition.Simplify();
-            IfTrue = IfTrue.Simplify();
-            IfFalse = IfFalse.Simplify();
+            Condition = Condition.Simplify(context);
+            IfTrue = IfTrue.Simplify(context);
+            IfFalse = IfFalse.Simplify(context);
 
             return this;
         }

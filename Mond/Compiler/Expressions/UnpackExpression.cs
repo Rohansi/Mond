@@ -19,9 +19,9 @@
             return Right.Compile(context);
         }
 
-        public override Expression Simplify()
+        public override Expression Simplify(SimplifyContext context)
         {
-            Right = Right.Simplify();
+            Right = Right.Simplify(context);
             return this;
         }
 

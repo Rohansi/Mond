@@ -85,9 +85,9 @@ namespace Mond.Compiler.Expressions
             return stack;
         }
 
-        public override Expression Simplify()
+        public override Expression Simplify(SimplifyContext context)
         {
-            Right = Right.Simplify();
+            Right = Right.Simplify(context);
 
             if (Operation == TokenType.Subtract)
             {

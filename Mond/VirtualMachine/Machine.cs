@@ -134,7 +134,7 @@ namespace Mond.VirtualMachine
                     var opcode = code[ip++];
                     var instruction = opcode >> 24;
 
-                    //Console.WriteLine($"{ip - 1:X4} {(InstructionType)instruction}");
+                    Console.WriteLine($"{ip - 1:X4} {(InstructionType)instruction}");
                     switch (instruction)
                     {
                         #region Stack Manipulation

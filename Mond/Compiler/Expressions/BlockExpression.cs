@@ -59,10 +59,10 @@ namespace Mond.Compiler.Expressions
             return 0;
         }
 
-        public override Expression Simplify()
+        public override Expression Simplify(SimplifyContext context)
         {
             Statements = Statements
-                .Select(s => s.Simplify())
+                .Select(s => s.Simplify(context))
                 .ToList()
                 .AsReadOnly();
 

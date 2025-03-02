@@ -96,9 +96,9 @@ namespace Mond.Compiler
 
             if (operand is IdentifierOperand identifier)
             {
-                if (identifier.FrameIndex == LocalIndex)
+                if (identifier.FrameIndex == Depth)
                     Emit(new Instruction(InstructionType.LdLocF, new ImmediateOperand(identifier.Id)));
-                else if (identifier.FrameIndex < 0 && identifier.FrameIndex == -ArgIndex)
+                else if (identifier.FrameIndex < 0 && identifier.FrameIndex == -Depth)
                     Emit(new Instruction(InstructionType.LdArgF, new ImmediateOperand(identifier.Id)));
                 else
                     Emit(new Instruction(InstructionType.LdLoc, operand));
@@ -129,9 +129,9 @@ namespace Mond.Compiler
 
         public int Store(IdentifierOperand operand)
         {
-            if (operand.FrameIndex == LocalIndex)
+            if (operand.FrameIndex == Depth)
                 Emit(new Instruction(InstructionType.StLocF, new ImmediateOperand(operand.Id)));
-            else if (operand.FrameIndex < 0 && operand.FrameIndex == -ArgIndex)
+            else if (operand.FrameIndex < 0 && operand.FrameIndex == -Depth)
                 Emit(new Instruction(InstructionType.StArgF, new ImmediateOperand(operand.Id)));
             else
                 Emit(new Instruction(InstructionType.StLoc, operand));
@@ -231,7 +231,7 @@ namespace Mond.Compiler
 
         public int IncrementF(IdentifierOperand local)
         {
-            if (local.FrameIndex != LocalIndex)
+            if (local.FrameIndex != Depth)
                 throw new ArgumentException("Cannot use IncF on out of frame locals");
 
             Emit(new Instruction(InstructionType.IncF, new ImmediateOperand(local.Id)));
@@ -240,7 +240,7 @@ namespace Mond.Compiler
 
         public int DecrementF(IdentifierOperand local)
         {
-            if (local.FrameIndex != LocalIndex)
+            if (local.FrameIndex != Depth)
                 throw new ArgumentException("Cannot use DecF on out of frame locals");
 
             Emit(new Instruction(InstructionType.DecF, new ImmediateOperand(local.Id)));
@@ -296,8 +296,9 @@ namespace Mond.Compiler
 
         public int Enter()
         {
+            var scope = Scope; // note: capture Scope at this point in time
             var identifierCount = new DeferredOperand<ImmediateOperand>(() =>
-                new ImmediateOperand(IdentifierCount));
+                new ImmediateOperand(scope.IdentifierCount));
 
             Emit(new Instruction(InstructionType.Enter, identifierCount));
             return 0;

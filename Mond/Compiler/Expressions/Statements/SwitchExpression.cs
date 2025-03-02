@@ -10,9 +10,9 @@ namespace Mond.Compiler.Expressions.Statements
         public class Branch
         {
             public ReadOnlyCollection<Expression> Conditions { get; }
-            public BlockExpression Block { get; }
+            public ScopeExpression Block { get; }
 
-            public Branch(List<Expression> conditions, BlockExpression block)
+            public Branch(List<Expression> conditions, ScopeExpression block)
             {
                 Conditions = conditions?.AsReadOnly();
                 Block = block;
@@ -21,8 +21,6 @@ namespace Mond.Compiler.Expressions.Statements
 
         public Expression Expression { get; private set; }
         public ReadOnlyCollection<Branch> Branches { get; private set; }
-
-        public bool HasChildren => true;
 
         public SwitchExpression(Token token, Expression expression, List<Branch> branches)
             : base(token)
@@ -60,8 +58,6 @@ namespace Mond.Compiler.Expressions.Statements
             var emptyDefault = caseDefault == null;
             if (emptyDefault)
                 caseDefault = context.MakeLabel("caseDefault");
-
-            context.PushScope();
 
             context.Statement(Expression);
             stack += Expression.Compile(context);
@@ -117,24 +113,22 @@ namespace Mond.Compiler.Expressions.Statements
 
             stack += context.Bind(caseEnd);
 
-            context.PopScope();
-
             CheckStack(stack, 0);
             return stack;
         }
 
-        public override Expression Simplify()
+        public override Expression Simplify(SimplifyContext context)
         {
-            Expression = Expression.Simplify();
+            Expression = Expression.Simplify(context);
 
             Branches = Branches
                 .Select(b =>
                 {
                     var conditions = b.Conditions
-                        .Select(c => c?.Simplify())
+                        .Select(c => c?.Simplify(context))
                         .ToList();
 
-                    return new Branch(conditions, (BlockExpression)b.Block.Simplify());
+                    return new Branch(conditions, (ScopeExpression)b.Block.Simplify(context));
                 })
                 .ToList()
                 .AsReadOnly();

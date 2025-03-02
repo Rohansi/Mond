@@ -79,7 +79,7 @@ namespace Mond.Compiler.Expressions
             return stack;
         }
 
-        public override Expression Simplify()
+        public override Expression Simplify(SimplifyContext context)
         {
             return this;
         }

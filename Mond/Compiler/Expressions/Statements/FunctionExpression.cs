@@ -16,6 +16,8 @@ namespace Mond.Compiler.Expressions.Statements
 
         public IEnumerable<string> DeclaredIdentifiers => Name != null ? new[] { Name } : [];
 
+        private Scope _functionScope;
+
         public FunctionExpression(
             Token token, string name, List<string> arguments, string otherArgs, ScopeExpression block, string debugName = null)
             : base(token)
@@ -39,6 +41,8 @@ namespace Mond.Compiler.Expressions.Statements
                 stack += context.VarArgs(Arguments.Count);
 
             stack += Block.Compile(context);
+
+            stack += context.Leave();
             stack += context.LoadUndefined();
             stack += context.Return();
 
@@ -48,36 +52,17 @@ namespace Mond.Compiler.Expressions.Statements
         public override int Compile(FunctionContext context)
         {
             var isStatement = Parent is IBlockExpression;
-            var shouldBeGlobal = context.ArgIndex == 0 && context.Compiler.Options.MakeRootDeclarationsGlobal;
+            var shouldBeGlobal = context.MakeDeclarationsGlobal;
             var shouldStore = Name != null;
 
-            IdentifierOperand identifier = null;
-
-            if (shouldStore && !shouldBeGlobal)
-            {
-                if (!context.DefineIdentifier(Name, true))
-                    throw new MondCompilerException(this, CompilerError.IdentifierAlreadyDefined, Name);
-
-                identifier = context.Identifier(Name);
-            }
+            var identifier = shouldStore && !shouldBeGlobal
+                ? context.Identifier(Name)
+                : null;
 
             // compile body
-            var functionContext = context.MakeFunction(Name ?? DebugName);
+            var functionContext = context.MakeFunction(Name ?? DebugName, _functionScope);
             functionContext.Function(functionContext.FullName);
             functionContext.Position(Token);
-            functionContext.PushScope();
-
-            for (var i = 0; i < Arguments.Count; i++)
-            {
-                var name = Arguments[i];
-
-                if (!functionContext.DefineArgument(i, name))
-                    throw new MondCompilerException(this, CompilerError.IdentifierAlreadyDefined, name);
-            }
-
-            if (OtherArguments != null && !functionContext.DefineArgument(Arguments.Count, OtherArguments))
-                throw new MondCompilerException(this, CompilerError.IdentifierAlreadyDefined, OtherArguments);
-
             CompileBody(functionContext);
             functionContext.PopScope();
 
@@ -113,9 +98,39 @@ namespace Mond.Compiler.Expressions.Statements
             return stack;
         }
 
-        public override Expression Simplify()
+        protected virtual void SimplifyBody(SimplifyContext context)
         {
-            Block = (ScopeExpression)Block.Simplify();
+            Block = (ScopeExpression)Block.Simplify(context);
+        }
+
+        public override Expression Simplify(SimplifyContext context)
+        {
+            if (Name != null && !context.MakeDeclarationsGlobal &&
+                !context.DefineIdentifier(Name, true))
+            {
+                throw new MondCompilerException(this, CompilerError.IdentifierAlreadyDefined, Name);
+            }
+
+            _functionScope = context.PushFunctionScope();
+
+            for (var i = 0; i < Arguments.Count; i++)
+            {
+                var name = Arguments[i];
+
+                if (!_functionScope.DefineArgument(i, name))
+                {
+                    throw new MondCompilerException(this, CompilerError.IdentifierAlreadyDefined, name);
+                }
+            }
+
+            if (OtherArguments != null && !_functionScope.DefineArgument(Arguments.Count, OtherArguments))
+            {
+                throw new MondCompilerException(this, CompilerError.IdentifierAlreadyDefined, OtherArguments);
+            }
+
+            SimplifyBody(context);
+
+            context.PopScope();
 
             return this;
         }

@@ -35,10 +35,10 @@ namespace Mond.Compiler.Expressions
             return stack;
         }
 
-        public override Expression Simplify()
+        public override Expression Simplify(SimplifyContext context)
         {
             Values = Values
-                .Select(e => e.Simplify())
+                .Select(e => e.Simplify(context))
                 .ToList()
                 .AsReadOnly();
 

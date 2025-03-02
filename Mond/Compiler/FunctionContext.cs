@@ -4,16 +4,15 @@ using System.Linq;
 
 namespace Mond.Compiler
 {
-    partial class FunctionContext
+    internal partial class FunctionContext
     {
         private readonly List<Instruction> _instructions;
         private readonly IndexedStack<Tuple<LabelOperand, LabelOperand>> _loopLabels;
 
-        public int ArgIndex { get; }
-        public int LocalIndex { get; }
-        public Scope Scope { get; protected set; }
-
         public ExpressionCompiler Compiler { get; }
+
+        public int Depth => Scope.Depth;
+        public Scope Scope { get; protected set; }
 
         public string ParentName { get; }
         public string Name { get; }
@@ -22,74 +21,87 @@ namespace Mond.Compiler
         public IdentifierOperand AssignedName { get; }
         public LabelOperand Label { get; }
 
-        public int IdentifierCount { get; protected set; }
+        public bool MakeDeclarationsGlobal => Depth == 0 && Compiler.Options.MakeRootDeclarationsGlobal;
 
-        public FunctionContext(ExpressionCompiler compiler, int argIndex, int localIndex, Scope prevScope, string parentName, string name)
+        public FunctionContext(ExpressionCompiler compiler, Scope scope, string parentName, string name)
         {
             _instructions = new List<Instruction>();
             _loopLabels = new IndexedStack<Tuple<LabelOperand, LabelOperand>>();
 
             Compiler = compiler;
-            ArgIndex = argIndex;
-            LocalIndex = localIndex;
-
-            Scope = prevScope;
+            Scope = scope;
 
             ParentName = parentName;
             Name = name;
-            FullName = string.Format("{0}{1}{2}", parentName, string.IsNullOrEmpty(parentName) ? "" : ".", Name ?? "");
+            FullName = $"{parentName}{(string.IsNullOrEmpty(parentName) ? "" : ".")}{Name ?? ""}";
 
-            AssignedName = name != null ? prevScope.Get(name) : null;
+            AssignedName = name != null ? scope.Get(name) : null;
             Label = Compiler.MakeLabel("function");
-
-            IdentifierCount = 0;
         }
 
         public virtual FunctionContext Root => this;
 
         public IEnumerable<Instruction> Instructions => _instructions;
 
-        public virtual FunctionContext MakeFunction(string name)
+        public virtual FunctionContext MakeFunction(string name, Scope scope)
         {
-            name = name ?? string.Format("lambda_{0}", Compiler.LambdaId++);
+            if (scope == null)
+            {
+                throw new ArgumentNullException(nameof(scope));
+            }
 
-            var context = new FunctionContext(Compiler, ArgIndex + 1, LocalIndex + 1, Scope, FullName, name);
+            if (scope.Previous != Scope)
+            {
+                throw new ArgumentException("Function scope must be linked to the current scope", nameof(scope));
+            }
+
+            if (scope.Depth != (Scope?.Depth ?? -1) + 1)
+            {
+                throw new ArgumentException("Function scope must have depth right above the current scope", nameof(scope));
+            }
+
+            name ??= $"lambda_{Compiler.LambdaId++}";
+
+            var context = new FunctionContext(Compiler, scope, FullName, name);
             Compiler.RegisterFunction(context);
             return context;
         }
 
-        public virtual LabelOperand MakeLabel(string name = null)
+        public LabelOperand MakeLabel(string name = null)
         {
             return Compiler.MakeLabel(name);
         }
 
-        public virtual void PushScope()
+        public void PushScope(Scope scope)
         {
-            Compiler.ScopeDepth++;
-            var scopeId = Compiler.ScopeId++;
+            if (scope.Previous != Scope)
+            {
+                throw new ArgumentException("Pushed scope must be linked to the current scope", nameof(scope));
+            }
 
-            // don't do extra work if we dont need it
+            Compiler.ScopeDepth++;
+
             if (Compiler.Options.DebugInfo <= MondDebugInfoLevel.StackTrace)
             {
-                Scope = new Scope(scopeId, ArgIndex, LocalIndex, Scope);
+                Scope = scope;
                 return;
             }
 
             var startLabel = MakeLabel("scopeStart");
             var endLabel = MakeLabel("scopeEnd");
 
-            var newScope = new Scope(scopeId, ArgIndex, LocalIndex, Scope, () => Bind(endLabel));
+            scope.PopAction = () => Bind(endLabel);
 
             Emit(new Instruction(InstructionType.Scope, new IInstructionOperand[]
             {
-                new ImmediateOperand(scopeId),
+                new ImmediateOperand(scope.Id),
                 new ImmediateOperand(Compiler.ScopeDepth),
                 new ImmediateOperand(Scope?.Id ?? -1),
                 startLabel,
                 endLabel,
                 new DeferredOperand<ListOperand<DebugIdentifierOperand>>(() =>
                 {
-                    var operands = newScope.Identifiers
+                    var operands = scope.Identifiers
                         .Select(i => new DebugIdentifierOperand(String(i.Name), i.IsReadOnly, i.FrameIndex, i.Id))
                         .ToList();
 
@@ -99,10 +111,10 @@ namespace Mond.Compiler
 
             Bind(startLabel);
 
-            Scope = newScope;
+            Scope = scope;
         }
 
-        public virtual void PopScope()
+        public void PopScope()
         {
             Scope.PopAction?.Invoke();
 
@@ -120,17 +132,17 @@ namespace Mond.Compiler
             _loopLabels.Pop();
         }
 
-        public virtual ConstantOperand<double> Number(double value)
+        public ConstantOperand<double> Number(double value)
         {
             return Compiler.NumberPool.GetOperand(value);
         }
 
-        public virtual ConstantOperand<string> String(string value)
+        public ConstantOperand<string> String(string value)
         {
             return Compiler.StringPool.GetOperand(value);
         }
 
-        public virtual IdentifierOperand Identifier(string name)
+        public IdentifierOperand Identifier(string name)
         {
             return Scope.Get(name);
         }
@@ -165,24 +177,8 @@ namespace Mond.Compiler
             return null;
         }
 
-        public virtual bool DefineIdentifier(string name, bool isReadOnly = false)
+        public IdentifierOperand DefineInternal(string name, bool canHaveMultiple = false)
         {
-            var success = Scope.Define(name, isReadOnly);
-
-            if (success)
-                IdentifierCount++;
-
-            return success;
-        }
-
-        public virtual bool DefineArgument(int index, string name)
-        {
-            return Scope.DefineArgument(index, name);
-        }
-
-        public virtual IdentifierOperand DefineInternal(string name, bool canHaveMultiple = false)
-        {
-            IdentifierCount++;
             return Scope.DefineInternal(name, canHaveMultiple);
         }
 

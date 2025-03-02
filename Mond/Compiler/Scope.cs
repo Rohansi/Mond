@@ -3,25 +3,26 @@ using System.Collections.Generic;
 
 namespace Mond.Compiler
 {
-    class Scope
+    internal class Scope
     {
         private readonly Dictionary<string, IdentifierOperand> _identifiers;
-        private readonly int _argIndex;
-        private readonly int _localIndex;
         private int _nextId;
 
         public int Id { get; }
+        public int Depth { get; }
         public Scope Previous { get; }
-        public Action PopAction { get; }
+        public Action PopAction { get; set; }
 
-        public Scope(int id, int argIndex, int localIndex, Scope previous, Action popAction = null)
+        private int _identifierCount;
+        public int IdentifierCount => GetFrameScope()._identifierCount;
+
+        public Scope(int id, int depth, Scope previous, Action popAction = null)
         {
             _identifiers = new Dictionary<string, IdentifierOperand>();
-            _argIndex = argIndex;
-            _localIndex = localIndex;
             _nextId = 0;
 
             Id = id;
+            Depth = depth;
             Previous = previous;
             PopAction = popAction;
         }
@@ -34,8 +35,10 @@ namespace Mond.Compiler
                 return false;
 
             var frameScope = GetFrameScope();
+            frameScope._identifierCount++;
+
             var id = frameScope._nextId++;
-            var identifier = new IdentifierOperand(_localIndex, id, name, isReadOnly);
+            var identifier = new IdentifierOperand(Depth, id, name, isReadOnly);
             _identifiers.Add(name, identifier);
             return true;
         }
@@ -45,7 +48,7 @@ namespace Mond.Compiler
             if (name[0] != '#' && IsDefined(name))
                 return false;
 
-            var identifier = new ArgumentIdentifierOperand(-_argIndex, index, name);
+            var identifier = new ArgumentIdentifierOperand(-Depth, index, name);
             _identifiers.Add(name, identifier);
             return true;
         }
@@ -55,6 +58,8 @@ namespace Mond.Compiler
             name = "#" + name;
 
             var frameScope = GetFrameScope();
+            frameScope._identifierCount++;
+
             var id = frameScope._nextId++;
 
             IdentifierOperand identifier;
@@ -72,12 +77,12 @@ namespace Mond.Compiler
                         break;
                 }
 
-                identifier = new IdentifierOperand(_localIndex, id, numberedName, false);
+                identifier = new IdentifierOperand(Depth, id, numberedName, false);
                 _identifiers.Add(numberedName, identifier);
                 return identifier;
             }
 
-            identifier = new IdentifierOperand(_localIndex, id, name, false);
+            identifier = new IdentifierOperand(Depth, id, name, false);
             _identifiers.Add(name, identifier);
             return identifier;
         }
@@ -105,7 +110,7 @@ namespace Mond.Compiler
             if (Previous != null)
             {
                 var curr = Previous;
-                while (curr._localIndex == _localIndex)
+                while (curr.Depth == Depth)
                 {
                     frameScope = curr;
 

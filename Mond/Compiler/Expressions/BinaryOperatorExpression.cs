@@ -114,10 +114,10 @@ namespace Mond.Compiler.Expressions
             return stack;
         }
 
-        public override Expression Simplify()
+        public override Expression Simplify(SimplifyContext context)
         {
-            Left = Left.Simplify();
-            Right = Right.Simplify();
+            Left = Left.Simplify(context);
+            Right = Right.Simplify(context);
 
             if (_simplifyMap.TryGetValue(Operation, out var simplifyOp))
             {

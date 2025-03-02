@@ -77,12 +77,12 @@ namespace Mond.Compiler.Expressions
             return unpackIndices;
         }
 
-        public override Expression Simplify()
+        public override Expression Simplify(SimplifyContext context)
         {
-            Method = Method.Simplify();
+            Method = Method.Simplify(context);
 
             Arguments = Arguments
-                .Select(a => a.Simplify())
+                .Select(a => a.Simplify(context))
                 .ToList()
                 .AsReadOnly();
 

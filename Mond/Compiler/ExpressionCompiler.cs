@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using Mond.Compiler.Expressions;
+using Mond.Compiler.Visitors;
 using Mond.Debugger;
 
 namespace Mond.Compiler
 {
-    class ExpressionCompiler
+    internal class ExpressionCompiler
     {
         private readonly List<FunctionContext> _contexts;
         private int _labelIndex;
@@ -40,12 +41,22 @@ namespace Mond.Compiler
 
         public MondProgram Compile(Expression expression, string debugSourceCode = null)
         {
-            var context = new FunctionContext(this, 0, 0, null, null, null);
+            var simplifyContext = new SimplifyContext(this, null);
+            var scope = simplifyContext.PushScope();
+            expression = expression.Simplify(simplifyContext);
+            simplifyContext.PopScope();
+
+            expression.SetParent(null);
+
+            using (var printer = new ExpressionPrintVisitor(Console.Out))
+                expression.Accept(printer);
+
+            var context = new FunctionContext(this, null, null, null);
             RegisterFunction(context);
 
             context.Function(context.FullName);
 
-            context.PushScope();
+            context.PushScope(scope);
             context.Position(expression.StartToken); // so address 0 has debug info
             context.Enter();
             expression.Compile(context);
@@ -80,7 +91,7 @@ namespace Mond.Compiler
             foreach (var instruction in AllInstructions())
             {
 #if DEBUG
-                //instruction.Print();
+                instruction.Print();
 
                 if (instruction.Offset != writer.Offset)
                     throw new InvalidOperationException("Writer is not at the correct position for instruction.");
