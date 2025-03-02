@@ -10,6 +10,8 @@
 
         public bool HasChildren => true;
 
+        private Scope _innerScope;
+
         public ForeachExpression(Token token, Token inToken, string identifier, Expression expression, ScopeExpression block, Expression destructure = null)
             : base(token)
         {
@@ -22,10 +24,6 @@
 
         public override int Compile(FunctionContext context)
         {
-            var identifier = DestructureExpression != null
-                ? context.DefineInternal(Identifier, true)
-                : context.Identifier(Identifier);
-
             context.Position(Token);
 
             var stack = 0;
@@ -49,6 +47,12 @@
             stack += context.InstanceCall(context.String("moveNext"), 0, []);
             stack += context.JumpFalse(end);
 
+            context.PushScope(_innerScope);
+
+            var identifier = DestructureExpression != null
+                ? context.DefineInternal("current", true)
+                : context.Identifier(Identifier);
+
             stack += context.Load(enumerator);
             stack += context.LoadField(context.String("current"));
             stack += context.Store(identifier);
@@ -62,6 +66,8 @@
             context.PushLoop(start, end);
             stack += Block.Compile(context);
             context.PopLoop();
+
+            context.PopScope();
 
             stack += context.Jump(start);
 
@@ -77,14 +83,19 @@
 
         public override Expression Simplify(SimplifyContext context)
         {
-            if (!context.DefineIdentifier(Identifier))
+            Expression = Expression.Simplify(context);
+
+            _innerScope = context.PushScope();
+
+            if (DestructureExpression == null && !context.DefineIdentifier(Identifier))
             {
                 throw new MondCompilerException(this, CompilerError.IdentifierAlreadyDefined, Identifier);
             }
 
-            Expression = Expression.Simplify(context);
             DestructureExpression = DestructureExpression?.Simplify(context);
             Block = (ScopeExpression)Block.Simplify(context);
+
+            context.PopScope();
 
             return this;
         }

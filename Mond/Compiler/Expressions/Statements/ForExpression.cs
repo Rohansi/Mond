@@ -9,6 +9,8 @@
 
         public bool HasChildren => true;
 
+        private Scope _innerScope;
+
         public ForExpression(Token token, BlockExpression initializer, Expression condition, BlockExpression increment, ScopeExpression block)
             : base(token)
         {
@@ -21,6 +23,8 @@
         public override int Compile(FunctionContext context)
         {
             context.Position(Token);
+
+            context.PushScope(_innerScope);
 
             var stack = 0;
             var start = context.MakeLabel("forStart");
@@ -58,16 +62,22 @@
 
             stack += context.Bind(end); // break
 
+            context.PopScope();
+
             CheckStack(stack, 0);
             return stack;
         }
 
         public override Expression Simplify(SimplifyContext context)
         {
+            _innerScope = context.PushScope();
+
             Initializer = (BlockExpression)Initializer?.Simplify(context);
             Condition = Condition?.Simplify(context);
             Increment = (BlockExpression)Increment?.Simplify(context);
             Block = (ScopeExpression)Block.Simplify(context);
+
+            context.PopScope();
 
             return this;
         }

@@ -150,6 +150,18 @@ namespace Mond.Tests.Expressions
         }
 
         [Test]
+        public void ForReuseIdentifier()
+        {
+            var result = Script.Run(@"
+                for (var i = 0; i < 10; i++) { }
+                for (var i = 0; i < 10; i++) { }
+                return 1;
+            ");
+
+            Assert.AreEqual((MondValue)1, result);
+        }
+
+        [Test]
         public void ForIdentifierUniqueness()
         {
             Assert.Throws<MondCompilerException>(() => Script.Run(@"
