@@ -13,7 +13,7 @@ namespace Mond.Debugger
         public DebugExpressionRewriter(string localAccessor)
         {
             _localAccessor = localAccessor;
-            _scope = new Scope(0, 0, null);
+            _scope = new Scope(0, 0, 0, null);
         }
 
         public override Expression Visit(IdentifierExpression expression)
@@ -134,7 +134,7 @@ namespace Mond.Debugger
 
         private void PushScope()
         {
-            _scope = new Scope(0, 0, _scope);
+            _scope = new Scope(0, 0, 0, _scope);
         }
 
         private void PopScope()

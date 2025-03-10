@@ -4,16 +4,8 @@ using Mond.Compiler.Expressions;
 
 namespace Mond.Compiler
 {
-    partial class FunctionContext
+    internal partial class FunctionContext
     {
-        public void Function(string name = null)
-        {
-            if (Compiler.Options.DebugInfo < MondDebugInfoLevel.StackTrace)
-                return;
-
-            Emit(new Instruction(InstructionType.Function, String(name)));
-        }
-
         public void Position(Token token)
         {
             if (Compiler.Options.DebugInfo < MondDebugInfoLevel.StackTrace)
@@ -96,12 +88,26 @@ namespace Mond.Compiler
 
             if (operand is IdentifierOperand identifier)
             {
-                if (identifier.FrameIndex == Depth)
-                    Emit(new Instruction(InstructionType.LdLocF, new ImmediateOperand(identifier.Id)));
-                else if (identifier.FrameIndex < 0 && identifier.FrameIndex == -Depth)
+                if (identifier.FrameIndex == FrameDepth)
+                {
+                    if (identifier.IsCaptured)
+                    {
+                        Emit(new Instruction(InstructionType.LdArrF,
+                            new ImmediateOperand(identifier.CaptureArray.Id), new ImmediateOperand(identifier.Id)));
+                    }
+                    else
+                    {
+                        Emit(new Instruction(InstructionType.LdLocF, new ImmediateOperand(identifier.Id)));
+                    }
+                }
+                else if (identifier.FrameIndex < 0 && identifier.FrameIndex == -FrameDepth)
+                {
                     Emit(new Instruction(InstructionType.LdArgF, new ImmediateOperand(identifier.Id)));
+                }
                 else
-                    Emit(new Instruction(InstructionType.LdLoc, operand));
+                {
+                    Emit(new Instruction(InstructionType.LdUpValue, new ImmediateOperand(identifier.Scope.LexicalDepth), new ImmediateOperand(identifier.Id)));
+                }
 
                 return 1;
             }
@@ -129,12 +135,26 @@ namespace Mond.Compiler
 
         public int Store(IdentifierOperand operand)
         {
-            if (operand.FrameIndex == Depth)
-                Emit(new Instruction(InstructionType.StLocF, new ImmediateOperand(operand.Id)));
-            else if (operand.FrameIndex < 0 && operand.FrameIndex == -Depth)
+            if (operand.FrameIndex == FrameDepth)
+            {
+                if (operand.IsCaptured)
+                {
+                    Emit(new Instruction(InstructionType.StArrF,
+                        new ImmediateOperand(operand.CaptureArray.Id), new ImmediateOperand(operand.Id)));
+                }
+                else
+                {
+                    Emit(new Instruction(InstructionType.StLocF, new ImmediateOperand(operand.Id)));
+                }
+            }
+            else if (operand.FrameIndex < 0 && operand.FrameIndex == -FrameDepth)
+            {
                 Emit(new Instruction(InstructionType.StArgF, new ImmediateOperand(operand.Id)));
+            }
             else
-                Emit(new Instruction(InstructionType.StLoc, operand));
+            {
+                Emit(new Instruction(InstructionType.StUpValue, new ImmediateOperand(operand.Scope.LexicalDepth), new ImmediateOperand(operand.Id)));
+            }
 
             return -1;
         }
@@ -231,7 +251,7 @@ namespace Mond.Compiler
 
         public int IncrementF(IdentifierOperand local)
         {
-            if (local.FrameIndex != Depth)
+            if (local.FrameIndex != FrameDepth)
                 throw new ArgumentException("Cannot use IncF on out of frame locals");
 
             Emit(new Instruction(InstructionType.IncF, new ImmediateOperand(local.Id)));
@@ -240,7 +260,7 @@ namespace Mond.Compiler
 
         public int DecrementF(IdentifierOperand local)
         {
-            if (local.FrameIndex != Depth)
+            if (local.FrameIndex != FrameDepth)
                 throw new ArgumentException("Cannot use DecF on out of frame locals");
 
             Emit(new Instruction(InstructionType.DecF, new ImmediateOperand(local.Id)));
@@ -249,7 +269,27 @@ namespace Mond.Compiler
 
         public int Closure(LabelOperand label)
         {
-            Emit(new Instruction(InstructionType.Closure, label));
+            var callingFrameDepth = FrameDepth;
+            var scope = Scope;
+            while (scope != null)
+            {
+                if (scope.FrameDepth != callingFrameDepth)
+                {
+                    Emit(new Instruction(InstructionType.LdUp, new ImmediateOperand(scope.LexicalDepth - 1)));
+                }
+                else if (scope.CaptureArray != null)
+                {
+                    Load(scope.CaptureArray);
+                }
+                else
+                {
+                    LoadUndefined();
+                }
+
+                scope = scope.Previous;
+            }
+
+            Emit(new Instruction(InstructionType.Closure, new ImmediateOperand(Scope.LexicalDepth), label));
             return 1;
         }
 
@@ -292,22 +332,6 @@ namespace Mond.Compiler
         {
             Emit(new Instruction(InstructionType.Ret));
             return -1;
-        }
-
-        public int Enter()
-        {
-            var scope = Scope; // note: capture Scope at this point in time
-            var identifierCount = new DeferredOperand<ImmediateOperand>(() =>
-                new ImmediateOperand(scope.IdentifierCount));
-
-            Emit(new Instruction(InstructionType.Enter, identifierCount));
-            return 0;
-        }
-
-        public int Leave()
-        {
-            Emit(new Instruction(InstructionType.Leave));
-            return 0;
         }
 
         public int VarArgs(int fixedCount)

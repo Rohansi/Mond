@@ -34,15 +34,11 @@ namespace Mond.Compiler.Expressions.Statements
         {
             var stack = 0;
 
-            stack += context.Bind(context.Label);
-            stack += context.Enter();
-
             if (OtherArguments != null)
                 stack += context.VarArgs(Arguments.Count);
 
             stack += Block.Compile(context);
 
-            stack += context.Leave();
             stack += context.LoadUndefined();
             stack += context.Return();
 
@@ -61,7 +57,6 @@ namespace Mond.Compiler.Expressions.Statements
 
             // compile body
             var functionContext = context.MakeFunction(Name ?? DebugName, _functionScope);
-            functionContext.Function(functionContext.FullName);
             functionContext.Position(Token);
             CompileBody(functionContext);
             functionContext.PopScope();

@@ -22,23 +22,14 @@ namespace Mond.Compiler.Expressions.Statements
         public override void CompileBody(FunctionContext context)
         {
             var getEnumerator = context.MakeFunction("getEnumerator", _getEnumeratorScope);
-            getEnumerator.Function(getEnumerator.FullName);
-            getEnumerator.Bind(getEnumerator.Label);
-            getEnumerator.Enter();
             getEnumerator.Load(_enumerable);
             getEnumerator.Return();
 
             var dispose = context.MakeFunction("dispose", _disposeScope);
-            dispose.Function(dispose.FullName);
-            dispose.Bind(dispose.Label);
-            dispose.Enter();
             dispose.LoadUndefined();
             dispose.Return();
 
             var stack = 0;
-
-            stack += context.Bind(context.Label);
-            stack += context.Enter();
 
             if (OtherArguments != null)
                 stack += context.VarArgs(Arguments.Count);
@@ -127,9 +118,6 @@ namespace Mond.Compiler.Expressions.Statements
             var stack = 0;
 
             EndLabel = context.MakeLabel("state_end");
-
-            stack += context.Bind(context.Label);
-            stack += context.Enter();
 
             // jump to state label
             stack += context.Load(State);

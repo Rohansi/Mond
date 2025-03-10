@@ -5,6 +5,7 @@ using System.Text;
 using Mond.Compiler;
 using Mond.Compiler.Expressions;
 using Mond.Debugger;
+using Mond.VirtualMachine;
 
 namespace Mond
 {
@@ -17,6 +18,8 @@ namespace Mond
         internal readonly MondValue[] Numbers;
         internal readonly MondValue[] Strings;
         public MondDebugInfo DebugInfo { get; }
+
+        public MondValue EntryPoint { get; }
 
         internal MondProgram(int[] bytecode, IList<double> numbers, IList<string> strings, MondDebugInfo debugInfo = null)
         {
@@ -35,6 +38,8 @@ namespace Mond
             }
             
             DebugInfo = debugInfo;
+
+            EntryPoint = new MondValue(new Closure(this, 0, []));
         }
 
         /// <summary>

@@ -11,7 +11,8 @@ namespace Mond.Compiler
 
         public ExpressionCompiler Compiler { get; }
 
-        public int Depth => Scope.Depth;
+        public int FrameDepth => Scope.FrameDepth;
+        public int LexicalDepth => Scope.LexicalDepth;
         public Scope Scope { get; protected set; }
 
         public string ParentName { get; }
@@ -21,7 +22,7 @@ namespace Mond.Compiler
         public IdentifierOperand AssignedName { get; }
         public LabelOperand Label { get; }
 
-        public bool MakeDeclarationsGlobal => Depth == 0 && Compiler.Options.MakeRootDeclarationsGlobal;
+        public bool MakeDeclarationsGlobal => FrameDepth == 0 && LexicalDepth == 0 && Compiler.Options.MakeRootDeclarationsGlobal;
 
         public FunctionContext(ExpressionCompiler compiler, Scope scope, string parentName, string name)
         {
@@ -55,15 +56,24 @@ namespace Mond.Compiler
                 throw new ArgumentException("Function scope must be linked to the current scope", nameof(scope));
             }
 
-            if (scope.Depth != (Scope?.Depth ?? -1) + 1)
+            if (scope.FrameDepth != (Scope?.FrameDepth ?? -1) + 1)
             {
                 throw new ArgumentException("Function scope must have depth right above the current scope", nameof(scope));
             }
 
             name ??= $"lambda_{Compiler.LambdaId++}";
 
-            var context = new FunctionContext(Compiler, scope, FullName, name);
+            var context = new FunctionContext(Compiler, scope.Previous, FullName, name);
             Compiler.RegisterFunction(context);
+
+            context.Bind(context.Label);
+
+            if (Compiler.Options.DebugInfo >= MondDebugInfoLevel.StackTrace)
+            {
+                context.Emit(new Instruction(InstructionType.Function, String(context.FullName)));
+            }
+
+            context.PushScope(scope);
             return context;
         }
 
@@ -79,39 +89,53 @@ namespace Mond.Compiler
                 throw new ArgumentException("Pushed scope must be linked to the current scope", nameof(scope));
             }
 
+            var (captureArray, captureCount) = scope.Preprocess();
+
             Compiler.ScopeDepth++;
 
-            if (Compiler.Options.DebugInfo <= MondDebugInfoLevel.StackTrace)
+            if (Compiler.Options.DebugInfo >= MondDebugInfoLevel.Full)
             {
+                var startLabel = MakeLabel("scopeStart");
+                var endLabel = MakeLabel("scopeEnd");
+
+                scope.PopAction = () => Bind(endLabel);
+
+                Emit(new Instruction(InstructionType.Scope, new IInstructionOperand[]
+                {
+                    new ImmediateOperand(scope.Id),
+                    new ImmediateOperand(Compiler.ScopeDepth),
+                    new ImmediateOperand(Scope?.Id ?? -1),
+                    startLabel,
+                    endLabel,
+                    new DeferredOperand<ListOperand<DebugIdentifierOperand>>(() =>
+                    {
+                        var operands = scope.Identifiers
+                            .Select(i => new DebugIdentifierOperand(String(i.Name), i.IsReadOnly, i.FrameIndex, i.Id))
+                            .ToList();
+
+                        return new ListOperand<DebugIdentifierOperand>(operands);
+                    })
+                }));
+
+                Bind(startLabel);
+
                 Scope = scope;
-                return;
             }
 
-            var startLabel = MakeLabel("scopeStart");
-            var endLabel = MakeLabel("scopeEnd");
-
-            scope.PopAction = () => Bind(endLabel);
-
-            Emit(new Instruction(InstructionType.Scope, new IInstructionOperand[]
+            if (Scope.FrameDepth != Scope.Previous?.FrameDepth)
             {
-                new ImmediateOperand(scope.Id),
-                new ImmediateOperand(Compiler.ScopeDepth),
-                new ImmediateOperand(Scope?.Id ?? -1),
-                startLabel,
-                endLabel,
-                new DeferredOperand<ListOperand<DebugIdentifierOperand>>(() =>
-                {
-                    var operands = scope.Identifiers
-                        .Select(i => new DebugIdentifierOperand(String(i.Name), i.IsReadOnly, i.FrameIndex, i.Id))
-                        .ToList();
+                var currentScope = Scope; // note: capture Scope at this point in time
+                var identifierCount = new DeferredOperand<ImmediateOperand>(() =>
+                    new ImmediateOperand(currentScope.IdentifierCount));
 
-                    return new ListOperand<DebugIdentifierOperand>(operands);
-                })
-            }));
+                Emit(new Instruction(InstructionType.Enter, identifierCount));
+            }
 
-            Bind(startLabel);
-
-            Scope = scope;
+            if (captureArray != null && captureCount > 0)
+            {
+                NewArray(captureCount);
+                Store(captureArray);
+            }
         }
 
         public void PopScope()

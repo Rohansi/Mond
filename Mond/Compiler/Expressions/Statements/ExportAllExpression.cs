@@ -27,7 +27,7 @@ namespace Mond.Compiler.Expressions.Statements
                 throw new MondCompilerException(this, CompilerError.ExportCannotBeUsedOutsideModule);
             }
 
-            if (exportsOperand.FrameIndex >= 0 || exportsOperand.FrameIndex != -context.Depth)
+            if (exportsOperand.FrameIndex >= 0 || exportsOperand.FrameIndex != -context.FrameDepth)
             {
                 throw new MondCompilerException(this, CompilerError.ExportCannotBeUsedOutsideModule);
             }

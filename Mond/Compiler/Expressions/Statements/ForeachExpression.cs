@@ -38,6 +38,8 @@
             stack += context.InstanceCall(context.String("getEnumerator"), 0, []);
             stack += context.Store(enumerator);
 
+            CheckStack(stack, 0);
+
             // loop body
             stack += context.Bind(start); // continue
 
@@ -46,6 +48,8 @@
             stack += context.Load(enumerator);
             stack += context.InstanceCall(context.String("moveNext"), 0, []);
             stack += context.JumpFalse(end);
+
+            CheckStack(stack, 0);
 
             context.PushScope(_innerScope);
 
@@ -62,6 +66,8 @@
                 stack += context.Load(identifier);
                 stack += DestructureExpression.Compile(context);
             }
+
+            CheckStack(stack, 0);
             
             context.PushLoop(start, end);
             stack += Block.Compile(context);
@@ -70,6 +76,8 @@
             context.PopScope();
 
             stack += context.Jump(start);
+
+            CheckStack(stack, 0);
 
             // after loop
             stack += context.Bind(end); // break

@@ -31,21 +31,21 @@ namespace Mond.VirtualMachine
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void PushCall(in ReturnAddress value)
+        private ReturnAddress PushCall()
         {
-            _callStack[++_callStackSize] = value;
+            return _callStack[++_callStackSize] ??= new ReturnAddress();
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private ref ReturnAddress PopCall()
+        private ReturnAddress PopCall()
         {
-            return ref _callStack[_callStackSize--];
+            return _callStack[_callStackSize--];
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private ref ReturnAddress PeekCall()
+        private ReturnAddress PeekCall()
         {
-            return ref _callStack[_callStackSize];
+            return _callStack[_callStackSize];
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

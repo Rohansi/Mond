@@ -54,11 +54,8 @@ namespace Mond.Compiler
             var context = new FunctionContext(this, null, null, null);
             RegisterFunction(context);
 
-            context.Function(context.FullName);
-
             context.PushScope(scope);
             context.Position(expression.StartToken); // so address 0 has debug info
-            context.Enter();
             expression.Compile(context);
             context.LoadUndefined();
             context.Return();
