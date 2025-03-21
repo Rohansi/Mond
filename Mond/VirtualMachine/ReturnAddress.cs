@@ -79,9 +79,9 @@ namespace Mond.VirtualMachine
             {
                 varArgs.ArrayValue.Add(Arguments[i]);
             }
-
-            Arguments[fixedArgCount] = varArgs;
+            
             ResizeArguments(fixedArgCount + 1);
+            Arguments[fixedArgCount] = varArgs;
         }
     }
 }

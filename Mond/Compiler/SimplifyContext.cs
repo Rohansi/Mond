@@ -8,8 +8,8 @@ namespace Mond.Compiler
 
         public Scope Scope { get; protected set; }
         
-        private int FrameDepth => Scope?.FrameDepth ?? 0;
-        private int LexicalDepth => Scope?.LexicalDepth ?? 0;
+        private int FrameDepth => Scope?.FrameDepth ?? -1;
+        private int LexicalDepth => Scope?.LexicalDepth ?? -1;
 
         public bool MakeDeclarationsGlobal => FrameDepth == 0 && LexicalDepth == 0 && Compiler.Options.MakeRootDeclarationsGlobal;
 
@@ -28,7 +28,7 @@ namespace Mond.Compiler
             Compiler.ScopeDepth++;
 
             var scopeId = Compiler.ScopeId++;
-            Scope = new Scope(scopeId, FrameDepth + frameDepthOffset, LexicalDepth + 1, Scope);
+            Scope = new Scope(scopeId, Math.Max(FrameDepth + frameDepthOffset, 0), LexicalDepth + 1, Scope);
             return Scope;
         }
 

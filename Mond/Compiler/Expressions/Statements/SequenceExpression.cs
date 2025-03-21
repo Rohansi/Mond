@@ -24,15 +24,14 @@ namespace Mond.Compiler.Expressions.Statements
             var getEnumerator = context.MakeFunction("getEnumerator", _getEnumeratorScope);
             getEnumerator.Load(_enumerable);
             getEnumerator.Return();
+            getEnumerator.PopScope();
 
             var dispose = context.MakeFunction("dispose", _disposeScope);
             dispose.LoadUndefined();
             dispose.Return();
+            dispose.PopScope();
 
             var stack = 0;
-
-            if (OtherArguments != null)
-                stack += context.VarArgs(Arguments.Count);
 
             stack += context.Load(context.Number(0));
             stack += context.Store(_state);
@@ -70,10 +69,11 @@ namespace Mond.Compiler.Expressions.Statements
 
         protected override void SimplifyBody(SimplifyContext context)
         {
-            _state = context.DefineInternal("state");
-            _enumerable = context.DefineInternal("enumerable");
+            _state = context.DefineInternal("state", true);
+            _enumerable = context.DefineInternal("enumerable", true);
 
             _getEnumeratorScope = context.PushFunctionScope();
+            context.ReferenceIdentifier(_enumerable);
             context.PopScope();
 
             _disposeScope = context.PushFunctionScope();
@@ -147,6 +147,14 @@ namespace Mond.Compiler.Expressions.Statements
 
             CheckStack(stack, 0);
         }
+
+        protected override void SimplifyBody(SimplifyContext context)
+        {
+            base.SimplifyBody(context);
+
+            context.ReferenceIdentifier(Enumerable);
+            context.ReferenceIdentifier(State);
+        }
     }
 
     internal class SequenceContext : FunctionContext
@@ -161,16 +169,9 @@ namespace Mond.Compiler.Expressions.Statements
             _forward = forward;
         }
 
-        public override FunctionContext MakeFunction(string name, Scope scope)
+        protected override FunctionContext NewContext(ExpressionCompiler compiler, Scope scope, string parentName, string name)
         {
-            if (scope.Previous != Scope)
-            {
-                throw new ArgumentException("Function scope must be linked to the current scope", nameof(scope));
-            }
-
-            var context = new SequenceBodyContext(Compiler, scope, name, _forward.FullName, _sequenceBody);
-            Compiler.RegisterFunction(context);
-            return context;
+            return new SequenceBodyContext(Compiler, scope, name, parentName, _sequenceBody);
         }
 
         public override void Emit(Instruction instruction)

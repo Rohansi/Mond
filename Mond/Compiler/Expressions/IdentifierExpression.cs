@@ -92,7 +92,7 @@
         {
             return context.TryGetIdentifier(Name, out operand) &&
                    operand.FrameIndex == context.FrameDepth &&
-                   !operand.IsReadOnly;
+                   !operand.IsReadOnly && !operand.IsCaptured;
         }
     }
 }

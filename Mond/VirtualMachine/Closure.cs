@@ -1,4 +1,6 @@
-﻿namespace Mond.VirtualMachine
+﻿using System.Collections.Generic;
+
+namespace Mond.VirtualMachine
 {
     internal enum ClosureType
     {
@@ -12,6 +14,10 @@
         public readonly MondProgram Program;
         public readonly int Address;
         public readonly MondValue[] Upvalues; // note: all MondValues should be arrays!
+
+        // 
+        public MondValue[] StoredFrame;
+        public List<MondValue> StoredEvals;
 
         public readonly MondFunction NativeFunction;
 

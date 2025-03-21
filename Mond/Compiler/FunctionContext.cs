@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Mond.Compiler.Expressions.Statements;
 
 namespace Mond.Compiler
 {
@@ -44,7 +45,12 @@ namespace Mond.Compiler
 
         public IEnumerable<Instruction> Instructions => _instructions;
 
-        public virtual FunctionContext MakeFunction(string name, Scope scope)
+        protected virtual FunctionContext NewContext(ExpressionCompiler compiler, Scope scope, string parentName, string name)
+        {
+            return new FunctionContext(compiler, scope, parentName, name);
+        }
+
+        public FunctionContext MakeFunction(string name, Scope scope, FunctionExpression functionExpression = null)
         {
             if (scope == null)
             {
@@ -63,7 +69,7 @@ namespace Mond.Compiler
 
             name ??= $"lambda_{Compiler.LambdaId++}";
 
-            var context = new FunctionContext(Compiler, scope.Previous, FullName, name);
+            var context = NewContext(Compiler, scope.Previous, FullName, name);
             Compiler.RegisterFunction(context);
 
             context.Bind(context.Label);
@@ -73,7 +79,10 @@ namespace Mond.Compiler
                 context.Emit(new Instruction(InstructionType.Function, String(context.FullName)));
             }
 
-            context.PushScope(scope);
+            int? varArgsFixedCount = functionExpression?.OtherArguments != null
+                ? functionExpression.Arguments.Count
+                : null;
+            context.PushScope(scope, varArgsFixedCount);
             return context;
         }
 
@@ -82,7 +91,7 @@ namespace Mond.Compiler
             return Compiler.MakeLabel(name);
         }
 
-        public void PushScope(Scope scope)
+        public void PushScope(Scope scope, int? varArgsFixedCount = null)
         {
             if (scope.Previous != Scope)
             {
@@ -110,7 +119,7 @@ namespace Mond.Compiler
                     new DeferredOperand<ListOperand<DebugIdentifierOperand>>(() =>
                     {
                         var operands = scope.Identifiers
-                            .Select(i => new DebugIdentifierOperand(String(i.Name), i.IsReadOnly, i.FrameIndex, i.Id))
+                            .Select(i => new DebugIdentifierOperand(String(i.Name), i.IsReadOnly, i.IsCaptured, i is ArgumentIdentifierOperand, i.FrameIndex, i.Id))
                             .ToList();
 
                         return new ListOperand<DebugIdentifierOperand>(operands);
@@ -131,10 +140,24 @@ namespace Mond.Compiler
                 Emit(new Instruction(InstructionType.Enter, identifierCount));
             }
 
+            if (varArgsFixedCount != null)
+            {
+                Emit(new Instruction(InstructionType.VarArgs, new ImmediateOperand(varArgsFixedCount.Value)));
+            }
+
             if (captureArray != null && captureCount > 0)
             {
                 NewArray(captureCount);
                 Store(captureArray);
+            }
+
+            foreach (var identifier in Scope.Identifiers)
+            {
+                if (identifier is ArgumentIdentifierOperand { IsCaptured: true } argIdentifier)
+                {
+                    Emit(new Instruction(InstructionType.LdArgF, new ImmediateOperand(argIdentifier.ArgumentId)));
+                    Store(identifier); // should store into the capture array
+                }
             }
         }
 
@@ -167,6 +190,7 @@ namespace Mond.Compiler
         }
 
         public IdentifierOperand Identifier(string name)
+        
         {
             return Scope.Get(name);
         }

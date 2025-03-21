@@ -114,7 +114,7 @@ namespace Mond.VirtualMachine
             var ip = functionAddress.Address;
             var errorIp = 0;
 
-            Frame locals = null;
+            MondValue[] locals = null;
 
             try
             {
@@ -125,7 +125,7 @@ namespace Mond.VirtualMachine
                     var opcode = code[ip++];
                     var instruction = opcode >> 24;
 
-                    Console.WriteLine($"{ip - 1:X4} {(InstructionType)instruction}");
+                    //Console.WriteLine($"{ip - 1:X4} {(InstructionType)instruction}");
                     switch (instruction)
                     {
                         #region Stack Manipulation
@@ -223,14 +223,14 @@ namespace Mond.VirtualMachine
                         case (int)InstructionType.LdLocF:
                             {
                                 var index = UnpackFirstOperand(opcode);
-                                Push(locals.Values[index]);
+                                Push(locals[index]);
                                 break;
                             }
 
                         case (int)InstructionType.StLocF:
                             {
                                 var index = UnpackFirstOperand(opcode);
-                                locals.Values[index] = Pop();
+                                locals[index] = Pop();
                                 break;
                             }
 
@@ -286,7 +286,7 @@ namespace Mond.VirtualMachine
                             {
                                 var arrayLocal = UnpackFirstOperand(opcode);
                                 var arrayIndex = code[ip++];
-                                ref readonly var array = ref locals.Values[arrayLocal];
+                                ref readonly var array = ref locals[arrayLocal];
                                 Push(array[arrayIndex]);
                                 break;
                             }
@@ -295,7 +295,7 @@ namespace Mond.VirtualMachine
                             {
                                 var arrayLocal = UnpackFirstOperand(opcode);
                                 var arrayIndex = code[ip++];
-                                ref readonly var array = ref locals.Values[arrayLocal];
+                                ref readonly var array = ref locals[arrayLocal];
                                 array[arrayIndex] = Pop();
                                 break;
                             }
@@ -308,16 +308,38 @@ namespace Mond.VirtualMachine
                                 break;
                             }
 
-                        case (int)InstructionType.LdState:
+                        case (int)InstructionType.LdUpValue:
                             {
                                 var depth = UnpackFirstOperand(opcode);
-                                var frame = locals.GetFrame(depth);
-                                locals = frame.StoredFrame;
+                                var index = code[ip++];
+                                var value = functionAddress.Closure.Upvalues[depth][index];
+                                Push(value);
+                                break;
+                            }
+
+                        case (int)InstructionType.StUpValue:
+                            {
+                                var depth = UnpackFirstOperand(opcode);
+                                var index = code[ip++];
+                                var value = Pop();
+                                functionAddress.Closure.Upvalues[depth][index] = value;
+                                break;
+                            }
+
+                        case (int)InstructionType.LdState:
+                            {
+                                var closure = functionAddress.Closure;
+                                if (closure.StoredFrame == null)
+                                {
+                                    throw new InvalidOperationException();
+                                }
+
+                                locals = closure.StoredFrame;
 
                                 PopLocal();
                                 PushLocal(locals);
 
-                                var evals = frame.StoredEvals;
+                                var evals = closure.StoredEvals;
                                 if (evals != null)
                                 {
                                     for (var i = evals.Count - 1; i >= 0; i--)
@@ -333,16 +355,15 @@ namespace Mond.VirtualMachine
 
                         case (int)InstructionType.StState:
                             {
-                                var depth = UnpackFirstOperand(opcode);
-                                var frame = locals.GetFrame(depth);
-                                frame.StoredFrame = locals;
+                                var closure = functionAddress.Closure;
+                                closure.StoredFrame = locals;
 
                                 var initialEvals = _callStackSize >= 0 ? PeekCall().EvalDepth : 0;
                                 var currentEvals = _evalStackSize;
 
                                 if (currentEvals != initialEvals)
                                 {
-                                    var evals = frame.StoredEvals ?? (frame.StoredEvals = new List<MondValue>()); // TODO: use array
+                                    var evals = closure.StoredEvals ??= new List<MondValue>(); // TODO: use array
 
                                     while (currentEvals != initialEvals)
                                     {
@@ -493,7 +514,7 @@ namespace Mond.VirtualMachine
                         case (int)InstructionType.IncF:
                             {
                                 var index = UnpackFirstOperand(opcode);
-                                ref var value = ref locals.Values[index];
+                                ref var value = ref locals[index];
                                 value++;
                                 break;
                             }
@@ -501,7 +522,7 @@ namespace Mond.VirtualMachine
                         case (int)InstructionType.DecF:
                             {
                                 var index = UnpackFirstOperand(opcode);
-                                ref var value = ref locals.Values[index];
+                                ref var value = ref locals[index];
                                 value--;
                                 break;
                             }
@@ -639,7 +660,7 @@ namespace Mond.VirtualMachine
                                 }
 
                                 // get rid of old locals, because tailcall is a variant of ret
-                                PushLocal(PopLocal().Previous);
+                                PopLocal();
 
                                 functionAddress.EvalDepth = _evalStackSize;
                                 ip = address;
@@ -663,7 +684,7 @@ namespace Mond.VirtualMachine
                             {
                                 var localCount = UnpackFirstOperand(opcode);
 
-                                var newFrame = new Frame(locals?.Depth + 1 ?? 0, locals, localCount);
+                                var newFrame = localCount > 0 ? new MondValue[localCount] : [];
                                 PushLocal(newFrame);
 
                                 locals = newFrame;
@@ -930,7 +951,7 @@ namespace Mond.VirtualMachine
             return ((opcode & operandMask) ^ operandSignBit) - operandSignBit;
         }
 
-        private void DoCall(int argCount, ref int[] code, ref int ip, ref MondProgram program, ref ReturnAddress funcAddress, ref Frame locals)
+        private void DoCall(int argCount, ref int[] code, ref int ip, ref MondProgram program, ref ReturnAddress funcAddress, ref MondValue[] locals)
         {
             var unpackCount = code[ip++];
             using var argValuesHandle = GetArgsArray(code, ref ip, argCount, unpackCount);
@@ -1122,7 +1143,7 @@ namespace Mond.VirtualMachine
         }
 
 #if !NO_DEBUG
-        private void DebuggerBreak(MondProgram program, Frame locals, ReturnAddress args, int address, int initialCallDepth)
+        private void DebuggerBreak(MondProgram program, MondValue[] locals, ReturnAddress args, int address, int initialCallDepth)
         {
             var context = new MondDebugContext(
                 _state, program, address, locals, args, _callStack, _callStackSize, initialCallDepth);

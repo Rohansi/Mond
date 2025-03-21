@@ -7,7 +7,6 @@ namespace Mond.Compiler
     internal class Scope
     {
         private readonly Dictionary<string, IdentifierOperand> _identifiers;
-        private readonly List<IdentifierOperand> _frameIdentifiers;
         private bool _finishedPreprocess;
         private int _nextId;
 
@@ -25,7 +24,6 @@ namespace Mond.Compiler
         public Scope(int id, int frameDepth, int lexicalDepth, Scope previous, Action popAction = null)
         {
             _identifiers = new Dictionary<string, IdentifierOperand>();
-            _frameIdentifiers = new List<IdentifierOperand>();
             _nextId = 0;
 
             Id = id;
@@ -46,7 +44,6 @@ namespace Mond.Compiler
             var frameScope = GetFrameScope();
             var identifier = new IdentifierOperand(this, FrameDepth, name, isReadOnly);
             _identifiers.Add(name, identifier);
-            frameScope._frameIdentifiers.Add(identifier);
             return true;
         }
 
@@ -58,7 +55,7 @@ namespace Mond.Compiler
             if (name[0] != '#' && IsDefined(name))
                 return false;
 
-            var identifier = new ArgumentIdentifierOperand(this, -FrameDepth, name);
+            var identifier = new ArgumentIdentifierOperand(this, FrameDepth, index, name);
             identifier.Id = index;
             _identifiers.Add(name, identifier);
             return true;
@@ -96,8 +93,7 @@ namespace Mond.Compiler
                 identifier = new IdentifierOperand(this, FrameDepth, name, false);
             }
 
-            _identifiers.Add(name, identifier);
-            frameScope._frameIdentifiers.Add(identifier);
+            _identifiers.Add(identifier.Name, identifier);
 
             // we only support adding new internal variables after the first pass. these are never allowed to be captured!
             if (_finishedPreprocess)
@@ -145,7 +141,7 @@ namespace Mond.Compiler
                     identifier.Id = nextCaptureId++;
                     identifier.CaptureArray = captureArray;
                 }
-                else
+                else if (identifier is not ArgumentIdentifierOperand)
                 {
                     identifier.Id = frameScope._nextId++;
                 }

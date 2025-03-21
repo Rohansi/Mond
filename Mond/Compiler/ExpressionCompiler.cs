@@ -48,8 +48,8 @@ namespace Mond.Compiler
 
             expression.SetParent(null);
 
-            using (var printer = new ExpressionPrintVisitor(Console.Out))
-                expression.Accept(printer);
+            //using (var printer = new ExpressionPrintVisitor(Console.Out))
+            //    expression.Accept(printer);
 
             var context = new FunctionContext(this, null, null, null);
             RegisterFunction(context);
@@ -88,7 +88,7 @@ namespace Mond.Compiler
             foreach (var instruction in AllInstructions())
             {
 #if DEBUG
-                instruction.Print();
+                //instruction.Print();
 
                 if (instruction.Offset != writer.Offset)
                     throw new InvalidOperationException("Writer is not at the correct position for instruction.");

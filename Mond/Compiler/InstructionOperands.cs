@@ -190,10 +190,12 @@ namespace Mond.Compiler
 
     class ArgumentIdentifierOperand : IdentifierOperand
     {
-        public ArgumentIdentifierOperand(Scope scope, int frameIndex, string name)
+        public int ArgumentId { get; }
+
+        public ArgumentIdentifierOperand(Scope scope, int frameIndex, int index, string name)
             : base(scope, frameIndex, name, false)
         {
-            
+            ArgumentId = index;
         }
 
         public override void Print()
@@ -241,20 +243,28 @@ namespace Mond.Compiler
     {
         public ConstantOperand<string> Name { get; }
         public bool IsReadOnly { get; }
+        public bool IsCaptured { get; }
+        public bool IsArgument { get; }
         public int FrameIndex { get; }
         public int Id { get; }
 
-        public DebugIdentifierOperand(ConstantOperand<string> name, bool isReadOnly, int frameIndex, int id)
+        public DebugIdentifierOperand(ConstantOperand<string> name, bool isReadOnly, bool isCaptured, bool isArgument, int frameIndex, int id)
         {
             Name = name;
             IsReadOnly = isReadOnly;
+            IsCaptured = isCaptured;
+            IsArgument = isArgument;
             FrameIndex = frameIndex;
             Id = id;
         }
 
         public virtual void Print()
         {
-            var desc = $"{FrameIndex}:{Id}={Name.Value}[{(IsReadOnly ? "r" : "rw")}]";
+            var flags = "r";
+            if (!IsReadOnly) flags += "w";
+            if (IsCaptured) flags += "c";
+            if (IsArgument) flags = "a" + flags;
+            var desc = $"{FrameIndex}:{Id}={Name.Value}[{flags}]";
             Console.Write("{0,-30} (dbgident)", desc);
         }
 

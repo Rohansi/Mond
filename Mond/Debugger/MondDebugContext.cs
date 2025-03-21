@@ -12,7 +12,7 @@ namespace Mond.Debugger
 
         private readonly MondState _state;
         private readonly int _address;
-        private readonly Frame _locals;
+        private readonly MondValue[] _locals;
         private readonly ReturnAddress _args;
 
         private readonly Dictionary<string, (Func<MondValue> Getter, Action<MondValue> Setter)> _localAccessors;
@@ -23,7 +23,7 @@ namespace Mond.Debugger
 
         internal MondDebugContext(
             MondState state, MondProgram program, int address,
-            Frame locals, ReturnAddress args,
+            MondValue[] locals, ReturnAddress args,
             ReturnAddress[] callStack, int callStackTop, int callStackBottom)
         {
             _state = state;
@@ -158,8 +158,9 @@ namespace Mond.Debugger
 
                     if (ident.FrameIndex >= 0)
                     {
-                        getter = () => _locals.Get(frameIndex, localId);
-                        setter = value => _locals.Set(frameIndex, localId, value);
+                        throw new NotImplementedException();
+                        //getter = () => _locals.Get(frameIndex, localId);
+                        //setter = value => _locals.Set(frameIndex, localId, value);
                     }
                     else
                     {

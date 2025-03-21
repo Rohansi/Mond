@@ -5,7 +5,7 @@ namespace Mond.Compiler.Expressions
     class PostfixOperatorExpression : Expression
     {
         public TokenType Operation { get; }
-        public Expression Left { get; }
+        public Expression Left { get; private set; }
 
         public override Token StartToken => Left.StartToken;
 
@@ -81,6 +81,7 @@ namespace Mond.Compiler.Expressions
 
         public override Expression Simplify(SimplifyContext context)
         {
+            Left = Left.Simplify(context);
             return this;
         }
 

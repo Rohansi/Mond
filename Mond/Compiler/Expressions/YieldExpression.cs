@@ -34,12 +34,12 @@ namespace Mond.Compiler.Expressions
             stack += context.Load(context.Number(nextState)); // set resume point
             stack += context.Store(state);
 
-            stack += context.StoreState(sequenceContext.FrameDepth - 1); // save locals
+            stack += context.StoreState(); // save locals
             stack += context.LoadTrue();
             stack += context.Return();
 
             stack += context.Bind(nextStateLabel);
-            stack += context.LoadState(sequenceContext.FrameDepth - 1); // load locals
+            stack += context.LoadState(); // load locals
 
             if (!(Parent is IBlockExpression))
             {

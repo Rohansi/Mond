@@ -91,6 +91,9 @@ namespace Mond.Compiler.Expressions.Statements
                 var branchStack = stack;
                 var branch = Branches[i];
 
+                if (defaultBlock != null && branch.Block == defaultBlock)
+                    branchStack += context.Bind(caseDefault);
+
                 branchStack += context.Bind(caseLabels[i]);
                 branchStack += context.Drop();
                 branchStack += branch.Block.Compile(context);
@@ -99,15 +102,12 @@ namespace Mond.Compiler.Expressions.Statements
                 CheckStack(branchStack, 0);
             }
 
-            // only bind if we need a default block
-            if (emptyDefault || defaultBlock != null)
+            // only bind if we have no default block
+            if (emptyDefault)
                 stack += context.Bind(caseDefault);
 
             // always drop the switch value
             stack += context.Drop();
-
-            if (defaultBlock != null)
-                stack += defaultBlock.Compile(context);
 
             context.PopLoop();
 

@@ -95,18 +95,23 @@ namespace Mond.Compiler
                         Emit(new Instruction(InstructionType.LdArrF,
                             new ImmediateOperand(identifier.CaptureArray.Id), new ImmediateOperand(identifier.Id)));
                     }
+                    else if (operand is ArgumentIdentifierOperand)
+                    {
+                        Emit(new Instruction(InstructionType.LdArgF, new ImmediateOperand(identifier.Id)));
+                    }
                     else
                     {
                         Emit(new Instruction(InstructionType.LdLocF, new ImmediateOperand(identifier.Id)));
                     }
                 }
-                else if (identifier.FrameIndex < 0 && identifier.FrameIndex == -FrameDepth)
+                else if (identifier.IsCaptured)
                 {
-                    Emit(new Instruction(InstructionType.LdArgF, new ImmediateOperand(identifier.Id)));
+                    Emit(new Instruction(InstructionType.LdUpValue,
+                        new ImmediateOperand(identifier.Scope.LexicalDepth), new ImmediateOperand(identifier.Id)));
                 }
                 else
                 {
-                    Emit(new Instruction(InstructionType.LdUpValue, new ImmediateOperand(identifier.Scope.LexicalDepth), new ImmediateOperand(identifier.Id)));
+                    throw new InvalidOperationException();
                 }
 
                 return 1;
@@ -142,18 +147,22 @@ namespace Mond.Compiler
                     Emit(new Instruction(InstructionType.StArrF,
                         new ImmediateOperand(operand.CaptureArray.Id), new ImmediateOperand(operand.Id)));
                 }
+                else if (operand is ArgumentIdentifierOperand)
+                {
+                    Emit(new Instruction(InstructionType.StArgF, new ImmediateOperand(operand.Id)));
+                }
                 else
                 {
                     Emit(new Instruction(InstructionType.StLocF, new ImmediateOperand(operand.Id)));
                 }
             }
-            else if (operand.FrameIndex < 0 && operand.FrameIndex == -FrameDepth)
+            else if (operand.IsCaptured)
             {
-                Emit(new Instruction(InstructionType.StArgF, new ImmediateOperand(operand.Id)));
+                Emit(new Instruction(InstructionType.StUpValue, new ImmediateOperand(operand.Scope.LexicalDepth), new ImmediateOperand(operand.Id)));
             }
             else
             {
-                Emit(new Instruction(InstructionType.StUpValue, new ImmediateOperand(operand.Scope.LexicalDepth), new ImmediateOperand(operand.Id)));
+                throw new InvalidOperationException();
             }
 
             return -1;
@@ -171,15 +180,15 @@ namespace Mond.Compiler
             return -3;
         }
 
-        public int LoadState(int depth)
+        public int LoadState()
         {
-            Emit(new Instruction(InstructionType.LdState, new ImmediateOperand(depth)));
+            Emit(new Instruction(InstructionType.LdState));
             return 0;
         }
 
-        public int StoreState(int depth)
+        public int StoreState()
         {
-            Emit(new Instruction(InstructionType.StState, new ImmediateOperand(depth)));
+            Emit(new Instruction(InstructionType.StState));
             return 0;
         }
 
@@ -270,12 +279,14 @@ namespace Mond.Compiler
         public int Closure(LabelOperand label)
         {
             var callingFrameDepth = FrameDepth;
+
+            var upFrameCount = 0;
             var scope = Scope;
             while (scope != null)
             {
                 if (scope.FrameDepth != callingFrameDepth)
                 {
-                    Emit(new Instruction(InstructionType.LdUp, new ImmediateOperand(scope.LexicalDepth - 1)));
+                    Emit(new Instruction(InstructionType.LdUp, new ImmediateOperand(scope.LexicalDepth)));
                 }
                 else if (scope.CaptureArray != null)
                 {
@@ -287,9 +298,15 @@ namespace Mond.Compiler
                 }
 
                 scope = scope.Previous;
+                upFrameCount++;
             }
 
-            Emit(new Instruction(InstructionType.Closure, new ImmediateOperand(Scope.LexicalDepth), label));
+            if (upFrameCount != Scope.LexicalDepth + 1)
+            {
+                throw new InvalidOperationException();
+            }
+
+            Emit(new Instruction(InstructionType.Closure, new ImmediateOperand(upFrameCount), label));
             return 1;
         }
 
@@ -332,12 +349,6 @@ namespace Mond.Compiler
         {
             Emit(new Instruction(InstructionType.Ret));
             return -1;
-        }
-
-        public int VarArgs(int fixedCount)
-        {
-            Emit(new Instruction(InstructionType.VarArgs, new ImmediateOperand(fixedCount)));
-            return 0;
         }
 
         public int Jump(LabelOperand label)

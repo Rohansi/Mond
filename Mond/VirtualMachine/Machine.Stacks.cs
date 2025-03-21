@@ -11,7 +11,7 @@ namespace Mond.VirtualMachine
         private readonly ReturnAddress[] _callStack;
         private int _callStackSize;
 
-        private readonly Frame[] _localStack;
+        private readonly MondValue[][] _localStack;
         private int _localStackSize;
 
         private readonly MondValue[] _evalStack;
@@ -23,7 +23,7 @@ namespace Mond.VirtualMachine
             _callStack = new ReturnAddress[CallStackCapacity];
             _callStackSize = -1;
 
-            _localStack = new Frame[CallStackCapacity];
+            _localStack = new MondValue[CallStackCapacity][];
             _localStackSize = -1;
 
             _evalStack = new MondValue[EvalStackCapacity];
@@ -49,19 +49,19 @@ namespace Mond.VirtualMachine
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void PushLocal(Frame value)
+        private void PushLocal(MondValue[] value)
         {
             _localStack[++_localStackSize] = value;
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private Frame PopLocal()
+        private MondValue[] PopLocal()
         {
             return _localStack[_localStackSize--];
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private Frame PeekLocal()
+        private MondValue[] PeekLocal()
         {
             return _localStack[_localStackSize];
         }

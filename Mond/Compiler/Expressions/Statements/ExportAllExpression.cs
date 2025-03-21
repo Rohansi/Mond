@@ -26,8 +26,8 @@ namespace Mond.Compiler.Expressions.Statements
             {
                 throw new MondCompilerException(this, CompilerError.ExportCannotBeUsedOutsideModule);
             }
-
-            if (exportsOperand.FrameIndex >= 0 || exportsOperand.FrameIndex != -context.FrameDepth)
+            
+            if (exportsOperand is not ArgumentIdentifierOperand || exportsOperand.FrameIndex != context.FrameDepth)
             {
                 throw new MondCompilerException(this, CompilerError.ExportCannotBeUsedOutsideModule);
             }
@@ -97,6 +97,17 @@ namespace Mond.Compiler.Expressions.Statements
 
         public override Expression Simplify(SimplifyContext context)
         {
+            var require = context.Identifier("require");
+            if (require == null && !context.Compiler.Options.UseImplicitGlobals)
+            {
+                throw new MondCompilerException(this, CompilerError.ImportMissingRequire);
+            }
+
+            if (require != null)
+            {
+                context.ReferenceIdentifier(require);
+            }
+
             return this;
         }
 
