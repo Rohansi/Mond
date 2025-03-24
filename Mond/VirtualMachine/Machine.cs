@@ -10,7 +10,7 @@ namespace Mond.VirtualMachine
     internal partial class Machine
     {
         private readonly MondState _state;
-        private readonly ArrayPool<MondValue> _arrayPool = new(4, 16);
+        private readonly ArrayPool<MondValue> _arrayPool = new(32, 16);
 
         internal MondValue Global;
 
@@ -326,7 +326,7 @@ namespace Mond.VirtualMachine
                                 break;
                             }
 
-                        case (int)InstructionType.LdState:
+                        case (int)InstructionType.SeqResume:
                             {
                                 var closure = functionAddress.Closure;
                                 if (closure.StoredFrame == null)
@@ -334,9 +334,9 @@ namespace Mond.VirtualMachine
                                     throw new InvalidOperationException();
                                 }
 
+                                // sequences have an `enter` instruction before jumping to the resume point so we need to pop that and then replace with the saved locals
+                                PopLocal(true);
                                 locals = closure.StoredFrame;
-
-                                PopLocal();
                                 PushLocal(locals);
 
                                 var evals = closure.StoredEvals;
@@ -353,7 +353,7 @@ namespace Mond.VirtualMachine
                                 break;
                             }
 
-                        case (int)InstructionType.StState:
+                        case (int)InstructionType.SeqSuspend:
                             {
                                 var closure = functionAddress.Closure;
                                 closure.StoredFrame = locals;
@@ -370,6 +370,14 @@ namespace Mond.VirtualMachine
                                         evals.Add(Pop()); // TODO: use array
                                         currentEvals--;
                                     }
+                                }
+
+                                Push(in MondValue.True);
+
+                                if (DoReturn(initialCallDepth, initialEvalDepth, initialEvalDirtyDepth, false, out program,
+                                        out code, out ip, out functionAddress, out locals, out var returnValue))
+                                {
+                                    return returnValue;
                                 }
 
                                 break;
@@ -660,7 +668,7 @@ namespace Mond.VirtualMachine
                                 }
 
                                 // get rid of old locals, because tailcall is a variant of ret
-                                PopLocal();
+                                PopLocal(true);
 
                                 functionAddress.EvalDepth = _evalStackSize;
                                 ip = address;
@@ -684,7 +692,7 @@ namespace Mond.VirtualMachine
                             {
                                 var localCount = UnpackFirstOperand(opcode);
 
-                                var newFrame = localCount > 0 ? new MondValue[localCount] : [];
+                                var newFrame = _arrayPool.RentRaw(localCount);
                                 PushLocal(newFrame);
 
                                 locals = newFrame;
@@ -693,32 +701,11 @@ namespace Mond.VirtualMachine
 
                         case (int)InstructionType.Ret:
                             {
-                                var returnAddress = PopCall();
-                                PopLocal();
-
-                                program = returnAddress.Program;
-                                code = program.Bytecode;
-                                ip = returnAddress.Address;
-
-                                functionAddress = _callStackSize >= 0 ? PeekCall() : null;
-                                locals = _localStackSize >= 0 ? PeekLocal() : null;
-
-                                DebuggerOnReturn();
-
-                                if (_callStackSize == initialCallDepth)
+                                if (DoReturn(initialCallDepth, initialEvalDepth, initialEvalDirtyDepth, true,
+                                        out program, out code, out ip, out functionAddress, out locals, out var returnValue))
                                 {
-                                    var result = Pop();
-                                    ClearDirty();
-
-                                    // restore the previous stack offsets
-                                    _evalStackSize = initialEvalDepth;
-                                    _evalStackDirtySize = initialEvalDirtyDepth;
-
-                                    return result;
+                                    return returnValue;
                                 }
-
-                                ClearDirty();
-
                                 break;
                             }
 
@@ -1120,6 +1107,40 @@ namespace Mond.VirtualMachine
 
             unpackedArgs.Reverse();
             return unpackedArgs;
+        }
+
+        private bool DoReturn(int initialCallDepth, int initialEvalDepth, int initialEvalDirtyDepth, bool returnLocalsToPool,
+            out MondProgram program, out int[] code, out int ip, out ReturnAddress functionAddress, out MondValue[] locals, out MondValue returnValue)
+        {
+            var returnAddress = PopCall();
+            PopLocal(returnLocalsToPool);
+
+            program = returnAddress.Program;
+            code = program.Bytecode;
+            ip = returnAddress.Address;
+
+            functionAddress = _callStackSize >= 0 ? PeekCall() : null;
+            locals = _localStackSize >= 0 ? PeekLocal() : null;
+
+            DebuggerOnReturn();
+
+            if (_callStackSize == initialCallDepth)
+            {
+                var result = Pop();
+                ClearDirty();
+
+                // restore the previous stack offsets
+                _evalStackSize = initialEvalDepth;
+                _evalStackDirtySize = initialEvalDirtyDepth;
+
+                returnValue = result;
+                return true;
+            }
+
+            ClearDirty();
+
+            returnValue = MondValue.Undefined;
+            return false;
         }
 
         private void DebuggerOnCall()

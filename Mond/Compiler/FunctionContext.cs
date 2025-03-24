@@ -127,9 +127,9 @@ namespace Mond.Compiler
                 }));
 
                 Bind(startLabel);
-
-                Scope = scope;
             }
+
+            Scope = scope;
 
             if (Scope.FrameDepth != Scope.Previous?.FrameDepth)
             {

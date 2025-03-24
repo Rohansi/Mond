@@ -19,7 +19,7 @@ namespace Mond.Compiler
         LdArr, StArr,                       // load/store array
         LdArrF, StArrF,                     // load/store to static index of array in current frame
         LdUp, LdUpValue, StUpValue,         // load upvalue array, load/store upvalues (variables captured by closures)
-        LdState, StState,                   // load/store current frame stack and evals in another frame
+        SeqResume, SeqSuspend,              // load/store current frame stack and evals for sequences
 
         NewObject, NewArray,                // create object/array
         Slice,                              // slice array

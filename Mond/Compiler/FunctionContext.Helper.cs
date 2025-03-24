@@ -180,15 +180,15 @@ namespace Mond.Compiler
             return -3;
         }
 
-        public int LoadState()
+        public int SeqSuspend()
         {
-            Emit(new Instruction(InstructionType.LdState));
+            Emit(new Instruction(InstructionType.SeqSuspend));
             return 0;
         }
 
-        public int StoreState()
+        public int SeqResume()
         {
-            Emit(new Instruction(InstructionType.StState));
+            Emit(new Instruction(InstructionType.SeqResume));
             return 0;
         }
 

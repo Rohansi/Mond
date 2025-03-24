@@ -55,9 +55,13 @@ namespace Mond.VirtualMachine
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private MondValue[] PopLocal()
+        private void PopLocal(bool returnToPool)
         {
-            return _localStack[_localStackSize--];
+            var locals = _localStack[_localStackSize--];
+            if (returnToPool)
+            {
+                _arrayPool.Return(locals);
+            }
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
