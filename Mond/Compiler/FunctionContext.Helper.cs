@@ -6,6 +6,14 @@ namespace Mond.Compiler
 {
     internal partial class FunctionContext
     {
+        public void Function(string functionName)
+        {
+            if (Compiler.Options.DebugInfo < MondDebugInfoLevel.StackTrace)
+                return;
+
+            Emit(new Instruction(InstructionType.Function, String(functionName ?? "")));
+        }
+
         public void Position(Token token)
         {
             if (Compiler.Options.DebugInfo < MondDebugInfoLevel.StackTrace)

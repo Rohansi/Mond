@@ -73,11 +73,7 @@ namespace Mond.Compiler
             Compiler.RegisterFunction(context);
 
             context.Bind(context.Label);
-
-            if (Compiler.Options.DebugInfo >= MondDebugInfoLevel.StackTrace)
-            {
-                context.Emit(new Instruction(InstructionType.Function, String(context.FullName)));
-            }
+            context.Function(context.FullName);
 
             int? varArgsFixedCount = functionExpression?.OtherArguments != null
                 ? functionExpression.Arguments.Count
@@ -112,6 +108,7 @@ namespace Mond.Compiler
                 Emit(new Instruction(InstructionType.Scope, new IInstructionOperand[]
                 {
                     new ImmediateOperand(scope.Id),
+                    new ImmediateOperand(scope.FrameDepth),
                     new ImmediateOperand(Compiler.ScopeDepth),
                     new ImmediateOperand(Scope?.Id ?? -1),
                     startLabel,

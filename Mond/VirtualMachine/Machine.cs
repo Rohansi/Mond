@@ -76,7 +76,7 @@ namespace Mond.VirtualMachine
             {
                 case ClosureType.Mond:
                     var returnAddress = PushCall();
-                    returnAddress.Initialize(closure.Program, closure.Address, closure, _evalStackSize);
+                    returnAddress.Initialize(closure.Program, closure.Address, closure, (short)_evalStackSize, true);
                     foreach (var arg in arguments)
                     {
                         returnAddress.Arguments.Add(arg);
@@ -670,7 +670,7 @@ namespace Mond.VirtualMachine
                                 // get rid of old locals, because tailcall is a variant of ret
                                 PopLocal(true);
 
-                                functionAddress.EvalDepth = _evalStackSize;
+                                functionAddress.EvalDepth = (short)_evalStackSize;
                                 ip = address;
                                 break;
                             }
@@ -1009,7 +1009,7 @@ namespace Mond.VirtualMachine
             {
                 case ClosureType.Mond:
                     var newFuncAddress = PushCall();
-                    newFuncAddress.Initialize(program, returnAddress, closure, _evalStackSize);
+                    newFuncAddress.Initialize(program, returnAddress, closure, (short)_evalStackSize, false);
                     foreach (var arg in argValues)
                     {
                         newFuncAddress.Arguments.Add(arg);

@@ -12,7 +12,7 @@ namespace Mond
     public sealed class MondProgram
     {
         private const uint MagicId = 0xFA57C0DE;
-        private const uint FormatVersion = 12;
+        private const uint FormatVersion = 13;
 
         internal readonly int[] Bytecode;
         internal readonly MondValue[] Numbers;
@@ -143,6 +143,7 @@ namespace Mond
                     foreach (var scope in DebugInfo.Scopes)
                     {
                         writer.Write(scope.Id);
+                        writer.Write(scope.FrameIndex);
                         writer.Write(scope.Depth);
                         writer.Write(scope.ParentId);
                         writer.Write(scope.StartAddress);
@@ -153,7 +154,6 @@ namespace Mond
                         {
                             writer.Write(ident.Name);
                             writer.Write(ident.IsReadOnly);
-                            writer.Write(ident.FrameIndex);
                             writer.Write(ident.Id);
                         }
                     }
@@ -296,6 +296,7 @@ namespace Mond
                     for (var i = 0; i < scopeCount; ++i)
                     {
                         var id = reader.ReadInt32();
+                        var frameIndex = reader.ReadInt32();
                         var depth = reader.ReadInt32();
                         var parentId = reader.ReadInt32();
                         var startAddress = reader.ReadInt32();
@@ -307,13 +308,14 @@ namespace Mond
                         {
                             var name = reader.ReadInt32();
                             var isReadOnly = reader.ReadBoolean();
-                            var frameIndex = reader.ReadInt32();
+                            var isCaptured = reader.ReadBoolean();
+                            var isArgument = reader.ReadBoolean();
                             var idx = reader.ReadInt32();
 
-                            idents.Add(new MondDebugInfo.Identifier(name, isReadOnly, frameIndex, idx));
+                            idents.Add(new MondDebugInfo.Identifier(name, isReadOnly, isCaptured, isArgument, idx));
                         }
 
-                        scopes.Add(new MondDebugInfo.Scope(id, depth, parentId, startAddress, endAddress, idents));
+                        scopes.Add(new MondDebugInfo.Scope(id, frameIndex, depth, parentId, startAddress, endAddress, idents));
                     }
                 }
 
@@ -336,7 +338,7 @@ namespace Mond
             var lexer = new Lexer(source, fileName, options);
             var parser = new Parser(lexer);
 
-            return CompileImpl(parser.ParseAll(), options, source);
+            return CompileImpl(parser.ParseAll(), options, fileName, source);
         }
 
         /// <summary>
@@ -353,7 +355,7 @@ namespace Mond
             var lexer = new Lexer(source, fileName, options, needSource);
             var parser = new Parser(lexer);
 
-            return CompileImpl(parser.ParseAll(), options, lexer.SourceCode);
+            return CompileImpl(parser.ParseAll(), options, fileName, lexer.SourceCode);
         }
 
         /// <summary>
@@ -379,14 +381,14 @@ namespace Mond
                 });
 
                 var sourceCode = lexer.SourceCode?.TrimStart('\r', '\n');
-                yield return CompileImpl(expression, options, sourceCode);
+                yield return CompileImpl(expression, options, fileName, sourceCode);
             }
         }
 
-        private static MondProgram CompileImpl(Expression expression, MondCompilerOptions options, string debugSourceCode = null)
+        private static MondProgram CompileImpl(Expression expression, MondCompilerOptions options, string fileName, string debugSourceCode)
         {
             var compiler = new ExpressionCompiler(options);
-            return compiler.Compile(expression, debugSourceCode);
+            return compiler.Compile(expression, fileName, debugSourceCode);
         }
     }
 }

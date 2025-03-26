@@ -11,15 +11,17 @@ namespace Mond.VirtualMachine
         public readonly List<MondValue> Arguments = new(16);
 
         public Closure Closure;
-        public int EvalDepth;
+        public short EvalDepth;
+        public bool IsEntry;
 
-        public void Initialize(MondProgram program, int address, Closure closure, int evalDepth)
+        public void Initialize(MondProgram program, int address, Closure closure, short evalDepth, bool isEntry)
         {
             Program = program;
             Address = address;
             Arguments.Clear();
             Closure = closure;
             EvalDepth = evalDepth;
+            IsEntry = isEntry;
         }
 
         public MondValue GetArgument(int index)

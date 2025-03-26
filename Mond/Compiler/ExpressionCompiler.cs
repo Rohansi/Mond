@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Mond.Compiler.Expressions;
 using Mond.Compiler.Visitors;
@@ -39,7 +40,7 @@ namespace Mond.Compiler
             ScopeDepth = -1;
         }
 
-        public MondProgram Compile(Expression expression, string debugSourceCode = null)
+        public MondProgram Compile(Expression expression, string fileName, string debugSourceCode)
         {
             var simplifyContext = new SimplifyContext(this, null);
             var scope = simplifyContext.PushScope();
@@ -55,6 +56,7 @@ namespace Mond.Compiler
             RegisterFunction(context);
 
             context.PushScope(scope);
+            context.Function(Path.GetFileNameWithoutExtension(fileName) ?? "");
             context.Position(expression.StartToken); // so address 0 has debug info
             expression.Compile(context);
             context.LoadUndefined();
@@ -183,20 +185,21 @@ namespace Mond.Compiler
                 .Select(s =>
                 {
                     var id = ((ImmediateOperand)s.Operands[0]).Value;
-                    var depth = ((ImmediateOperand)s.Operands[1]).Value;
-                    var parentId = ((ImmediateOperand)s.Operands[2]).Value;
-                    var start = ((LabelOperand)s.Operands[3]).Position;
-                    var end = ((LabelOperand)s.Operands[4]).Position - 1;
-                    var identOperands = ((DeferredOperand<ListOperand<DebugIdentifierOperand>>)s.Operands[5]).Value.Operands;
+                    var frameIndex = ((ImmediateOperand)s.Operands[1]).Value;
+                    var depth = ((ImmediateOperand)s.Operands[2]).Value;
+                    var parentId = ((ImmediateOperand)s.Operands[3]).Value;
+                    var start = ((LabelOperand)s.Operands[4]).Position;
+                    var end = ((LabelOperand)s.Operands[5]).Position - 1;
+                    var identOperands = ((DeferredOperand<ListOperand<DebugIdentifierOperand>>)s.Operands[6]).Value.Operands;
 
                     if (!start.HasValue || !end.HasValue)
                         throw new Exception("scope labels not bound");
 
                     var identifiers = identOperands
-                        .Select(i => new MondDebugInfo.Identifier(i.Name.Id, i.IsReadOnly, i.FrameIndex, i.Id))
+                        .Select(i => new MondDebugInfo.Identifier(i.Name.Id, i.IsReadOnly, i.IsCaptured, i.IsArgument, i.Id))
                         .ToList();
 
-                    return new MondDebugInfo.Scope(id, depth, parentId, start.Value, end.Value, identifiers);
+                    return new MondDebugInfo.Scope(id, frameIndex, depth, parentId, start.Value, end.Value, identifiers);
                 })
                 .OrderBy(s => s.Id)
                 .ToList();

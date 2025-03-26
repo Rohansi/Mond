@@ -171,7 +171,8 @@ namespace Mond.Compiler.Expressions.Statements
 
         protected override FunctionContext NewContext(ExpressionCompiler compiler, Scope scope, string parentName, string name)
         {
-            return new SequenceBodyContext(Compiler, scope, name, parentName, _sequenceBody);
+            // note: not using parentName+name args because we don't want to append moveNext twice
+            return new SequenceBodyContext(Compiler, scope, ParentName, Name, _sequenceBody);
         }
 
         public override void Emit(Instruction instruction)
@@ -184,7 +185,7 @@ namespace Mond.Compiler.Expressions.Statements
     {
         public SequenceBodyExpression SequenceBody { get; }
 
-        public SequenceBodyContext(ExpressionCompiler compiler, Scope scope, string name, string parentName, SequenceBodyExpression sequenceBody)
+        public SequenceBodyContext(ExpressionCompiler compiler, Scope scope, string parentName, string name, SequenceBodyExpression sequenceBody)
             : base(compiler, scope, parentName, name)
         {
             SequenceBody = sequenceBody;
