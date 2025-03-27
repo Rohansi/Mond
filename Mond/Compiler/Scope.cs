@@ -41,8 +41,20 @@ namespace Mond.Compiler
             if (IsDefined(name))
                 return false;
 
-            var frameScope = GetFrameScope();
-            var identifier = new IdentifierOperand(this, FrameDepth, name, isReadOnly);
+            var identifier = new IdentifierOperand(this, FrameDepth, name, isReadOnly, false);
+            _identifiers.Add(name, identifier);
+            return true;
+        }
+
+        public bool DefineGlobal(string name)
+        {
+            if (_finishedPreprocess)
+                throw new InvalidOperationException();
+
+            if (IsDefined(name))
+                return false;
+
+            var identifier = new IdentifierOperand(this, FrameDepth, name, true, true);
             _identifiers.Add(name, identifier);
             return true;
         }
@@ -81,7 +93,7 @@ namespace Mond.Compiler
                         break;
                 }
 
-                identifier = new IdentifierOperand(this, FrameDepth, numberedName, false);
+                identifier = new IdentifierOperand(this, FrameDepth, numberedName, false, false);
             }
             else
             {
@@ -90,7 +102,7 @@ namespace Mond.Compiler
                     throw new InvalidOperationException($"Cannot define multiple internal variables named `{name}`");
                 }
 
-                identifier = new IdentifierOperand(this, FrameDepth, name, false);
+                identifier = new IdentifierOperand(this, FrameDepth, name, false, false);
             }
 
             _identifiers.Add(identifier.Name, identifier);

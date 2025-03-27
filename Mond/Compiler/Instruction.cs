@@ -11,7 +11,7 @@ namespace Mond.Compiler
         LdUndef, LdNull,                    // load undefined/null constant
         LdTrue, LdFalse,                    // load true/false constant
         LdNum, LdStr,                       // load number/string constant
-        LdGlobal,                           // load global object
+        LdGlobal, LdGlobalFld,              // load global object, load field from global object
 
         LdLocF, StLocF,                     // load/store local in current frame
         LdArgF, StArgF,                     // load/store args in current frame

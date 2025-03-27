@@ -196,7 +196,7 @@ namespace Mond.Compiler
                         throw new Exception("scope labels not bound");
 
                     var identifiers = identOperands
-                        .Select(i => new MondDebugInfo.Identifier(i.Name.Id, i.IsReadOnly, i.IsCaptured, i.IsArgument, i.Id))
+                        .Select(i => new MondDebugInfo.Identifier(i.Name.Id, i.IsReadOnly, i.IsGlobal, i.IsCaptured, i.IsArgument, i.Id))
                         .ToList();
 
                     return new MondDebugInfo.Scope(id, frameIndex, depth, parentId, start.Value, end.Value, identifiers);

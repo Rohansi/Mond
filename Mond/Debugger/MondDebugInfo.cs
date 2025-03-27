@@ -77,14 +77,16 @@ namespace Mond.Debugger
         {
             public int Name { get; }
             public bool IsReadOnly { get; }
+            public bool IsGlobal { get; }
             public bool IsCaptured { get; }
             public bool IsArgument { get; }
             public int Id { get; }
 
-            public Identifier(int name, bool isReadOnly, bool isCaptured, bool isArgument, int id)
+            public Identifier(int name, bool isReadOnly, bool isGlobal, bool isCaptured, bool isArgument, int id)
             {
                 Name = name;
                 IsReadOnly = isReadOnly;
+                IsGlobal = isGlobal;
                 IsCaptured = isCaptured;
                 IsArgument = isArgument;
                 Id = id;

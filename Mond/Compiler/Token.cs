@@ -48,6 +48,7 @@
         From,
 
         Debugger,
+        DeclareGlobals,
 
         Semicolon,
         Comma,

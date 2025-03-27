@@ -25,6 +25,11 @@ namespace Mond.Compiler.Visitors
             return expression;
         }
 
+        public Expression Visit(DeclareGlobalsExpression expression)
+        {
+            return expression;
+        }
+
         public virtual Expression Visit(DoWhileExpression expression)
         {
             return new DoWhileExpression(

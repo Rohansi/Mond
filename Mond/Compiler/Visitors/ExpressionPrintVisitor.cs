@@ -96,6 +96,12 @@ namespace Mond.Compiler.Visitors
             return 0;
         }
 
+        public int Visit(DeclareGlobalsExpression expression)
+        {
+            _writer.Write($"__declare_globals {string.Join(", ", expression.DeclaredIdentifiers)}");
+            return 0;
+        }
+
         public int Visit(DoWhileExpression expression)
         {
             _writer.WriteLine("do");

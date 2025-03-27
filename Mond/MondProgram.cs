@@ -308,11 +308,12 @@ namespace Mond
                         {
                             var name = reader.ReadInt32();
                             var isReadOnly = reader.ReadBoolean();
+                            var isGlobal = reader.ReadBoolean();
                             var isCaptured = reader.ReadBoolean();
                             var isArgument = reader.ReadBoolean();
                             var idx = reader.ReadInt32();
 
-                            idents.Add(new MondDebugInfo.Identifier(name, isReadOnly, isCaptured, isArgument, idx));
+                            idents.Add(new MondDebugInfo.Identifier(name, isReadOnly, isGlobal, isCaptured, isArgument, idx));
                         }
 
                         scopes.Add(new MondDebugInfo.Scope(id, frameIndex, depth, parentId, startAddress, endAddress, idents));

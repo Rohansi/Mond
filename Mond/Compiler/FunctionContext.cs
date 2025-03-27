@@ -116,7 +116,7 @@ namespace Mond.Compiler
                     new DeferredOperand<ListOperand<DebugIdentifierOperand>>(() =>
                     {
                         var operands = scope.Identifiers
-                            .Select(i => new DebugIdentifierOperand(String(i.Name), i.IsReadOnly, i.IsCaptured, i is ArgumentIdentifierOperand, i.FrameIndex, i.Id))
+                            .Select(i => new DebugIdentifierOperand(String(i.Name), i.IsReadOnly, i.IsGlobal, i.IsCaptured, i is ArgumentIdentifierOperand, i.FrameIndex, i.Id))
                             .ToList();
 
                         return new ListOperand<DebugIdentifierOperand>(operands);

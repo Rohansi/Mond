@@ -18,6 +18,13 @@
         {
             var stack = 0;
 
+            if (Left is GlobalExpression)
+            {
+                context.Position(Token); // debug info
+                stack += context.LoadGlobalField(context.String(Name));
+                return stack;
+            }
+
             stack += Left.Compile(context);
 
             context.Position(Token); // debug info

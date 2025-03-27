@@ -217,6 +217,13 @@ namespace Mond.VirtualMachine
                                 Push(Global);
                                 break;
                             }
+
+                        case (int)InstructionType.LdGlobalFld:
+                            {
+                                var stringIndex = UnpackFirstOperand(opcode);
+                                Push(Global[program.Strings[stringIndex]]);
+                                break;
+                            }
                         #endregion
 
                         #region Storables

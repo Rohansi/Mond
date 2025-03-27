@@ -45,6 +45,11 @@ namespace Mond.Compiler
             return Scope.Define(name, isReadOnly);
         }
 
+        public bool DefineGlobal(string name)
+        {
+            return Scope.DefineGlobal(name);
+        }
+
         public IdentifierOperand DefineInternal(string name, bool canHaveMultiple = false)
         {
             return Scope.DefineInternal(name, canHaveMultiple);
@@ -77,6 +82,11 @@ namespace Mond.Compiler
                 throw new InvalidOperationException("Referencing an identifier from an inaccessible scope!");
             }
 #endif
+
+            if (ident.IsGlobal)
+            {
+                return;
+            }
 
             if (ident.Scope.FrameDepth == Scope.FrameDepth)
             {

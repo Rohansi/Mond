@@ -96,7 +96,11 @@ namespace Mond.Compiler
 
             if (operand is IdentifierOperand identifier)
             {
-                if (identifier.FrameIndex == FrameDepth)
+                if (identifier.IsGlobal)
+                {
+                    Emit(new Instruction(InstructionType.LdGlobalFld, String(identifier.Name)));
+                }
+                else if (identifier.FrameIndex == FrameDepth)
                 {
                     if (identifier.IsCaptured)
                     {
@@ -134,6 +138,12 @@ namespace Mond.Compiler
             return 1;
         }
 
+        public int LoadGlobalField(ConstantOperand<string> operand)
+        {
+            Emit(new Instruction(InstructionType.LdGlobalFld, operand));
+            return 1;
+        }
+
         public int LoadField(ConstantOperand<string> operand)
         {
             Emit(new Instruction(InstructionType.LdFld, operand));
@@ -148,6 +158,12 @@ namespace Mond.Compiler
 
         public int Store(IdentifierOperand operand)
         {
+            if (operand.IsGlobal)
+            {
+                // should always be readonly
+                throw new InvalidOperationException();
+            } 
+            
             if (operand.FrameIndex == FrameDepth)
             {
                 if (operand.IsCaptured)
