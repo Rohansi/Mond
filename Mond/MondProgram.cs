@@ -12,7 +12,7 @@ namespace Mond
     public sealed class MondProgram
     {
         private const uint MagicId = 0xFA57C0DE;
-        private const uint FormatVersion = 13;
+        private const byte FormatVersion = 13;
 
         internal readonly int[] Bytecode;
         internal readonly MondValue[] Numbers;
@@ -153,7 +153,7 @@ namespace Mond
                         foreach (var ident in scope.Identifiers)
                         {
                             writer.Write(ident.Name);
-                            writer.Write(ident.IsReadOnly);
+                            writer.Write((byte)ident.Flags);
                             writer.Write(ident.Id);
                         }
                     }
@@ -295,7 +295,7 @@ namespace Mond
                     scopes = new List<MondDebugInfo.Scope>(scopeCount);
                     for (var i = 0; i < scopeCount; ++i)
                     {
-                        var id = reader.ReadInt32();
+                        var scopeId = reader.ReadInt32();
                         var frameIndex = reader.ReadInt32();
                         var depth = reader.ReadInt32();
                         var parentId = reader.ReadInt32();
@@ -307,16 +307,13 @@ namespace Mond
                         for (var j = 0; j < identCount; ++j)
                         {
                             var name = reader.ReadInt32();
-                            var isReadOnly = reader.ReadBoolean();
-                            var isGlobal = reader.ReadBoolean();
-                            var isCaptured = reader.ReadBoolean();
-                            var isArgument = reader.ReadBoolean();
-                            var idx = reader.ReadInt32();
+                            var flags = (MondDebugInfo.IdentifierFlags)reader.ReadByte();
+                            var id = reader.ReadInt32();
 
-                            idents.Add(new MondDebugInfo.Identifier(name, isReadOnly, isGlobal, isCaptured, isArgument, idx));
+                            idents.Add(new MondDebugInfo.Identifier(name, flags, id));
                         }
 
-                        scopes.Add(new MondDebugInfo.Scope(id, frameIndex, depth, parentId, startAddress, endAddress, idents));
+                        scopes.Add(new MondDebugInfo.Scope(scopeId, frameIndex, depth, parentId, startAddress, endAddress, idents));
                     }
                 }
 
