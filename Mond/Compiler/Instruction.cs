@@ -11,14 +11,15 @@ namespace Mond.Compiler
         LdUndef, LdNull,                    // load undefined/null constant
         LdTrue, LdFalse,                    // load true/false constant
         LdNum, LdStr,                       // load number/string constant
-        LdGlobal,                           // load global object
+        LdGlobal, LdGlobalFld,              // load global object, load field from global object
 
         LdLocF, StLocF,                     // load/store local in current frame
         LdArgF, StArgF,                     // load/store args in current frame
-        LdLoc, StLoc,                       // load/store local
         LdFld, StFld,                       // load/store field
         LdArr, StArr,                       // load/store array
-        LdState, StState,                   // load/store current frame stack and evals in another frame
+        LdArrF, StArrF,                     // load/store to static index of array in current frame
+        LdUp, LdUpValue, StUpValue,         // load upvalue array, load/store upvalues (variables captured by closures)
+        SeqResume, SeqSuspend,              // load/store current frame stack and evals for sequences
 
         NewObject, NewArray,                // create object/array
         Slice,                              // slice array
@@ -35,7 +36,7 @@ namespace Mond.Compiler
         BitNot,                             // bitwise not (one's compliment)
 
         Closure, Call, TailCall,            // make closure, call function, tail call
-        Enter, Leave, Ret,                  // push locals/begin function, pop locals, pop locals and return from function
+        Enter, Ret,                         // push locals/begin function, pop locals and return from function
         VarArgs,                            // setup variable length args
 
         Jmp,                                // jump unconditionally

@@ -118,6 +118,7 @@ namespace Mond.Compiler
             RegisterStatement(TokenType.Foreach, new ForeachParselet());
             RegisterStatement(TokenType.Switch, new SwitchParselet());
             RegisterStatement(TokenType.Debugger, new DebuggerParselet());
+            RegisterStatement(TokenType.DeclareGlobals, new DeclareGlobalsParselet());
             RegisterStatement(TokenType.Decorator, new DecoratorParselet());
             RegisterStatement(TokenType.Export, new ExportParselet());
             RegisterStatement(TokenType.From, new ImportParselet());

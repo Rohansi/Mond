@@ -29,10 +29,10 @@ namespace Mond.Compiler.Expressions
             return transformedCall.Compile(context);
         }
 
-        public override Expression Simplify()
+        public override Expression Simplify(SimplifyContext context)
         {
-            Left = Left.Simplify();
-            Right = Right.Simplify();
+            Left = Left.Simplify(context);
+            Right = Right.Simplify(context);
 
             return this;
         }

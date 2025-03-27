@@ -1,15 +1,13 @@
-﻿using Mond.Compiler.Visitors;
-
-namespace Mond.Compiler.Expressions.Statements
+﻿namespace Mond.Compiler.Expressions.Statements
 {
-    class DoWhileExpression : Expression, IStatementExpression
+    internal class DoWhileExpression : Expression, IStatementExpression
     {
-        public BlockExpression Block { get; private set; }
+        public ScopeExpression Block { get; private set; }
         public Expression Condition { get; private set; }
 
         public bool HasChildren => true;
 
-        public DoWhileExpression(Token token, BlockExpression block, Expression condition)
+        public DoWhileExpression(Token token, ScopeExpression block, Expression condition)
             : base(token)
         {
             Block = block;
@@ -23,57 +21,32 @@ namespace Mond.Compiler.Expressions.Statements
             var stack = 0;
             var start = context.MakeLabel("doWhileStart");
             var cont = context.MakeLabel("doWhileContinue");
-            var brk = context.MakeLabel("doWhileBreak");
             var end = context.MakeLabel("doWhileEnd");
 
-            var containsFunction = new LoopContainsFunctionVisitor();
-            Block.Accept(containsFunction);
-
-            var loopContext = containsFunction.Value ? new LoopContext(context) : context;
-
             // body
-            loopContext.PushScope();
-            loopContext.PushLoop(cont, containsFunction.Value ? brk : end);
+            stack += context.Bind(start);
 
-            stack += loopContext.Bind(start);
-
-            if (containsFunction.Value)
-                stack += loopContext.Enter();
-
-            stack += Block.Compile(loopContext);
-            loopContext.PopLoop();
+            context.PushLoop(cont, end);
+            stack += Block.Compile(context);
+            context.PopLoop();
 
             // condition check
             stack += context.Bind(cont); // continue
-
-            if (containsFunction.Value)
-                stack += context.Leave();
 
             context.Statement(Condition);
             stack += Condition.Compile(context);
             stack += context.JumpTrue(start);
 
-            if (containsFunction.Value)
-            {
-                stack += context.Jump(end);
-
-                stack += context.Bind(brk); // break (with function)
-                stack += context.Leave();
-            }
-
-            stack += context.Bind(end); // break (without function)
-
-            loopContext.PopScope();
+            stack += context.Bind(end); // break
 
             CheckStack(stack, 0);
             return stack;
         }
 
-        public override Expression Simplify()
+        public override Expression Simplify(SimplifyContext context)
         {
-            Block = (BlockExpression)Block.Simplify();
-            Condition = Condition.Simplify();
-
+            Block = (ScopeExpression)Block.Simplify(context);
+            Condition = Condition.Simplify(context);
             return this;
         }
 

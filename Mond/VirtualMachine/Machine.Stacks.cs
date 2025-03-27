@@ -11,7 +11,7 @@ namespace Mond.VirtualMachine
         private readonly ReturnAddress[] _callStack;
         private int _callStackSize;
 
-        private readonly Frame[] _localStack;
+        private readonly MondValue[][] _localStack;
         private int _localStackSize;
 
         private readonly MondValue[] _evalStack;
@@ -23,7 +23,7 @@ namespace Mond.VirtualMachine
             _callStack = new ReturnAddress[CallStackCapacity];
             _callStackSize = -1;
 
-            _localStack = new Frame[CallStackCapacity];
+            _localStack = new MondValue[CallStackCapacity][];
             _localStackSize = -1;
 
             _evalStack = new MondValue[EvalStackCapacity];
@@ -31,37 +31,41 @@ namespace Mond.VirtualMachine
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void PushCall(in ReturnAddress value)
+        private ReturnAddress PushCall()
         {
-            _callStack[++_callStackSize] = value;
+            return _callStack[++_callStackSize] ??= new ReturnAddress();
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private ref ReturnAddress PopCall()
+        private ReturnAddress PopCall()
         {
-            return ref _callStack[_callStackSize--];
+            return _callStack[_callStackSize--];
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private ref ReturnAddress PeekCall()
+        private ReturnAddress PeekCall()
         {
-            return ref _callStack[_callStackSize];
+            return _callStack[_callStackSize];
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void PushLocal(Frame value)
+        private void PushLocal(MondValue[] value)
         {
             _localStack[++_localStackSize] = value;
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private Frame PopLocal()
+        private void PopLocal(bool returnToPool)
         {
-            return _localStack[_localStackSize--];
+            var locals = _localStack[_localStackSize--];
+            if (returnToPool)
+            {
+                _arrayPool.Return(locals);
+            }
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private Frame PeekLocal()
+        private MondValue[] PeekLocal()
         {
             return _localStack[_localStackSize];
         }

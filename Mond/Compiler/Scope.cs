@@ -1,51 +1,74 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Mond.Compiler
 {
-    class Scope
+    internal class Scope
     {
         private readonly Dictionary<string, IdentifierOperand> _identifiers;
-        private readonly int _argIndex;
-        private readonly int _localIndex;
+        private bool _finishedPreprocess;
         private int _nextId;
 
         public int Id { get; }
+        public int FrameDepth { get; }
+        public int LexicalDepth { get; }
         public Scope Previous { get; }
-        public Action PopAction { get; }
+        public Action PopAction { get; set; }
+        public IdentifierOperand CaptureArray { get; private set; }
 
-        public Scope(int id, int argIndex, int localIndex, Scope previous, Action popAction = null)
+        public int IdentifierCount => _nextId;
+
+        public IEnumerable<IdentifierOperand> Identifiers => _identifiers.Values;
+
+        public Scope(int id, int frameDepth, int lexicalDepth, Scope previous, Action popAction = null)
         {
             _identifiers = new Dictionary<string, IdentifierOperand>();
-            _argIndex = argIndex;
-            _localIndex = localIndex;
             _nextId = 0;
 
             Id = id;
+            FrameDepth = frameDepth;
+            LexicalDepth = lexicalDepth;
             Previous = previous;
             PopAction = popAction;
         }
 
-        public IEnumerable<IdentifierOperand> Identifiers => _identifiers.Values;
-
         public bool Define(string name, bool isReadOnly)
         {
+            if (_finishedPreprocess)
+                throw new InvalidOperationException();
+
             if (IsDefined(name))
                 return false;
 
-            var frameScope = GetFrameScope();
-            var id = frameScope._nextId++;
-            var identifier = new IdentifierOperand(_localIndex, id, name, isReadOnly);
+            var identifier = new IdentifierOperand(this, FrameDepth, name, isReadOnly, false);
+            _identifiers.Add(name, identifier);
+            return true;
+        }
+
+        public bool DefineGlobal(string name)
+        {
+            if (_finishedPreprocess)
+                throw new InvalidOperationException();
+
+            if (IsDefined(name))
+                return false;
+
+            var identifier = new IdentifierOperand(this, FrameDepth, name, true, true);
             _identifiers.Add(name, identifier);
             return true;
         }
 
         public bool DefineArgument(int index, string name)
         {
+            if (_finishedPreprocess)
+                throw new InvalidOperationException();
+
             if (name[0] != '#' && IsDefined(name))
                 return false;
 
-            var identifier = new ArgumentIdentifierOperand(-_argIndex, index, name);
+            var identifier = new ArgumentIdentifierOperand(this, FrameDepth, index, name);
+            identifier.Id = index;
             _identifiers.Add(name, identifier);
             return true;
         }
@@ -55,10 +78,8 @@ namespace Mond.Compiler
             name = "#" + name;
 
             var frameScope = GetFrameScope();
-            var id = frameScope._nextId++;
 
             IdentifierOperand identifier;
-
             if (canHaveMultiple)
             {
                 var n = 0;
@@ -72,13 +93,26 @@ namespace Mond.Compiler
                         break;
                 }
 
-                identifier = new IdentifierOperand(_localIndex, id, numberedName, false);
-                _identifiers.Add(numberedName, identifier);
-                return identifier;
+                identifier = new IdentifierOperand(this, FrameDepth, numberedName, false, false);
+            }
+            else
+            {
+                if (IsDefined(name))
+                {
+                    throw new InvalidOperationException($"Cannot define multiple internal variables named `{name}`");
+                }
+
+                identifier = new IdentifierOperand(this, FrameDepth, name, false, false);
             }
 
-            identifier = new IdentifierOperand(_localIndex, id, name, false);
-            _identifiers.Add(name, identifier);
+            _identifiers.Add(identifier.Name, identifier);
+
+            // we only support adding new internal variables after the first pass. these are never allowed to be captured!
+            if (_finishedPreprocess)
+            {
+                identifier.Id = frameScope._nextId++;
+            }
+
             return identifier;
         }
 
@@ -98,6 +132,38 @@ namespace Mond.Compiler
             return Get(name, inherit) != null;
         }
 
+        public (IdentifierOperand CaptureArray, int CaptureCount) Preprocess()
+        {
+            if (_finishedPreprocess)
+            {
+                throw new InvalidOperationException();
+            }
+            
+            var frameScope = GetFrameScope();
+            var hasCapturedVars = _identifiers.Values.Any(i => i.IsCaptured);
+            var captureArray = hasCapturedVars
+                ? DefineInternal($"frame_{Id}")
+                : null;
+            var nextCaptureId = 0;
+
+            foreach (var identifier in _identifiers.Values)
+            {
+                if (identifier.IsCaptured)
+                {
+                    identifier.Id = nextCaptureId++;
+                    identifier.CaptureArray = captureArray;
+                }
+                else if (identifier is not ArgumentIdentifierOperand)
+                {
+                    identifier.Id = frameScope._nextId++;
+                }
+            }
+
+            _finishedPreprocess = true;
+            CaptureArray = captureArray;
+            return (captureArray, nextCaptureId);
+        }
+
         private Scope GetFrameScope()
         {
             Scope frameScope = null;
@@ -105,7 +171,7 @@ namespace Mond.Compiler
             if (Previous != null)
             {
                 var curr = Previous;
-                while (curr._localIndex == _localIndex)
+                while (curr.FrameDepth == FrameDepth)
                 {
                     frameScope = curr;
 

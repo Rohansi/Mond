@@ -34,12 +34,10 @@ namespace Mond.Compiler.Expressions
             stack += context.Load(context.Number(nextState)); // set resume point
             stack += context.Store(state);
 
-            stack += context.StoreState(sequenceContext.LocalIndex - 1); // save locals
-            stack += context.LoadTrue();
-            stack += context.Return();
+            stack += context.SeqSuspend(); // save state, return true
 
             stack += context.Bind(nextStateLabel);
-            stack += context.LoadState(sequenceContext.LocalIndex - 1); // load locals
+            stack += context.SeqResume(); // restore state
 
             if (!(Parent is IBlockExpression))
             {
@@ -52,9 +50,9 @@ namespace Mond.Compiler.Expressions
             return stack;
         }
 
-        public override Expression Simplify()
+        public override Expression Simplify(SimplifyContext context)
         {
-            Value = Value.Simplify();
+            Value = Value.Simplify(context);
             return this;
         }
 

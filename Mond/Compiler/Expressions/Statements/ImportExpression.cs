@@ -9,7 +9,9 @@ namespace Mond.Compiler.Expressions.Statements
         public string BindName { get; }
         public List<DestructuredObjectExpression.Field> Fields { get; }
 
-        public bool HasChildren { get; }
+        public bool HasChildren => false;
+
+        private DestructuredObjectExpression _destructureExpression;
 
         public ImportExpression(Token token, string moduleName, string bindName)
             : base(token)
@@ -33,6 +35,8 @@ namespace Mond.Compiler.Expressions.Statements
             ModuleName = moduleName;
             BindName = null;
             Fields = fields ?? [];
+
+            _destructureExpression = new DestructuredObjectExpression(Token, Fields, null, true);
         }
 
         public override int Compile(FunctionContext context)
@@ -70,25 +74,32 @@ namespace Mond.Compiler.Expressions.Statements
                 }
                 else
                 {
-                    if (!context.DefineIdentifier(BindName, true))
-                    {
-                        throw new MondCompilerException(this, CompilerError.IdentifierAlreadyDefined, BindName);
-                    }
-
                     stack += context.Store(context.Identifier(BindName));
                 }
             }
             else
             {
-                stack += new DestructuredObjectExpression(Token, Fields, null, true).Compile(context);
+                stack += _destructureExpression.Compile(context);
             }
 
             CheckStack(stack, 0);
             return stack;
         }
 
-        public override Expression Simplify()
+        public override Expression Simplify(SimplifyContext context)
         {
+            if (BindName != null)
+            {
+                if (!context.MakeDeclarationsGlobal && !context.DefineIdentifier(BindName, true))
+                {
+                    throw new MondCompilerException(this, CompilerError.IdentifierAlreadyDefined, BindName);
+                }
+            }
+            else
+            {
+                _destructureExpression.Simplify(context);
+            }
+
             return this;
         }
 

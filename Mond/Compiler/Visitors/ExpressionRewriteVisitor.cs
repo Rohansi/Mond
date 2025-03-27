@@ -25,6 +25,11 @@ namespace Mond.Compiler.Visitors
             return expression;
         }
 
+        public Expression Visit(DeclareGlobalsExpression expression)
+        {
+            return expression;
+        }
+
         public virtual Expression Visit(DoWhileExpression expression)
         {
             return new DoWhileExpression(
@@ -38,13 +43,13 @@ namespace Mond.Compiler.Visitors
 
         public virtual Expression Visit(ForeachExpression expression)
         {
-            var destructure = expression.DestructureExpression != null ? expression.DestructureExpression.Accept(this) : null;
+            var destructure = expression.DestructureExpression?.Accept(this);
             return new ForeachExpression(
                 expression.Token,
                 expression.InToken,
                 expression.Identifier,
                 expression.Expression.Accept(this),
-                (BlockExpression)expression.Block.Accept(this),
+                (ScopeExpression)expression.Block.Accept(this),
                 destructure)
             {
                 EndToken = expression.EndToken
@@ -55,9 +60,9 @@ namespace Mond.Compiler.Visitors
         {
             return new ForExpression(
                 expression.Token,
-                expression.Initializer != null ? (BlockExpression)expression.Initializer.Accept(this) : null,
-                expression.Condition != null ? expression.Condition.Accept(this) : null,
-                expression.Increment != null ? (BlockExpression)expression.Increment.Accept(this) : null,
+                (BlockExpression)expression.Initializer?.Accept(this),
+                expression.Condition?.Accept(this),
+                (BlockExpression)expression.Increment?.Accept(this),
                 (ScopeExpression)expression.Block.Accept(this))
             {
                 EndToken = expression.EndToken
@@ -80,18 +85,17 @@ namespace Mond.Compiler.Visitors
 
         public virtual Expression Visit(IfExpression expression)
         {
-            Func<IfExpression.Branch, IfExpression.Branch> visit = b =>
+            IfExpression.Branch VisitBranch(IfExpression.Branch b)
             {
-                if (b == null)
-                    return null;
+                if (b == null) return null;
 
-                var condition = b.Condition != null ? b.Condition.Accept(this) : null;
-                return new IfExpression.Branch(condition, (BlockExpression)b.Block.Accept(this));
-            };
+                var condition = b.Condition?.Accept(this);
+                return new IfExpression.Branch(condition, (ScopeExpression)b.Block.Accept(this));
+            }
 
-            var branches = expression.Branches.Select(visit).ToList();
+            var branches = expression.Branches.Select(VisitBranch).ToList();
 
-            return new IfExpression(expression.Token, branches, visit(expression.Else))
+            return new IfExpression(expression.Token, branches, VisitBranch(expression.Else))
             {
                 EndToken = expression.EndToken
             };
@@ -121,17 +125,16 @@ namespace Mond.Compiler.Visitors
 
         public virtual Expression Visit(SwitchExpression expression)
         {
-            Func<SwitchExpression.Branch, SwitchExpression.Branch> visit = b =>
+            SwitchExpression.Branch VisitBranch(SwitchExpression.Branch b)
             {
-                if (b == null)
-                    return null;
+                if (b == null) return null;
 
-                var conditions = b.Conditions.Select(c => c != null ? c.Accept(this) : null).ToList();
+                var conditions = b.Conditions.Select(c => c?.Accept(this)).ToList();
 
-                return new SwitchExpression.Branch(conditions, (BlockExpression)b.Block.Accept(this));
-            };
+                return new SwitchExpression.Branch(conditions, (ScopeExpression)b.Block.Accept(this));
+            }
 
-            var branches = expression.Branches.Select(visit).ToList();
+            var branches = expression.Branches.Select(VisitBranch).ToList();
 
             return new SwitchExpression(expression.Token, expression.Expression.Accept(this), branches)
             {
@@ -345,9 +348,9 @@ namespace Mond.Compiler.Visitors
             return new SliceExpression(
                 expression.Token,
                 expression.Left.Accept(this),
-                expression.Start != null ? expression.Start.Accept(this) : null,
-                expression.End != null ? expression.End.Accept(this) : null,
-                expression.Step != null ? expression.Step.Accept(this) : null)
+                expression.Start?.Accept(this),
+                expression.End?.Accept(this),
+                expression.Step?.Accept(this))
             {
                 EndToken = expression.EndToken
             };
@@ -385,7 +388,7 @@ namespace Mond.Compiler.Visitors
 
         public virtual Expression Visit(DestructuredObjectExpression expression)
         {
-            var initializer = expression.Initializer != null ? expression.Initializer.Accept(this) : null;
+            var initializer = expression.Initializer?.Accept(this);
             return new DestructuredObjectExpression(expression.Token, expression.Fields, initializer, expression.IsReadOnly)
             {
                 EndToken = expression.EndToken
@@ -394,7 +397,7 @@ namespace Mond.Compiler.Visitors
 
         public virtual Expression Visit(DestructuredArrayExpression expression)
         {
-            var initializer = expression.Initializer != null ? expression.Initializer.Accept(this) : null;
+            var initializer = expression.Initializer?.Accept(this);
             return new DestructuredArrayExpression(expression.Token, expression.Indices, initializer, expression.IsReadOnly)
             {
                 EndToken = expression.EndToken

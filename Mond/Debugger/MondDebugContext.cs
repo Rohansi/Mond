@@ -12,8 +12,8 @@ namespace Mond.Debugger
 
         private readonly MondState _state;
         private readonly int _address;
-        private readonly Frame _locals;
-        private readonly Frame _args;
+        private readonly MondValue[] _locals;
+        private readonly ReturnAddress _args;
 
         private readonly Dictionary<string, (Func<MondValue> Getter, Action<MondValue> Setter)> _localAccessors;
         private readonly MondValue _localObject;
@@ -23,8 +23,8 @@ namespace Mond.Debugger
 
         internal MondDebugContext(
             MondState state, MondProgram program, int address,
-            Frame locals, Frame args,
-            ReturnAddress[] callStack,  int callStackTop, int callStackBottom)
+            MondValue[] locals, ReturnAddress args,
+            ReturnAddress[] callStack, int callStackTop, int callStackBottom)
         {
             _state = state;
             _address = address;
@@ -62,21 +62,21 @@ namespace Mond.Debugger
         {
             var options = new MondCompilerOptions();
 
-            var lexer = new Lexer("return " + expression, "debug", options);
+            var source = "return " + expression;
+            var lexer = new Lexer(source, "debug", options);
             var parser = new Parser(lexer);
 
             var expr = parser.ParseStatement(false);
 
             var rewriter = new DebugExpressionRewriter(LocalObjectName);
-            expr = expr.Accept(rewriter).Simplify();
-            expr.SetParent(null);
+            expr = expr.Accept(rewriter);
 
             var oldLocal = _state[LocalObjectName];
             _state[LocalObjectName] = _localObject;
 
             try
             {
-                var program = new ExpressionCompiler(options).Compile(expr);
+                var program = new ExpressionCompiler(options).Compile(expr, "debug-expr", source);
                 return _state.Load(program);
             }
             finally
@@ -87,13 +87,13 @@ namespace Mond.Debugger
 
         private MondValue CreateLocalObject()
         {
-            var obj = MondValue.Object(_state);
-            obj.Prototype = MondValue.Null;
-
-            obj["__get"] = new MondFunction((_, args) =>
+            var proxyHandler = MondValue.Object(_state);
+            proxyHandler.Prototype = MondValue.Null;
+            
+            proxyHandler["get"] = new MondFunction((_, args) =>
             {
                 if (args.Length != 2)
-                    throw new MondRuntimeException("LocalObject.__get: requires 2 parameters");
+                    throw new MondRuntimeException("LocalObject.get: requires 2 parameters");
 
                 var name = (string)args[1];
                 
@@ -103,10 +103,10 @@ namespace Mond.Debugger
                 return accessors.Getter();
             });
 
-            obj["__set"] = new MondFunction((_, args) =>
+            proxyHandler["set"] = new MondFunction((_, args) =>
             {
                 if (args.Length != 3)
-                    throw new MondRuntimeException("LocalObject.__set: requires 3 parameters");
+                    throw new MondRuntimeException("LocalObject.set: requires 3 parameters");
 
                 var name = (string)args[1];
                 var value = args[2];
@@ -121,6 +121,8 @@ namespace Mond.Debugger
                 return value;
             });
 
+            var target = MondValue.Object(_state);
+            var obj = MondValue.ProxyObject(target, proxyHandler, _state);
             return obj;
         }
 
@@ -136,36 +138,46 @@ namespace Mond.Debugger
             if (scope == null)
                 return result;
 
+            var currentFrameIndex = scope.FrameIndex;
             var scopes = debugInfo.Scopes;
             var id = scope.Id;
 
             do
             {
                 scope = scopes[id];
+                
+                var frameIndex = scope.FrameIndex;
 
                 var identifiers = scope.Identifiers;
-
                 foreach (var ident in identifiers)
                 {
                     var name = Program.Strings[ident.Name];
                     if (result.ContainsKey(name))
                         continue;
 
-                    var frameIndex = ident.FrameIndex;
                     var localId = ident.Id;
 
                     Func<MondValue> getter;
                     Action<MondValue> setter;
 
-                    if (ident.FrameIndex >= 0)
+                    if (ident.IsCaptured)
                     {
-                        getter = () => _locals.Get(frameIndex, localId);
-                        setter = value => _locals.Set(frameIndex, localId, value);
+                        getter = () => _args.Closure.Upvalues[frameIndex][localId];
+                        setter = value => _args.Closure.Upvalues[frameIndex][localId] = value;
+                    }
+                    else if (frameIndex != currentFrameIndex)
+                    {
+                        continue; // not accessible from this frame
+                    }
+                    else if (ident.IsArgument)
+                    {
+                        getter = () => _args.GetArgument(localId);
+                        setter = value => _args.SetArgument(localId, value);
                     }
                     else
                     {
-                        getter = () => _args.Get(-frameIndex, localId);
-                        setter = value => _args.Set(-frameIndex, localId, value);
+                        getter = () => _locals[localId];
+                        setter = value => _locals[localId] = value;
                     }
 
                     if (ident.IsReadOnly)
@@ -188,7 +200,7 @@ namespace Mond.Debugger
             result.Add(GenerateCallStackEntry(Program, address));
 
             // previous locations
-            for (var i = callStackTop - 1; i >= 0; i--)
+            for (var i = callStackTop; i >= 0; i--)
             {
                 if (i == callStackBottom)
                 {
@@ -199,6 +211,11 @@ namespace Mond.Debugger
                 }
 
                 var returnAddress = callStack[i];
+                if (returnAddress.IsEntry)
+                {
+                    continue;
+                }
+
                 result.Add(GenerateCallStackEntry(returnAddress.Program, returnAddress.Address));
             }
 

@@ -59,9 +59,9 @@
             return stack;
         }
 
-        public override Expression Simplify()
+        public override Expression Simplify(SimplifyContext context)
         {
-            Value = Value?.Simplify();
+            Value = Value?.Simplify(context);
             return this;
         }
 

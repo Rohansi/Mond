@@ -40,18 +40,11 @@ namespace Mond.Compiler.Expressions.Statements
                 context.Statement(this);
 
             var stack = 0;
-            var shouldBeGlobal = context.ArgIndex == 0 && context.Compiler.Options.MakeRootDeclarationsGlobal;
+            var shouldBeGlobal = context.MakeDeclarationsGlobal;
 
             foreach (var declaration in Declarations)
             {
                 var name = declaration.Name;
-
-                if (!shouldBeGlobal)
-                {
-                    if (!context.DefineIdentifier(name, IsReadOnly))
-                        throw new MondCompilerException(this, CompilerError.IdentifierAlreadyDefined, name);
-                }
-
                 if (declaration.Initializer == null)
                     continue;
 
@@ -77,10 +70,19 @@ namespace Mond.Compiler.Expressions.Statements
             return stack;
         }
 
-        public override Expression Simplify()
+        public override Expression Simplify(SimplifyContext context)
         {
+            if (!context.MakeDeclarationsGlobal)
+            {
+                foreach (var declaration in Declarations)
+                {
+                    if (!context.DefineIdentifier(declaration.Name, IsReadOnly))
+                        throw new MondCompilerException(this, CompilerError.IdentifierAlreadyDefined, declaration.Name);
+                }
+            }
+
             Declarations = Declarations
-                .Select(d => new Declaration(d.Name, d.Initializer?.Simplify()))
+                .Select(d => new Declaration(d.Name, d.Initializer?.Simplify(context)))
                 .ToList()
                 .AsReadOnly();
 

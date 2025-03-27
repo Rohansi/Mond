@@ -54,15 +54,17 @@ namespace Mond.Debugger
         public class Scope
         {
             public int Id { get; }
+            public int FrameIndex { get; }
             public int Depth { get; }
             public int ParentId { get; }
             public int StartAddress { get; }
             public int EndAddress { get; }
             public ReadOnlyCollection<Identifier> Identifiers;
 
-            public Scope(int id, int depth, int parentId, int startAddress, int endAddress, List<Identifier> identifiers)
+            public Scope(int id, int frameIndex, int depth, int parentId, int startAddress, int endAddress, List<Identifier> identifiers)
             {
                 Id = id;
+                FrameIndex = frameIndex;
                 Depth = depth;
                 ParentId = parentId;
                 StartAddress = startAddress;
@@ -71,19 +73,45 @@ namespace Mond.Debugger
             }
         }
 
+        [Flags]
+        public enum IdentifierFlags : byte
+        {
+            IsReadOnly = 1 << 0,
+            IsGlobal = 1 << 1,
+            IsCaptured = 1 << 2,
+            IsArgument = 1 << 3,
+        }
+
         public readonly struct Identifier
         {
             public int Name { get; }
-            public bool IsReadOnly { get; }
-            public int FrameIndex { get; }
+            public IdentifierFlags Flags { get; }
+            public bool IsReadOnly => Flags.HasFlag(IdentifierFlags.IsReadOnly);
+            public bool IsGlobal => Flags.HasFlag(IdentifierFlags.IsGlobal);
+            public bool IsCaptured => Flags.HasFlag(IdentifierFlags.IsCaptured);
+            public bool IsArgument => Flags.HasFlag(IdentifierFlags.IsArgument);
             public int Id { get; }
 
-            public Identifier(int name, bool isReadOnly, int frameIndex, int id)
+            public Identifier(int name, IdentifierFlags flags, int id)
             {
                 Name = name;
-                IsReadOnly = isReadOnly;
-                FrameIndex = frameIndex;
+                Flags = flags;
                 Id = id;
+            }
+
+            public Identifier(int name, bool isReadOnly, bool isGlobal, bool isCaptured, bool isArgument, int id)
+                : this(name, GetFlags(isReadOnly, isGlobal, isCaptured, isArgument), id)
+            {
+            }
+
+            private static IdentifierFlags GetFlags(bool isReadOnly, bool isGlobal, bool isCaptured, bool isArgument)
+            {
+                IdentifierFlags result = 0;
+                if (isReadOnly) result |= IdentifierFlags.IsReadOnly;
+                if (isGlobal) result |= IdentifierFlags.IsGlobal;
+                if (isCaptured) result |= IdentifierFlags.IsCaptured;
+                if (isArgument) result |= IdentifierFlags.IsArgument;
+                return result;
             }
         }
 

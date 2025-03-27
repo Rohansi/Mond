@@ -2,9 +2,9 @@
 
 namespace Mond.Tests
 {
-    static class Script
+    internal static class Script
     {
-        private static MondState NewState()
+        public static MondState NewState()
         {
             return new MondState
             {

@@ -1,47 +1,40 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Mond.Compiler.Expressions.Statements
 {
-    class SequenceExpression : FunctionExpression
+    internal class SequenceExpression : FunctionExpression
     {
+        private readonly SequenceBodyExpression _body;
+
+        private IdentifierOperand _state;
+        private IdentifierOperand _enumerable;
+        private Scope _getEnumeratorScope;
+        private Scope _disposeScope;
+
         public SequenceExpression(Token token, string name, List<string> arguments, string otherArgs, ScopeExpression block, string debugName = null)
             : base(token, name, arguments, otherArgs, block, debugName)
         {
-
+            var bodyToken = new Token(Token, TokenType.Fun, null);
+            _body = new SequenceBodyExpression(bodyToken, null, Block, "moveNext");
         }
 
         public override void CompileBody(FunctionContext context)
         {
-            var state = context.DefineInternal("state");
-            var enumerable = context.DefineInternal("enumerable");
-
-            var stack = 0;
-            var bodyToken = new Token(Token, TokenType.Fun, null);
-            var body = new SequenceBodyExpression(bodyToken, null, Block, "moveNext", state, enumerable);
-            var seqContext = new SequenceContext(context.Compiler, "moveNext", body, context);
-
-            var getEnumerator = context.MakeFunction("getEnumerator");
-            getEnumerator.Function(getEnumerator.FullName);
-            getEnumerator.Bind(getEnumerator.Label);
-            getEnumerator.Enter();
-            getEnumerator.Load(enumerable);
+            var getEnumerator = context.MakeFunction("getEnumerator", _getEnumeratorScope);
+            getEnumerator.Load(_enumerable);
             getEnumerator.Return();
+            getEnumerator.PopScope();
 
-            var dispose = context.MakeFunction("dispose");
-            dispose.Function(dispose.FullName);
-            dispose.Bind(dispose.Label);
-            dispose.Enter();
+            var dispose = context.MakeFunction("dispose", _disposeScope);
             dispose.LoadUndefined();
             dispose.Return();
+            dispose.PopScope();
 
-            stack += context.Bind(context.Label);
-            stack += context.Enter();
-
-            if (OtherArguments != null)
-                stack += context.VarArgs(Arguments.Count);
+            var stack = 0;
 
             stack += context.Load(context.Number(0));
-            stack += context.Store(state);
+            stack += context.Store(_state);
 
             stack += context.NewObject();
 
@@ -51,7 +44,8 @@ namespace Mond.Compiler.Expressions.Statements
             stack += context.StoreField(context.String("current"));
 
             stack += context.Dup();
-            stack += body.Compile(seqContext);
+            var seqContext = new SequenceContext(context.Compiler, "moveNext", _body, context);
+            stack += _body.Compile(seqContext);
             stack += context.Swap();
             stack += context.StoreField(context.String("moveNext"));
 
@@ -65,12 +59,29 @@ namespace Mond.Compiler.Expressions.Statements
             stack += context.Swap();
             stack += context.StoreField(context.String("dispose"));
 
-            stack += context.Store(enumerable);
+            stack += context.Store(_enumerable);
 
-            stack += context.Load(enumerable);
+            stack += context.Load(_enumerable);
             stack += context.Return();
 
             CheckStack(stack, 0);
+        }
+
+        protected override void SimplifyBody(SimplifyContext context)
+        {
+            _state = context.DefineInternal("state", true);
+            _enumerable = context.DefineInternal("enumerable", true);
+
+            _getEnumeratorScope = context.PushFunctionScope();
+            context.ReferenceIdentifier(_enumerable);
+            context.PopScope();
+
+            _disposeScope = context.PushFunctionScope();
+            context.PopScope();
+
+            _body.State = _state;
+            _body.Enumerable = _enumerable;
+            _body.Simplify(context);
         }
 
         public override T Accept<T>(IExpressionVisitor<T> visitor)
@@ -79,29 +90,25 @@ namespace Mond.Compiler.Expressions.Statements
         }
     }
 
-    class SequenceBodyExpression : FunctionExpression
+    internal class SequenceBodyExpression : FunctionExpression
     {
         private readonly List<LabelOperand> _stateLabels;
 
-        public IdentifierOperand State { get; }
-        public IdentifierOperand Enumerable { get; }
+        public IdentifierOperand State { get; set; }
+        public IdentifierOperand Enumerable { get; set; }
 
         public int NextState => _stateLabels.Count;
         public LabelOperand EndLabel { get; private set; }
 
-        public SequenceBodyExpression(Token token, string name, ScopeExpression block, string debugName,
-                                      IdentifierOperand state, IdentifierOperand enumerable)
+        public SequenceBodyExpression(Token token, string name, ScopeExpression block, string debugName)
             : base(token, name, ["#instance", "#input"], null, block, debugName)
         {
             _stateLabels = new List<LabelOperand>();
-
-            State = state;
-            Enumerable = enumerable;
         }
 
         public LabelOperand MakeStateLabel(FunctionContext context)
         {
-            var label = context.MakeLabel(string.Format("state_{0}", NextState));
+            var label = context.MakeLabel($"state_{NextState}");
             _stateLabels.Add(label);
             return label;
         }
@@ -111,9 +118,6 @@ namespace Mond.Compiler.Expressions.Statements
             var stack = 0;
 
             EndLabel = context.MakeLabel("state_end");
-
-            stack += context.Bind(context.Label);
-            stack += context.Enter();
 
             // jump to state label
             stack += context.Load(State);
@@ -143,25 +147,32 @@ namespace Mond.Compiler.Expressions.Statements
 
             CheckStack(stack, 0);
         }
+
+        protected override void SimplifyBody(SimplifyContext context)
+        {
+            base.SimplifyBody(context);
+
+            context.ReferenceIdentifier(Enumerable);
+            context.ReferenceIdentifier(State);
+        }
     }
 
-    class SequenceContext : FunctionContext
+    internal class SequenceContext : FunctionContext
     {
         private readonly SequenceBodyExpression _sequenceBody;
         private readonly FunctionContext _forward;
 
         public SequenceContext(ExpressionCompiler compiler, string name, SequenceBodyExpression sequenceBody, FunctionContext forward)
-            : base(compiler, forward.ArgIndex, forward.LocalIndex, forward.Scope, forward.FullName, name)
+            : base(compiler, forward.Scope, forward.FullName, name)
         {
             _sequenceBody = sequenceBody;
             _forward = forward;
         }
 
-        public override FunctionContext MakeFunction(string name)
+        protected override FunctionContext NewContext(ExpressionCompiler compiler, Scope scope, string parentName, string name)
         {
-            var context = new SequenceBodyContext(Compiler, name, _forward, _sequenceBody);
-            Compiler.RegisterFunction(context);
-            return context;
+            // note: not using parentName+name args because we don't want to append moveNext twice
+            return new SequenceBodyContext(Compiler, scope, ParentName, Name, _sequenceBody);
         }
 
         public override void Emit(Instruction instruction)
@@ -170,12 +181,12 @@ namespace Mond.Compiler.Expressions.Statements
         }
     }
 
-    class SequenceBodyContext : FunctionContext
+    internal class SequenceBodyContext : FunctionContext
     {
         public SequenceBodyExpression SequenceBody { get; }
 
-        public SequenceBodyContext(ExpressionCompiler compiler, string name, FunctionContext parent, SequenceBodyExpression sequenceBody)
-            : base(compiler, parent.ArgIndex + 1, parent.LocalIndex + 1, parent.Scope, parent.FullName, name)
+        public SequenceBodyContext(ExpressionCompiler compiler, Scope scope, string parentName, string name, SequenceBodyExpression sequenceBody)
+            : base(compiler, scope, parentName, name)
         {
             SequenceBody = sequenceBody;
         }

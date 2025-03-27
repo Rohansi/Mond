@@ -72,8 +72,14 @@
             return stack;
         }
 
-        public override Expression Simplify()
+        public override Expression Simplify(SimplifyContext context)
         {
+            var identifier = context.Identifier(Name);
+            if (identifier != null)
+            {
+                context.ReferenceIdentifier(identifier);
+            }
+
             return this;
         }
 
@@ -85,8 +91,8 @@
         public bool SupportsIncDecF(FunctionContext context, out IdentifierOperand operand)
         {
             return context.TryGetIdentifier(Name, out operand) &&
-                   operand.FrameIndex == context.LocalIndex &&
-                   !operand.IsReadOnly;
+                   operand.FrameIndex == context.FrameDepth &&
+                   !operand.IsReadOnly && !operand.IsCaptured;
         }
     }
 }

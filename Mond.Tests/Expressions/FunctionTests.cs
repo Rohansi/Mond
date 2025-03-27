@@ -265,6 +265,23 @@ namespace Mond.Tests.Expressions
         }
 
         [Test]
+        public void FunctionExpressionVariable()
+        {
+            const string code =
+                """
+                var increment = fun(x) {
+                    return x + 1;
+                };
+                return increment(2);
+                """;
+
+            Assert.DoesNotThrow(() => MondProgram.Compile(code));
+
+            var result = Script.Run(code);
+            Assert.AreEqual((MondValue)3, result);
+        }
+
+        [Test]
         public void LambdaExpressionSimple()
         {
             Assert.AreEqual((MondValue)100, Script.Run("return (() -> 100)();"));

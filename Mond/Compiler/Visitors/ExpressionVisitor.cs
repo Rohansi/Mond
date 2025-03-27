@@ -23,6 +23,11 @@ namespace Mond.Compiler
             return default(T);
         }
 
+        public T Visit(DeclareGlobalsExpression expression)
+        {
+            return default(T);
+        }
+
         public virtual T Visit(DoWhileExpression expression)
         {
             expression.Block.Accept(this);

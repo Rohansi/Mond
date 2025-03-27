@@ -35,7 +35,7 @@ namespace Mond.Compiler.Expressions.Statements
             context.Position(Token);
 
             var stack = Initializer?.Compile(context) ?? 1;
-            var global = context.ArgIndex == 0 && context.Compiler.Options.MakeRootDeclarationsGlobal;
+            var global = context.MakeDeclarationsGlobal;
 
             foreach (var field in Fields)
             {
@@ -51,9 +51,6 @@ namespace Mond.Compiler.Expressions.Statements
                 }
                 else
                 {
-                    if (!context.DefineIdentifier(name, IsReadOnly))
-                        throw new MondCompilerException(this, CompilerError.IdentifierAlreadyDefined, name);
-
                     stack += context.Store(context.Identifier(name));
                 }
             }
@@ -64,9 +61,22 @@ namespace Mond.Compiler.Expressions.Statements
             return -1;
         }
 
-        public override Expression Simplify()
+        public override Expression Simplify(SimplifyContext context)
         {
-            Initializer = Initializer?.Simplify();
+            Initializer = Initializer?.Simplify(context);
+
+            if (!context.MakeDeclarationsGlobal)
+            {
+                foreach (var field in Fields)
+                {
+                    var name = field.Alias ?? field.Name;
+                    if (!context.DefineIdentifier(name, IsReadOnly))
+                    {
+                        throw new MondCompilerException(this, CompilerError.IdentifierAlreadyDefined, name);
+                    }
+                }
+            }
+
             return this;
         }
 

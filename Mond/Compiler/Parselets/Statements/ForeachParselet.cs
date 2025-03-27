@@ -14,7 +14,7 @@ namespace Mond.Compiler.Parselets.Statements
             Token inToken;
             Expression declaration;
             Expression expression;
-            BlockExpression block;
+            ScopeExpression block;
 
             if (parser.MatchAndTake(TokenType.LeftBrace))
             {
@@ -25,7 +25,7 @@ namespace Mond.Compiler.Parselets.Statements
                 declaration = new DestructuredObjectExpression(varToken, fields, null, false);
 
                 parser.Take(TokenType.RightParen);
-                block = parser.ParseBlock();
+                block = new ScopeExpression(parser.ParseBlock());
 
                 return new ForeachExpression(token, inToken, "input", expression, block, declaration);
             }
@@ -39,7 +39,7 @@ namespace Mond.Compiler.Parselets.Statements
                 declaration = new DestructuredArrayExpression(varToken, indices, null, false);
 
                 parser.Take(TokenType.RightParen);
-                block = parser.ParseBlock();
+                block = new ScopeExpression(parser.ParseBlock());
 
                 return new ForeachExpression(token, inToken, "input", expression, block, declaration);
             }
@@ -51,7 +51,7 @@ namespace Mond.Compiler.Parselets.Statements
 
             parser.Take(TokenType.RightParen);
 
-            block = parser.ParseBlock();
+            block = new ScopeExpression(parser.ParseBlock());
 
             return new ForeachExpression(token, inToken, identifier, expression, block);
         }

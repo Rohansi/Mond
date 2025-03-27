@@ -1,29 +1,33 @@
-﻿namespace Mond.VirtualMachine
+﻿using System.Collections.Generic;
+
+namespace Mond.VirtualMachine
 {
-    enum ClosureType
+    internal enum ClosureType
     {
         Native, Mond
     }
 
-    class Closure
+    internal class Closure
     {
         public readonly ClosureType Type;
 
         public readonly MondProgram Program;
         public readonly int Address;
-        public readonly Frame Arguments;
-        public readonly Frame Locals;
+        public readonly MondValue[] Upvalues; // note: all MondValues should be arrays!
+
+        // 
+        public MondValue[] StoredFrame;
+        public List<MondValue> StoredEvals;
 
         public readonly MondFunction NativeFunction;
 
-        public Closure(MondProgram program, int address, Frame arguments, Frame locals)
+        public Closure(MondProgram program, int address, MondValue[] upvalues)
         {
             Type = ClosureType.Mond;
             
             Program = program;
             Address = address;
-            Arguments = arguments;
-            Locals = locals;
+            Upvalues = upvalues;
         }
 
         public Closure(MondFunction function)

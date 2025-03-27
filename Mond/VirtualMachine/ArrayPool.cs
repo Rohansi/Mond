@@ -25,15 +25,21 @@ internal class ArrayPool<T>
 
     public ArrayPoolHandle<T> Rent(int size)
     {
+        var array = RentRaw(size);
+        return new ArrayPoolHandle<T>(this, array, size);
+    }
+
+    public T[] RentRaw(int size)
+    {
         if (size == 0)
         {
-            return new ArrayPoolHandle<T>(null, [], 0);
+            return [];
         }
 
         if (size > _maxSize)
         {
             // too big for us to keep in the pool
-            return new ArrayPoolHandle<T>(null, new T[size], size);
+            return new T[size];
         }
 
         if (!_arrays.TryPop(out var array))
@@ -41,7 +47,7 @@ internal class ArrayPool<T>
             array = new T[_maxSize];
         }
 
-        return new ArrayPoolHandle<T>(this, array, size);
+        return array;
     }
 
     public void Return(T[] array)
@@ -51,12 +57,7 @@ internal class ArrayPool<T>
             throw new ArgumentNullException(nameof(array));
         }
 
-        if (array.Length != _maxSize)
-        {
-            throw new ArgumentException("Array is not the correct size", nameof(array));
-        }
-
-        if (_arrays.Count >= _maxPooled)
+        if (array.Length != _maxSize || _arrays.Count >= _maxPooled)
         {
             return;
         }

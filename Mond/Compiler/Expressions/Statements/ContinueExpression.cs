@@ -21,7 +21,7 @@
             return context.Jump(target);
         }
 
-        public override Expression Simplify()
+        public override Expression Simplify(SimplifyContext context)
         {
             return this;
         }

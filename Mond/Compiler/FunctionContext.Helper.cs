@@ -4,14 +4,14 @@ using Mond.Compiler.Expressions;
 
 namespace Mond.Compiler
 {
-    partial class FunctionContext
+    internal partial class FunctionContext
     {
-        public void Function(string name = null)
+        public void Function(string functionName)
         {
             if (Compiler.Options.DebugInfo < MondDebugInfoLevel.StackTrace)
                 return;
 
-            Emit(new Instruction(InstructionType.Function, String(name)));
+            Emit(new Instruction(InstructionType.Function, String(functionName ?? "")));
         }
 
         public void Position(Token token)
@@ -96,12 +96,35 @@ namespace Mond.Compiler
 
             if (operand is IdentifierOperand identifier)
             {
-                if (identifier.FrameIndex == LocalIndex)
-                    Emit(new Instruction(InstructionType.LdLocF, new ImmediateOperand(identifier.Id)));
-                else if (identifier.FrameIndex < 0 && identifier.FrameIndex == -ArgIndex)
-                    Emit(new Instruction(InstructionType.LdArgF, new ImmediateOperand(identifier.Id)));
+                if (identifier.IsGlobal)
+                {
+                    Emit(new Instruction(InstructionType.LdGlobalFld, String(identifier.Name)));
+                }
+                else if (identifier.FrameIndex == FrameDepth)
+                {
+                    if (identifier.IsCaptured)
+                    {
+                        Emit(new Instruction(InstructionType.LdArrF,
+                            new ImmediateOperand(identifier.CaptureArray.Id), new ImmediateOperand(identifier.Id)));
+                    }
+                    else if (operand is ArgumentIdentifierOperand)
+                    {
+                        Emit(new Instruction(InstructionType.LdArgF, new ImmediateOperand(identifier.Id)));
+                    }
+                    else
+                    {
+                        Emit(new Instruction(InstructionType.LdLocF, new ImmediateOperand(identifier.Id)));
+                    }
+                }
+                else if (identifier.IsCaptured)
+                {
+                    Emit(new Instruction(InstructionType.LdUpValue,
+                        new ImmediateOperand(identifier.Scope.LexicalDepth), new ImmediateOperand(identifier.Id)));
+                }
                 else
-                    Emit(new Instruction(InstructionType.LdLoc, operand));
+                {
+                    throw new InvalidOperationException();
+                }
 
                 return 1;
             }
@@ -112,6 +135,12 @@ namespace Mond.Compiler
         public int LoadGlobal()
         {
             Emit(new Instruction(InstructionType.LdGlobal));
+            return 1;
+        }
+
+        public int LoadGlobalField(ConstantOperand<string> operand)
+        {
+            Emit(new Instruction(InstructionType.LdGlobalFld, operand));
             return 1;
         }
 
@@ -129,12 +158,36 @@ namespace Mond.Compiler
 
         public int Store(IdentifierOperand operand)
         {
-            if (operand.FrameIndex == LocalIndex)
-                Emit(new Instruction(InstructionType.StLocF, new ImmediateOperand(operand.Id)));
-            else if (operand.FrameIndex < 0 && operand.FrameIndex == -ArgIndex)
-                Emit(new Instruction(InstructionType.StArgF, new ImmediateOperand(operand.Id)));
+            if (operand.IsGlobal)
+            {
+                // should always be readonly
+                throw new InvalidOperationException();
+            } 
+            
+            if (operand.FrameIndex == FrameDepth)
+            {
+                if (operand.IsCaptured)
+                {
+                    Emit(new Instruction(InstructionType.StArrF,
+                        new ImmediateOperand(operand.CaptureArray.Id), new ImmediateOperand(operand.Id)));
+                }
+                else if (operand is ArgumentIdentifierOperand)
+                {
+                    Emit(new Instruction(InstructionType.StArgF, new ImmediateOperand(operand.Id)));
+                }
+                else
+                {
+                    Emit(new Instruction(InstructionType.StLocF, new ImmediateOperand(operand.Id)));
+                }
+            }
+            else if (operand.IsCaptured)
+            {
+                Emit(new Instruction(InstructionType.StUpValue, new ImmediateOperand(operand.Scope.LexicalDepth), new ImmediateOperand(operand.Id)));
+            }
             else
-                Emit(new Instruction(InstructionType.StLoc, operand));
+            {
+                throw new InvalidOperationException();
+            }
 
             return -1;
         }
@@ -151,15 +204,15 @@ namespace Mond.Compiler
             return -3;
         }
 
-        public int LoadState(int depth)
+        public int SeqSuspend()
         {
-            Emit(new Instruction(InstructionType.LdState, new ImmediateOperand(depth)));
+            Emit(new Instruction(InstructionType.SeqSuspend));
             return 0;
         }
 
-        public int StoreState(int depth)
+        public int SeqResume()
         {
-            Emit(new Instruction(InstructionType.StState, new ImmediateOperand(depth)));
+            Emit(new Instruction(InstructionType.SeqResume));
             return 0;
         }
 
@@ -231,7 +284,7 @@ namespace Mond.Compiler
 
         public int IncrementF(IdentifierOperand local)
         {
-            if (local.FrameIndex != LocalIndex)
+            if (local.FrameIndex != FrameDepth)
                 throw new ArgumentException("Cannot use IncF on out of frame locals");
 
             Emit(new Instruction(InstructionType.IncF, new ImmediateOperand(local.Id)));
@@ -240,7 +293,7 @@ namespace Mond.Compiler
 
         public int DecrementF(IdentifierOperand local)
         {
-            if (local.FrameIndex != LocalIndex)
+            if (local.FrameIndex != FrameDepth)
                 throw new ArgumentException("Cannot use DecF on out of frame locals");
 
             Emit(new Instruction(InstructionType.DecF, new ImmediateOperand(local.Id)));
@@ -249,7 +302,35 @@ namespace Mond.Compiler
 
         public int Closure(LabelOperand label)
         {
-            Emit(new Instruction(InstructionType.Closure, label));
+            var callingFrameDepth = FrameDepth;
+
+            var upFrameCount = 0;
+            var scope = Scope;
+            while (scope != null)
+            {
+                if (scope.FrameDepth != callingFrameDepth)
+                {
+                    Emit(new Instruction(InstructionType.LdUp, new ImmediateOperand(scope.LexicalDepth)));
+                }
+                else if (scope.CaptureArray != null)
+                {
+                    Load(scope.CaptureArray);
+                }
+                else
+                {
+                    LoadUndefined();
+                }
+
+                scope = scope.Previous;
+                upFrameCount++;
+            }
+
+            if (upFrameCount != Scope.LexicalDepth + 1)
+            {
+                throw new InvalidOperationException();
+            }
+
+            Emit(new Instruction(InstructionType.Closure, new ImmediateOperand(upFrameCount), label));
             return 1;
         }
 
@@ -292,27 +373,6 @@ namespace Mond.Compiler
         {
             Emit(new Instruction(InstructionType.Ret));
             return -1;
-        }
-
-        public int Enter()
-        {
-            var identifierCount = new DeferredOperand<ImmediateOperand>(() =>
-                new ImmediateOperand(IdentifierCount));
-
-            Emit(new Instruction(InstructionType.Enter, identifierCount));
-            return 0;
-        }
-
-        public int Leave()
-        {
-            Emit(new Instruction(InstructionType.Leave));
-            return 0;
-        }
-
-        public int VarArgs(int fixedCount)
-        {
-            Emit(new Instruction(InstructionType.VarArgs, new ImmediateOperand(fixedCount)));
-            return 0;
         }
 
         public int Jump(LabelOperand label)

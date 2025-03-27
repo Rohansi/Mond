@@ -66,7 +66,7 @@ namespace Mond.Compiler.Parselets.Statements
             return new SwitchExpression(token, expression, branches);
         }
 
-        private static BlockExpression ParseBlock(Parser parser)
+        private static ScopeExpression ParseBlock(Parser parser)
         {
             var statements = new List<Expression>();
             

@@ -2,7 +2,7 @@
 {
     class FieldExpression : Expression, IStorableExpression
     {
-        public Expression Left { get; }
+        public Expression Left { get; private set; }
         public string Name { get; }
 
         public override Token StartToken => Left.StartToken;
@@ -17,6 +17,13 @@
         public override int Compile(FunctionContext context)
         {
             var stack = 0;
+
+            if (Left is GlobalExpression)
+            {
+                context.Position(Token); // debug info
+                stack += context.LoadGlobalField(context.String(Name));
+                return stack;
+            }
 
             stack += Left.Compile(context);
 
@@ -60,8 +67,9 @@
             return stack;
         }
 
-        public override Expression Simplify()
+        public override Expression Simplify(SimplifyContext context)
         {
+            Left = Left.Simplify(context);
             return this;
         }
 

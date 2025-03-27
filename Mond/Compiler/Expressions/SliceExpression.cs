@@ -46,12 +46,12 @@
             return stack;
         }
 
-        public override Expression Simplify()
+        public override Expression Simplify(SimplifyContext context)
         {
-            Left = Left.Simplify();
-            Start = Start?.Simplify();
-            End = End?.Simplify();
-            Step = Step?.Simplify();
+            Left = Left.Simplify(context);
+            Start = Start?.Simplify(context);
+            End = End?.Simplify(context);
+            Step = Step?.Simplify(context);
 
             return this;
         }

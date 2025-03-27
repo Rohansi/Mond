@@ -113,7 +113,7 @@ namespace Mond.Libraries
 
             var sb = new StringBuilder();
 
-            sb.Append("const ");
+            sb.Append("__declare_globals ");
 
             var first = true;
             foreach (var d in definitions)
@@ -123,8 +123,6 @@ namespace Mond.Libraries
                 else
                     sb.Append(", ");
 
-                sb.Append(d);
-                sb.Append(" = global.");
                 sb.Append(d);
             }
 

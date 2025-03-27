@@ -5,18 +5,21 @@ using System.Text;
 using Mond.Compiler;
 using Mond.Compiler.Expressions;
 using Mond.Debugger;
+using Mond.VirtualMachine;
 
 namespace Mond
 {
     public sealed class MondProgram
     {
         private const uint MagicId = 0xFA57C0DE;
-        private const uint FormatVersion = 12;
+        private const byte FormatVersion = 13;
 
         internal readonly int[] Bytecode;
         internal readonly MondValue[] Numbers;
         internal readonly MondValue[] Strings;
         public MondDebugInfo DebugInfo { get; }
+
+        public MondValue EntryPoint { get; }
 
         internal MondProgram(int[] bytecode, IList<double> numbers, IList<string> strings, MondDebugInfo debugInfo = null)
         {
@@ -35,6 +38,8 @@ namespace Mond
             }
             
             DebugInfo = debugInfo;
+
+            EntryPoint = new MondValue(new Closure(this, 0, []));
         }
 
         /// <summary>
@@ -138,6 +143,7 @@ namespace Mond
                     foreach (var scope in DebugInfo.Scopes)
                     {
                         writer.Write(scope.Id);
+                        writer.Write(scope.FrameIndex);
                         writer.Write(scope.Depth);
                         writer.Write(scope.ParentId);
                         writer.Write(scope.StartAddress);
@@ -147,8 +153,7 @@ namespace Mond
                         foreach (var ident in scope.Identifiers)
                         {
                             writer.Write(ident.Name);
-                            writer.Write(ident.IsReadOnly);
-                            writer.Write(ident.FrameIndex);
+                            writer.Write((byte)ident.Flags);
                             writer.Write(ident.Id);
                         }
                     }
@@ -180,10 +185,8 @@ namespace Mond
         /// <param name="path">The file to load.</param>
         public static MondProgram LoadBytecode(string path)
         {
-            using (var fs = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read))
-            {
-                return LoadBytecode(fs);
-            }
+            using var fs = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+            return LoadBytecode(fs);
         }
 
         /// <summary>
@@ -199,7 +202,7 @@ namespace Mond
 
             byte version;
             if ((version = reader.ReadByte()) != FormatVersion)
-                throw new NotSupportedException(string.Format("Wrong bytecode version. Expected 0x{0:X2}, got 0x{1:X2}.", FormatVersion, version));
+                throw new NotSupportedException($"Wrong bytecode version. Expected 0x{FormatVersion:X2}, got 0x{version:X2}.");
 
             var hasDebugInfo = reader.ReadBoolean();
 
@@ -292,7 +295,8 @@ namespace Mond
                     scopes = new List<MondDebugInfo.Scope>(scopeCount);
                     for (var i = 0; i < scopeCount; ++i)
                     {
-                        var id = reader.ReadInt32();
+                        var scopeId = reader.ReadInt32();
+                        var frameIndex = reader.ReadInt32();
                         var depth = reader.ReadInt32();
                         var parentId = reader.ReadInt32();
                         var startAddress = reader.ReadInt32();
@@ -303,14 +307,13 @@ namespace Mond
                         for (var j = 0; j < identCount; ++j)
                         {
                             var name = reader.ReadInt32();
-                            var isReadOnly = reader.ReadBoolean();
-                            var frameIndex = reader.ReadInt32();
-                            var idx = reader.ReadInt32();
+                            var flags = (MondDebugInfo.IdentifierFlags)reader.ReadByte();
+                            var id = reader.ReadInt32();
 
-                            idents.Add(new MondDebugInfo.Identifier(name, isReadOnly, frameIndex, idx));
+                            idents.Add(new MondDebugInfo.Identifier(name, flags, id));
                         }
 
-                        scopes.Add(new MondDebugInfo.Scope(id, depth, parentId, startAddress, endAddress, idents));
+                        scopes.Add(new MondDebugInfo.Scope(scopeId, frameIndex, depth, parentId, startAddress, endAddress, idents));
                     }
                 }
 
@@ -328,12 +331,12 @@ namespace Mond
         /// <param name="options">Compiler options</param>
         public static MondProgram Compile(string source, string fileName = null, MondCompilerOptions options = null)
         {
-            options = options ?? new MondCompilerOptions();
+            options ??= new MondCompilerOptions();
 
             var lexer = new Lexer(source, fileName, options);
             var parser = new Parser(lexer);
 
-            return CompileImpl(parser.ParseAll(), options, source);
+            return CompileImpl(parser.ParseAll(), options, fileName, source);
         }
 
         /// <summary>
@@ -344,13 +347,13 @@ namespace Mond
         /// <param name="options">Compiler options</param>
         public static MondProgram Compile(IEnumerable<char> source, string fileName = null, MondCompilerOptions options = null)
         {
-            options = options ?? new MondCompilerOptions();
+            options ??= new MondCompilerOptions();
 
             var needSource = options.DebugInfo == MondDebugInfoLevel.Full;
             var lexer = new Lexer(source, fileName, options, needSource);
             var parser = new Parser(lexer);
 
-            return CompileImpl(parser.ParseAll(), options, lexer.SourceCode);
+            return CompileImpl(parser.ParseAll(), options, fileName, lexer.SourceCode);
         }
 
         /// <summary>
@@ -362,7 +365,7 @@ namespace Mond
         /// <param name="options">Compiler options</param>
         public static IEnumerable<MondProgram> CompileStatements(IEnumerable<char> source, string fileName = null, MondCompilerOptions options = null)
         {
-            options = options ?? new MondCompilerOptions();
+            options ??= new MondCompilerOptions();
 
             var needSource = options.DebugInfo == MondDebugInfoLevel.Full;
             var lexer = new Lexer(source, fileName, options, needSource);
@@ -376,20 +379,14 @@ namespace Mond
                 });
 
                 var sourceCode = lexer.SourceCode?.TrimStart('\r', '\n');
-                yield return CompileImpl(expression, options, sourceCode);
+                yield return CompileImpl(expression, options, fileName, sourceCode);
             }
         }
 
-        private static MondProgram CompileImpl(Expression expression, MondCompilerOptions options, string debugSourceCode = null)
+        private static MondProgram CompileImpl(Expression expression, MondCompilerOptions options, string fileName, string debugSourceCode)
         {
-            expression = expression.Simplify();
-            expression.SetParent(null);
-
-            //using (var printer = new ExpressionPrintVisitor(Console.Out))
-            //    expression.Accept(printer);
-
             var compiler = new ExpressionCompiler(options);
-            return compiler.Compile(expression, debugSourceCode);
+            return compiler.Compile(expression, fileName, debugSourceCode);
         }
     }
 }

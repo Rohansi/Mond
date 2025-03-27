@@ -63,10 +63,10 @@
             return stack;
         }
 
-        public override Expression Simplify()
+        public override Expression Simplify(SimplifyContext context)
         {
-            Left = Left.Simplify();
-            Index = Index.Simplify();
+            Left = Left.Simplify(context);
+            Index = Index.Simplify(context);
             
             if (Index is StringExpression indexStr)
             {

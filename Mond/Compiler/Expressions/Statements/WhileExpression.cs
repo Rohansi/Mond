@@ -1,15 +1,13 @@
-﻿using Mond.Compiler.Visitors;
-
-namespace Mond.Compiler.Expressions.Statements
+﻿namespace Mond.Compiler.Expressions.Statements
 {
-    class WhileExpression : Expression, IStatementExpression
+    internal class WhileExpression : Expression, IStatementExpression
     {
         public Expression Condition { get; private set; }
-        public BlockExpression Block { get; private set; }
+        public ScopeExpression Block { get; private set; }
 
         public bool HasChildren => true;
 
-        public WhileExpression(Token token, Expression condition, BlockExpression block)
+        public WhileExpression(Token token, Expression condition, ScopeExpression block)
             : base(token)
         {
             Condition = condition;
@@ -22,21 +20,12 @@ namespace Mond.Compiler.Expressions.Statements
 
             var stack = 0;
             var start = context.MakeLabel("whileStart");
-            var cont = context.MakeLabel("whileContinue");
-            var brk = context.MakeLabel("whileBreak");
             var end = context.MakeLabel("whileEnd");
 
             var boolExpression = Condition as BoolExpression;
             var isInfinite = boolExpression != null && boolExpression.Value;
 
-            var containsFunction = new LoopContainsFunctionVisitor();
-            Block.Accept(containsFunction);
-
-            var loopContext = containsFunction.Value ? new LoopContext(context) : context;
-
-            context.PushScope();
-
-            stack += context.Bind(start); // continue (without function)
+            stack += context.Bind(start); // continue
 
             if (!isInfinite)
             {
@@ -45,41 +34,22 @@ namespace Mond.Compiler.Expressions.Statements
                 stack += context.JumpFalse(end);
             }
 
-            loopContext.PushLoop(containsFunction.Value ? cont : start, containsFunction.Value ? brk : end);
-
-            if (containsFunction.Value)
-                stack += loopContext.Enter();
-
-            stack += Block.Compile(loopContext);
-
-            if (containsFunction.Value)
-            {
-                stack += loopContext.Bind(cont); // continue (with function)
-                stack += loopContext.Leave();
-            }
-
-            loopContext.PopLoop();
+            context.PushLoop(start, end);
+            stack += Block.Compile(context);
+            context.PopLoop();
 
             stack += context.Jump(start);
 
-            if (containsFunction.Value)
-            {
-                stack += context.Bind(brk); // break (with function)
-                stack += context.Leave();
-            }
-
-            stack += context.Bind(end); // break (without function)
-
-            context.PopScope();
+            stack += context.Bind(end); // break
 
             CheckStack(stack, 0);
             return stack;
         }
 
-        public override Expression Simplify()
+        public override Expression Simplify(SimplifyContext context)
         {
-            Condition = Condition.Simplify();
-            Block = (BlockExpression)Block.Simplify();
+            Condition = Condition.Simplify(context);
+            Block = (ScopeExpression)Block.Simplify(context);
 
             return this;
         }

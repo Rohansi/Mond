@@ -14,7 +14,7 @@
             return context.LoadGlobal();
         }
 
-        public override Expression Simplify()
+        public override Expression Simplify(SimplifyContext context)
         {
             return this;
         }

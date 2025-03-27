@@ -153,22 +153,38 @@ namespace Mond.Compiler
 
     class IdentifierOperand : IInstructionOperand
     {
+        public Scope Scope { get; }
         public int FrameIndex { get; }
-        public int Id { get; }
+        public int Id { get; set; }
         public string Name { get; }
         public bool IsReadOnly { get; }
+        public bool IsGlobal { get; }
+        public bool IsCaptured { get; set; }
+        public IdentifierOperand CaptureArray { get; set; }
 
-        public IdentifierOperand(int frameIndex, int id, string name, bool isReadOnly)
+        public IdentifierOperand(Scope scope, int frameIndex, string name, bool isReadOnly, bool isGlobal)
         {
+            Scope = scope;
             FrameIndex = frameIndex;
-            Id = id;
             Name = name;
             IsReadOnly = isReadOnly;
+            IsGlobal = isGlobal;
         }
 
         public virtual void Print()
         {
-            Console.Write("{0,-30} (frame {1} ident {2})", Name, FrameIndex, Id);
+            if (IsGlobal)
+            {
+                Console.WriteLine("{0,-30} (global)", Name);
+            }
+            if (IsCaptured)
+            {
+                Console.Write("{0,-30} (frame {1} capture {2} array {3})", Name, FrameIndex, Id, CaptureArray.Id);
+            }
+            else
+            {
+                Console.Write("{0,-30} (frame {1} ident {2})", Name, FrameIndex, Id);
+            }
         }
 
         public int Length => 2;
@@ -180,10 +196,12 @@ namespace Mond.Compiler
 
     class ArgumentIdentifierOperand : IdentifierOperand
     {
-        public ArgumentIdentifierOperand(int frameIndex, int id, string name)
-            : base(frameIndex, id, name, false)
+        public int ArgumentId { get; }
+
+        public ArgumentIdentifierOperand(Scope scope, int frameIndex, int index, string name)
+            : base(scope, frameIndex, name, false, false)
         {
-            
+            ArgumentId = index;
         }
 
         public override void Print()
@@ -231,20 +249,31 @@ namespace Mond.Compiler
     {
         public ConstantOperand<string> Name { get; }
         public bool IsReadOnly { get; }
+        public bool IsGlobal { get; }
+        public bool IsCaptured { get; }
+        public bool IsArgument { get; }
         public int FrameIndex { get; }
         public int Id { get; }
 
-        public DebugIdentifierOperand(ConstantOperand<string> name, bool isReadOnly, int frameIndex, int id)
+        public DebugIdentifierOperand(ConstantOperand<string> name, bool isReadOnly, bool isGlobal, bool isCaptured, bool isArgument, int frameIndex, int id)
         {
             Name = name;
             IsReadOnly = isReadOnly;
+            IsGlobal = isGlobal;
+            IsCaptured = isCaptured;
+            IsArgument = isArgument;
             FrameIndex = frameIndex;
             Id = id;
         }
 
         public virtual void Print()
         {
-            var desc = $"{FrameIndex}:{Id}={Name.Value}[{(IsReadOnly ? "r" : "rw")}]";
+            var flags = "r";
+            if (!IsReadOnly) flags += "w";
+            if (IsCaptured) flags += "c";
+            if (IsArgument) flags = "a" + flags;
+            if (IsGlobal) flags = "g" + flags;
+            var desc = $"{FrameIndex}:{Id}={Name.Value}[{flags}]";
             Console.Write("{0,-30} (dbgident)", desc);
         }
 

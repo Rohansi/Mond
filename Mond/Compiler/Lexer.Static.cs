@@ -117,6 +117,8 @@ namespace Mond.Compiler
                 { "from", TokenType.From },
 
                 { "debugger", TokenType.Debugger },
+
+                { "__declare_globals", TokenType.DeclareGlobals },
             };
 
             _hexChars = new HashSet<char>
