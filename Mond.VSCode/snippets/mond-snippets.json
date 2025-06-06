@@ -1,0 +1,102 @@
+{
+    "while": {
+        "prefix": "while",
+        "body": [
+            "while (${1:true}) {",
+            "\t$0",
+            "}"
+        ],
+        "description": "while loop"
+    },
+    "dowhile": {
+        "prefix": "dowhile",
+        "body": [
+            "do {",
+            "\t$0",
+            "} while (${1:true});"
+        ],
+        "description": "do while loop"
+    },
+    "for": {
+        "prefix": "for",
+        "body": [
+            "for (var ${1:i} = ${2:1}; ${1:i} <= ${3:10}; ${1:i}++) {",
+            "\t$4",
+            "}"
+        ],
+        "description": "for loop"
+    },
+    "foreach": {
+        "prefix": "foreach",
+        "body": [
+            "foreach (var ${1:i} in ${2:sequence()}) {",
+            "\t$0",
+            "}"
+        ],
+        "description": "foreach loop"
+    },
+    "if": {
+        "prefix": "if",
+        "body": [
+            "if (${1:condition}) {",
+            "\t$0",
+            "}"
+        ],
+        "description": "if"
+    },
+    "ifelse":{
+        "prefix": "ifelse",
+        "body": [
+            "if (${1:condition}) {",
+            "\t$0",
+            "} else {",
+            "\t",
+            "}"
+        ],
+        "description": "if"
+    },
+    "switch":{
+        "prefix": "switch",
+        "body": [
+            "switch (${1:key}) {",
+            "\tcase ${2:value}:",
+            "\t\t$0",
+            "\t\tbreak;",
+            "",
+            "\tdefault:",
+            "\t\tbreak;",
+            "}"
+        ],
+        "description": "switch"
+    },
+    "function":{
+        "prefix": "function",
+        "body": [
+            "fun ${1:name}(${2:params}) {",
+            "\t$0",
+            "}"
+        ],
+        "description": "function"
+    },
+    "arrowFunction":{
+        "prefix": "arrow function",
+        "body": [
+            "fun ${1:name}(${2:params}) -> $0;"
+        ],
+        "description": "arrow function"
+    },
+    "importFrom":{
+        "prefix": "import from",
+        "body": [
+            "from ${1:module} import { ${2:item} };"
+        ],
+        "description": "import from"
+    },
+    "import":{
+        "prefix": "import",
+        "body": [
+            "import ${1:module};"
+        ],
+        "description": "import"
+    }
+}

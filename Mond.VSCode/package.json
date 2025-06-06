@@ -72,6 +72,19 @@
     "onDebugResolve:mond"
   ],
   "contributes": {
+    "configuration": [
+      {
+        "title": "Mond",
+        "type": "object",
+        "properties": {
+          "mond.standardLibraries.enableCompletion": {
+            "type": "boolean",
+            "default": true,
+            "description": "Enable completion for symbols from the Mond standard library"
+          }
+        }
+      }
+    ],
     "languages": [
       {
         "id": "mond",
