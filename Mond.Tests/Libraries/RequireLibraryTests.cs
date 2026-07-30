@@ -16,7 +16,7 @@ namespace Mond.Tests.Libraries
                 "exports.foo = 'bar';"
             );
             
-            Assert.AreEqual((MondValue)"bar", result);
+            Assert.That(result, Is.EqualTo((MondValue)"bar"));
         }
 
         [Test]
@@ -34,7 +34,7 @@ namespace Mond.Tests.Libraries
                 }
                 """;
             var result = RunModule(mainScript, "Module", moduleScript);
-            Assert.AreEqual((MondValue)10, result);
+            Assert.That(result, Is.EqualTo((MondValue)10));
         }
 
         [Test]
@@ -85,7 +85,7 @@ namespace Mond.Tests.Libraries
                 }
                 """;
             var result = RunModule(mainScript, "Module.mnd", moduleScript);
-            Assert.AreEqual((MondValue)10, result);
+            Assert.That(result, Is.EqualTo((MondValue)10));
         }
 
         [Test]
@@ -103,7 +103,7 @@ namespace Mond.Tests.Libraries
                 }
                 """;
             var result = RunModule(mainScript, "Module", moduleScript);
-            Assert.AreEqual((MondValue)10, result);
+            Assert.That(result, Is.EqualTo((MondValue)10));
         }
 
         [Test]
@@ -121,7 +121,7 @@ namespace Mond.Tests.Libraries
                 }
                 """;
             var result = RunModule(mainScript, "module.mnd", moduleScript);
-            Assert.AreEqual((MondValue)10, result);
+            Assert.That(result, Is.EqualTo((MondValue)10));
         }
 
         [Test]
@@ -147,14 +147,14 @@ namespace Mond.Tests.Libraries
             state.Call(module, exports);
 
             var methodA = exports["methodA"];
-            Assert.AreEqual(MondValueType.Function, methodA.Type);
+            Assert.That(methodA.Type, Is.EqualTo(MondValueType.Function));
             var resultA = state.Call(methodA);
-            Assert.AreEqual((MondValue)10, resultA);
+            Assert.That(resultA, Is.EqualTo((MondValue)10));
 
             var methodB = exports["methodB"];
-            Assert.AreEqual(MondValueType.Function, methodB.Type);
+            Assert.That(methodB.Type, Is.EqualTo(MondValueType.Function));
             var resultB = state.Call(methodB);
-            Assert.AreEqual((MondValue)20, resultB);
+            Assert.That(resultB, Is.EqualTo((MondValue)20));
         }
 
         private static MondValue RunModule(string mainScript, string moduleName, string moduleScript)
@@ -179,19 +179,19 @@ namespace Mond.Tests.Libraries
             state.Libraries.Configure(libraries =>
             {
                 var requireLibrary = libraries.Get<RequireLibrary>();
-                Assert.IsNotNull(requireLibrary);
+                Assert.That(requireLibrary, Is.Not.Null);
 
                 requireLibrary.Resolver = (name, directories) =>
                 {
-                    Assert.AreEqual(moduleName, name);
-                    CollectionAssert.Contains(directories, searchPath);
+                    Assert.That(name, Is.EqualTo(moduleName));
+                    Assert.That(directories, Does.Contain(searchPath));
 
                     return "resolved-module";
                 };
 
                 requireLibrary.Loader = resolvedName =>
                 {
-                    Assert.AreEqual("resolved-module", resolvedName);
+                    Assert.That(resolvedName, Is.EqualTo("resolved-module"));
                     return moduleScript;
                 };
 
@@ -199,7 +199,7 @@ namespace Mond.Tests.Libraries
             });
 
             var result = state.Run(mainScript, mainPath);
-            Assert.IsTrue(configured, "Configure was not called");
+            Assert.That(configured, Is.True, "Configure was not called");
             return result;
         }
     }

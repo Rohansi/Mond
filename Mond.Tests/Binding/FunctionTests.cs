@@ -37,16 +37,16 @@ namespace Mond.Tests.Binding
                 return argumentTypes(1, 2, 3, 4, 5, 6, 7, 8, '9', true);
             ");
 
-            Assert.True(result["a"] == 1);
-            Assert.True(result["b"] == 2);
-            Assert.True(result["c"] == 3);
-            Assert.True(result["d"] == 4);
-            Assert.True(result["e"] == 5);
-            Assert.True(result["f"] == 6);
-            Assert.True(result["g"] == 7);
-            Assert.True(result["h"] == 8);
-            Assert.True(result["i"] == "9");
-            Assert.True(result["j"] == true);
+            Assert.That(result["a"] == 1, Is.True);
+            Assert.That(result["b"] == 2, Is.True);
+            Assert.That(result["c"] == 3, Is.True);
+            Assert.That(result["d"] == 4, Is.True);
+            Assert.That(result["e"] == 5, Is.True);
+            Assert.That(result["f"] == 6, Is.True);
+            Assert.That(result["g"] == 7, Is.True);
+            Assert.That(result["h"] == 8, Is.True);
+            Assert.That(result["i"] == "9", Is.True);
+            Assert.That(result["j"] == true, Is.True);
         }
 
         [Test]
@@ -80,7 +80,7 @@ namespace Mond.Tests.Binding
                     return return{0}();
                 ", types[i]));
 
-                Assert.True(result == results[i], types[i]);
+                Assert.That(result == results[i], Is.True, types[i]);
             }
 
             {
@@ -88,13 +88,13 @@ namespace Mond.Tests.Binding
                     return returnClass();
                 ");
 
-                Assert.True(result.Type == MondValueType.Object);
+                Assert.That(result.Type == MondValueType.Object, Is.True);
 
                 var person = result.UserData as ClassTests.Person;
 
-                Assert.True(person != null);
+                Assert.That(person != null, Is.True);
 
-                Assert.True(person.Name == "Test");
+                Assert.That(person.Name == "Test", Is.True);
             }
         }
 
@@ -153,10 +153,10 @@ namespace Mond.Tests.Binding
         [Test]
         public void StateArgument()
         {
-            Assert.True(_state.Run(@"
+            Assert.That(_state.Run(@"
                 add(1, 2);
                 return global.result;
-            ") == 3);
+            ") == 3, Is.True);
 
             Assert.Throws<MondRuntimeException>(() => _state.Run(@"
                 add(1, 2, 3);
@@ -166,13 +166,13 @@ namespace Mond.Tests.Binding
         [Test]
         public void ParamsArgument()
         {
-            Assert.True(_state.Run(@"
+            Assert.That(_state.Run(@"
                 return concat('test');
-            ") == "test");
+            ") == "test", Is.True);
 
-            Assert.True(_state.Run(@"
+            Assert.That(_state.Run(@"
                 return concat('hello', ' world', '!');
-            ") == "hello world!");
+            ") == "hello world!", Is.True);
         }
 
         [Test]
@@ -185,9 +185,9 @@ namespace Mond.Tests.Binding
 
             _state["rohan"] = personValue;
 
-            Assert.True(_state.Run(@"
+            Assert.That(_state.Run(@"
                 return greet(global.rohan);
-            ") == "hello Rohan!");
+            ") == "hello Rohan!", Is.True);
 
             personValue.UserData = "something";
 

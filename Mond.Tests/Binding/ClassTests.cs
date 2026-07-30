@@ -31,14 +31,14 @@ namespace Mond.Tests.Binding
         [Test]
         public void Methods()
         {
-            Assert.True(_state.Run(@"
+            Assert.That(_state.Run(@"
                 return global.brian.generateGreeting();
-            ") == "hello Brian!");
+            ") == "hello Brian!", Is.True);
 
-            Assert.True(_state.Run(@"
+            Assert.That(_state.Run(@"
                 global.brian.changeState();
                 return global.test;
-            ") == 100);
+            ") == 100, Is.True);
 
             Assert.Throws<MondRuntimeException>(() => _state.Run(@"
                 return global.brian.UnmarkedFunction();
@@ -52,22 +52,22 @@ namespace Mond.Tests.Binding
         [Test]
         public void Properties()
         {
-            Assert.True(_state.Run(@"
+            Assert.That(_state.Run(@"
                 return global.brian.getName();
-            ") == "Brian");
+            ") == "Brian", Is.True);
 
             Assert.Throws<MondRuntimeException>(() => _state.Run(@"
                 global.brian.setName('not brian');
             "));
 
-            Assert.True(_state.Run(@"
+            Assert.That(_state.Run(@"
                 return global.brian.getAge();
-            ") == -1);
+            ") == -1, Is.True);
 
-            Assert.True(_state.Run(@"
+            Assert.That(_state.Run(@"
                 global.brian.setAge(4);
                 return global.brian.getAge();
-            ") == 4);
+            ") == 4, Is.True);
 
             Assert.Throws<MondRuntimeException>(() => _state.Run(@"
                 return global.brian.setUnmarkedProperty();
@@ -82,7 +82,7 @@ namespace Mond.Tests.Binding
         public void Constructor()
         {
             var type = _state.Run("return global.brian.getType();");
-            Assert.True(type == "object");
+            Assert.That(type == "object", Is.True);
         }
 
         [MondClass]

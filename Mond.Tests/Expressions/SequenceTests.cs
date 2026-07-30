@@ -27,8 +27,8 @@ namespace Mond.Tests.Expressions
                 1, 2, 3, 4, 5
             };
 
-            Assert.True(result.IsEnumerable);
-            CollectionAssert.AreEqual(expected, result.Enumerate(state));
+            Assert.That(result.IsEnumerable, Is.True);
+            Assert.That(result.Enumerate(state), Is.EqualTo(expected));
         }
 
         [Test]
@@ -38,11 +38,11 @@ namespace Mond.Tests.Expressions
                 return (seq () -> 10)();
             ");
 
-            Assert.True(result.IsEnumerable);
+            Assert.That(result.IsEnumerable, Is.True);
 
             var enumerator = state.Call(result["getEnumerator"]);
-            Assert.AreEqual(MondValue.False, state.Call(enumerator["moveNext"]));
-            Assert.AreEqual((MondValue)10, enumerator["current"]);
+            Assert.That(state.Call(enumerator["moveNext"]), Is.EqualTo(MondValue.False));
+            Assert.That(enumerator["current"], Is.EqualTo((MondValue)10));
         }
 
         [Test]
@@ -69,8 +69,8 @@ namespace Mond.Tests.Expressions
                 10, MondValue.Undefined
             };
 
-            Assert.True(result.IsEnumerable);
-            CollectionAssert.AreEqual(expected, result.Enumerate(state));
+            Assert.That(result.IsEnumerable, Is.True);
+            Assert.That(result.Enumerate(state), Is.EqualTo(expected));
         }
 
         [Test]
@@ -116,7 +116,7 @@ namespace Mond.Tests.Expressions
                        check(false, 2);
             ");
 
-            Assert.AreEqual(MondValue.True, result);
+            Assert.That(result, Is.EqualTo(MondValue.True));
         }
         
         [Test]
@@ -148,8 +148,8 @@ namespace Mond.Tests.Expressions
                 "1", "2", "Fizz", "4", "Buzz", "Fizz", "7", "8", "Fizz", "Buzz", "11", "Fizz", "13", "14", "FizzBuzz"
             };
 
-            Assert.True(result.IsEnumerable);
-            CollectionAssert.AreEqual(expected, result.Enumerate(state).Take(expected.Length));
+            Assert.That(result.IsEnumerable, Is.True);
+            Assert.That(result.Enumerate(state).Take(expected.Length), Is.EqualTo(expected));
         }
 
         [Test]
@@ -176,8 +176,8 @@ namespace Mond.Tests.Expressions
                 1, 1, "hi", "hi", "hi", "hi", "hi"
             };
 
-            Assert.True(result.IsEnumerable);
-            CollectionAssert.AreEqual(expected, result.Enumerate(state));
+            Assert.That(result.IsEnumerable, Is.True);
+            Assert.That(result.Enumerate(state), Is.EqualTo(expected));
         }
 
         [Test]
@@ -197,8 +197,8 @@ namespace Mond.Tests.Expressions
                 1, 2, 3
             };
 
-            Assert.True(result.IsEnumerable);
-            CollectionAssert.AreEqual(expected, result.Enumerate(state));
+            Assert.That(result.IsEnumerable, Is.True);
+            Assert.That(result.Enumerate(state), Is.EqualTo(expected));
         }
 
         [Test]
@@ -216,10 +216,10 @@ namespace Mond.Tests.Expressions
                 return ints();
             ");
 
-            Assert.True(result.IsEnumerable);
+            Assert.That(result.IsEnumerable, Is.True);
 
             result = result.Enumerate(state).Skip(4).FirstOrDefault();
-            Assert.AreEqual((MondValue)4, state.Call(result));
+            Assert.That(state.Call(result), Is.EqualTo((MondValue)4));
         }
 
         [Test]
@@ -241,7 +241,7 @@ namespace Mond.Tests.Expressions
                 return result;
             ");
 
-            Assert.AreEqual((MondValue)15, result);
+            Assert.That(result, Is.EqualTo((MondValue)15));
         }
 
         [Test]
@@ -267,8 +267,8 @@ namespace Mond.Tests.Expressions
                 return [ ae.current, be.current ];
             ");
 
-            Assert.AreEqual((MondValue)6, result[0]);
-            Assert.AreEqual((MondValue)25, result[1]);
+            Assert.That(result[0], Is.EqualTo((MondValue)6));
+            Assert.That(result[1], Is.EqualTo((MondValue)25));
         }
     }
 }

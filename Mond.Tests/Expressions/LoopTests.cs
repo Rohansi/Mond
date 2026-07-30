@@ -26,7 +26,7 @@ namespace Mond.Tests.Expressions
                 return a;
             ");
 
-            Assert.AreEqual((MondValue)256, result);
+            Assert.That(result, Is.EqualTo((MondValue)256));
         }
 
         [Test]
@@ -49,7 +49,7 @@ namespace Mond.Tests.Expressions
                 return arr[4]();
             ");
 
-            Assert.AreEqual((MondValue)4, result);
+            Assert.That(result, Is.EqualTo((MondValue)4));
         }
 
         [Test]
@@ -73,7 +73,7 @@ namespace Mond.Tests.Expressions
                 return a;
             ");
 
-            Assert.AreEqual((MondValue)1024, result);
+            Assert.That(result, Is.EqualTo((MondValue)1024));
         }
 
         [Test]
@@ -89,7 +89,7 @@ namespace Mond.Tests.Expressions
                 return i;
             ");
 
-            Assert.AreEqual((MondValue)10, result);
+            Assert.That(result, Is.EqualTo((MondValue)10));
         }
 
         [Test]
@@ -110,7 +110,7 @@ namespace Mond.Tests.Expressions
                 return arr[4]();
             ");
 
-            Assert.AreEqual((MondValue)4, result);
+            Assert.That(result, Is.EqualTo((MondValue)4));
         }
 
         [Test]
@@ -126,7 +126,7 @@ namespace Mond.Tests.Expressions
                 return a;
             ");
 
-            Assert.AreEqual((MondValue)3628800, result);
+            Assert.That(result, Is.EqualTo((MondValue)3628800));
         }
 
         [Test]
@@ -146,7 +146,7 @@ namespace Mond.Tests.Expressions
                 return arr[4]();
             ");
 
-            Assert.AreEqual((MondValue)4, result);
+            Assert.That(result, Is.EqualTo((MondValue)4));
         }
 
         [Test]
@@ -158,7 +158,7 @@ namespace Mond.Tests.Expressions
                 return 1;
             ");
 
-            Assert.AreEqual((MondValue)1, result);
+            Assert.That(result, Is.EqualTo((MondValue)1));
         }
 
         [Test]
@@ -199,7 +199,7 @@ namespace Mond.Tests.Expressions
                 return res;
             ");
 
-            Assert.AreEqual((MondValue)5, result);
+            Assert.That(result, Is.EqualTo((MondValue)5));
         }
 
         [Test]
@@ -218,7 +218,7 @@ namespace Mond.Tests.Expressions
                 return i;
             ");
 
-            Assert.AreEqual((MondValue)100, result);
+            Assert.That(result, Is.EqualTo((MondValue)100));
         }
 
         [Test]
@@ -239,7 +239,7 @@ namespace Mond.Tests.Expressions
                 return result;
             ");
 
-            Assert.AreEqual((MondValue)500, result);
+            Assert.That(result, Is.EqualTo((MondValue)500));
         }
 
         [Test]
@@ -256,7 +256,7 @@ namespace Mond.Tests.Expressions
                 return res;
             ");
 
-            Assert.AreEqual((MondValue)15, result);
+            Assert.That(result, Is.EqualTo((MondValue)15));
         }
 
         [Test]
@@ -276,7 +276,7 @@ namespace Mond.Tests.Expressions
                 return arr[4]();
             ");
 
-            Assert.AreEqual((MondValue)4, result);
+            Assert.That(result, Is.EqualTo((MondValue)4));
         }
 
         [Test]
@@ -288,7 +288,7 @@ namespace Mond.Tests.Expressions
                 return 1;
             ");
 
-            Assert.AreEqual((MondValue)1, result);
+            Assert.That(result, Is.EqualTo((MondValue)1));
         }
 
         [Test]
@@ -316,7 +316,7 @@ namespace Mond.Tests.Expressions
                 return res;
             ");
 
-            Assert.AreEqual((MondValue)15, result);
+            Assert.That(result, Is.EqualTo((MondValue)15));
         }
 
         [Test]
@@ -341,7 +341,7 @@ namespace Mond.Tests.Expressions
                 return res;
             ");
 
-            Assert.AreEqual((MondValue)30, result);
+            Assert.That(result, Is.EqualTo((MondValue)30));
         }
 
         [Test]

@@ -29,9 +29,9 @@ namespace Mond.Tests.Binding
         [Test]
         public void Methods()
         {
-            Assert.True(_state.Run(@"
+            Assert.That(_state.Run(@"
                 return global.Test.sin(10);
-            ") == Math.Sin(10));
+            ") == Math.Sin(10), Is.True);
 
             Assert.Throws<MondRuntimeException>(() => _state.Run(@"
                 return global.Test.unmarkedFunction();
@@ -45,22 +45,22 @@ namespace Mond.Tests.Binding
         [Test]
         public void Properties()
         {
-            Assert.True(_state.Run(@"
+            Assert.That((bool)_state.Run(@"
                 global.Test.setProperty('test');
                 return global.Test.getProperty();
-            "));
+            "), Is.True);
 
-            Assert.True(_state.Run(@"
+            Assert.That(_state.Run(@"
                 return global.Test.getPropertyPrivateSet();
-            ") == true);
+            ") == true, Is.True);
 
             Assert.Throws<MondRuntimeException>(() => _state.Run(@"
                 global.Test.setPropertyPrivateSet(false);
             "));
 
-            Assert.True(_state.Run(@"
+            Assert.That(_state.Run(@"
                 return global.Test.getPropertyNoSet();
-            ") == 7);
+            ") == 7, Is.True);
 
             Assert.Throws<MondRuntimeException>(() => _state.Run(@"
                 global.Test.setPropertyNoSet(10);

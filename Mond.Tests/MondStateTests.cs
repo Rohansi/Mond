@@ -26,8 +26,8 @@ namespace Mond.Tests
             var result1 = state["a"];
             var result2 = state["b"];
 
-            Assert.True(result1 == "hi nerd");
-            Assert.True(result2 == "hi brian");
+            Assert.That(result1 == "hi nerd", Is.True);
+            Assert.That(result2 == "hi brian", Is.True);
         }
 
         [Test]
@@ -47,7 +47,7 @@ namespace Mond.Tests
                 return global.function('arg');
             ");
 
-            Assert.True(result == "arg");
+            Assert.That(result == "arg", Is.True);
         }
 
         [Test]
@@ -78,7 +78,7 @@ namespace Mond.Tests
 
             var program = string.Format(programTemplate, testName);
             var exception = Assert.Throws<MondRuntimeException>(() => state.Run(program));
-            Assert.AreEqual(hasNativeTransition, exception.ToString().Contains("[... native ...]"), testName);
+            Assert.That(exception.ToString().Contains("[... native ...]"), Is.EqualTo(hasNativeTransition), testName);
         }
     }
 }

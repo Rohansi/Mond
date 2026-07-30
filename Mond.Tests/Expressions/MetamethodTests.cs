@@ -28,10 +28,10 @@ namespace Mond.Tests.Expressions
             ");
 
             result["test"] = 123;
-            Assert.AreEqual((MondValue)123, result["test"]);
+            Assert.That(result["test"], Is.EqualTo((MondValue)123));
 
             result[123] = "test";
-            Assert.AreNotEqual((MondValue)"test", result[123]);
+            Assert.That(result[123], Is.Not.EqualTo((MondValue)"test"));
         }
 
         [Test]
@@ -58,9 +58,9 @@ namespace Mond.Tests.Expressions
                 return obj(1, 3) + obj(...[1, 3]);
             ");
 
-            Assert.AreEqual((MondValue)8, result);
+            Assert.That(result, Is.EqualTo((MondValue)8));
 
-            Assert.AreEqual((MondValue)4, state.Call(state["obj"], 1, 3));
+            Assert.That(state.Call(state["obj"], 1, 3), Is.EqualTo((MondValue)4));
         }
 
         [Test]
@@ -76,7 +76,7 @@ namespace Mond.Tests.Expressions
                 return (1 + obj) + (obj + 1);
             ");
 
-            Assert.AreEqual((MondValue)10, result);
+            Assert.That(result, Is.EqualTo((MondValue)10));
         }
 
         [Test]
@@ -92,7 +92,7 @@ namespace Mond.Tests.Expressions
                 return obj ? 'yes' : 'no';
             ");
 
-            Assert.AreEqual((MondValue)"no", result);
+            Assert.That(result, Is.EqualTo((MondValue)"no"));
         }
 
         [Test]
@@ -108,7 +108,7 @@ namespace Mond.Tests.Expressions
                 return ('' + obj) + (obj + '') + (obj.toString());
             ");
 
-            Assert.AreEqual((MondValue)"hellohellohello", result);
+            Assert.That(result, Is.EqualTo((MondValue)"hellohellohello"));
         }
 
         [Test]
@@ -124,7 +124,7 @@ namespace Mond.Tests.Expressions
                 return obj.serialize();
             ");
 
-            Assert.True(result == "\"serialized\"");
+            Assert.That(result == "\"serialized\"", Is.True);
         }
 
         [Test]
@@ -157,17 +157,17 @@ namespace Mond.Tests.Expressions
                 return obj;
             ");
 
-            Assert.True(result == 4, "==");
+            Assert.That(result == 4, Is.True, "==");
 
-            Assert.True(result != 3, "!=");
+            Assert.That(result != 3, Is.True, "!=");
 
-            Assert.True(result > 3, ">");
+            Assert.That(result > 3, Is.True, ">");
 
-            Assert.True(result >= 3, ">=");
+            Assert.That(result >= 3, Is.True, ">=");
 
-            Assert.True(result < 5, "<");
+            Assert.That(result < 5, Is.True, "<");
 
-            Assert.True(result <= 5, "<=");
+            Assert.That(result <= 5, Is.True, "<=");
         }
 
         [Test]
@@ -185,9 +185,9 @@ namespace Mond.Tests.Expressions
                 return obj;
             ");
 
-            Assert.True(result.Contains(4));
+            Assert.That(result.Contains(4), Is.True);
 
-            Assert.False(result.Contains(5));
+            Assert.That(result.Contains(5), Is.False);
         }
 
         [Test]
@@ -209,19 +209,19 @@ namespace Mond.Tests.Expressions
                 return obj;
             ");
 
-            Assert.True(result + 1 == 1, "+");
+            Assert.That(result + 1 == 1, Is.True, "+");
 
-            Assert.True(result - 2 == 2, "-");
+            Assert.That(result - 2 == 2, Is.True, "-");
 
-            Assert.True(result * 3 == 3, "*");
+            Assert.That(result * 3 == 3, Is.True, "*");
 
-            Assert.True(result / 4 == 4, "/");
+            Assert.That(result / 4 == 4, Is.True, "/");
 
-            Assert.True(result % 5 == 5, "%");
+            Assert.That(result % 5 == 5, Is.True, "%");
 
-            Assert.True(result.Pow(6) == 6, "**");
+            Assert.That(result.Pow(6) == 6, Is.True, "**");
 
-            Assert.True(-result == 100, "neg");
+            Assert.That(-result == 100, Is.True, "neg");
         }
 
         [Test]
@@ -242,21 +242,21 @@ namespace Mond.Tests.Expressions
                 return obj;
             ");
 
-            Assert.True((result & 1) == 1, "&");
+            Assert.That((result & 1) == 1, Is.True, "&");
 
-            Assert.True((result | 2) == 2, "|");
+            Assert.That((result | 2) == 2, Is.True, "|");
 
-            Assert.True((result ^ 3) == 3, "^");
+            Assert.That((result ^ 3) == 3, Is.True, "^");
 
-            Assert.True((result << 4) == 4, "<<");
+            Assert.That((result << 4) == 4, Is.True, "<<");
 
-            Assert.True((result >> 5) == 5, ">>");
+            Assert.That((result >> 5) == 5, Is.True, ">>");
 
-            Assert.True(result.LShift(6) == 6, "LShift");
+            Assert.That(result.LShift(6) == 6, Is.True, "LShift");
 
-            Assert.True(result.RShift(7) == 7, "RShift");
+            Assert.That(result.RShift(7) == 7, Is.True, "RShift");
 
-            Assert.True(~result == 100, "~");
+            Assert.That(~result == 100, Is.True, "~");
         }
 
         [Test]
@@ -275,8 +275,8 @@ namespace Mond.Tests.Expressions
                 1, 2, 3
             };
 
-            Assert.AreEqual(MondValueType.Array, result.Type);
-            CollectionAssert.AreEqual(expected, result.Enumerate(state));
+            Assert.That(result.Type, Is.EqualTo(MondValueType.Array));
+            Assert.That(result.Enumerate(state), Is.EqualTo(expected));
         }
 
         [Test]
@@ -298,7 +298,7 @@ namespace Mond.Tests.Expressions
                 return obj[key2];
             ");
 
-            Assert.AreEqual((MondValue)456, result);
+            Assert.That(result, Is.EqualTo((MondValue)456));
         }
     }
 }

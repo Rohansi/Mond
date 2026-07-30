@@ -12,7 +12,7 @@ namespace Mond.Tests
         {
             var callbackCalled = false;
             RunWithDebugger("debugger;", _ => callbackCalled = true, 1);
-            Assert.AreEqual(true, callbackCalled);
+            Assert.That(callbackCalled, Is.EqualTo(true));
         }
         
         [Test]
@@ -27,10 +27,10 @@ namespace Mond.Tests
             RunWithDebugger(code, context =>
             {
                 var locals = context.GetLocals();
-                Assert.AreEqual((MondValue)10, locals["x"], "GetLocals");
+                Assert.That(locals["x"], Is.EqualTo((MondValue)10), "GetLocals");
 
                 var xValue = context.Evaluate("x");
-                Assert.AreEqual((MondValue)10, xValue, "Evaluate");
+                Assert.That(xValue, Is.EqualTo((MondValue)10), "Evaluate");
             }, 1);
         }
         
@@ -47,12 +47,12 @@ namespace Mond.Tests
             var result = RunWithDebugger(code, context =>
             {
                 var xValue = context.Evaluate("x");
-                Assert.AreEqual((MondValue)10, xValue, "Evaluate");
+                Assert.That(xValue, Is.EqualTo((MondValue)10), "Evaluate");
 
                 context.Evaluate("x = 11");
             }, 1);
 
-            Assert.AreEqual((MondValue)11, result);
+            Assert.That(result, Is.EqualTo((MondValue)11));
         }
         
         [Test]
@@ -69,10 +69,10 @@ namespace Mond.Tests
             RunWithDebugger(code, context =>
             {
                 var locals = context.GetLocals();
-                Assert.AreEqual((MondValue)10, locals["x"], "GetLocals");
+                Assert.That(locals["x"], Is.EqualTo((MondValue)10), "GetLocals");
 
                 var xValue = context.Evaluate("x");
-                Assert.AreEqual((MondValue)10, xValue, "Evaluate");
+                Assert.That(xValue, Is.EqualTo((MondValue)10), "Evaluate");
             }, 1);
         }
         
@@ -91,12 +91,12 @@ namespace Mond.Tests
             var result = RunWithDebugger(code, context =>
             {
                 var xValue = context.Evaluate("x");
-                Assert.AreEqual((MondValue)10, xValue, "Evaluate");
+                Assert.That(xValue, Is.EqualTo((MondValue)10), "Evaluate");
 
                 context.Evaluate("x = 11");
             }, 1);
 
-            Assert.AreEqual((MondValue)11, result);
+            Assert.That(result, Is.EqualTo((MondValue)11));
         }
         
         [Test]
@@ -115,10 +115,10 @@ namespace Mond.Tests
             RunWithDebugger(code, context =>
             {
                 var locals = context.GetLocals();
-                Assert.AreEqual((MondValue)10, locals["x"], "GetLocals");
+                Assert.That(locals["x"], Is.EqualTo((MondValue)10), "GetLocals");
 
                 var xValue = context.Evaluate("x");
-                Assert.AreEqual((MondValue)10, xValue, "Evaluate");
+                Assert.That(xValue, Is.EqualTo((MondValue)10), "Evaluate");
             }, 1);
         }
         
@@ -138,12 +138,12 @@ namespace Mond.Tests
             var result = RunWithDebugger(code, context =>
             {
                 var xValue = context.Evaluate("x");
-                Assert.AreEqual((MondValue)10, xValue, "Evaluate");
+                Assert.That(xValue, Is.EqualTo((MondValue)10), "Evaluate");
 
                 context.Evaluate("x = 11");
             }, 1);
 
-            Assert.AreEqual((MondValue)11, result);
+            Assert.That(result, Is.EqualTo((MondValue)11));
         }
 
         [Test]
@@ -164,10 +164,10 @@ namespace Mond.Tests
 
             RunWithDebugger(script, context =>
             {
-                Assert.AreEqual(3, context.CallStack.Count);
-                Assert.AreEqual("funcA", context.CallStack[0].Function);
-                Assert.AreEqual("funcB", context.CallStack[1].Function);
-                Assert.AreEqual("<top level>", context.CallStack[2].Function);
+                Assert.That(context.CallStack.Count, Is.EqualTo(3));
+                Assert.That(context.CallStack[0].Function, Is.EqualTo("funcA"));
+                Assert.That(context.CallStack[1].Function, Is.EqualTo("funcB"));
+                Assert.That(context.CallStack[2].Function, Is.EqualTo("<top level>"));
             }, 1);
         }
 
@@ -187,9 +187,9 @@ namespace Mond.Tests
 
             RunWithDebugger(script, context =>
             {
-                Assert.AreEqual(2, context.CallStack.Count);
-                Assert.AreEqual("sequence.moveNext", context.CallStack[0].Function);
-                Assert.AreEqual("<top level>", context.CallStack[1].Function);
+                Assert.That(context.CallStack.Count, Is.EqualTo(2));
+                Assert.That(context.CallStack[0].Function, Is.EqualTo("sequence.moveNext"));
+                Assert.That(context.CallStack[1].Function, Is.EqualTo("<top level>"));
             }, 1);
         }
 
@@ -213,10 +213,10 @@ namespace Mond.Tests
 
             RunWithDebugger(script, context =>
             {
-                Assert.AreEqual(3, context.CallStack.Count);
-                Assert.AreEqual("function", context.CallStack[0].Function);
-                Assert.AreEqual("sequence.moveNext", context.CallStack[1].Function);
-                Assert.AreEqual("<top level>", context.CallStack[2].Function);
+                Assert.That(context.CallStack.Count, Is.EqualTo(3));
+                Assert.That(context.CallStack[0].Function, Is.EqualTo("function"));
+                Assert.That(context.CallStack[1].Function, Is.EqualTo("sequence.moveNext"));
+                Assert.That(context.CallStack[2].Function, Is.EqualTo("<top level>"));
             }, 1);
         }
 
@@ -228,7 +228,7 @@ namespace Mond.Tests
             state.Debugger = debugger;
             var result = state.Run(code);
             
-            Assert.AreEqual(expectedBreakCount, debugger.BreakCount);
+            Assert.That(debugger.BreakCount, Is.EqualTo(expectedBreakCount));
 
             return result;
         }

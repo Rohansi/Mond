@@ -28,29 +28,29 @@ namespace Mond.Tests.Binding
         [Test]
         public void Resolution()
         {
-            Assert.True(_state.Run("return Ov.test();") == 0, "0.0");
+            Assert.That(_state.Run("return Ov.test();") == 0, Is.True, "0.0");
 
-            Assert.True(_state.Run("return Ov.test(true);") == 0, "0.1");
-            Assert.True(_state.Run("return Ov.test(false);") == 0, "0.2");
+            Assert.That(_state.Run("return Ov.test(true);") == 0, Is.True, "0.1");
+            Assert.That(_state.Run("return Ov.test(false);") == 0, Is.True, "0.2");
 
-            Assert.True(_state.Run("return Ov.test('hi');") == 1, "1.0");
+            Assert.That(_state.Run("return Ov.test('hi');") == 1, Is.True, "1.0");
 
-            Assert.True(_state.Run("return Ov.test(10);") == 2, "2.0");
-            Assert.True(_state.Run("return Ov.test(10, 20);") == 2, "2.1");
+            Assert.That(_state.Run("return Ov.test(10);") == 2, Is.True, "2.0");
+            Assert.That(_state.Run("return Ov.test(10, 20);") == 2, Is.True, "2.1");
 
-            Assert.True(_state.Run("return Ov.test(undefined, 20);") == 3, "3.0");
-            Assert.True(_state.Run("return Ov.test(null, 20);") == 3, "3.1");
-            Assert.True(_state.Run("return Ov.test([], 20);") == 3, "3.2");
+            Assert.That(_state.Run("return Ov.test(undefined, 20);") == 3, Is.True, "3.0");
+            Assert.That(_state.Run("return Ov.test(null, 20);") == 3, Is.True, "3.1");
+            Assert.That(_state.Run("return Ov.test([], 20);") == 3, Is.True, "3.2");
 
-            Assert.True(_state.Run("return Ov.test('hi', 20);") == 4, "4.0");
-            Assert.True(_state.Run("return Ov.test('hi', 20, 30);") == 4, "4.1");
+            Assert.That(_state.Run("return Ov.test('hi', 20);") == 4, Is.True, "4.0");
+            Assert.That(_state.Run("return Ov.test('hi', 20, 30);") == 4, Is.True, "4.1");
 
-            Assert.True(_state.Run("return Ov.test(10, 20, 30);") == 5, "5.0");
-            Assert.True(_state.Run("return Ov.test(10, 20, 30, 40);") == 5, "5.1");
+            Assert.That(_state.Run("return Ov.test(10, 20, 30);") == 5, Is.True, "5.0");
+            Assert.That(_state.Run("return Ov.test(10, 20, 30, 40);") == 5, Is.True, "5.1");
 
-            Assert.True(_state.Run("return Ov.test([], 'hi');") == 6, "6.0");
-            Assert.True(_state.Run("return Ov.test('hi', 'hi');") == 6, "6.1");
-            Assert.True(_state.Run("return Ov.test('hi', 20, 'hi');") == 6, "6.2");
+            Assert.That(_state.Run("return Ov.test([], 'hi');") == 6, Is.True, "6.0");
+            Assert.That(_state.Run("return Ov.test('hi', 'hi');") == 6, Is.True, "6.1");
+            Assert.That(_state.Run("return Ov.test('hi', 20, 'hi');") == 6, Is.True, "6.2");
         }
 
         [MondModule("Ov")]

@@ -17,8 +17,8 @@ namespace Mond.Tests.Expressions
         {
             var result = Script.Run(source);
 
-            Assert.AreEqual((MondValue)123, result["a"]);
-            Assert.AreEqual((MondValue)456, result["b"]);
+            Assert.That(result["a"], Is.EqualTo((MondValue)123));
+            Assert.That(result["b"], Is.EqualTo((MondValue)456));
         }
 
         [Test]
@@ -31,9 +31,9 @@ namespace Mond.Tests.Expressions
                 return { i, x: o.x };
             ");
 
-            Assert.True(result.Type == MondValueType.Object);
-            Assert.True(result["i"] == 1);
-            Assert.True(result["x"] == 9);
+            Assert.That(result.Type == MondValueType.Object, Is.True);
+            Assert.That(result["i"] == 1, Is.True);
+            Assert.That(result["x"] == 9, Is.True);
         }
 
         [Test]
@@ -46,18 +46,18 @@ namespace Mond.Tests.Expressions
                 };
             ");
 
-            Assert.AreEqual(MondValueType.Function, obj["fun123"].Type);
-            Assert.AreEqual(MondValueType.Function, obj["seq456"].Type);
+            Assert.That(obj["fun123"].Type, Is.EqualTo(MondValueType.Function));
+            Assert.That(obj["seq456"].Type, Is.EqualTo(MondValueType.Function));
 
             var funEx = Assert.Throws<MondRuntimeException>(() => state.Call(obj["fun123"]));
-            StringAssert.Contains("fun123", funEx.ToString());
+            Assert.That(funEx.ToString(), Does.Contain("fun123"));
 
             var seqEx = Assert.Throws<MondRuntimeException>(() =>
             {
                 var enumerator = state.Call(obj["seq456"]);
                 state.Call(enumerator["moveNext"]);
             });
-            StringAssert.Contains("seq456", seqEx.ToString());
+            Assert.That(seqEx.ToString(), Does.Contain("seq456"));
         }
 
         [Test]
@@ -86,7 +86,7 @@ namespace Mond.Tests.Expressions
                 return a.number();
             ");
 
-            Assert.AreEqual((MondValue)15, result);
+            Assert.That(result, Is.EqualTo((MondValue)15));
         }
 
         [Test]
@@ -120,7 +120,7 @@ namespace Mond.Tests.Expressions
                 return rohan.greeting();
                 """;
             var result = Script.Run(script);
-            Assert.AreEqual((MondValue)"hello Rohan", result);
+            Assert.That(result, Is.EqualTo((MondValue)"hello Rohan"));
         }
 
         [Test]
@@ -134,7 +134,7 @@ namespace Mond.Tests.Expressions
                 return obj.method(1, 2);
                 """;
             var result = Script.Run(script);
-            Assert.AreEqual((MondValue)3, result);
+            Assert.That(result, Is.EqualTo((MondValue)3));
         }
 
         [Test]
@@ -148,7 +148,7 @@ namespace Mond.Tests.Expressions
                 return obj.method(1, 2);
                 """;
             var result = Script.Run(script);
-            Assert.AreEqual((MondValue)3, result);
+            Assert.That(result, Is.EqualTo((MondValue)3));
         }
 
         [Test]
@@ -186,7 +186,7 @@ namespace Mond.Tests.Expressions
             };
             var result = state.Run(script);
             var values = result.Enumerate(state);
-            Assert.AreEqual(new MondValue[] { 1, 2 }, values);
+            Assert.That(values, Is.EqualTo(new MondValue[] { 1, 2 }));
         }
 
         [Test]
@@ -205,7 +205,7 @@ namespace Mond.Tests.Expressions
                 return obj.method(1, 2);
                 """;
             var result = Script.Run(script);
-            Assert.AreEqual((MondValue)4, result);
+            Assert.That(result, Is.EqualTo((MondValue)4));
         }
     }
 }

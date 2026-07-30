@@ -12,7 +12,7 @@ internal class ParseModuleTests
             return parseFloat('123.456');
         ");
 
-        Assert.AreEqual((MondValue)123.456, result);
+        Assert.That(result, Is.EqualTo((MondValue)123.456));
     }
 
     [Test]
@@ -22,7 +22,7 @@ internal class ParseModuleTests
             return parseFloat('hello');
         ");
 
-        Assert.AreEqual(MondValue.Undefined, result);
+        Assert.That(result, Is.EqualTo(MondValue.Undefined));
     }
 
     [Test]
@@ -32,7 +32,7 @@ internal class ParseModuleTests
             return parseInt('123');
         ");
 
-        Assert.AreEqual((MondValue)123, result);
+        Assert.That(result, Is.EqualTo((MondValue)123));
     }
 
     [Test]
@@ -42,7 +42,7 @@ internal class ParseModuleTests
             return parseInt('hello');
         ");
 
-        Assert.AreEqual(MondValue.Undefined, result);
+        Assert.That(result, Is.EqualTo(MondValue.Undefined));
     }
 
     [Test]
@@ -52,7 +52,7 @@ internal class ParseModuleTests
             return parseHex('DEaDb33F');
         ");
 
-        Assert.AreEqual((MondValue)0xDEaDb33F, result);
+        Assert.That(result, Is.EqualTo((MondValue)0xDEaDb33F));
     }
 
     [Test]
@@ -62,7 +62,7 @@ internal class ParseModuleTests
             return parseHex('1000');
         ");
 
-        Assert.AreEqual((MondValue)0x1000, result);
+        Assert.That(result, Is.EqualTo((MondValue)0x1000));
     }
 
     [Test]
@@ -72,6 +72,6 @@ internal class ParseModuleTests
             return parseFloat('hello');
         ");
 
-        Assert.AreEqual(MondValue.Undefined, result);
+        Assert.That(result, Is.EqualTo(MondValue.Undefined));
     }
 }

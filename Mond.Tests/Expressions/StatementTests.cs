@@ -20,7 +20,7 @@ namespace Mond.Tests.Expressions
                 }
             ");
 
-            Assert.AreEqual(MondValue.Undefined, result);
+            Assert.That(result, Is.EqualTo(MondValue.Undefined));
         }
 
         [Test]
@@ -55,7 +55,7 @@ namespace Mond.Tests.Expressions
                 return a;
             ");
 
-            Assert.AreEqual((MondValue)100, result);
+            Assert.That(result, Is.EqualTo((MondValue)100));
         }
 
         [Test]
@@ -120,7 +120,7 @@ namespace Mond.Tests.Expressions
             ");
 
             var test = state["test"];
-            Assert.AreEqual(expected, state.Call(test, input));
+            Assert.That(state.Call(test, input), Is.EqualTo(expected));
         }
 
         [Test]
@@ -142,7 +142,7 @@ namespace Mond.Tests.Expressions
             ");
 
             var test = state["test"];
-            Assert.AreEqual(expected, state.Call(test, input));
+            Assert.That(state.Call(test, input), Is.EqualTo(expected));
         }
 
         public static IEnumerable<TestCaseData> SwitchData { get; } = new[]
@@ -194,7 +194,7 @@ namespace Mond.Tests.Expressions
             ");
 
             var test = state["test"];
-            Assert.AreEqual(expected, state.Call(test, input));
+            Assert.That(state.Call(test, input), Is.EqualTo(expected));
         }
 
         [Test]
@@ -220,7 +220,7 @@ namespace Mond.Tests.Expressions
             ");
 
             var test = state["test"];
-            Assert.AreEqual((MondValue)expected, state.Call(test, input));
+            Assert.That(state.Call(test, input), Is.EqualTo((MondValue)expected));
         }
 
         [Test]
@@ -244,7 +244,7 @@ namespace Mond.Tests.Expressions
             ");
 
             var test = state["test"];
-            Assert.AreEqual((MondValue)expected, state.Call(test, input));
+            Assert.That(state.Call(test, input), Is.EqualTo((MondValue)expected));
         }
 
         [Test]
@@ -328,7 +328,7 @@ namespace Mond.Tests.Expressions
             var module = Script.Run(out var state, script);
             var exports = MondValue.Object(state);
             state.Call(module, exports);
-            Assert.AreEqual((MondValue)10, exports["value"]);
+            Assert.That(exports["value"], Is.EqualTo((MondValue)10));
         }
 
         [Test]
@@ -343,8 +343,8 @@ namespace Mond.Tests.Expressions
             var module = Script.Run(out var state, script);
             var exports = MondValue.Object(state);
             state.Call(module, exports);
-            Assert.AreEqual((MondValue)10, exports["x"]);
-            Assert.AreEqual((MondValue)20, exports["y"]);
+            Assert.That(exports["x"], Is.EqualTo((MondValue)10));
+            Assert.That(exports["y"], Is.EqualTo((MondValue)20));
         }
 
         [Test]
@@ -359,8 +359,8 @@ namespace Mond.Tests.Expressions
             var module = Script.Run(out var state, script);
             var exports = MondValue.Object(state);
             state.Call(module, exports);
-            Assert.AreEqual(MondValueType.Function, exports["method"].Type);
-            Assert.AreEqual((MondValue)10, state.Call(exports["method"]));
+            Assert.That(exports["method"].Type, Is.EqualTo(MondValueType.Function));
+            Assert.That(state.Call(exports["method"]), Is.EqualTo((MondValue)10));
         }
 
         [Test]
@@ -378,8 +378,8 @@ namespace Mond.Tests.Expressions
             var module = Script.Run(out var state, script);
             var exports = MondValue.Object(state);
             state.Call(module, exports);
-            Assert.AreEqual(MondValueType.Function, exports["method"].Type);
-            CollectionAssert.AreEqual(new MondValue[]{ 10, 20 }, state.Call(exports["method"]).Enumerate(state));
+            Assert.That(exports["method"].Type, Is.EqualTo(MondValueType.Function));
+            Assert.That(state.Call(exports["method"]).Enumerate(state), Is.EqualTo(new MondValue[]{ 10, 20 }));
         }
 
         [Test]
@@ -398,8 +398,8 @@ namespace Mond.Tests.Expressions
             var module = Script.Run(out var state, script);
             var exports = MondValue.Object(state);
             state.Call(module, exports);
-            Assert.AreEqual(MondValueType.Function, exports["method"].Type);
-            Assert.AreEqual((MondValue)11, state.Call(exports["method"]));
+            Assert.That(exports["method"].Type, Is.EqualTo(MondValueType.Function));
+            Assert.That(state.Call(exports["method"]), Is.EqualTo((MondValue)11));
         }
     }
 }

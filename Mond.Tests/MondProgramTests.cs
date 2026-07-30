@@ -29,7 +29,7 @@ namespace Mond.Tests
             var state = new MondState();
             var result = state.Call(loadedProgram.EntryPoint);
 
-            Assert.AreEqual((MondValue)15, result);
+            Assert.That(result, Is.EqualTo((MondValue)15));
         }
     }
 }

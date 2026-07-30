@@ -2,8 +2,7 @@
   
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net8.0</TargetFrameworks>
-    <RuntimeIdentifiers>any</RuntimeIdentifiers>
+    <TargetFrameworks>net10.0</TargetFrameworks>
     <AssemblyVersion>0.11.2</AssemblyVersion>
     <DebugType>portable</DebugType>
     <LangVersion>latest</LangVersion>

@@ -79,7 +79,7 @@ namespace Mond.Tests.Binding
         {
             var result = _state.Run("return %% 5;");
 
-            Assert.True(result == 10);
+            Assert.That(result == 10, Is.True);
         }
 
         [Test]
@@ -94,8 +94,8 @@ namespace Mond.Tests.Binding
             var a = result["a"];
             var b = result["b"];
 
-            Assert.True(a["inclusive"] == true && a["begin"] == 0 && a["end"] == 5);
-            Assert.True(b["inclusive"] == false && b["begin"] == 6 && b["end"] == 10);
+            Assert.That(a["inclusive"] == true && a["begin"] == 0 && a["end"] == 5, Is.True);
+            Assert.That(b["inclusive"] == false && b["begin"] == 6 && b["end"] == 10, Is.True);
         }
 
         [Test]
@@ -107,8 +107,8 @@ namespace Mond.Tests.Binding
                     b: %%(6 <...> 10)
                 };");
 
-            Assert.True(result["a"] == 16);
-            Assert.True(result["b"] == 30);
+            Assert.That(result["a"] == 16, Is.True);
+            Assert.That(result["b"] == 30, Is.True);
         }
     }
 }

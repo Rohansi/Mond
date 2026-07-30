@@ -30,7 +30,7 @@ namespace Mond.Tests.Libraries
 
             state.Run("print('ok');");
 
-            Assert.AreEqual("ok", sb.ToString());
+            Assert.That(sb.ToString(), Is.EqualTo("ok"));
         }
     }
 }
