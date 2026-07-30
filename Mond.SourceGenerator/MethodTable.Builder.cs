@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -9,7 +9,7 @@ internal partial class MethodTable
 {
     #region MethodTables
 
-    public static List<MethodTable> Build(GeneratorExecutionContext context, TypeLookup types, IEnumerable<(IMethodSymbol Method, string Name, string Identifier)> source)
+    public static List<MethodTable> Build(SourceProductionContext context, TypeLookup types, IEnumerable<(IMethodSymbol Method, string Name, string Identifier)> source)
     {
         return source
             .GroupBy(m => m.Name)
@@ -17,7 +17,7 @@ internal partial class MethodTable
             .ToList();
     }
 
-    private static MethodTable BuildMethodTable(GeneratorExecutionContext context, IEnumerable<Method> source)
+    private static MethodTable BuildMethodTable(SourceProductionContext context, IEnumerable<Method> source)
     {
         var sourceList = source.ToList();
 

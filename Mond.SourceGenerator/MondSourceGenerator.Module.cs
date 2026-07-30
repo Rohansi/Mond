@@ -1,10 +1,10 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 
 namespace Mond.SourceGenerator;
 
 public partial class MondSourceGenerator
 {
-    private static void ModuleBindings(GeneratorExecutionContext context, TypeLookup types, INamedTypeSymbol module, IndentTextWriter writer)
+    private static void ModuleBindings(SourceProductionContext context, TypeLookup types, INamedTypeSymbol module, IndentTextWriter writer)
     {
         var moduleName = module.GetAttributes().TryGetAttribute("MondModuleAttribute", out var moduleAttr)
             ? moduleAttr.GetArgument<string>() ?? module.Name

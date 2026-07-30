@@ -1,16 +1,10 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 
 namespace Mond.SourceGenerator;
 
 internal static class Diagnostics
 {
     private const string Category = "Mond";
-
-    public static readonly DiagnosticDescriptor MissingSyntaxReceiver = new DiagnosticDescriptor(
-        "MOND00",
-        "Internal error - syntax receiver is null",
-        "The syntax receiver was not set or is an unexpected type - cannot generate Mond bindings.", Category,
-        DiagnosticSeverity.Error, true);
 
     public static readonly DiagnosticDescriptor MondValueNotFound = new DiagnosticDescriptor(
         "MOND01",

@@ -1,11 +1,11 @@
-﻿using System.Linq;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 
 namespace Mond.SourceGenerator;
 
 public partial class MondSourceGenerator
 {
-    private static void ClassBindings(GeneratorExecutionContext context, TypeLookup types, INamedTypeSymbol klass, IndentTextWriter writer)
+    private static void ClassBindings(SourceProductionContext context, TypeLookup types, INamedTypeSymbol klass, IndentTextWriter writer)
     {
         var className = klass.GetAttributes().TryGetAttribute("MondClassAttribute", out var classAttr)
             ? classAttr.GetArgument<string>() ?? klass.Name

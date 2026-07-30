@@ -1,17 +1,19 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Mond.SourceGenerator;
 
 [Generator]
-public partial class MondSourceGenerator : ISourceGenerator
+public partial class MondSourceGenerator : IIncrementalGenerator
 {
-    public void Initialize(GeneratorInitializationContext context)
+    public void Initialize(IncrementalGeneratorInitializationContext context)
     {
 #if DEBUG && false
         if (!Debugger.IsAttached)
@@ -20,29 +22,59 @@ public partial class MondSourceGenerator : ISourceGenerator
         }
 #endif
 
-        context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
-        
+        var candidates = context.SyntaxProvider
+            .CreateSyntaxProvider(
+                static (node, _) => node is ClassDeclarationSyntax,
+                static (ctx, _) => BindingCandidate.TryCreate(ctx))
+            .Where(static candidate => candidate != null)
+            .Collect();
+
+        context.RegisterSourceOutput(
+            context.CompilationProvider.Combine(candidates),
+            static (spc, source) => Execute(spc, source.Left, source.Right));
     }
 
-    public void Execute(GeneratorExecutionContext context)
+    private static void Execute(SourceProductionContext context, Compilation compilation, ImmutableArray<BindingCandidate> candidates)
     {
-        if (context.SyntaxContextReceiver is not SyntaxReceiver syntaxReceiver)
-        {
-            context.ReportDiagnostic(Diagnostic.Create(Diagnostics.MissingSyntaxReceiver, Location.None));
-            return;
-        }
-
-        if (!TypeLookup.TryCreate(context, out var types))
+        if (!TypeLookup.TryCreate(context, compilation, out var types))
         {
             return;
         }
 
-        foreach (var location in syntaxReceiver.MissingPartials)
+        var prototypes = new HashSet<INamedTypeSymbol>(SymbolEqualityComparer.Default);
+        var modules = new HashSet<INamedTypeSymbol>(SymbolEqualityComparer.Default);
+        var classes = new HashSet<INamedTypeSymbol>(SymbolEqualityComparer.Default);
+        var missingPartials = new HashSet<Location>();
+
+        foreach (var candidate in candidates)
+        {
+            if (candidate.MissingPartialLocation != null)
+            {
+                missingPartials.Add(candidate.MissingPartialLocation);
+            }
+
+            if (candidate.IsPrototype)
+            {
+                prototypes.Add(candidate.Symbol);
+            }
+
+            if (candidate.IsModule)
+            {
+                modules.Add(candidate.Symbol);
+            }
+
+            if (candidate.IsClass)
+            {
+                classes.Add(candidate.Symbol);
+            }
+        }
+
+        foreach (var location in missingPartials)
         {
             context.ReportDiagnostic(Diagnostic.Create(Diagnostics.BoundClassesMustBePartial, location));
         }
 
-        foreach (var prototype in syntaxReceiver.Prototypes)
+        foreach (var prototype in prototypes)
         {
             if (prototype.Arity != 0)
             {
@@ -53,7 +85,7 @@ public partial class MondSourceGenerator : ISourceGenerator
             context.AddSource($"{FullName(prototype)}.Prototype.g.cs", GenerateWith(context, types, prototype, PrototypeBindings));
         }
 
-        foreach (var module in syntaxReceiver.Modules)
+        foreach (var module in modules)
         {
             if (module.Arity != 0)
             {
@@ -64,7 +96,7 @@ public partial class MondSourceGenerator : ISourceGenerator
             context.AddSource($"{FullName(module)}.Module.g.cs", GenerateWith(context, types, module, ModuleBindings));
         }
 
-        foreach (var klass in syntaxReceiver.Classes)
+        foreach (var klass in classes)
         {
             if (klass.Arity != 0)
             {
@@ -87,7 +119,7 @@ public partial class MondSourceGenerator : ISourceGenerator
         }
     }
 
-    private static void CallMethod(GeneratorExecutionContext context, TypeLookup types, IndentTextWriter writer, string qualifier, Method method, int offset, int argCount = 10000)
+    private static void CallMethod(SourceProductionContext context, TypeLookup types, IndentTextWriter writer, string qualifier, Method method, int offset, int argCount = 10000)
     {
         var isConstructor = method.Info.MethodKind == MethodKind.Constructor;
         var returnType = isConstructor
@@ -106,7 +138,7 @@ public partial class MondSourceGenerator : ISourceGenerator
             : "return MondValue.Undefined;");
     }
 
-    private static string BindArguments(GeneratorExecutionContext context, TypeLookup types, Method method, int offset, int argCount)
+    private static string BindArguments(SourceProductionContext context, TypeLookup types, Method method, int offset, int argCount)
     {
         var valueIdx = 0;
         var args = new List<string>();
@@ -128,7 +160,7 @@ public partial class MondSourceGenerator : ISourceGenerator
         return string.Join(", ", args);
     }
 
-    private static string BindArgument(GeneratorExecutionContext context, TypeLookup types, int i, Parameter parameter)
+    private static string BindArgument(SourceProductionContext context, TypeLookup types, int i, Parameter parameter)
     {
         return parameter.Type switch
         {
@@ -141,7 +173,7 @@ public partial class MondSourceGenerator : ISourceGenerator
         };
     }
 
-    private static string ConvertFromMondValue(GeneratorExecutionContext context, TypeLookup types, int i, ITypeSymbol type, ISymbol typeSource)
+    private static string ConvertFromMondValue(SourceProductionContext context, TypeLookup types, int i, ITypeSymbol type, ISymbol typeSource)
     {
         var input = $"args[{i}]";
         switch (type.SpecialType)
@@ -189,7 +221,7 @@ public partial class MondSourceGenerator : ISourceGenerator
         }
     }
 
-    private static string ConvertToMondValue(GeneratorExecutionContext context, TypeLookup types, string input, ITypeSymbol type, ISymbol typeSource)
+    private static string ConvertToMondValue(SourceProductionContext context, TypeLookup types, string input, ITypeSymbol type, ISymbol typeSource)
     {
         switch (type.SpecialType)
         {
@@ -294,7 +326,7 @@ public partial class MondSourceGenerator : ISourceGenerator
             .Replace("\n", @"\n");
     }
 
-    private static List<(IMethodSymbol Method, string Name, string Identifier)> GetMethods(GeneratorExecutionContext context, INamedTypeSymbol klass, bool? isStatic = null)
+    private static List<(IMethodSymbol Method, string Name, string Identifier)> GetMethods(SourceProductionContext context, INamedTypeSymbol klass, bool? isStatic = null)
     {
         var result = new List<(IMethodSymbol, string, string)>();
         foreach (var member in klass.GetMembers())
@@ -337,7 +369,7 @@ public partial class MondSourceGenerator : ISourceGenerator
         return result;
     }
 
-    private static List<(IPropertySymbol Property, string Name)> GetProperties(GeneratorExecutionContext context, INamedTypeSymbol klass, bool? isStatic = null)
+    private static List<(IPropertySymbol Property, string Name)> GetProperties(SourceProductionContext context, INamedTypeSymbol klass, bool? isStatic = null)
     {
         var result = new List<(IPropertySymbol, string)>();
         foreach (var member in klass.GetMembers())
@@ -364,7 +396,7 @@ public partial class MondSourceGenerator : ISourceGenerator
         return result;
     }
 
-    private static List<IMethodSymbol> GetConstructors(GeneratorExecutionContext context, INamedTypeSymbol klass)
+    private static List<IMethodSymbol> GetConstructors(SourceProductionContext context, INamedTypeSymbol klass)
     {
         var result = new List<IMethodSymbol>();
         foreach (var member in klass.GetMembers())
@@ -391,9 +423,9 @@ public partial class MondSourceGenerator : ISourceGenerator
         return result;
     }
 
-    private delegate void GeneratorAction(GeneratorExecutionContext context, TypeLookup types, INamedTypeSymbol symbol, IndentTextWriter writer);
+    private delegate void GeneratorAction(SourceProductionContext context, TypeLookup types, INamedTypeSymbol symbol, IndentTextWriter writer);
 
-    private static string GenerateWith(GeneratorExecutionContext context, TypeLookup types, INamedTypeSymbol symbol, GeneratorAction generator)
+    private static string GenerateWith(SourceProductionContext context, TypeLookup types, INamedTypeSymbol symbol, GeneratorAction generator)
     {
         var stringBuilder = new StringBuilder();
         using var stringWriter = new StringWriter(stringBuilder);

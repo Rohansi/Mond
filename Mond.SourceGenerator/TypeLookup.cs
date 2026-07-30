@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 
@@ -24,11 +24,9 @@ internal sealed class TypeLookup
     {
     }
 
-    public static bool TryCreate(GeneratorExecutionContext context, out TypeLookup types)
+    public static bool TryCreate(SourceProductionContext context, Compilation compilation, out TypeLookup types)
     {
         types = null;
-
-        var compilation = context.Compilation;
 
         var doubleSym = compilation.GetSpecialType(SpecialType.System_Double);
         var floatSym = compilation.GetSpecialType(SpecialType.System_Single);

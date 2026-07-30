@@ -1,10 +1,10 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 
 namespace Mond.SourceGenerator;
 
 public partial class MondSourceGenerator
 {
-    private static void PrototypeBindings(GeneratorExecutionContext context, TypeLookup types, INamedTypeSymbol prototype, IndentTextWriter writer)
+    private static void PrototypeBindings(SourceProductionContext context, TypeLookup types, INamedTypeSymbol prototype, IndentTextWriter writer)
     {
         var prototypeName = prototype.GetAttributes().TryGetAttribute("MondPrototypeAttribute", out var prototypeAttr)
             ? prototypeAttr.GetArgument<string>() ?? prototype.Name

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -37,7 +37,7 @@ internal class Method : IComparable<Method>
 
     public readonly bool HasParams;
 
-    public Method(GeneratorExecutionContext context, TypeLookup types, string name, string identifier, IMethodSymbol info)
+    public Method(SourceProductionContext context, TypeLookup types, string name, string identifier, IMethodSymbol info)
     {
         Name = name;
         Identifier = identifier;
@@ -147,7 +147,7 @@ internal class Parameter
         return TypeName;
     }
 
-    public static Parameter Create(GeneratorExecutionContext context, TypeLookup types, IParameterSymbol info)
+    public static Parameter Create(SourceProductionContext context, TypeLookup types, IParameterSymbol info)
     {
         var param = new Parameter(info);
         var paramType = info.Type;

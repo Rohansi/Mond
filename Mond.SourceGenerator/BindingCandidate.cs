@@ -1,29 +1,43 @@
-﻿using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Mond.SourceGenerator;
 
-internal class SyntaxReceiver : ISyntaxContextReceiver
+internal sealed class BindingCandidate
 {
-    public HashSet<INamedTypeSymbol> Prototypes { get; } = new(SymbolEqualityComparer.Default);
-    public HashSet<INamedTypeSymbol> Modules { get; } = new(SymbolEqualityComparer.Default);
-    public HashSet<INamedTypeSymbol> Classes { get; } = new(SymbolEqualityComparer.Default);
-    public HashSet<Location> MissingPartials { get; } = new();
+    public INamedTypeSymbol Symbol { get; }
+    public bool IsPrototype { get; }
+    public bool IsModule { get; }
+    public bool IsClass { get; }
+    public Location MissingPartialLocation { get; }
 
-    public void OnVisitSyntaxNode(GeneratorSyntaxContext context)
+    private BindingCandidate(
+        INamedTypeSymbol symbol,
+        bool isPrototype,
+        bool isModule,
+        bool isClass,
+        Location missingPartialLocation)
+    {
+        Symbol = symbol;
+        IsPrototype = isPrototype;
+        IsModule = isModule;
+        IsClass = isClass;
+        MissingPartialLocation = missingPartialLocation;
+    }
+
+    public static BindingCandidate TryCreate(GeneratorSyntaxContext context)
     {
         if (context.Node is not ClassDeclarationSyntax classDecl)
         {
-            return;
+            return null;
         }
-        
+
         var symbol = ModelExtensions.GetDeclaredSymbol(context.SemanticModel, classDecl);
         if (!(symbol is INamedTypeSymbol classSymbol))
         {
             // todo: can we log somewhere?
-            return;
+            return null;
         }
 
         var attributes = classSymbol.GetAttributes();
@@ -33,28 +47,14 @@ internal class SyntaxReceiver : ISyntaxContextReceiver
 
         if (!isPrototype && !isModule && !isClass)
         {
-            return;
+            return null;
         }
 
-        if (IsMissingPartial(classDecl))
-        {
-            MissingPartials.Add(classDecl.Identifier.GetLocation());
-        }
+        var missingPartialLocation = IsMissingPartial(classDecl)
+            ? classDecl.Identifier.GetLocation()
+            : null;
 
-        if (isPrototype)
-        {
-            Prototypes.Add(classSymbol);
-        }
-
-        if (isModule)
-        {
-            Modules.Add(classSymbol);
-        }
-
-        if (isClass)
-        {
-            Classes.Add(classSymbol);
-        }
+        return new BindingCandidate(classSymbol, isPrototype, isModule, isClass, missingPartialLocation);
 
         static bool IsMissingPartial(ClassDeclarationSyntax klass)
         {
