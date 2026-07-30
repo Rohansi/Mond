@@ -12,6 +12,7 @@ namespace Mond.VirtualMachine
             Locked = 1 << 0,
             HasPrototype = 1 << 1,
             IsProxy = 1 << 2,
+            MayHaveMetamethods = 1 << 3,
         }
 
         private Flags _flags;
@@ -51,6 +52,12 @@ namespace Mond.VirtualMachine
             set => SetFlag(ref _flags, Flags.IsProxy, value);
         }
 
+        public bool MayHaveMetamethods
+        {
+            get => _flags.HasFlag(Flags.MayHaveMetamethods);
+            set => SetFlag(ref _flags, Flags.MayHaveMetamethods, value);
+        }
+
         public Object()
         {
             Values = new Dictionary<MondValue, MondValue>();
@@ -64,6 +71,7 @@ namespace Mond.VirtualMachine
             Values = handler ?? throw new ArgumentNullException(nameof(handler));
             _dispatcherState = state ?? throw new ArgumentNullException(nameof(state));
             IsProxy = true;
+            MayHaveMetamethods = true;
         }
 
         private static void SetFlag(ref Flags flags, Flags flag, bool value)

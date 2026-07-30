@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.CompilerServices;
 using Mond.VirtualMachine;
 using Closure = Mond.VirtualMachine.Closure;
@@ -62,7 +62,7 @@ namespace Mond
                     return !double.IsNaN(value._numberValue);
 
                 case MondValueType.Object:
-                    if (value.TryDispatch("__bool", out var result, value))
+                    if (value.TryDispatch(Metamethod.Bool, out var result, value))
                     {
                         if (result.Type != MondValueType.True && result.Type != MondValueType.False)
                         {
@@ -110,7 +110,7 @@ namespace Mond
         
         private static double ConvertDoubleSlow(in MondValue value)
         {
-            if (value.TryDispatch("__number", out var result, value))
+            if (value.TryDispatch(Metamethod.Number, out var result, value))
             {
                 if (result.Type != MondValueType.Number)
                 {
@@ -157,7 +157,7 @@ namespace Mond
         
         private static MondValue AddSlow(in MondValue left, in MondValue right)
         {
-            if (left.TryDispatch("__add", out var result, left, right))
+            if (left.TryDispatch(Metamethod.Add, out var result, left, right))
                 return result;
 
             if (right.Type == MondValueType.Number)
@@ -178,7 +178,7 @@ namespace Mond
         
         private static MondValue SubtractSlow(in MondValue left, in MondValue right)
         {
-            if (left.TryDispatch("__sub", out var result, left, right))
+            if (left.TryDispatch(Metamethod.Sub, out var result, left, right))
                 return result;
 
             if (right.Type == MondValueType.Number)
@@ -199,7 +199,7 @@ namespace Mond
         
         private static MondValue MultiplySlow(in MondValue left, in MondValue right)
         {
-            if (left.TryDispatch("__mul", out var result, left, right))
+            if (left.TryDispatch(Metamethod.Mul, out var result, left, right))
                 return result;
 
             if (right.Type == MondValueType.Number)
@@ -220,7 +220,7 @@ namespace Mond
         
         private static MondValue DivideSlow(in MondValue left, in MondValue right)
         {
-            if (left.TryDispatch("__div", out var result, left, right))
+            if (left.TryDispatch(Metamethod.Div, out var result, left, right))
                 return result;
 
             if (right.Type == MondValueType.Number)
@@ -241,7 +241,7 @@ namespace Mond
         
         private static MondValue ModuloSlow(in MondValue left, in MondValue right)
         {
-            if (left.TryDispatch("__mod", out var result, left, right))
+            if (left.TryDispatch(Metamethod.Mod, out var result, left, right))
                 return result;
 
             if (right.Type == MondValueType.Number)
@@ -262,7 +262,7 @@ namespace Mond
         
         private MondValue PowSlow(in MondValue right)
         {
-            if (TryDispatch("__pow", out var result, this, right))
+            if (TryDispatch(Metamethod.Pow, out var result, this, right))
                 return result;
 
             if (right.Type == MondValueType.Number)
@@ -277,7 +277,7 @@ namespace Mond
         {
             if (Type == MondValueType.Object)
             {
-                if (TryDispatch("__lshift", out var result, this, right))
+                if (TryDispatch(Metamethod.Lshift, out var result, this, right))
                     return result;
 
                 return new MondValue((int)this << (int)right);
@@ -291,7 +291,7 @@ namespace Mond
         {
             if (Type == MondValueType.Object)
             {
-                if (TryDispatch("__rshift", out var result, this, right))
+                if (TryDispatch(Metamethod.Rshift, out var result, this, right))
                     return result;
 
                 return new MondValue((int)this >> (int)right);
@@ -313,7 +313,7 @@ namespace Mond
         {
             if (left.Type == MondValueType.Object)
             {
-                if (left.TryDispatch("__lshift", out var result, left, right))
+                if (left.TryDispatch(Metamethod.Lshift, out var result, left, right))
                     return result;
 
                 return new MondValue((int)left << right);
@@ -336,7 +336,7 @@ namespace Mond
         {
             if (left.Type == MondValueType.Object)
             {
-                if (left.TryDispatch("__rshift", out var result, left, right))
+                if (left.TryDispatch(Metamethod.Rshift, out var result, left, right))
                     return result;
 
                 return new MondValue((int)left >> right);
@@ -357,7 +357,7 @@ namespace Mond
         
         private static MondValue AndSlow(in MondValue left, in MondValue right)
         {
-            if (left.TryDispatch("__and", out var result, left, right))
+            if (left.TryDispatch(Metamethod.And, out var result, left, right))
                 return result;
 
             if (right.Type == MondValueType.Number)
@@ -378,7 +378,7 @@ namespace Mond
         
         private static MondValue OrSlow(in MondValue left, in MondValue right)
         {
-            if (left.TryDispatch("__or", out var result, left, right))
+            if (left.TryDispatch(Metamethod.Or, out var result, left, right))
                 return result;
 
             if (right.Type == MondValueType.Number)
@@ -399,7 +399,7 @@ namespace Mond
         
         private static MondValue XorSlow(in MondValue left, in MondValue right)
         {
-            if (left.TryDispatch("__xor", out var result, left, right))
+            if (left.TryDispatch(Metamethod.Xor, out var result, left, right))
                 return result;
 
             if (right.Type == MondValueType.Number)
@@ -422,7 +422,7 @@ namespace Mond
         {
             if (value.Type == MondValueType.Object)
             {
-                if (value.TryDispatch("__neg", out var result, value))
+                if (value.TryDispatch(Metamethod.Neg, out var result, value))
                     return result;
 
                 return new MondValue(-(double)value);
@@ -445,7 +445,7 @@ namespace Mond
         {
             if (value.Type == MondValueType.Object)
             {
-                if (value.TryDispatch("__not", out var result, value))
+                if (value.TryDispatch(Metamethod.Not, out var result, value))
                     return result;
 
                 return new MondValue(~(int)value);
@@ -466,7 +466,7 @@ namespace Mond
         {
             if (left.Type == MondValueType.Object)
             {
-                if (left.TryDispatch("__neq", out var result, left, right))
+                if (left.TryDispatch(Metamethod.Neq, out var result, left, right))
                     return result;
             }
 
@@ -489,7 +489,7 @@ namespace Mond
 
             if (left.Type == MondValueType.Object)
             {
-                if (left.TryDispatch("__gt", out var result, left, right))
+                if (left.TryDispatch(Metamethod.Gt, out var result, left, right))
                     return result;
             }
             
@@ -513,7 +513,7 @@ namespace Mond
 
             if (left.Type == MondValueType.Object)
             {
-                if (left.TryDispatch("__gte", out var result, left, right))
+                if (left.TryDispatch(Metamethod.Gte, out var result, left, right))
                     return result;
             }
             
@@ -537,7 +537,7 @@ namespace Mond
 
             if (left.Type == MondValueType.Object)
             {
-                if (left.TryDispatch("__lt", out var result, left, right))
+                if (left.TryDispatch(Metamethod.Lt, out var result, left, right))
                     return result;
             }
             
@@ -561,7 +561,7 @@ namespace Mond
 
             if (left.Type == MondValueType.Object)
             {
-                if (left.TryDispatch("__lte", out var result, left, right))
+                if (left.TryDispatch(Metamethod.Lte, out var result, left, right))
                     return result;
             }
 

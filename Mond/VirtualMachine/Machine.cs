@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -63,7 +63,7 @@ namespace Mond.VirtualMachine
                 arguments.CopyTo(argsCopy[1..]);
                 argsCopy[0] = function;
 
-                if (function.TryDispatch("__call", out var result, argsCopy))
+                if (function.TryDispatch(Metamethod.Call, out var result, argsCopy))
                     return result;
             }
 
@@ -961,7 +961,7 @@ namespace Mond.VirtualMachine
                 argValues.CopyTo(argArr[1..]);
                 argArr[0] = function;
 
-                if (function.TryDispatch("__call", out var result, argArr))
+                if (function.TryDispatch(Metamethod.Call, out var result, argArr))
                 {
                     Push(result);
                     return;
@@ -993,7 +993,7 @@ namespace Mond.VirtualMachine
                 argValues.CopyTo(argArr[1..]);
                 argArr[0] = function;
 
-                if (function.TryDispatch("__call", out var result, argArr))
+                if (function.TryDispatch(Metamethod.Call, out var result, argArr))
                 {
                     Push(result);
                     return true;

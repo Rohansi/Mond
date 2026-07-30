@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Mond.VirtualMachine;
 using Mond.VirtualMachine.Prototypes;
@@ -215,7 +215,7 @@ namespace Mond
                 MondValue indexValue;
                 if (Type == MondValueType.Object)
                 {
-                    if (ObjectValue.IsProxy && TryDispatch("get", out indexValue, ObjectValue.ProxyTarget, index))
+                    if (ObjectValue.IsProxy && TryProxyGet(index, out indexValue))
                         return indexValue;
 
                     if (ObjectValue.Values.TryGetValue(index, out indexValue))
@@ -261,8 +261,11 @@ namespace Mond
                     if (ObjectValue.Locked)
                         throw new MondRuntimeException(RuntimeError.ObjectIsLocked);
 
-                    if (ObjectValue.IsProxy && TryDispatch("set", out _, ObjectValue.ProxyTarget, index, value))
+                    if (ObjectValue.IsProxy && TryProxySet(index, value))
                         return;
+
+                    if (!ObjectValue.MayHaveMetamethods && MayBeMetamethodName(index))
+                        ObjectValue.MayHaveMetamethods = true;
 
                     ObjectValue.Values[index] = value;
                     return;
@@ -270,6 +273,26 @@ namespace Mond
 
                 throw new MondRuntimeException(RuntimeError.CantCreateField, Type.GetName());
             }
+        }
+
+        // Don't inline these because it will bring the Metamethod cctor check into the hot get/set paths
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private bool TryProxyGet(in MondValue index, out MondValue result)
+        {
+            return TryDispatch(Metamethod.Get, out result, ObjectValue.ProxyTarget, index);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private bool TryProxySet(in MondValue index, in MondValue value)
+        {
+            return TryDispatch(Metamethod.Set, out _, ObjectValue.ProxyTarget, index, value);
+        }
+
+        private static bool MayBeMetamethodName(in MondValue index)
+        {
+            return index.Type == MondValueType.String &&
+                   index._stringValue.Length > 0 &&
+                   index._stringValue[0] == '_';
         }
 
         /// <summary>
@@ -281,6 +304,9 @@ namespace Mond
             {
                 if (Type != MondValueType.Object)
                     throw new InvalidOperationException("MondValue.AsDictionary is only valid on objects");
+
+                // the caller can add anything it wants through this, so we have to assume metamethods may show up in it
+                ObjectValue.MayHaveMetamethods = true;
 
                 return ObjectValue.Values;
             }
@@ -411,7 +437,7 @@ namespace Mond
                 if (ObjectValue.Values.ContainsKey(search))
                     return true;
 
-                if (TryDispatch("__in", out var result, this, search))
+                if (TryDispatch(Metamethod.In, out var result, this, search))
                     return result;
 
                 return false;
@@ -504,7 +530,7 @@ namespace Mond
 
             if (Type == MondValueType.Object)
             {
-                if (TryDispatch("__slice", out var result, this, start ?? Undefined, end ?? Undefined, step ?? Undefined))
+                if (TryDispatch(Metamethod.Slice, out var result, this, start ?? Undefined, end ?? Undefined, step ?? Undefined))
                     return result;
 
                 throw new MondRuntimeException(RuntimeError.SliceMissingMethod);
@@ -518,7 +544,7 @@ namespace Mond
             switch (Type)
             {
                 case MondValueType.Object:
-                    if (TryDispatch("__eq", out var result, this, other))
+                    if (TryDispatch(Metamethod.Eq, out var result, this, other))
                         return result;
 
                     return other.Type == MondValueType.Object && ReferenceEquals(ObjectValue, other.ObjectValue);
@@ -580,7 +606,7 @@ namespace Mond
                     return 0;
 
                 case MondValueType.Object:
-                    if (TryDispatch("__hash", out var result, this))
+                    if (TryDispatch(Metamethod.Hash, out var result, this))
                     {
                         if (result.Type != MondValueType.Number)
                             throw new MondRuntimeException(RuntimeError.HashWrongType);
@@ -616,7 +642,7 @@ namespace Mond
                     return "false";
                 case MondValueType.Object:
                     {
-                        if (TryDispatch("__string", out var result, this))
+                        if (TryDispatch(Metamethod.String, out var result, this))
                         {
                             if (result.Type != MondValueType.String)
                                 throw new MondRuntimeException(RuntimeError.StringCastWrongType);
@@ -635,7 +661,7 @@ namespace Mond
             }
         }
         
-        internal bool TryDispatch(string name, out MondValue result, params Span<MondValue> args)
+        internal bool TryDispatch(in MondValue name, out MondValue result, params Span<MondValue> args)
         {
             if (Type != MondValueType.Object)
             {
@@ -653,7 +679,8 @@ namespace Mond
             ref readonly var current = ref this;
             while (true)
             {
-                if (current.AsDictionary.TryGetValue(name, out callable))
+                if (current.ObjectValue.MayHaveMetamethods &&
+                    current.ObjectValue.Values.TryGetValue(name, out callable))
                 {
                     // we need to use the state from the metamethod's object
                     state = current.ObjectValue.State;

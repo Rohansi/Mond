@@ -28,6 +28,7 @@ namespace Mond.VirtualMachine.Prototypes
             if (instance.ObjectValue.Locked)
                 throw new MondRuntimeException(LockedError, "add");
 
+            instance.ObjectValue.MayHaveMetamethods = true;
             instance.ObjectValue.Values[key] = value;
         }
 

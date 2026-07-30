@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Text;
 
 namespace Mond
@@ -53,7 +53,7 @@ namespace Mond
                     break;
 
                 case MondValueType.Object:
-                    if (TryDispatch("__serialize", out var result, this))
+                    if (TryDispatch(Metamethod.Serialize, out var result, this))
                     {
                         if (!result.SerializeImpl(writer, depth + 1))
                             return false;
