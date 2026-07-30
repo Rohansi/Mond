@@ -1,0 +1,11 @@
+// String operations - measures string concatenation and prototype method calls.
+return fun () {
+	var result = 0;
+
+	for (var i = 0; i < 10000; i++) {
+		var str = "value: " + i;
+		result += str.length() + str.charCodeAt(0);
+	}
+
+	return result;
+};

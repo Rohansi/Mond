@@ -1,0 +1,9 @@
+// Numeric operations on locals - measures the core dispatch loop and
+// the MondValue arithmetic operators.
+return fun () {
+	var sum = 0;
+	for (var i = 0; i < 100000; i++) {
+		sum += i * 2 - (i / 3) + (i % 7);
+	}
+	return sum;
+};

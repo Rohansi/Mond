@@ -1,0 +1,11 @@
+// Recursive calls - measures call frame setup, argument passing and returns.
+return fun () {
+	fun fib(n) {
+		if (n < 2)
+			return n;
+
+		return fib(n - 1) + fib(n - 2);
+	}
+
+	return fib(20);
+};

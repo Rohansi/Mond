@@ -1,0 +1,18 @@
+// Array indexing and growth - measures the array fast paths in the indexer.
+return fun () {
+	var arr = [];
+
+	for (var i = 0; i < 1000; i++) {
+		arr.add(i);
+	}
+
+	var sum = 0;
+	for (var j = 0; j < 100; j++) {
+		for (var i = 0; i < 1000; i++) {
+			arr[i] = arr[i] + 1;
+			sum += arr[i];
+		}
+	}
+
+	return sum;
+};

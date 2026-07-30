@@ -1,0 +1,19 @@
+// Metamethod dispatch - measures TryDispatch and the prototype walk.
+return fun () {
+	var vector = {
+		x: 1,
+		y: 2,
+		__add: fun (this, other) -> {
+			x: this.x + other.x,
+			y: this.y + other.y,
+			__add: this.__add
+		}
+	};
+
+	var acc = vector;
+	for (var i = 0; i < 20000; i++) {
+		acc = acc + vector;
+	}
+
+	return acc.x;
+};

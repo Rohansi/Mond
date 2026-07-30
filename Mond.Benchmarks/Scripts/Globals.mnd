@@ -1,0 +1,12 @@
+// Global object access - measures LdGlobalFld and global field stores.
+global.benchTotal = 0;
+
+return fun () {
+	global.benchTotal = 0;
+
+	for (var i = 0; i < 50000; i++) {
+		global.benchTotal = global.benchTotal + i;
+	}
+
+	return global.benchTotal;
+};

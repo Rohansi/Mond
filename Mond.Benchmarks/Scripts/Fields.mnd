@@ -1,0 +1,12 @@
+// Object field reads and writes - measures MondValue hashing and dictionary lookups.
+return fun () {
+	var obj = { x: 0, y: 1, z: 2 };
+
+	for (var i = 0; i < 20000; i++) {
+		obj.x = obj.y + obj.z;
+		obj.y = obj.x - obj.z;
+		obj.z = i;
+	}
+
+	return obj.x;
+};

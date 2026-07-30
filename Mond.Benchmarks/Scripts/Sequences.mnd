@@ -1,0 +1,17 @@
+// Sequence suspend/resume and foreach enumeration.
+return fun () {
+	seq range(count) {
+		for (var i = 0; i < count; i++) {
+			yield i;
+		}
+	}
+
+	var sum = 0;
+	for (var j = 0; j < 20; j++) {
+		foreach (var i in range(500)) {
+			sum += i;
+		}
+	}
+
+	return sum;
+};

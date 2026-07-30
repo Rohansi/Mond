@@ -1,0 +1,18 @@
+// Instance calls through a prototype-like object - measures InstanceCall and field lookup.
+return fun () {
+	var counter = {
+		value: 0,
+		increment: fun (this, amount) {
+			this.value += amount;
+			return this.value;
+		},
+		get: fun (this) -> this.value
+	};
+
+	for (var i = 0; i < 10000; i++) {
+		counter.increment(2);
+		counter.get();
+	}
+
+	return counter.value;
+};

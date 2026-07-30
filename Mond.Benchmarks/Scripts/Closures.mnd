@@ -1,0 +1,14 @@
+// Closure creation and upvalue access.
+return fun () {
+	fun makeAdder(x) {
+		return fun (y) -> x + y;
+	}
+
+	var sum = 0;
+	for (var i = 0; i < 20000; i++) {
+		var add = makeAdder(i);
+		sum += add(1) + add(2);
+	}
+
+	return sum;
+};
