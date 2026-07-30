@@ -23,6 +23,18 @@ Quickly check that all benchmarks still work (no measurement, runs each once):
 dotnet run --project Mond.Benchmarks -c Release -- --smoke
 ```
 
+Run a single benchmark in a plain loop, without BenchmarkDotNet, so profiler traces are not
+polluted by its host process and infrastructure:
+
+```
+dotnet run --project Mond.Benchmarks -c Release -- --profile Fields 200
+dotnet run --project Mond.Benchmarks -c Release -- --profile compile:Fields 200
+dotnet run --project Mond.Benchmarks -c Release -- --profile interop 200
+```
+
+The iteration count is optional and defaults to 100. Omitting the name prints the list of
+available targets.
+
 ## Layout
 
 | File | What it measures |

@@ -146,17 +146,20 @@ namespace Mond
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static MondValue operator +(in MondValue left, in MondValue right)
         {
+            if (left.Type == MondValueType.Number && right.Type == MondValueType.Number)
+                return new MondValue(left._numberValue + right._numberValue);
+
+            return AddSlow(left, right);
+        }
+
+        private static MondValue AddSlow(in MondValue left, in MondValue right)
+        {
             if (left.Type == MondValueType.String || right.Type == MondValueType.String)
                 return new MondValue(left.ToString() + right.ToString());
 
             if (left.Type == MondValueType.Number)
                 return new MondValue(left._numberValue + (double)right);
 
-            return AddSlow(left, right);
-        }
-        
-        private static MondValue AddSlow(in MondValue left, in MondValue right)
-        {
             if (left.TryDispatch(Metamethod.Add, out var result, left, right))
                 return result;
 

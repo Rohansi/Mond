@@ -112,7 +112,6 @@ namespace Mond.VirtualMachine
             _evalStackDirtySize = initialEvalDirtyDepth;
 
             var ip = functionAddress.Address;
-            var errorIp = 0;
 
             MondValue[] locals = null;
 
@@ -120,8 +119,6 @@ namespace Mond.VirtualMachine
             {
                 while (true)
                 {
-                    errorIp = ip;
-
                     var opcode = code[ip++];
                     var instruction = opcode >> 24;
 
@@ -901,7 +898,10 @@ namespace Mond.VirtualMachine
                 }
 
                 // first line of the stack trace is where we are running
-                stackTraceBuilder.AppendLine(GetAddressDebugInfo(program, errorIp));
+                // ip always points just past the word we were reading, and debug info lookups
+                // snap to the nearest entry at or below the address, so this resolves to the
+                // instruction that faulted without having to track it on every dispatch
+                stackTraceBuilder.AppendLine(GetAddressDebugInfo(program, ip - 1));
 
                 // generate stack trace and reset stacks
                 for (var i = Math.Min(_callStackSize - 1, CallStackCapacity - 1); i > initialCallDepth; i--)
