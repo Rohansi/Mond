@@ -19,9 +19,14 @@ namespace Mond
         [FieldOffset(0)]
         private readonly MondValueType _type;
 
+        // Stored in the padding after _type so it costs nothing. Without this every
+        // field lookup would recompute the string's (uncached) hash code.
+        [FieldOffset(4)]
+        private readonly int _stringHash;
+
         [FieldOffset(8)]
         private readonly double _numberValue;
-        
+
         [FieldOffset(16)]
         internal readonly VirtualMachine.Object ObjectValue;
         
@@ -40,6 +45,7 @@ namespace Mond
         private MondValue(MondValueType type)
         {
             _type = type;
+            _stringHash = 0;
             _numberValue = 0;
 
             switch (type)
@@ -103,6 +109,7 @@ namespace Mond
         private MondValue(double value)
         {
             _type = MondValueType.Number;
+            _stringHash = 0;
             _numberValue = value;
             
             ObjectValue = null;
@@ -121,6 +128,7 @@ namespace Mond
 
             _type = MondValueType.String;
             _numberValue = 0;
+            _stringHash = value.GetHashCode();
             _stringValue = value;
 
             ObjectValue = null;
@@ -138,6 +146,7 @@ namespace Mond
                 throw new ArgumentNullException(nameof(function));
 
             _type = MondValueType.Function;
+            _stringHash = 0;
             _numberValue = 0;
 
             ObjectValue = null;
@@ -165,6 +174,7 @@ namespace Mond
         internal MondValue(Closure closure)
         {
             _type = MondValueType.Function;
+            _stringHash = 0;
             _numberValue = 0;
 
             ObjectValue = null;
@@ -521,7 +531,12 @@ namespace Mond
                     return other.Type == MondValueType.Number && _numberValue == other._numberValue;
 
                 case MondValueType.String:
-                    return other.Type == MondValueType.String && _stringValue == other._stringValue;
+                    if (other.Type != MondValueType.String)
+                        return false;
+
+                    // constant strings from the same program are usually the same instance
+                    return ReferenceEquals(_stringValue, other._stringValue) ||
+                           (_stringHash == other._stringHash && _stringValue == other._stringValue);
 
                 case MondValueType.Function:
                     return other.Type == MondValueType.Function && ReferenceEquals(FunctionValue, other.FunctionValue);
@@ -589,7 +604,7 @@ namespace Mond
                     return _numberValue.GetHashCode();
 
                 case MondValueType.String:
-                    return _stringValue.GetHashCode();
+                    return _stringHash;
 
                 case MondValueType.Function:
                     return FunctionValue.GetHashCode();
