@@ -560,14 +560,7 @@ namespace Mond
 
         public override bool Equals(object other)
         {
-            if (ReferenceEquals(other, null))
-                return false;
-
-            var otherValue = other as MondValue?;
-            if (otherValue == null)
-                return false;
-
-            return Equals(otherValue.Value);
+            return other is MondValue otherValue && Equals(otherValue);
         }
 
         public override int GetHashCode()
