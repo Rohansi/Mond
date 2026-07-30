@@ -32,7 +32,7 @@ public partial class MondSourceGenerator : ISourceGenerator
             return;
         }
 
-        if (!TypeLookup.Initialize(context))
+        if (!TypeLookup.TryCreate(context, out var types))
         {
             return;
         }
@@ -50,7 +50,7 @@ public partial class MondSourceGenerator : ISourceGenerator
                 continue;
             }
 
-            context.AddSource($"{FullName(prototype)}.Prototype.g.cs", GenerateWith(context, prototype, PrototypeBindings));
+            context.AddSource($"{FullName(prototype)}.Prototype.g.cs", GenerateWith(context, types, prototype, PrototypeBindings));
         }
 
         foreach (var module in syntaxReceiver.Modules)
@@ -61,7 +61,7 @@ public partial class MondSourceGenerator : ISourceGenerator
                 continue;
             }
 
-            context.AddSource($"{FullName(module)}.Module.g.cs", GenerateWith(context, module, ModuleBindings));
+            context.AddSource($"{FullName(module)}.Module.g.cs", GenerateWith(context, types, module, ModuleBindings));
         }
 
         foreach (var klass in syntaxReceiver.Classes)
@@ -78,7 +78,7 @@ public partial class MondSourceGenerator : ISourceGenerator
                 continue;
             }
 
-            context.AddSource($"{FullName(klass)}.Class.g.cs", GenerateWith(context, klass, ClassBindings));
+            context.AddSource($"{FullName(klass)}.Class.g.cs", GenerateWith(context, types, klass, ClassBindings));
         }
 
         static string FullName(INamedTypeSymbol type)
@@ -87,26 +87,26 @@ public partial class MondSourceGenerator : ISourceGenerator
         }
     }
 
-    private static void CallMethod(GeneratorExecutionContext context, IndentTextWriter writer, string qualifier, Method method, int offset, int argCount = 10000)
+    private static void CallMethod(GeneratorExecutionContext context, TypeLookup types, IndentTextWriter writer, string qualifier, Method method, int offset, int argCount = 10000)
     {
         var isConstructor = method.Info.MethodKind == MethodKind.Constructor;
         var returnType = isConstructor
             ? method.Info.ContainingType
             : method.Info.ReturnType;
-        var hasReturn = !SymbolEqualityComparer.Default.Equals(returnType, TypeLookup.Void);
+        var hasReturn = !SymbolEqualityComparer.Default.Equals(returnType, types.Void);
         if (hasReturn)
         {
             writer.Write("var result = ");
         }
         writer.WriteLine(isConstructor
-            ? $"new {method.Info.ContainingType.GetFullyQualifiedName()}({BindArguments(context, method, offset, argCount)});"
-            : $"{qualifier}.{method.Info.Name}({BindArguments(context, method, offset, argCount)});");
+            ? $"new {method.Info.ContainingType.GetFullyQualifiedName()}({BindArguments(context, types, method, offset, argCount)});"
+            : $"{qualifier}.{method.Info.Name}({BindArguments(context, types, method, offset, argCount)});");
         writer.WriteLine(hasReturn
-            ? $"return {ConvertToMondValue(context, "result", returnType, method.Info)};"
+            ? $"return {ConvertToMondValue(context, types, "result", returnType, method.Info)};"
             : "return MondValue.Undefined;");
     }
 
-    private static string BindArguments(GeneratorExecutionContext context, Method method, int offset, int argCount)
+    private static string BindArguments(GeneratorExecutionContext context, TypeLookup types, Method method, int offset, int argCount)
     {
         var valueIdx = 0;
         var args = new List<string>();
@@ -117,7 +117,7 @@ public partial class MondSourceGenerator : ISourceGenerator
                 continue;
             }
 
-            args.Add(BindArgument(context, offset + valueIdx, param));
+            args.Add(BindArgument(context, types, offset + valueIdx, param));
 
             if (param.Type == ParameterType.Value)
             {
@@ -128,12 +128,12 @@ public partial class MondSourceGenerator : ISourceGenerator
         return string.Join(", ", args);
     }
 
-    private static string BindArgument(GeneratorExecutionContext context, int i, Parameter parameter)
+    private static string BindArgument(GeneratorExecutionContext context, TypeLookup types, int i, Parameter parameter)
     {
         return parameter.Type switch
         {
             ParameterType.Unsupported => $"default /* unsupported type {parameter.Info.Type.GetFullyQualifiedName()} */",
-            ParameterType.Value => ConvertFromMondValue(context, i, parameter.Info.Type, parameter.Info),
+            ParameterType.Value => ConvertFromMondValue(context, types, i, parameter.Info.Type, parameter.Info),
             ParameterType.Params => $"args[{i}..]",
             ParameterType.State => "state",
             ParameterType.Instance => "instance",
@@ -141,7 +141,7 @@ public partial class MondSourceGenerator : ISourceGenerator
         };
     }
 
-    private static string ConvertFromMondValue(GeneratorExecutionContext context, int i, ITypeSymbol type, ISymbol typeSource)
+    private static string ConvertFromMondValue(GeneratorExecutionContext context, TypeLookup types, int i, ITypeSymbol type, ISymbol typeSource)
     {
         var input = $"args[{i}]";
         switch (type.SpecialType)
@@ -167,12 +167,12 @@ public partial class MondSourceGenerator : ISourceGenerator
             case SpecialType.System_Boolean:
                 return $"(bool){input}";
             default:
-                if (SymbolEqualityComparer.Default.Equals(type, TypeLookup.MondValue))
+                if (SymbolEqualityComparer.Default.Equals(type, types.MondValue))
                 {
                     return input;
                 }
 
-                if (SymbolEqualityComparer.Default.Equals(type, TypeLookup.MondValueNullable))
+                if (SymbolEqualityComparer.Default.Equals(type, types.MondValueNullable))
                 {
                     return $"({input} == MondValue.Undefined ? null : (MondValue?){input})";
                 }
@@ -189,7 +189,7 @@ public partial class MondSourceGenerator : ISourceGenerator
         }
     }
 
-    private static string ConvertToMondValue(GeneratorExecutionContext context, string input, ITypeSymbol type, ISymbol typeSource)
+    private static string ConvertToMondValue(GeneratorExecutionContext context, TypeLookup types, string input, ITypeSymbol type, ISymbol typeSource)
     {
         switch (type.SpecialType)
         {
@@ -207,25 +207,25 @@ public partial class MondSourceGenerator : ISourceGenerator
                 return $"(MondValue){input}";
 
             default:
-                if (SymbolEqualityComparer.Default.Equals(type, TypeLookup.MondValue))
+                if (SymbolEqualityComparer.Default.Equals(type, types.MondValue))
                 {
                     return input;
                 }
 
-                if (SymbolEqualityComparer.Default.Equals(type, TypeLookup.MondValueNullable))
+                if (SymbolEqualityComparer.Default.Equals(type, types.MondValueNullable))
                 {
                     return $"({input} ?? MondValue.Undefined)";
                 }
 
-                if (SymbolEqualityComparer.Default.Equals(type, TypeLookup.Task))
+                if (SymbolEqualityComparer.Default.Equals(type, types.Task))
                 {
                     return $"Mond.Libraries.AsyncUtil.ToObject({input});";
                 }
 
-                if (type is INamedTypeSymbol { Arity: 1 } namedType && SymbolEqualityComparer.Default.Equals(namedType.ConstructedFrom, TypeLookup.TaskOfT))
+                if (type is INamedTypeSymbol { Arity: 1 } namedType && SymbolEqualityComparer.Default.Equals(namedType.ConstructedFrom, types.TaskOfT))
                 {
                     var returnType = namedType.TypeArguments[0];
-                    var returnWrapper = ConvertToMondValue(context, "t.Result", returnType, typeSource);
+                    var returnWrapper = ConvertToMondValue(context, types, "t.Result", returnType, typeSource);
                     return $"Mond.Libraries.AsyncUtil.ToObject({input}.ContinueWith(t => t.IsFaulted ? AsyncUtil.RethrowAsyncException(t.Exception) : {returnWrapper}));";
                 }
 
@@ -391,9 +391,9 @@ public partial class MondSourceGenerator : ISourceGenerator
         return result;
     }
 
-    private delegate void GeneratorAction(GeneratorExecutionContext context, INamedTypeSymbol symbol, IndentTextWriter writer);
+    private delegate void GeneratorAction(GeneratorExecutionContext context, TypeLookup types, INamedTypeSymbol symbol, IndentTextWriter writer);
 
-    private static string GenerateWith(GeneratorExecutionContext context, INamedTypeSymbol symbol, GeneratorAction generator)
+    private static string GenerateWith(GeneratorExecutionContext context, TypeLookup types, INamedTypeSymbol symbol, GeneratorAction generator)
     {
         var stringBuilder = new StringBuilder();
         using var stringWriter = new StringWriter(stringBuilder);
@@ -426,7 +426,7 @@ public partial class MondSourceGenerator : ISourceGenerator
         writer.WriteLine($"partial class {symbol.Name}");
         writer.OpenBracket();
 
-        generator(context, symbol, writer);
+        generator(context, types, symbol, writer);
 
         writer.CloseBracket();
 

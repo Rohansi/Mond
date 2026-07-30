@@ -4,24 +4,30 @@ using Microsoft.CodeAnalysis;
 
 namespace Mond.SourceGenerator;
 
-internal static class TypeLookup
+internal sealed class TypeLookup
 {
-    public static INamedTypeSymbol Void { get; private set; }
-    public static INamedTypeSymbol String { get; private set; }
-    public static INamedTypeSymbol Bool { get; private set; }
-    public static INamedTypeSymbol Task { get; private set; }
-    public static INamedTypeSymbol TaskOfT { get; private set; }
-    public static INamedTypeSymbol MondValue { get; private set; }
-    public static INamedTypeSymbol MondValueNullable { get; private set; }
-    public static INamedTypeSymbol MondValueSpan { get; private set; }
-    public static INamedTypeSymbol MondState { get; private set; }
+    public INamedTypeSymbol Void { get; private set; }
+    public INamedTypeSymbol String { get; private set; }
+    public INamedTypeSymbol Bool { get; private set; }
+    public INamedTypeSymbol Task { get; private set; }
+    public INamedTypeSymbol TaskOfT { get; private set; }
+    public INamedTypeSymbol MondValue { get; private set; }
+    public INamedTypeSymbol MondValueNullable { get; private set; }
+    public INamedTypeSymbol MondValueSpan { get; private set; }
+    public INamedTypeSymbol MondState { get; private set; }
 
-    public static Dictionary<ITypeSymbol, MondValueType[]> TypeCheckMap { get; private set; }
-    public static HashSet<ITypeSymbol> BasicTypes { get; private set; }
-    public static HashSet<ITypeSymbol> NumberTypes { get; private set; }
+    public Dictionary<ITypeSymbol, MondValueType[]> TypeCheckMap { get; private set; }
+    public HashSet<ITypeSymbol> BasicTypes { get; private set; }
+    public HashSet<ITypeSymbol> NumberTypes { get; private set; }
 
-    public static bool Initialize(GeneratorExecutionContext context)
+    private TypeLookup()
     {
+    }
+
+    public static bool TryCreate(GeneratorExecutionContext context, out TypeLookup types)
+    {
+        types = null;
+
         var compilation = context.Compilation;
 
         var doubleSym = compilation.GetSpecialType(SpecialType.System_Double);
@@ -58,50 +64,54 @@ internal static class TypeLookup
             return false;
         }
 
-        Void = voidSym;
-        String = stringSym;
-        Bool = boolSym;
-        Task = taskSym;
-        TaskOfT = taskOfTSym;
-        MondValue = mondValueSym;
-        MondValueNullable = nullableSym.Construct(mondValueSym);
-        MondValueSpan = spanSym?.Construct(mondValueSym);
-        MondState = mondStateSym;
-
         var numberTypesArray = new[] { MondValueType.Number, MondValueType.Object };
-        TypeCheckMap = new Dictionary<ITypeSymbol, MondValueType[]>(SymbolEqualityComparer.Default)
-        {
-            { doubleSym, numberTypesArray },
-            { floatSym, numberTypesArray },
-            { intSym, numberTypesArray },
-            { uintSym, numberTypesArray },
-            { shortSym, numberTypesArray },
-            { ushortSym, numberTypesArray },
-            { sbyteSym, numberTypesArray },
-            { byteSym, numberTypesArray },
-            { stringSym, [MondValueType.String, MondValueType.Object] },
-            { boolSym, [MondValueType.True, MondValueType.False, MondValueType.Object] },
-        };
 
-        // types with a direct conversion to/from MondValue
-        BasicTypes = new HashSet<ITypeSymbol>(SymbolEqualityComparer.Default)
+        types = new TypeLookup
         {
-            doubleSym,
-            stringSym,
-            boolSym,
-        };
+            Void = voidSym,
+            String = stringSym,
+            Bool = boolSym,
+            Task = taskSym,
+            TaskOfT = taskOfTSym,
+            MondValue = mondValueSym,
+            MondValueNullable = nullableSym.Construct(mondValueSym),
+            MondValueSpan = spanSym?.Construct(mondValueSym),
+            MondState = mondStateSym,
 
-        // types that can be casted to/from double
-        NumberTypes = new HashSet<ITypeSymbol>(SymbolEqualityComparer.Default)
-        {
-            doubleSym,
-            floatSym,
-            intSym,
-            uintSym,
-            shortSym,
-            ushortSym,
-            sbyteSym,
-            byteSym,
+            TypeCheckMap = new Dictionary<ITypeSymbol, MondValueType[]>(SymbolEqualityComparer.Default)
+            {
+                { doubleSym, numberTypesArray },
+                { floatSym, numberTypesArray },
+                { intSym, numberTypesArray },
+                { uintSym, numberTypesArray },
+                { shortSym, numberTypesArray },
+                { ushortSym, numberTypesArray },
+                { sbyteSym, numberTypesArray },
+                { byteSym, numberTypesArray },
+                { stringSym, [MondValueType.String, MondValueType.Object] },
+                { boolSym, [MondValueType.True, MondValueType.False, MondValueType.Object] },
+            },
+
+            // types with a direct conversion to/from MondValue
+            BasicTypes = new HashSet<ITypeSymbol>(SymbolEqualityComparer.Default)
+            {
+                doubleSym,
+                stringSym,
+                boolSym,
+            },
+
+            // types that can be casted to/from double
+            NumberTypes = new HashSet<ITypeSymbol>(SymbolEqualityComparer.Default)
+            {
+                doubleSym,
+                floatSym,
+                intSym,
+                uintSym,
+                shortSym,
+                ushortSym,
+                sbyteSym,
+                byteSym,
+            },
         };
 
         return true;

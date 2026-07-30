@@ -9,11 +9,11 @@ internal partial class MethodTable
 {
     #region MethodTables
 
-    public static List<MethodTable> Build(GeneratorExecutionContext context, IEnumerable<(IMethodSymbol Method, string Name, string Identifier)> source)
+    public static List<MethodTable> Build(GeneratorExecutionContext context, TypeLookup types, IEnumerable<(IMethodSymbol Method, string Name, string Identifier)> source)
     {
         return source
             .GroupBy(m => m.Name)
-            .Select(g => BuildMethodTable(context, g.Select(m => new Method(context, g.Key, m.Identifier, m.Method))))
+            .Select(g => BuildMethodTable(context, g.Select(m => new Method(context, types, g.Key, m.Identifier, m.Method))))
             .ToList();
     }
 

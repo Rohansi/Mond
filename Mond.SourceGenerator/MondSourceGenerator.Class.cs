@@ -5,7 +5,7 @@ namespace Mond.SourceGenerator;
 
 public partial class MondSourceGenerator
 {
-    private static void ClassBindings(GeneratorExecutionContext context, INamedTypeSymbol klass, IndentTextWriter writer)
+    private static void ClassBindings(GeneratorExecutionContext context, TypeLookup types, INamedTypeSymbol klass, IndentTextWriter writer)
     {
         var className = klass.GetAttributes().TryGetAttribute("MondClassAttribute", out var classAttr)
             ? classAttr.GetArgument<string>() ?? klass.Name
@@ -15,7 +15,7 @@ public partial class MondSourceGenerator
         var constructors = GetConstructors(context, klass);
         var properties = GetProperties(context, klass, false);
         var methods = GetMethods(context, klass, false);
-        var methodTables = MethodTable.Build(context, methods.Concat(constructors.Select(c => (c, "#ctor", "__ctor"))));
+        var methodTables = MethodTable.Build(context, types, methods.Concat(constructors.Select(c => (c, "#ctor", "__ctor"))));
 
         writer.WriteLine("public sealed partial class Library : IMondLibrary");
         writer.OpenBracket();
@@ -71,14 +71,14 @@ public partial class MondSourceGenerator
                 Prologue($"get{name}");
 
                 writer.WriteLine($"var value = obj.{property.Name};");
-                writer.WriteLine($"return {ConvertToMondValue(context, "value", property.Type, property)};");
+                writer.WriteLine($"return {ConvertToMondValue(context, types, "value", property.Type, property)};");
                 writer.CloseBracket();
                 writer.WriteLine();
             }
 
             if (property.SetMethod is { DeclaredAccessibility: Accessibility.Public })
             {
-                var parameter = Parameter.Create(context, property.SetMethod.Parameters[0]);
+                var parameter = Parameter.Create(context, types, property.SetMethod.Parameters[0]);
 
                 writer.WriteLine($"public static MondValue {name}__Setter(MondState state, params Span<MondValue> args)");
                 writer.OpenBracket();
@@ -90,7 +90,7 @@ public partial class MondSourceGenerator
                 writer.WriteLine($"throw new MondRuntimeException(\"{className}.set{name}: expected 1 argument of type {parameter.TypeName}\");");
                 writer.CloseBracket();
 
-                writer.WriteLine($"obj.{property.Name} = {ConvertFromMondValue(context, 1, property.Type, property)};");
+                writer.WriteLine($"obj.{property.Name} = {ConvertFromMondValue(context, types, 1, property.Type, property)};");
 
                 writer.WriteLine("return MondValue.Undefined;");
                 writer.CloseBracket();
@@ -129,7 +129,7 @@ public partial class MondSourceGenerator
                 {
                     writer.WriteLine($"if ({CompareArguments(method, firstArg, i)})");
                     writer.OpenBracket();
-                    CallMethod(context, writer, "obj", method, firstArg, i);
+                    CallMethod(context, types, writer, "obj", method, firstArg, i);
                     writer.CloseBracket();
                 }
                 writer.WriteLine("break;");
@@ -142,7 +142,7 @@ public partial class MondSourceGenerator
             {
                 writer.WriteLine($"if (args.Length >= {firstArg + method.RequiredMondParameterCount} && {CompareArguments(method, firstArg)})");
                 writer.OpenBracket();
-                CallMethod(context, writer, "obj", method, firstArg);
+                CallMethod(context, types, writer, "obj", method, firstArg);
                 writer.CloseBracket();
             }
 

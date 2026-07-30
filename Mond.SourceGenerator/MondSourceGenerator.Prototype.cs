@@ -4,14 +4,14 @@ namespace Mond.SourceGenerator;
 
 public partial class MondSourceGenerator
 {
-    private static void PrototypeBindings(GeneratorExecutionContext context, INamedTypeSymbol prototype, IndentTextWriter writer)
+    private static void PrototypeBindings(GeneratorExecutionContext context, TypeLookup types, INamedTypeSymbol prototype, IndentTextWriter writer)
     {
         var prototypeName = prototype.GetAttributes().TryGetAttribute("MondPrototypeAttribute", out var prototypeAttr)
             ? prototypeAttr.GetArgument<string>() ?? prototype.Name
             : prototype.Name;
 
         var methods = GetMethods(context, prototype, true);
-        var methodTables = MethodTable.Build(context, methods);
+        var methodTables = MethodTable.Build(context, types, methods);
 
         writer.WriteLine("private sealed class PrototypeObject");
         writer.OpenBracket();
@@ -71,7 +71,7 @@ public partial class MondSourceGenerator
                 {
                     writer.WriteLine($"if ({CompareArguments(method, 1, i)})");
                     writer.OpenBracket();
-                    CallMethod(context, writer, qualifier, method, 1, i);
+                    CallMethod(context, types, writer, qualifier, method, 1, i);
                     writer.CloseBracket();
                 }
                 writer.WriteLine("break;");
@@ -84,7 +84,7 @@ public partial class MondSourceGenerator
             {
                 writer.WriteLine($"if (args.Length >= {1 + method.RequiredMondParameterCount} && {CompareArguments(method, 1)})");
                 writer.OpenBracket();
-                CallMethod(context, writer, qualifier, method, 1);
+                CallMethod(context, types, writer, qualifier, method, 1);
                 writer.CloseBracket();
             }
 

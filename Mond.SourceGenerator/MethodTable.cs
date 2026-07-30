@@ -37,7 +37,7 @@ internal class Method : IComparable<Method>
 
     public readonly bool HasParams;
 
-    public Method(GeneratorExecutionContext context, string name, string identifier, IMethodSymbol info)
+    public Method(GeneratorExecutionContext context, TypeLookup types, string name, string identifier, IMethodSymbol info)
     {
         Name = name;
         Identifier = identifier;
@@ -46,7 +46,7 @@ internal class Method : IComparable<Method>
         var parameters = info.Parameters;
 
         Parameters = parameters
-            .Select(p => Parameter.Create(context, p))
+            .Select(p => Parameter.Create(context, types, p))
             .ToList();
 
         ValueParameters = Parameters
@@ -147,32 +147,32 @@ internal class Parameter
         return TypeName;
     }
 
-    public static Parameter Create(GeneratorExecutionContext context, IParameterSymbol info)
+    public static Parameter Create(GeneratorExecutionContext context, TypeLookup types, IParameterSymbol info)
     {
         var param = new Parameter(info);
         var paramType = info.Type;
 
-        if (TypeLookup.TypeCheckMap.TryGetValue(paramType, out var mondTypes))
+        if (types.TypeCheckMap.TryGetValue(paramType, out var mondTypes))
         {
             param.Type = ParameterType.Value;
             param.TypeName = mondTypes[0].GetName();
 
-            if (SymbolEqualityComparer.Default.Equals(paramType, TypeLookup.Bool))
+            if (SymbolEqualityComparer.Default.Equals(paramType, types.Bool))
             {
                 param.Priority = 10;
             }
-            else if (TypeLookup.NumberTypes.Contains(paramType))
+            else if (types.NumberTypes.Contains(paramType))
             {
                 param.Priority = 20;
             }
-            else if (SymbolEqualityComparer.Default.Equals(paramType, TypeLookup.String))
+            else if (SymbolEqualityComparer.Default.Equals(paramType, types.String))
             {
                 param.Priority = 30;
             }
 
             param.MondTypes = mondTypes;
         }
-        else if (SymbolEqualityComparer.Default.Equals(paramType, TypeLookup.MondValue))
+        else if (SymbolEqualityComparer.Default.Equals(paramType, types.MondValue))
         {
             if (info.HasAttribute("MondInstanceAttribute"))
             {
@@ -187,7 +187,7 @@ internal class Parameter
                 param.MondTypes = AnyTypes;
             }
         }
-        else if (SymbolEqualityComparer.Default.Equals(paramType, TypeLookup.MondValueNullable))
+        else if (SymbolEqualityComparer.Default.Equals(paramType, types.MondValueNullable))
         {
             param.Type = ParameterType.Value;
             param.TypeName = "any?";
@@ -196,11 +196,11 @@ internal class Parameter
         }
         else if (info.IsParams)
         {
-            if (TypeLookup.MondValueSpan == null)
+            if (types.MondValueSpan == null)
             {
                 context.ReportDiagnostic(Diagnostic.Create(Diagnostics.SpanTypeNotFound, info.Locations.First()));
             }
-            else if (!SymbolEqualityComparer.Default.Equals(paramType, TypeLookup.MondValueSpan))
+            else if (!SymbolEqualityComparer.Default.Equals(paramType, types.MondValueSpan))
             {
                 context.ReportDiagnostic(Diagnostic.Create(Diagnostics.BoundMethodParamsMustBeSpan, info.Locations.First(), info.Type.GetFullyQualifiedName()));
             }
@@ -209,7 +209,7 @@ internal class Parameter
             param.TypeName = "...";
             param.Priority = 75;
         }
-        else if (SymbolEqualityComparer.Default.Equals(paramType, TypeLookup.MondState))
+        else if (SymbolEqualityComparer.Default.Equals(paramType, types.MondState))
         {
             param.Type = ParameterType.State;
             param.TypeName = "state";
