@@ -273,6 +273,20 @@ namespace Mond.Compiler
             return -2 + 1;
         }
 
+        public static bool HasConstBinaryOperation(TokenType operation)
+        {
+            return _binaryOperationConstMap.ContainsKey(operation);
+        }
+
+        public int BinaryOperation(TokenType operation, ConstantOperand<double> operand)
+        {
+            if (!_binaryOperationConstMap.TryGetValue(operation, out var type))
+                throw new NotSupportedException();
+
+            Emit(new Instruction(type, operand));
+            return -1 + 1;
+        }
+
         public int UnaryOperation(TokenType operation)
         {
             if (!_unaryOperationMap.TryGetValue(operation, out var type))
@@ -419,6 +433,7 @@ namespace Mond.Compiler
         }
 
         private static Dictionary<TokenType, InstructionType> _binaryOperationMap;
+        private static Dictionary<TokenType, InstructionType> _binaryOperationConstMap;
         private static Dictionary<TokenType, InstructionType> _unaryOperationMap;
 
         static FunctionContext()
@@ -446,6 +461,16 @@ namespace Mond.Compiler
                 { TokenType.LessThanOrEqual, InstructionType.Lte },
                 { TokenType.In, InstructionType.In },
                 { TokenType.NotIn, InstructionType.NotIn }
+            };
+
+            _binaryOperationConstMap = new Dictionary<TokenType, InstructionType>
+            {
+                { TokenType.Add, InstructionType.AddC },
+                { TokenType.Subtract, InstructionType.SubC },
+                { TokenType.Multiply, InstructionType.MulC },
+                { TokenType.Divide, InstructionType.DivC },
+                { TokenType.Modulo, InstructionType.ModC },
+                { TokenType.Exponent, InstructionType.ExpC },
             };
 
             _unaryOperationMap = new Dictionary<TokenType, InstructionType>

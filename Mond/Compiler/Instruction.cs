@@ -25,6 +25,7 @@ namespace Mond.Compiler
         Slice,                              // slice array
 
         Add, Sub, Mul, Div, Mod, Exp,       // math
+        AddC, SubC, MulC, DivC, ModC, ExpC, // math with a number constant as the right operand
         Neg,                                // negate
         Eq, Neq, Gt, Gte, Lt, Lte,          // comparison operators
         Not,                                // logical not

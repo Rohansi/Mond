@@ -41,8 +41,7 @@ namespace Mond.Compiler.Expressions
                     stack += preTotal = storable.CompilePreLoadStore(context, preTimes);
 
                     stack += storable.CompileLoad(context);
-                    stack += Right.Compile(context);
-                    stack += context.BinaryOperation(assignOperation);
+                    stack += CompileOperation(context, assignOperation);
 
                     switch (preTotal / preTimes)
                     {
@@ -105,12 +104,27 @@ namespace Mond.Compiler.Expressions
             }
 
             stack += Left.Compile(context);
-            stack += Right.Compile(context);
-
-            context.Position(Token); // debug info
-            stack += context.BinaryOperation(Operation);
+            stack += CompileOperation(context, Operation);
 
             CheckStack(stack, 1);
+            return stack;
+        }
+
+        private int CompileOperation(FunctionContext context, TokenType operation)
+        {
+            if (Right is NumberExpression rightNumber && FunctionContext.HasConstBinaryOperation(operation))
+            {
+                var operand = context.Number(rightNumber.Value);
+
+                context.Position(Token); // debug info
+                return context.BinaryOperation(operation, operand);
+            }
+
+            var stack = Right.Compile(context);
+
+            context.Position(Token); // debug info
+            stack += context.BinaryOperation(operation);
+
             return stack;
         }
 

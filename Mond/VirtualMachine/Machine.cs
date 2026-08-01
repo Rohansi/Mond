@@ -469,6 +469,54 @@ namespace Mond.VirtualMachine
                                 break;
                             }
 
+                        case (int)InstructionType.AddC:
+                            {
+                                var index = UnpackFirstOperand(opcode);
+                                ref var left = ref Peek();
+                                left += program.Numbers[index];
+                                break;
+                            }
+
+                        case (int)InstructionType.SubC:
+                            {
+                                var index = UnpackFirstOperand(opcode);
+                                ref var left = ref Peek();
+                                left -= program.Numbers[index];
+                                break;
+                            }
+
+                        case (int)InstructionType.MulC:
+                            {
+                                var index = UnpackFirstOperand(opcode);
+                                ref var left = ref Peek();
+                                left *= program.Numbers[index];
+                                break;
+                            }
+
+                        case (int)InstructionType.DivC:
+                            {
+                                var index = UnpackFirstOperand(opcode);
+                                ref var left = ref Peek();
+                                left /= program.Numbers[index];
+                                break;
+                            }
+
+                        case (int)InstructionType.ModC:
+                            {
+                                var index = UnpackFirstOperand(opcode);
+                                ref var left = ref Peek();
+                                left %= program.Numbers[index];
+                                break;
+                            }
+
+                        case (int)InstructionType.ExpC:
+                            {
+                                var index = UnpackFirstOperand(opcode);
+                                ref var left = ref Peek();
+                                left = left.Pow(program.Numbers[index]);
+                                break;
+                            }
+
                         case (int)InstructionType.BitLShift:
                             {
                                 ref readonly var right = ref Pop();
