@@ -25,7 +25,7 @@ namespace Mond.Compiler.Expressions
             var needResult = Parent is not IBlockExpression;
 
             if (!needResult && Left is IdentifierExpression identExpr &&
-                identExpr.SupportsIncDecF(context, out var operand))
+                identExpr.SupportsLocalCompoundAssign(context, out var operand))
             {
                 context.Position(Token); // debug info
 

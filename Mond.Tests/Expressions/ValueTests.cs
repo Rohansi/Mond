@@ -405,6 +405,135 @@ namespace Mond.Tests.Expressions
         }
 
         [Test]
+        public void IncrementDecrementArgument()
+        {
+            // arguments are not stored in the locals array, so they cannot use the in place
+            // increment/decrement instructions
+            _result = Script.Run(@"
+                fun foo(n) {
+                    n++;
+                    n++;
+                    n--;
+                    return n;
+                }
+
+                return foo(50);
+            ");
+
+            Assert.That(_result, Is.EqualTo((MondValue)51));
+        }
+
+        [Test]
+        public void CompoundAssignArgument()
+        {
+            _result = Script.Run(@"
+                fun foo(n) {
+                    n += 10;
+                    n -= 3;
+                    return n;
+                }
+
+                return foo(50);
+            ");
+
+            Assert.That(_result, Is.EqualTo((MondValue)57));
+        }
+
+        [Test]
+        public void CompoundAssign()
+        {
+            _result = Script.Run(@"
+                var a = 10;
+                a += 5;
+                a -= 3;
+                return a;
+            ");
+
+            Assert.That(_result, Is.EqualTo((MondValue)12));
+        }
+
+        [Test]
+        public void CompoundAssignString()
+        {
+            _result = Script.Run(@"
+                var a = 'foo';
+                a += 'bar';
+                return a;
+            ");
+
+            Assert.That(_result, Is.EqualTo((MondValue)"foobar"));
+        }
+
+        [Test]
+        public void CompoundAssignResult()
+        {
+            _result = Script.Run(@"
+                var a = 10;
+                var b = (a += 5);
+                return [ a, b ];
+            ");
+
+            var expected = new MondValue[] { 15, 15 };
+            Assert.That(_result.AsList, Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void CompoundAssignOrderOfOperations()
+        {
+            // the left side must be read before the right side runs, so this is 5 + 100 and not
+            // 100 + 100 - the in place instructions read it afterwards so they cannot be used here
+            _result = Script.Run(@"
+                var a = 5;
+                a += (a = 100);
+                return a;
+            ");
+
+            Assert.That(_result, Is.EqualTo((MondValue)105));
+        }
+
+        [Test]
+        public void CompoundAssignOrderOfOperationsSuffix()
+        {
+            _result = Script.Run(@"
+                var a = 5;
+                a += a++;
+                return a;
+            ");
+
+            Assert.That(_result, Is.EqualTo((MondValue)10));
+        }
+
+        [Test]
+        public void CompoundAssignOrderOfOperationsPrefix()
+        {
+            _result = Script.Run(@"
+                var a = 5;
+                a -= --a;
+                return a;
+            ");
+
+            Assert.That(_result, Is.EqualTo((MondValue)1));
+        }
+
+        [Test]
+        public void CompoundAssignOrderOfOperationsCapturedCall()
+        {
+            // the variable is captured so the closure can change it while the right side runs
+            _result = Script.Run(@"
+                var a = 5;
+                var bump = fun () {
+                    a = 100;
+                    return 1;
+                };
+
+                a += bump();
+                return a;
+            ");
+
+            Assert.That(_result, Is.EqualTo((MondValue)6));
+        }
+
+        [Test]
         public void Constants()
         {
             Assert.That(Script.Run("return null;"), Is.EqualTo(MondValue.Null));

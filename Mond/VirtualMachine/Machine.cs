@@ -517,6 +517,22 @@ namespace Mond.VirtualMachine
                                 break;
                             }
 
+                        case (int)InstructionType.AddLocF:
+                            {
+                                var index = UnpackFirstOperand(opcode);
+                                ref readonly var right = ref Pop();
+                                locals[index] += right;
+                                break;
+                            }
+
+                        case (int)InstructionType.SubLocF:
+                            {
+                                var index = UnpackFirstOperand(opcode);
+                                ref readonly var right = ref Pop();
+                                locals[index] -= right;
+                                break;
+                            }
+
                         case (int)InstructionType.BitLShift:
                             {
                                 ref readonly var right = ref Pop();

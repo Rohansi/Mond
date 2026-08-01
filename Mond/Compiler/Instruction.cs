@@ -51,6 +51,7 @@ namespace Mond.Compiler
         InstanceCall,                       // call a field = x.y(z) -> x.y(x, z), but only evaluate x once
 
         IncF, DecF,                         // increment/decrement local in current frame
+        AddLocF, SubLocF,                   // math applied in place to a local in the current frame
 
         // ----------------- //
 

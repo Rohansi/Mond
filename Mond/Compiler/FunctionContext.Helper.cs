@@ -287,6 +287,27 @@ namespace Mond.Compiler
             return -1 + 1;
         }
 
+        public static bool HasLocalBinaryOperation(TokenType operation)
+        {
+            return _binaryOperationLocalMap.ContainsKey(operation);
+        }
+
+        /// <summary>
+        /// Emits a binary operation which applies the value on the stack directly to a local in the
+        /// current frame, so the local does not need to be loaded and stored around the operation.
+        /// </summary>
+        public int BinaryOperationLocal(TokenType operation, IdentifierOperand local)
+        {
+            if (!_binaryOperationLocalMap.TryGetValue(operation, out var type))
+                throw new NotSupportedException();
+
+            if (local.FrameIndex != FrameDepth)
+                throw new ArgumentException("Cannot use in-place math on out of frame locals");
+
+            Emit(new Instruction(type, new ImmediateOperand(local.Id)));
+            return -1;
+        }
+
         public int UnaryOperation(TokenType operation)
         {
             if (!_unaryOperationMap.TryGetValue(operation, out var type))
@@ -434,6 +455,7 @@ namespace Mond.Compiler
 
         private static Dictionary<TokenType, InstructionType> _binaryOperationMap;
         private static Dictionary<TokenType, InstructionType> _binaryOperationConstMap;
+        private static Dictionary<TokenType, InstructionType> _binaryOperationLocalMap;
         private static Dictionary<TokenType, InstructionType> _unaryOperationMap;
 
         static FunctionContext()
@@ -471,6 +493,12 @@ namespace Mond.Compiler
                 { TokenType.Divide, InstructionType.DivC },
                 { TokenType.Modulo, InstructionType.ModC },
                 { TokenType.Exponent, InstructionType.ExpC },
+            };
+
+            _binaryOperationLocalMap = new Dictionary<TokenType, InstructionType>
+            {
+                { TokenType.Add, InstructionType.AddLocF },
+                { TokenType.Subtract, InstructionType.SubLocF },
             };
 
             _unaryOperationMap = new Dictionary<TokenType, InstructionType>

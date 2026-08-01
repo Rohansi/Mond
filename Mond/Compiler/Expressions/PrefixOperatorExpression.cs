@@ -24,7 +24,7 @@ namespace Mond.Compiler.Expressions
             {
                 case TokenType.Increment:
                     if (!needResult && Right is IdentifierExpression incIdentExpr &&
-                        incIdentExpr.SupportsIncDecF(context, out var incOperand))
+                        incIdentExpr.SupportsLocalCompoundAssign(context, out var incOperand))
                     {
                         context.Position(Token); // debug info
                         stack += context.IncrementF(incOperand);
@@ -41,7 +41,7 @@ namespace Mond.Compiler.Expressions
 
                 case TokenType.Decrement:
                     if (!needResult && Right is IdentifierExpression decIdentExpr &&
-                        decIdentExpr.SupportsIncDecF(context, out var decOperand))
+                        decIdentExpr.SupportsLocalCompoundAssign(context, out var decOperand))
                     {
                         context.Position(Token); // debug info
                         stack += context.DecrementF(decOperand);

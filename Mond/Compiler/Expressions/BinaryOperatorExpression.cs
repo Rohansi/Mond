@@ -35,6 +35,23 @@ namespace Mond.Compiler.Expressions
 
                 if (isAssignOperation)
                 {
+                    // when the result is unused and the target is a plain local we can apply the
+                    // operation to it in place, skipping the load and store around it
+                    if (!needResult &&
+                        Left is IdentifierExpression identExpr &&
+                        FunctionContext.HasLocalBinaryOperation(assignOperation) &&
+                        identExpr.SupportsLocalCompoundAssign(context, out var local) &&
+                        !IdentifierMutationVisitor.Mutates(Right, identExpr.Name))
+                    {
+                        stack += Right.Compile(context);
+
+                        context.Position(Token); // debug info
+                        stack += context.BinaryOperationLocal(assignOperation, local);
+
+                        CheckStack(stack, 0);
+                        return stack;
+                    }
+
                     int preTotal;
                     var preTimes = needResult ? 3 : 2;
                     

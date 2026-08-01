@@ -88,11 +88,17 @@
             return visitor.Visit(this);
         }
         
-        public bool SupportsIncDecF(FunctionContext context, out IdentifierOperand operand)
+        /// <summary>
+        /// Checks if this identifier is a plain local in the current frame, which can be modified
+        /// in place instead of being loaded and stored around an operation. Arguments are excluded
+        /// because they live in a separate array to locals.
+        /// </summary>
+        public bool SupportsLocalCompoundAssign(FunctionContext context, out IdentifierOperand operand)
         {
             return context.TryGetIdentifier(Name, out operand) &&
                    operand.FrameIndex == context.FrameDepth &&
-                   !operand.IsReadOnly && !operand.IsCaptured;
+                   !operand.IsReadOnly && !operand.IsCaptured &&
+                   operand is not ArgumentIdentifierOperand;
         }
     }
 }
