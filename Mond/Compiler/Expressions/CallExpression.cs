@@ -22,6 +22,10 @@ namespace Mond.Compiler.Expressions
         {
             var stack = 0;
 
+            // when the result is unused we can tell the call to discard it, instead of pushing it
+            // just so the enclosing block can immediately drop it
+            var discardResult = Parent is IBlockExpression;
+
             if (Method is FieldExpression methodField &&
                 methodField.Left is not GlobalExpression &&
                 !(methodField.Left is FieldExpression instanceField && IgnoreInstanceCall(instanceField.Name)) &&
@@ -31,7 +35,7 @@ namespace Mond.Compiler.Expressions
                 stack += Arguments.Sum(argument => argument.Compile(context));
 
                 context.Position(Token); // debug info
-                stack += context.InstanceCall(context.String(methodField.Name), Arguments.Count, GetUnpackIndices());
+                stack += context.InstanceCall(context.String(methodField.Name), Arguments.Count, GetUnpackIndices(), discardResult);
             }
             else
             {
@@ -39,10 +43,10 @@ namespace Mond.Compiler.Expressions
                 stack += Arguments.Sum(argument => argument.Compile(context));
 
                 context.Position(Token); // debug info
-                stack += context.Call(Arguments.Count, GetUnpackIndices());
+                stack += context.Call(Arguments.Count, GetUnpackIndices(), discardResult);
             }
 
-            CheckStack(stack, 1);
+            CheckStack(stack, discardResult ? 0 : 1);
             return stack;
         }
 

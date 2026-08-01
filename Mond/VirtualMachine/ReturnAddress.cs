@@ -14,7 +14,13 @@ namespace Mond.VirtualMachine
         public short EvalDepth;
         public bool IsEntry;
 
-        public void Initialize(MondProgram program, int address, Closure closure, short evalDepth, bool isEntry)
+        /// <summary>
+        /// Set when the caller does not want the return value, so it is dropped instead of being
+        /// left on the eval stack.
+        /// </summary>
+        public bool DiscardResult;
+
+        public void Initialize(MondProgram program, int address, Closure closure, short evalDepth, bool isEntry, bool discardResult = false)
         {
             Program = program;
             Address = address;
@@ -22,6 +28,7 @@ namespace Mond.VirtualMachine
             Closure = closure;
             EvalDepth = evalDepth;
             IsEntry = isEntry;
+            DiscardResult = discardResult;
         }
 
         public MondValue GetArgument(int index)

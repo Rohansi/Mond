@@ -296,6 +296,86 @@ namespace Mond
         }
 
         /// <summary>
+        /// Adds to a field defined directly on this object, without going through the normal
+        /// indexer. Returns false when the fast path does not apply - the caller must then fall
+        /// back to the indexer, which handles proxies, prototypes and metamethods.
+        /// </summary>
+        internal bool TryAddToOwnField(in MondValue index, in MondValue right)
+        {
+            var obj = GetOwnFieldTarget();
+            if (obj == null)
+            {
+                return false;
+            }
+
+#if NET6_0_OR_GREATER
+            ref var field = ref CollectionsMarshal.GetValueRefOrNullRef(obj.Values, index);
+            if (Unsafe.IsNullRef(ref field))
+            {
+                return false;
+            }
+
+            field += right;
+            return true;
+#else
+            if (!obj.Values.TryGetValue(index, out var value))
+            {
+                return false;
+            }
+
+            obj.Values[index] = value + right;
+            return true;
+#endif
+        }
+
+        /// <summary>
+        /// Subtracts from a field defined directly on this object. See <see cref="TryAddToOwnField"/>.
+        /// </summary>
+        internal bool TrySubtractFromOwnField(in MondValue index, in MondValue right)
+        {
+            var obj = GetOwnFieldTarget();
+            if (obj == null)
+            {
+                return false;
+            }
+
+#if NET6_0_OR_GREATER
+            ref var field = ref CollectionsMarshal.GetValueRefOrNullRef(obj.Values, index);
+            if (Unsafe.IsNullRef(ref field))
+            {
+                return false;
+            }
+
+            field -= right;
+            return true;
+#else
+            if (!obj.Values.TryGetValue(index, out var value))
+            {
+                return false;
+            }
+
+            obj.Values[index] = value - right;
+            return true;
+#endif
+        }
+
+        /// <summary>
+        /// Returns the backing object when in-place field updates are safe, otherwise null. The
+        /// field itself must still be verified to exist on the object - if it only exists on a
+        /// prototype, the update has to create a new field instead of modifying the prototype.
+        /// </summary>
+        private VirtualMachine.Object GetOwnFieldTarget()
+        {
+            if (Type != MondValueType.Object)
+            {
+                return null;
+            }
+
+            var obj = ObjectValue;
+            return obj.Locked || obj.IsProxy ? null : obj;
+        }
+
+        /// <summary>
         /// Gets the dictionary instance used to store this object's values.
         /// </summary>
         public IDictionary<MondValue, MondValue> AsDictionary

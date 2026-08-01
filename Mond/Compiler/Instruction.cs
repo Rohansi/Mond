@@ -36,22 +36,24 @@ namespace Mond.Compiler
         BitAnd, BitOr, BitXor,              // bitwise and, bitwise or, bitwise xor
         BitNot,                             // bitwise not (one's compliment)
 
-        Closure, Call, TailCall,            // make closure, call function, tail call
+        Closure,                            // make function closure
         Enter, Ret,                         // push locals/begin function, pop locals and return from function
         VarArgs,                            // setup variable length args
+        Call, InstanceCall,                 // call function, call a field = x.y(z) -> x.y(x, z), but only evaluate x once
+        CallVoid, InstanceCallVoid,         // call/instance call, discarding the result instead of pushing it
+        TailCall,                           // tail call function, discarding the current frame instead of pushing a new one
 
         Jmp,                                // jump unconditionally
         JmpTrueP, JmpFalseP,                // jump if peek() == true/false
         JmpTrue, JmpFalse,                  // jump if pop() == true/false
         JmpTable,                           // jump to one of multiple locations
 
-        Breakpoint,                         // break if a debugger is attached
-        DebugCheckpoint,                    // break if a debugger is attached and wants to break here
-
-        InstanceCall,                       // call a field = x.y(z) -> x.y(x, z), but only evaluate x once
-
         IncF, DecF,                         // increment/decrement local in current frame
         AddLocF, SubLocF,                   // math applied in place to a local in the current frame
+        AddFld, SubFld,                     // math applied in place to a field of an object
+
+        Breakpoint,                         // break if a debugger is attached
+        DebugCheckpoint,                    // break if a debugger is attached and wants to break here
 
         // ----------------- //
 

@@ -52,6 +52,24 @@ namespace Mond.Compiler.Expressions
                         return stack;
                     }
 
+                    // the same applies to fields of an object, as long as evaluating the right side
+                    // cannot run code that observes the field before we read it
+                    if (!needResult &&
+                        Left is FieldExpression fieldExpr &&
+                        fieldExpr.Left is not GlobalExpression &&
+                        FunctionContext.HasFieldBinaryOperation(assignOperation) &&
+                        SideEffectFreeExpression.Check(Right, context))
+                    {
+                        stack += fieldExpr.Left.Compile(context);
+                        stack += Right.Compile(context);
+
+                        context.Position(Token); // debug info
+                        stack += context.BinaryOperationField(assignOperation, context.String(fieldExpr.Name));
+
+                        CheckStack(stack, 0);
+                        return stack;
+                    }
+
                     int preTotal;
                     var preTimes = needResult ? 3 : 2;
                     

@@ -308,6 +308,25 @@ namespace Mond.Compiler
             return -1;
         }
 
+        public static bool HasFieldBinaryOperation(TokenType operation)
+        {
+            return _binaryOperationFieldMap.ContainsKey(operation);
+        }
+
+        /// <summary>
+        /// Emits a binary operation which applies the value on the stack directly to a field of the
+        /// object below it, so the field does not need to be loaded and stored around the operation.
+        /// Expects the stack to be [object, value] and leaves nothing behind.
+        /// </summary>
+        public int BinaryOperationField(TokenType operation, ConstantOperand<string> operand)
+        {
+            if (!_binaryOperationFieldMap.TryGetValue(operation, out var type))
+                throw new NotSupportedException();
+
+            Emit(new Instruction(type, operand));
+            return -2;
+        }
+
         public int UnaryOperation(TokenType operation)
         {
             if (!_unaryOperationMap.TryGetValue(operation, out var type))
@@ -369,15 +388,17 @@ namespace Mond.Compiler
             return 1;
         }
 
-        public int Call(int argumentCount, List<ImmediateOperand> unpackIndices)
+        public int Call(int argumentCount, List<ImmediateOperand> unpackIndices, bool discardResult = false)
         {
             Emit(new Instruction(
-                InstructionType.Call,
+                discardResult ? InstructionType.CallVoid : InstructionType.Call,
                 new ImmediateOperand(argumentCount),
                 new ImmediateOperand(unpackIndices.Count),
                 new ListOperand<ImmediateOperand>(unpackIndices)));
 
-            return -argumentCount - 1 + 1; // pop arguments, pop function, push result
+            return discardResult
+                ? -argumentCount - 1 // pop arguments, pop function
+                : -argumentCount - 1 + 1; // pop arguments, pop function, push result
         }
 
         public int TailCall(int argumentCount, LabelOperand label, List<ImmediateOperand> unpackIndices)
@@ -392,16 +413,18 @@ namespace Mond.Compiler
             return -argumentCount; // pop arguments
         }
 
-        public int InstanceCall(ConstantOperand<string> field, int argumentCount, List<ImmediateOperand> unpackIndices)
+        public int InstanceCall(ConstantOperand<string> field, int argumentCount, List<ImmediateOperand> unpackIndices, bool discardResult = false)
         {
             Emit(new Instruction(
-                InstructionType.InstanceCall,
+                discardResult ? InstructionType.InstanceCallVoid : InstructionType.InstanceCall,
                 field,
                 new ImmediateOperand(argumentCount),
                 new ImmediateOperand(unpackIndices.Count),
                 new ListOperand<ImmediateOperand>(unpackIndices)));
 
-            return -argumentCount - 1 + 1; // pop arguments, pop instance, push result
+            return discardResult
+                ? -argumentCount - 1 // pop arguments, pop instance
+                : -argumentCount - 1 + 1; // pop arguments, pop instance, push result
         }
 
         public int Return()
@@ -456,6 +479,7 @@ namespace Mond.Compiler
         private static Dictionary<TokenType, InstructionType> _binaryOperationMap;
         private static Dictionary<TokenType, InstructionType> _binaryOperationConstMap;
         private static Dictionary<TokenType, InstructionType> _binaryOperationLocalMap;
+        private static Dictionary<TokenType, InstructionType> _binaryOperationFieldMap;
         private static Dictionary<TokenType, InstructionType> _unaryOperationMap;
 
         static FunctionContext()
@@ -499,6 +523,12 @@ namespace Mond.Compiler
             {
                 { TokenType.Add, InstructionType.AddLocF },
                 { TokenType.Subtract, InstructionType.SubLocF },
+            };
+
+            _binaryOperationFieldMap = new Dictionary<TokenType, InstructionType>
+            {
+                { TokenType.Add, InstructionType.AddFld },
+                { TokenType.Subtract, InstructionType.SubFld },
             };
 
             _unaryOperationMap = new Dictionary<TokenType, InstructionType>

@@ -41,6 +41,26 @@ namespace Mond.Compiler.Expressions
                         throw new NotSupportedException();
                 }
             }
+            else if (!needResult && Left is FieldExpression fieldExpr &&
+                     fieldExpr.Left is not GlobalExpression)
+            {
+                stack += fieldExpr.Left.Compile(context);
+                stack += context.Load(context.Number(1));
+
+                context.Position(Token); // debug info
+
+                switch (Operation)
+                {
+                    case TokenType.Increment:
+                        stack += context.BinaryOperationField(TokenType.Add, context.String(fieldExpr.Name));
+                        break;
+                    case TokenType.Decrement:
+                        stack += context.BinaryOperationField(TokenType.Subtract, context.String(fieldExpr.Name));
+                        break;
+                    default:
+                        throw new NotSupportedException();
+                }
+            }
             else
             {
                 if (needResult)

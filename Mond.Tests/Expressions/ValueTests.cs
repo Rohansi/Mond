@@ -534,6 +534,277 @@ namespace Mond.Tests.Expressions
         }
 
         [Test]
+        public void FieldCompoundAssign()
+        {
+            _result = Script.Run(@"
+                var o = { v: 10 };
+                o.v += 5;
+                o.v -= 3;
+                return o.v;
+            ");
+
+            Assert.That(_result, Is.EqualTo((MondValue)12));
+        }
+
+        [Test]
+        public void FieldCompoundAssignString()
+        {
+            _result = Script.Run(@"
+                var o = { v: 'foo' };
+                o.v += 'bar';
+                return o.v;
+            ");
+
+            Assert.That(_result, Is.EqualTo((MondValue)"foobar"));
+        }
+
+        [Test]
+        public void FieldCompoundAssignResult()
+        {
+            _result = Script.Run(@"
+                var o = { v: 10 };
+                var b = (o.v += 5);
+                return [ o.v, b ];
+            ");
+
+            var expected = new MondValue[] { 15, 15 };
+            Assert.That(_result.AsList, Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void FieldIncrementDecrement()
+        {
+            _result = Script.Run(@"
+                var o = { v: 10 };
+                o.v++;
+                o.v++;
+                o.v--;
+                ++o.v;
+                --o.v;
+                --o.v;
+                return o.v;
+            ");
+
+            Assert.That(_result, Is.EqualTo((MondValue)10));
+        }
+
+        [Test]
+        public void FieldIncrementResult()
+        {
+            _result = Script.Run(@"
+                var o = { v: 10 };
+                var post = o.v++;
+                var pre = ++o.v;
+                return [ o.v, post, pre ];
+            ");
+
+            var expected = new MondValue[] { 12, 10, 12 };
+            Assert.That(_result.AsList, Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void FieldCompoundAssignNested()
+        {
+            _result = Script.Run(@"
+                var o = { a: { v: 1 } };
+                o.a.v += 4;
+                return o.a.v;
+            ");
+
+            Assert.That(_result, Is.EqualTo((MondValue)5));
+        }
+
+        [Test]
+        public void FieldCompoundAssignPrototype()
+        {
+            // the field lives on the prototype, so the value must be read through the chain but
+            // written to the object itself - the prototype must not be modified
+            _result = Script.Run(@"
+                var p = { v: 10 };
+                var o = {};
+                o.setPrototype(p);
+                o.v += 5;
+                return [ o.v, p.v ];
+            ");
+
+            var expected = new MondValue[] { 15, 10 };
+            Assert.That(_result.AsList, Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void FieldCompoundAssignLocked()
+        {
+            Assert.Throws<MondRuntimeException>(() => Script.Run(@"
+                var o = { v: 1 };
+                o.lock();
+                o.v += 1;
+            "));
+        }
+
+        [Test]
+        public void FieldCompoundAssignOrderOfOperations()
+        {
+            // the field must be read before the right side runs, so this is 5 + 100 and not
+            // 100 + 100 - the in place instruction reads it afterwards so it cannot be used here
+            _result = Script.Run(@"
+                var o = { v: 5 };
+                o.v += (o.v = 100);
+                return o.v;
+            ");
+
+            Assert.That(_result, Is.EqualTo((MondValue)105));
+        }
+
+        [Test]
+        public void FieldCompoundAssignOrderOfOperationsCall()
+        {
+            // the call can change the field while the right side runs
+            _result = Script.Run(@"
+                var o = { v: 5 };
+                var bump = fun () {
+                    o.v = 100;
+                    return 1;
+                };
+
+                o.v += bump();
+                return o.v;
+            ");
+
+            Assert.That(_result, Is.EqualTo((MondValue)6));
+        }
+
+        [Test]
+        public void FieldCompoundAssignObjectEvaluatedOnce()
+        {
+            _result = Script.Run(@"
+                var calls = 0;
+                var o = { v: 1 };
+                var get = fun () {
+                    calls += 1;
+                    return o;
+                };
+
+                get().v += 5;
+                return [ o.v, calls ];
+            ");
+
+            var expected = new MondValue[] { 6, 1 };
+            Assert.That(_result.AsList, Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void DiscardedCallResult()
+        {
+            _result = Script.Run(@"
+                var calls = 0;
+                var f = fun () {
+                    calls += 1;
+                    return 99;
+                };
+
+                f();
+                f();
+                return calls;
+            ");
+
+            Assert.That(_result, Is.EqualTo((MondValue)2));
+        }
+
+        [Test]
+        public void DiscardedInstanceCallResult()
+        {
+            _result = Script.Run(@"
+                var o = {
+                    n: 0,
+                    bump: fun (this) {
+                        this.n += 1;
+                        return 7;
+                    }
+                };
+
+                o.bump();
+                o.bump();
+                return o.n;
+            ");
+
+            Assert.That(_result, Is.EqualTo((MondValue)2));
+        }
+
+        [Test]
+        public void DiscardedTailCallResult()
+        {
+            // the tail call reuses the frame of the discarded call, so the flag has to survive it
+            _result = Script.Run(@"
+                var total = 0;
+                fun bump(n) {
+                    if (n <= 0) {
+                        return 0;
+                    }
+
+                    total += n;
+                    return bump(n - 1);
+                }
+
+                bump(4);
+                return total;
+            ");
+
+            Assert.That(_result, Is.EqualTo((MondValue)10));
+        }
+
+        [Test]
+        public void DiscardedCallResultInSequence()
+        {
+            // sequences suspend through the same return path the discard uses
+            _result = Script.Run(@"
+                seq numbers() {
+                    yield 1;
+                    yield 2;
+                }
+
+                var total = 0;
+                var add = fun (x) {
+                    total += x;
+                    return 0;
+                };
+
+                foreach (var x in numbers()) {
+                    add(x);
+                }
+
+                return total;
+            ");
+
+            Assert.That(_result, Is.EqualTo((MondValue)3));
+        }
+
+        [Test]
+        public void DiscardedCallResultSuspendingSequence()
+        {
+            // the discarded call suspends instead of returning, which returns through the same path
+            // - the sentinel it pushes is what the caller would have received, so it must be
+            // discarded too or it accumulates on the eval stack until it overflows
+            _result = Script.Run(@"
+                seq numbers() {
+                    var i = 0;
+                    while (true) {
+                        yield i;
+                        i += 1;
+                    }
+                }
+
+                var e = numbers().getEnumerator();
+                for (var i = 0; i < 400; i += 1) {
+                    e.moveNext();
+                }
+
+                return e.current;
+            ");
+
+            Assert.That(_result, Is.EqualTo((MondValue)399));
+        }
+
+        [Test]
         public void Constants()
         {
             Assert.That(Script.Run("return null;"), Is.EqualTo(MondValue.Null));

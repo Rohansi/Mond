@@ -533,6 +533,43 @@ namespace Mond.VirtualMachine
                                 break;
                             }
 
+                        case (int)InstructionType.AddFld:
+                            {
+                                var stringIndex = UnpackFirstOperand(opcode);
+                                ref readonly var right = ref Pop();
+                                ref readonly var obj = ref Pop();
+                                ref readonly var field = ref program.Strings[stringIndex];
+
+                                if (!obj.TryAddToOwnField(field, right))
+                                {
+                                    // the slow path can run user code, which would clobber the
+                                    // popped stack slots we are holding references to
+                                    var objCopy = obj;
+                                    var rightCopy = right;
+                                    objCopy[field] = objCopy[field] + rightCopy;
+                                }
+
+                                break;
+                            }
+
+                        case (int)InstructionType.SubFld:
+                            {
+                                var stringIndex = UnpackFirstOperand(opcode);
+                                ref readonly var right = ref Pop();
+                                ref readonly var obj = ref Pop();
+                                ref readonly var field = ref program.Strings[stringIndex];
+
+                                if (!obj.TrySubtractFromOwnField(field, right))
+                                {
+                                    var objCopy = obj;
+                                    var rightCopy = right;
+                                    objCopy[field] = objCopy[field] - rightCopy;
+                                }
+
+                                break;
+                            }
+
+
                         case (int)InstructionType.BitLShift:
                             {
                                 ref readonly var right = ref Pop();
@@ -705,6 +742,12 @@ namespace Mond.VirtualMachine
                                 break;
                             }
 
+                        case (int)InstructionType.CallVoid:
+                            {
+                                DoCall(UnpackFirstOperand(opcode), ref code, ref ip, ref program, ref functionAddress, ref locals, true);
+                                break;
+                            }
+
                         case (int)InstructionType.TailCall:
                             {
                                 var argCount = UnpackFirstOperand(opcode);
@@ -755,6 +798,20 @@ namespace Mond.VirtualMachine
                                 }
                                 break;
                             }
+
+                        case (int)InstructionType.InstanceCallVoid:
+                            {
+                                var field = program.Strings[UnpackFirstOperand(opcode)];
+                                var argCount = code[ip++];
+                                ref var instance = ref Peek(argCount);
+                                var function = instance[field];
+                                if (!DoInstanceCall(function, argCount, ref code, ref ip, ref program, ref functionAddress, true))
+                                {
+                                    throw new MondRuntimeException(RuntimeError.FieldNotCallable, (string)field);
+                                }
+                                break;
+                            }
+
 
                         case (int)InstructionType.Enter:
                             {
@@ -1009,7 +1066,7 @@ namespace Mond.VirtualMachine
             return ((opcode & operandMask) ^ operandSignBit) - operandSignBit;
         }
 
-        private void DoCall(int argCount, ref int[] code, ref int ip, ref MondProgram program, ref ReturnAddress funcAddress, ref MondValue[] locals)
+        private void DoCall(int argCount, ref int[] code, ref int ip, ref MondProgram program, ref ReturnAddress funcAddress, ref MondValue[] locals, bool discardResult = false)
         {
             var unpackCount = code[ip++];
             using var argValuesHandle = GetArgsArray(code, ref ip, argCount, unpackCount);
@@ -1027,7 +1084,11 @@ namespace Mond.VirtualMachine
 
                 if (function.TryDispatch(Metamethod.Call, out var result, argArr))
                 {
-                    Push(result);
+                    if (!discardResult)
+                    {
+                        Push(result);
+                    }
+
                     return;
                 }
             }
@@ -1037,10 +1098,10 @@ namespace Mond.VirtualMachine
                 throw new MondRuntimeException(RuntimeError.ValueNotCallable, function.Type.GetName());
             }
 
-            CallImpl(function.FunctionValue, argValues, returnAddress, ref program, ref code, ref ip, ref funcAddress);
+            CallImpl(function.FunctionValue, argValues, returnAddress, ref program, ref code, ref ip, ref funcAddress, discardResult);
         }
 
-        private bool DoInstanceCall(MondValue function, int argCount, ref int[] code, ref int ip, ref MondProgram program, ref ReturnAddress funcAddress)
+        private bool DoInstanceCall(MondValue function, int argCount, ref int[] code, ref int ip, ref MondProgram program, ref ReturnAddress funcAddress, bool discardResult = false)
         {
             var unpackCount = code[ip++];
             using var argValuesHandle = GetArgsArray(code, ref ip, argCount, unpackCount, 1);
@@ -1059,7 +1120,11 @@ namespace Mond.VirtualMachine
 
                 if (function.TryDispatch(Metamethod.Call, out var result, argArr))
                 {
-                    Push(result);
+                    if (!discardResult)
+                    {
+                        Push(result);
+                    }
+
                     return true;
                 }
             }
@@ -1069,18 +1134,18 @@ namespace Mond.VirtualMachine
                 return false;
             }
 
-            CallImpl(function.FunctionValue, argValues, returnAddress, ref program, ref code, ref ip, ref funcAddress);
+            CallImpl(function.FunctionValue, argValues, returnAddress, ref program, ref code, ref ip, ref funcAddress, discardResult);
             return true;
         }
 
         private void CallImpl(Closure closure, Span<MondValue> argValues, int returnAddress, ref MondProgram program,
-            ref int[] code, ref int ip, ref ReturnAddress funcAddress)
+            ref int[] code, ref int ip, ref ReturnAddress funcAddress, bool discardResult = false)
         {
             switch (closure.Type)
             {
                 case ClosureType.Mond:
                     var newFuncAddress = PushCall();
-                    newFuncAddress.Initialize(program, returnAddress, closure, (short)_evalStackSize, false);
+                    newFuncAddress.Initialize(program, returnAddress, closure, (short)_evalStackSize, false, discardResult);
                     foreach (var arg in argValues)
                     {
                         newFuncAddress.Arguments.Add(arg);
@@ -1096,7 +1161,10 @@ namespace Mond.VirtualMachine
 
                 case ClosureType.Native:
                     var result = closure.NativeFunction(_state, argValues);
-                    Push(result);
+                    if (!discardResult)
+                    {
+                        Push(result);
+                    }
                     break;
 
                 default:
@@ -1185,6 +1253,15 @@ namespace Mond.VirtualMachine
         {
             var returnAddress = PopCall();
             PopLocal(returnLocalsToPool);
+
+            if (returnAddress.DiscardResult)
+            {
+                // the caller used a void call, so the value it would have received is dropped here
+                // instead of costing a separate drop instruction at every call site. a suspending
+                // sequence pushes a sentinel, which is exactly what the caller receives, so it gets
+                // discarded the same way
+                Pop();
+            }
 
             program = returnAddress.Program;
             code = program.Bytecode;

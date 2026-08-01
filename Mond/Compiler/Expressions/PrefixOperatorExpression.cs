@@ -31,6 +31,17 @@ namespace Mond.Compiler.Expressions
                         break;
                     }
 
+                    if (!needResult && Right is FieldExpression incFieldExpr &&
+                        incFieldExpr.Left is not GlobalExpression)
+                    {
+                        stack += incFieldExpr.Left.Compile(context);
+                        stack += context.Load(context.Number(1));
+
+                        context.Position(Token); // debug info
+                        stack += context.BinaryOperationField(TokenType.Add, context.String(incFieldExpr.Name));
+                        break;
+                    }
+
                     stack += Right.Compile(context);
                     stack += context.Load(context.Number(1));
 
@@ -45,6 +56,17 @@ namespace Mond.Compiler.Expressions
                     {
                         context.Position(Token); // debug info
                         stack += context.DecrementF(decOperand);
+                        break;
+                    }
+
+                    if (!needResult && Right is FieldExpression decFieldExpr &&
+                        decFieldExpr.Left is not GlobalExpression)
+                    {
+                        stack += decFieldExpr.Left.Compile(context);
+                        stack += context.Load(context.Number(1));
+
+                        context.Position(Token); // debug info
+                        stack += context.BinaryOperationField(TokenType.Subtract, context.String(decFieldExpr.Name));
                         break;
                     }
 
