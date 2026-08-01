@@ -1,0 +1,9 @@
+<Solution>
+  <Project Path="Mond.Benchmarks/Mond.Benchmarks.csproj" />
+  <Project Path="Mond.RemoteDebugger/Mond.RemoteDebugger.csproj" />
+  <Project Path="Mond.Repl/Mond.Repl.csproj" />
+  <Project Path="Mond.SourceGenerator/Mond.SourceGenerator.csproj" />
+  <Project Path="Mond.Tests/Mond.Tests.csproj" />
+  <Project Path="Mond/Mond.csproj" />
+  <Project Path="TryMond/TryMond.csproj" />
+</Solution>
