@@ -32,6 +32,10 @@
         public const string DuplicateCase = "Duplicate case value";
         public const string DuplicateDefault = "Cannot have more than one default case";
 
+        public const string SwitchExprMissingDiscard = "Switch expressions must end with a '_' arm";
+        public const string SwitchExprArmAfterDiscard = "Switch expression arms cannot appear after the '_' arm";
+        public const string SwitchExprDiscardGuard = "The '_' arm of a switch expression cannot have a 'when' guard";
+
         public const string ExportMustBeFollowedByKeywords = "'export' modifier can only be applied to 'const', 'fun', or 'seq' declarations";
         public const string ExportMustBeFollowedByDeclaration = "'export' modifier can only be applied to declaration expressions";
         public const string ExportMustBeFollowedByNonEmptyDeclaration = "'export' modifier cannot be applied to expressions with no declarations";

@@ -105,6 +105,28 @@ namespace Mond.Compiler
             return default(T);
         }
 
+        public virtual T Visit(SwitchValueExpression expression)
+        {
+            expression.Subject.Accept(this);
+
+            foreach (var arm in expression.Arms)
+            {
+                if (arm.Conditions != null)
+                {
+                    foreach (var condition in arm.Conditions)
+                    {
+                        condition.Accept(this);
+                    }
+                }
+
+                arm.Pattern?.Accept(this);
+                arm.Guard?.Accept(this);
+                arm.Body.Accept(this);
+            }
+
+            return default(T);
+        }
+
         public virtual T Visit(VarExpression expression)
         {
             foreach (var decl in expression.Declarations.Where(d => d.Initializer != null))

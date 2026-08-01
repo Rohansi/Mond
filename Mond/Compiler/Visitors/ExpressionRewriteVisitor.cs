@@ -142,6 +142,29 @@ namespace Mond.Compiler.Visitors
             };
         }
 
+        public virtual Expression Visit(SwitchValueExpression expression)
+        {
+            SwitchValueExpression.Arm VisitArm(SwitchValueExpression.Arm a)
+            {
+                var conditions = a.Conditions?.Select(c => c.Accept(this)).ToList();
+
+                return SwitchValueExpression.Arm.Create(
+                    a.Kind,
+                    conditions,
+                    a.Pattern?.Accept(this),
+                    a.BindingName,
+                    a.Guard?.Accept(this),
+                    a.Body.Accept(this));
+            }
+
+            var arms = expression.Arms.Select(VisitArm).ToList();
+
+            return new SwitchValueExpression(expression.Token, expression.Subject.Accept(this), arms)
+            {
+                EndToken = expression.EndToken
+            };
+        }
+
         public virtual Expression Visit(VarExpression expression)
         {
             var declarations = expression.Declarations.Select(d =>

@@ -297,6 +297,60 @@ namespace Mond.Compiler.Visitors
             return 0;
         }
 
+        public int Visit(SwitchValueExpression expression)
+        {
+            expression.Subject.Accept(this);
+            _writer.WriteLine(" switch");
+
+            _writer.WriteLine("{");
+            _writer.Indent++;
+
+            foreach (var arm in expression.Arms)
+            {
+                switch (arm.Kind)
+                {
+                    case SwitchValueExpression.ArmKind.Discard:
+                        _writer.Write("_");
+                        break;
+
+                    case SwitchValueExpression.ArmKind.Binding:
+                        _writer.Write("var " + arm.BindingName);
+                        break;
+
+                    case SwitchValueExpression.ArmKind.Object:
+                    case SwitchValueExpression.ArmKind.Array:
+                        arm.Pattern.Accept(this);
+                        break;
+
+                    default:
+                        for (var i = 0; i < arm.Conditions.Count; i++)
+                        {
+                            if (i > 0)
+                                _writer.Write(", ");
+
+                            arm.Conditions[i].Accept(this);
+                        }
+
+                        break;
+                }
+
+                if (arm.Guard != null)
+                {
+                    _writer.Write(" when ");
+                    arm.Guard.Accept(this);
+                }
+
+                _writer.Write(" -> ");
+                arm.Body.Accept(this);
+                _writer.WriteLine(",");
+            }
+
+            _writer.Indent--;
+            _writer.Write("}");
+
+            return 0;
+        }
+
         public int Visit(VarExpression expression)
         {
             _writer.Write(expression.IsReadOnly ? "const " : "var ");

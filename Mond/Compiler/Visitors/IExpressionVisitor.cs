@@ -17,6 +17,7 @@ namespace Mond.Compiler
         T Visit(ReturnExpression expression);
         T Visit(SequenceExpression expression);
         T Visit(SwitchExpression expression);
+        T Visit(SwitchValueExpression expression);
         T Visit(VarExpression expression);
         T Visit(WhileExpression expression);
         T Visit(YieldExpression expression);
