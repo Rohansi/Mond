@@ -4,10 +4,13 @@
 	"patterns": [
 		{ "include": "#comment" },
 		{ "include": "#blockComment" },
+		{ "include": "#functionDeclaration" },
 		{ "include": "#keywords" },
 		{ "include": "#stringsDouble" },
 		{ "include": "#stringsSingle" },
 		{ "include": "#numbers" },
+		{ "include": "#decorators" },
+		{ "include": "#objectKeys" },
 		{ "include": "#builtins" },
 		{ "include": "#variables" },
 		{ "include": "#operators" }
@@ -26,12 +29,13 @@
 		"keywords": {
 			"patterns": [
 				{
-					"name": "keyword.control.mond",
-					"match": "\\b(if|else|while|foreach|for|do|switch|case|default|return|continue|break|yield|in|debugger|export|import|from)\\b"
+					"comment": "!in has no word boundary before the ! so it needs its own rule",
+					"name": "keyword.operator.mond",
+					"match": "!in\\b|\\bin\\b"
 				},
 				{
-					"name": "keyword.operator.mond",
-					"match": "\\b(!?in)\\b"
+					"name": "keyword.control.mond",
+					"match": "\\b(if|else|while|foreach|for|do|switch|case|default|return|continue|break|yield|debugger|export|import|from)\\b"
 				},
 				{
 					"name": "storage.type.mond",
@@ -50,6 +54,56 @@
 					"match": "\\b(global)\\b"
 				}
 			]
+		},
+		"functionDeclaration": {
+			"comment": "fun/seq declarations, anonymous functions and user defined operators - scopes the name and the parameter list",
+			"name": "meta.function.mond",
+			"begin": "\\b(fun|seq)\\b(?:\\s+([a-zA-Z_][0-9a-zA-Z_]*))?\\s*(\\()",
+			"beginCaptures": {
+				"1": { "name": "storage.type.function.mond" },
+				"2": { "name": "entity.name.function.mond" },
+				"3": { "name": "punctuation.definition.parameters.begin.mond" }
+			},
+			"end": "\\)",
+			"endCaptures": {
+				"0": { "name": "punctuation.definition.parameters.end.mond" }
+			},
+			"patterns": [
+				{ "include": "#comment" },
+				{ "include": "#blockComment" },
+				{
+					"name": "keyword.operator.spread.mond",
+					"match": "\\.\\.\\."
+				},
+				{
+					"name": "variable.parameter.mond",
+					"match": "[a-zA-Z_][0-9a-zA-Z_]*"
+				},
+				{
+					"comment": "user defined operator name, eg. fun (<=>)(a, b)",
+					"name": "entity.name.function.mond",
+					"match": "[.=+\\-*/%&|^~<>!?@#$\\\\]+"
+				},
+				{
+					"name": "punctuation.separator.parameter.mond",
+					"match": ","
+				}
+			]
+		},
+		"decorators": {
+			"name": "meta.decorator.mond",
+			"match": "(@)([a-zA-Z_][0-9a-zA-Z_]*)",
+			"captures": {
+				"1": { "name": "punctuation.decorator.mond" },
+				"2": { "name": "entity.name.function.decorator.mond" }
+			}
+		},
+		"objectKeys": {
+			"comment": "identifier keys in object literals - only at the start of a line or right after { or , so ternaries and switch cases aren't caught",
+			"match": "(?:^|(?<=[{,]))\\s*([a-zA-Z_][0-9a-zA-Z_]*)\\s*(?=:(?!:))",
+			"captures": {
+				"1": { "name": "variable.other.property.mond" }
+			}
 		},
 		"stringsDouble": {
 			"name": "string.quoted.double.mond",
@@ -104,10 +158,6 @@
 		"variables": {
 			"patterns": [
 				{
-					"name": "storage.modifier.mond",
-					"match": "@[a-zA-Z_][0-9a-zA-Z_]*\\b"
-				},
-				{
 					"name": "entity.name.type.mond",
 					"match": "\\b[A-Z][0-9a-zA-Z_]*\\b"
 				},
@@ -123,6 +173,19 @@
 		},
 		"operators": {
 			"patterns": [
+				{
+					"comment": "lambda and expression bodied functions, and switch expression arms",
+					"name": "storage.type.function.arrow.mond",
+					"match": "->"
+				},
+				{
+					"name": "keyword.operator.spread.mond",
+					"match": "\\.\\.\\."
+				},
+				{
+					"name": "keyword.operator.pipeline.mond",
+					"match": "\\|>"
+				},
 				{
 					"name": "keyword.operator.mond",
 					"match": "[.=+%&|^~<>!?@#$\\\\-]+"
