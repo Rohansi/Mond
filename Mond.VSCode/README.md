@@ -11,7 +11,7 @@ Language support and debugging for the [Mond scripting language](https://github.
 - **Outline and breadcrumbs** listing `fun`, `seq`, `var` and `const` declarations, including nested ones.
 - **Folding** for blocks, comment blocks and regions.
 - **Snippets** for the common declarations and control flow statements.
-- **Debugging** — launch a script or attach to a running Mond process, set breakpoints, step, inspect the call stack and evaluate expressions in the Debug Console.
+- **Debugging** — launch a script or attach to a running Mond process, set conditional breakpoints and logpoints, step, inspect the call stack, change values and evaluate expressions in the Debug Console.
 
 ## Requirements
 
@@ -48,7 +48,9 @@ To debug a process that is already running with the Mond remote debugger enabled
 }
 ```
 
-Mond can only resolve local variables for the frame it stopped in, so selecting a caller in the Call Stack shows globals only. Conditional breakpoints and logpoints are not supported yet.
+Mond can only resolve local variables for the frame it stopped in, so selecting a caller in the Call Stack shows globals only, and changing a value or evaluating an expression is only possible in the topmost frame.
+
+The Mond runtime has no notion of a breakpoint condition, so the extension stops on every hit and decides whether to report it. That makes conditions, hit counts and logpoints work anywhere, but a condition in a hot loop costs a round trip per iteration.
 
 ## Settings
 

@@ -205,4 +205,95 @@ describe('debug adapter', function () {
 			tracker.dispose();
 		}
 	});
+
+	it('skips a conditional breakpoint until the condition holds', async () => {
+		const recorder = new MessageRecorder();
+		const tracker = vscode.debug.registerDebugAdapterTrackerFactory('mond', {
+			createDebugAdapterTracker: () => ({ onDidSendMessage: m => recorder.record(m as DapMessage) }),
+		});
+
+		try {
+			// `printLn('hello ' + i);` inside fun test, which runs a hundred times
+			const location = new vscode.Location(vscode.Uri.file(program), new vscode.Position(1, 4));
+			vscode.debug.addBreakpoints([new vscode.SourceBreakpoint(location, true, 'i == 5')]);
+
+			const started = await vscode.debug.startDebugging(vscode.workspace.workspaceFolders?.[0], {
+				type: 'mond',
+				request: 'launch',
+				name: 'Mond conditional breakpoint test',
+				program,
+				stopOnEntry: false,
+				trace: false,
+			});
+			assert.ok(started, 'the debug session failed to start');
+
+			await recorder.wait('stopped');
+
+			const session = vscode.debug.activeDebugSession;
+			assert.ok(session, 'there is no active debug session');
+
+			const evaluated = await session.customRequest('evaluate', {
+				expression: 'i',
+				context: 'watch',
+			}) as { result: string };
+			assert.strictEqual(evaluated.result, '5', 'the debugger stopped on the wrong iteration');
+		} finally {
+			tracker.dispose();
+		}
+	});
+
+	it('assigns a new value to a local', async () => {
+		const recorder = new MessageRecorder();
+		const tracker = vscode.debug.registerDebugAdapterTrackerFactory('mond', {
+			createDebugAdapterTracker: () => ({ onDidSendMessage: m => recorder.record(m as DapMessage) }),
+		});
+
+		try {
+			const location = new vscode.Location(vscode.Uri.file(program), new vscode.Position(1, 4));
+			vscode.debug.addBreakpoints([new vscode.SourceBreakpoint(location)]);
+
+			const started = await vscode.debug.startDebugging(vscode.workspace.workspaceFolders?.[0], {
+				type: 'mond',
+				request: 'launch',
+				name: 'Mond set variable test',
+				program,
+				stopOnEntry: false,
+				trace: false,
+			});
+			assert.ok(started, 'the debug session failed to start');
+
+			await recorder.wait('stopped');
+
+			const session = vscode.debug.activeDebugSession;
+			assert.ok(session, 'there is no active debug session');
+
+			const stack = await session.customRequest('stackTrace', { threadId: 1 }) as {
+				stackFrames: { id: number }[];
+			};
+			const { scopes } = await session.customRequest('scopes', { frameId: stack.stackFrames[0].id }) as {
+				scopes: { name: string; variablesReference: number }[];
+			};
+			const locals = scopes.find(s => s.name === 'Local');
+			assert.ok(locals, 'there is no Local scope');
+
+			// the variables have to be listed first - that is what teaches the adapter how to get
+			// back to the value behind a display name
+			await session.customRequest('variables', { variablesReference: locals.variablesReference });
+
+			const assigned = await session.customRequest('setVariable', {
+				variablesReference: locals.variablesReference,
+				name: 'i',
+				value: '42',
+			}) as { value: string };
+			assert.strictEqual(assigned.value, '42');
+
+			const evaluated = await session.customRequest('evaluate', {
+				expression: 'i',
+				context: 'watch',
+			}) as { result: string };
+			assert.strictEqual(evaluated.result, '42', 'the assignment did not stick');
+		} finally {
+			tracker.dispose();
+		}
+	});
 });

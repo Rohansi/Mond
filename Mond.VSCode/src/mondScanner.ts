@@ -351,6 +351,27 @@ export function forgetDocument(document: vscode.TextDocument) {
 	cache.delete(document.uri.toString());
 }
 
+/** Index of the token containing the offset, or -1 when it falls in whitespace. */
+export function findTokenIndex(tokens: readonly Token[], offset: number): number {
+	let low = 0;
+	let high = tokens.length - 1;
+
+	while (low <= high) {
+		const mid = (low + high) >> 1;
+		const token = tokens[mid];
+
+		if (offset < token.start) {
+			high = mid - 1;
+		} else if (offset > token.end) {
+			low = mid + 1;
+		} else {
+			return mid;
+		}
+	}
+
+	return -1;
+}
+
 /** True when the offset is inside a comment or a string, where suggestions are just noise. */
 export function isInCommentOrString(document: vscode.TextDocument, offset: number): boolean {
 	const { tokens } = scan(document);

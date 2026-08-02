@@ -15,6 +15,9 @@
 - Standard library completions and hovers are now generated from the Mond sources instead of being maintained by hand, so they carry real parameter names, types, return types and every overload.
 - `mond.definitions.paths` loads extra definition files, so a host application that adds its own modules to Mond can describe them to the editor. Set the `MondDefinitionsFile` MSBuild property on the project holding your bindings to generate one.
 - `mond.definitions.includeStandardLibrary` turns the bundled definitions off for hosts that embed Mond without the standard libraries.
+- Conditional breakpoints, hit count breakpoints and logpoints. The Mond runtime does not know about conditions, so the extension evaluates them while stopped and resumes when the stop was not wanted.
+- Values of locals can now be changed from the Variables and Watch views.
+- Inline values are shown next to the code while stopped, and hovering a member chain like `a.b.c` evaluates the whole chain instead of just the word under the cursor.
 
 ### Changed
 

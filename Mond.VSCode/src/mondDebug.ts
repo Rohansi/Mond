@@ -31,6 +31,16 @@ interface IAttachRequestArguments extends DebugProtocol.AttachRequestArguments {
 const genericErrorId = 1001;
 const frameNotSupportedErrorId = 1002;
 
+/**
+ * Everything the client attached to a breakpoint that the Mond runtime does not know about. The
+ * runtime always stops, and the adapter decides whether that stop is worth reporting.
+ */
+interface BreakpointOptions {
+	readonly condition?: string;
+	readonly hitCondition?: string;
+	readonly logMessage?: string;
+}
+
 export class MondDebugSession extends LoggingDebugSession {
 	// we don't support multiple threads, so we can use a hardcoded ID for the default thread
 	private static threadID = 1;
@@ -43,6 +53,15 @@ export class MondDebugSession extends LoggingDebugSession {
 	/** Frame ids handed out by the last `stackTrace` request, in call stack order. */
 	private _frameIds: number[] = [];
 	private _nextFrameId = 1;
+
+	/** Assignable expression for each variable we reported, keyed by reference and display name. */
+	private _variableExpressions = new Map<string, string>();
+
+	/** Conditions and log messages, keyed by the resolved position of the breakpoint. */
+	private _breakpointOptions = new Map<string, BreakpointOptions>();
+
+	/** Hit counts survive re-sent breakpoints so editing one does not reset the others. */
+	private _breakpointHits = new Map<string, number>();
 
 	public constructor() {
 		super();
@@ -75,7 +94,7 @@ export class MondDebugSession extends LoggingDebugSession {
 		});
 		this._runtime.on('stopOnBreakpoint', () => {
 			this.invalidateStopState();
-			this.sendEvent(new StoppedEvent('breakpoint', MondDebugSession.threadID));
+			void this.breakpointStop();
 		});
 		this._runtime.on('output', (type: string, data: string) => {
 			this.sendEvent(new OutputEvent(data, type));
@@ -91,8 +110,14 @@ export class MondDebugSession extends LoggingDebugSession {
 		response.body.supportTerminateDebuggee = true;
 		response.body.supportsBreakpointLocationsRequest = true;
 		response.body.supportsEvaluateForHovers = true;
-		response.body.supportsConditionalBreakpoints = false;
-		response.body.supportsLogPoints = false;
+		response.body.supportsSetVariable = true;
+		response.body.supportsSetExpression = true;
+		response.body.supportsDelayedStackTraceLoading = true;
+
+		// the runtime has no notion of a condition, so the adapter evaluates them while it is stopped
+		response.body.supportsConditionalBreakpoints = true;
+		response.body.supportsHitConditionalBreakpoints = true;
+		response.body.supportsLogPoints = true;
 		
 		this.sendResponse(response);
 	}
@@ -168,11 +193,14 @@ export class MondDebugSession extends LoggingDebugSession {
 		try {
 			const path = this.convertClientPathToDebugger(args.source.path as string);
 
-			const breakpointRequests = args.breakpoints?.map(b => ({ line: b.line, column: b.column }))
-				?? args.lines?.map(l => ({ line: l, column: undefined }))
+			const requested = args.breakpoints
+				?? args.lines?.map(line => ({ line } as DebugProtocol.SourceBreakpoint))
 				?? [];
+			const breakpointRequests = requested.map(b => ({ line: b.line, column: b.column }));
 			const [programId, createdBreakpoints] = await this._runtime.setBreakpoints(path, breakpointRequests);
 			const source = this.createSource(programId, path);
+
+			this.forgetBreakpointOptions(programId);
 
 			// the runtime snaps breakpoints onto the nearest statement it can actually stop at, so report
 			// the resolved position back instead of the requested one and let VS Code move the marker
@@ -181,6 +209,10 @@ export class MondDebugSession extends LoggingDebugSession {
 				if (!created) {
 					return new Breakpoint(false, req.line, req.column, source);
 				}
+
+				// conditions are matched against where the runtime actually stops, not where the
+				// breakpoint was requested, because those can be different lines
+				this.rememberBreakpointOptions(programId, created.line, requested[i]);
 
 				const breakpoint = new Breakpoint(true, created.line, created.column, source) as DebugProtocol.Breakpoint;
 				breakpoint.endLine = created.endLine;
@@ -222,7 +254,10 @@ export class MondDebugSession extends LoggingDebugSession {
 		}
 	}
 
-	protected async stackTraceRequest(response: DebugProtocol.StackTraceResponse): Promise<void> {
+	protected async stackTraceRequest(
+		response: DebugProtocol.StackTraceResponse,
+		args: DebugProtocol.StackTraceArguments
+	): Promise<void> {
 		try {
 			const stack = await this._runtime.stack();
 
@@ -232,9 +267,15 @@ export class MondDebugSession extends LoggingDebugSession {
 				this._frameIds = stack.map(() => this._nextFrameId++);
 			}
 
+			// the runtime always hands over the whole stack, but the client asks for it a page at a
+			// time so it can render the top frame before the rest arrives
+			const startFrame = Math.max(0, args.startFrame ?? 0);
+			const endFrame = args.levels ? startFrame + args.levels : stack.length;
+			const page = stack.slice(startFrame, endFrame);
+
 			response.body = {
-				stackFrames: stack.map((f, i) => {
-					const sf = new StackFrame(this._frameIds[i], f.function, this.createSource(f.programId, f.fileName), this.convertDebuggerLineToClient(f.line));
+				stackFrames: page.map((f, i) => {
+					const sf = new StackFrame(this._frameIds[startFrame + i], f.function, this.createSource(f.programId, f.fileName), this.convertDebuggerLineToClient(f.line));
 					if (typeof f.column === 'number') {
 						sf.column = this.convertDebuggerColumnToClient(f.column);
 					}
@@ -302,10 +343,7 @@ export class MondDebugSession extends LoggingDebugSession {
 	protected async evaluateRequest(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments): Promise<void> {
 		try {
 			if (!this.isTopFrame(args.frameId)) {
-				this.sendErrorResponse(response, {
-					id: frameNotSupportedErrorId,
-					format: 'Mond can only evaluate expressions in the topmost stack frame.',
-				});
+				this.sendFrameNotSupported(response);
 				return;
 			}
 
@@ -342,6 +380,9 @@ export class MondDebugSession extends LoggingDebugSession {
 				const subExpr = expression.length === 0 ? p.name : `(${expression})[${buildIndexerValue(p.name, p.nameType)}]`;
 				const name = result.type === 'array' ? `[${p.name}]` : p.name;
 
+				// the display name is not always the key, so remember how to get back to the value
+				this._variableExpressions.set(`${args.variablesReference}\u0000${name}`, subExpr);
+
 				return {
 					name,
 					value: p.value,
@@ -353,6 +394,51 @@ export class MondDebugSession extends LoggingDebugSession {
 			});
 
 			response.body = { variables };
+			this.sendResponse(response);
+		} catch (e) {
+			this.sendError(response, e);
+		}
+	}
+
+	protected async setVariableRequest(
+		response: DebugProtocol.SetVariableResponse,
+		args: DebugProtocol.SetVariableArguments
+	): Promise<void> {
+		try {
+			const reference = this._variableHandles.get(args.variablesReference);
+			const expression = this._variableExpressions.get(`${args.variablesReference}\u0000${args.name}`);
+
+			if (!reference || !expression) {
+				this.sendErrorResponse(response, {
+					id: genericErrorId,
+					format: 'This variable can no longer be assigned to.',
+				});
+				return;
+			}
+
+			if (!this.isTopFrame(reference.frameId)) {
+				this.sendFrameNotSupported(response);
+				return;
+			}
+
+			response.body = await this.assign(expression, args.value);
+			this.sendResponse(response);
+		} catch (e) {
+			this.sendError(response, e);
+		}
+	}
+
+	protected async setExpressionRequest(
+		response: DebugProtocol.SetExpressionResponse,
+		args: DebugProtocol.SetExpressionArguments
+	): Promise<void> {
+		try {
+			if (!this.isTopFrame(args.frameId)) {
+				this.sendFrameNotSupported(response);
+				return;
+			}
+
+			response.body = await this.assign(args.expression, args.value);
 			this.sendResponse(response);
 		} catch (e) {
 			this.sendError(response, e);
@@ -393,10 +479,152 @@ export class MondDebugSession extends LoggingDebugSession {
 		return frameId === undefined || this._frameIds.length === 0 || frameId === this._frameIds[0];
 	}
 
+	/**
+	 * Assignment is an expression in Mond, so writing a value and reading the result back is a
+	 * single round trip through the same `eval` the Watch and Variables views already use.
+	 */
+	private async assign(expression: string, value: string): Promise<{ value: string; type: string; variablesReference: number }> {
+		const result = await this._runtime.eval(`${expression} = (${value})`);
+
+		return {
+			value: result.value,
+			type: result.type,
+			variablesReference: isComplexType(result.type)
+				? this._variableHandles.create(this.topFrameId, expression)
+				: 0,
+		};
+	}
+
 	/** Discards frame and variable handles that are no longer valid because execution moved. */
 	private invalidateStopState(): void {
 		this._frameIds = [];
 		this._variableHandles.reset();
+		this._variableExpressions.clear();
+	}
+
+	private breakpointKey(programId: number, line: number): string {
+		return `${programId}:${line}`;
+	}
+
+	private forgetBreakpointOptions(programId: number): void {
+		// the client re-sends every breakpoint in a source whenever any of them changes
+		for (const key of [...this._breakpointOptions.keys()]) {
+			if (key.startsWith(`${programId}:`)) {
+				this._breakpointOptions.delete(key);
+			}
+		}
+	}
+
+	private rememberBreakpointOptions(programId: number, line: number, requested: DebugProtocol.SourceBreakpoint | undefined): void {
+		if (!requested?.condition && !requested?.hitCondition && !requested?.logMessage) {
+			return;
+		}
+
+		this._breakpointOptions.set(this.breakpointKey(programId, line), {
+			condition: requested.condition,
+			hitCondition: requested.hitCondition,
+			logMessage: requested.logMessage,
+		});
+	}
+
+	/**
+	 * The runtime stops on every breakpoint. Conditions and log messages are applied here, while we
+	 * are stopped and `eval` can see the locals, and execution resumes if the stop was not wanted.
+	 */
+	private async breakpointStop(): Promise<void> {
+		try {
+			if (await this.shouldReportStop()) {
+				this.sendEvent(new StoppedEvent('breakpoint', MondDebugSession.threadID));
+			} else {
+				await this._runtime.continue();
+			}
+		} catch (e) {
+			// failing to evaluate a condition is not a reason to silently skip the breakpoint
+			this.sendEvent(new OutputEvent(`Breakpoint condition failed: ${errorMessage(e)}\n`, 'stderr'));
+			this.sendEvent(new StoppedEvent('breakpoint', MondDebugSession.threadID));
+		}
+	}
+
+	private async shouldReportStop(): Promise<boolean> {
+		const stack = await this._runtime.stack();
+		const top = stack[0];
+		if (!top) {
+			return true;
+		}
+
+		const key = this.breakpointKey(top.programId, top.line);
+		const options = this._breakpointOptions.get(key);
+		if (!options) {
+			return true;
+		}
+
+		if (options.condition && !await this.isTruthy(options.condition)) {
+			return false;
+		}
+
+		if (options.hitCondition) {
+			const hits = (this._breakpointHits.get(key) ?? 0) + 1;
+			this._breakpointHits.set(key, hits);
+
+			if (!hitConditionMet(options.hitCondition, hits)) {
+				return false;
+			}
+		}
+
+		if (options.logMessage) {
+			this.sendEvent(new OutputEvent(`${await this.formatLogMessage(options.logMessage)}\n`, 'stdout'));
+			return false;
+		}
+
+		return true;
+	}
+
+	/** Lets the runtime decide what counts as true instead of guessing from the printed value. */
+	private async isTruthy(condition: string): Promise<boolean> {
+		const result = await this._runtime.eval(`!(!(${condition}))`);
+		return result.value === 'true';
+	}
+
+	private async formatLogMessage(message: string): Promise<string> {
+		let result = '';
+		let i = 0;
+
+		while (i < message.length) {
+			const open = message.indexOf('{', i);
+			if (open < 0) {
+				result += message.slice(i);
+				break;
+			}
+
+			result += message.slice(i, open);
+
+			const close = findClosingBrace(message, open);
+			if (close < 0) {
+				result += message.slice(open);
+				break;
+			}
+
+			const expression = message.slice(open + 1, close).trim();
+			if (expression.length > 0) {
+				try {
+					result += (await this._runtime.eval(expression)).value;
+				} catch (e) {
+					// a broken interpolation should not cost you the rest of the message
+					result += `{${errorMessage(e)}}`;
+				}
+			}
+
+			i = close + 1;
+		}
+
+		return result;
+	}
+
+	private sendFrameNotSupported(response: DebugProtocol.Response): void {
+		this.sendErrorResponse(response, {
+			id: frameNotSupportedErrorId,
+			format: 'Mond can only evaluate expressions in the topmost stack frame.',
+		});
 	}
 
 	private sendError(response: DebugProtocol.Response, e: unknown): void {
@@ -413,4 +641,47 @@ export class MondDebugSession extends LoggingDebugSession {
 	private createSource(fileId: number, filePath: string): Source {
 		return new Source(basename(filePath), this.convertDebuggerPathToClient(filePath), fileId, undefined, 'mond-adapter-data');
 	}
+}
+
+const hitConditionPattern = /^\s*(>=|<=|==|=|>|<|%)?\s*(\d+)\s*$/;
+
+/** Implements the `> 5`, `% 3`, `== 10` syntax the client offers for hit counts. */
+function hitConditionMet(hitCondition: string, hits: number): boolean {
+	const match = hitConditionPattern.exec(hitCondition);
+	if (!match) {
+		return true; // an unparseable condition should not swallow the breakpoint
+	}
+
+	const count = parseInt(match[2], 10);
+
+	switch (match[1]) {
+		case '<':
+			return hits < count;
+		case '<=':
+			return hits <= count;
+		case '>':
+			return hits > count;
+		case '==':
+		case '=':
+			return hits === count;
+		case '%':
+			return count > 0 && hits % count === 0;
+		default:
+			// a bare number means "stop once this many hits have happened, and every time after"
+			return hits >= count;
+	}
+}
+
+function findClosingBrace(text: string, open: number): number {
+	let depth = 0;
+
+	for (let i = open; i < text.length; i++) {
+		if (text[i] === '{') {
+			depth++;
+		} else if (text[i] === '}' && --depth === 0) {
+			return i;
+		}
+	}
+
+	return -1;
 }

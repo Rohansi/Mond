@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-import { TokenKind, flattenDeclarations, isInCommentOrString, scan, tokenize } from '../mondScanner';
+import { TokenKind, findTokenIndex, flattenDeclarations, isInCommentOrString, scan, tokenize } from '../mondScanner';
 
 function openMond(content: string): Thenable<vscode.TextDocument> {
 	return vscode.workspace.openTextDocument({ language: 'mond', content });
@@ -46,6 +46,25 @@ describe('tokenize', () => {
 		const tokens = tokenize('(a, ...rest) -> a');
 		assert.ok(tokens.some(t => t.text === '...'));
 		assert.ok(tokens.some(t => t.text === '->'));
+	});
+});
+
+describe('findTokenIndex', () => {
+	const text = 'var  abc = 123;';
+	const tokens = tokenize(text);
+
+	it('finds the token containing an offset', () => {
+		assert.strictEqual(tokens[findTokenIndex(tokens, text.indexOf('abc') + 1)].text, 'abc');
+		assert.strictEqual(tokens[findTokenIndex(tokens, text.indexOf('123'))].text, '123');
+	});
+
+	it('includes the position just past the last character', () => {
+		// the caret sits after the word when you point at the end of it
+		assert.strictEqual(tokens[findTokenIndex(tokens, text.indexOf('abc') + 3)].text, 'abc');
+	});
+
+	it('returns -1 for whitespace', () => {
+		assert.strictEqual(findTokenIndex(tokens, 4), -1);
 	});
 });
 
