@@ -1,12 +1,6 @@
 import * as vscode from "vscode";
-import {
-    MondSymbol,
-    classes,
-    globals,
-    instanceMembers,
-    keywords,
-    modules,
-} from "./completionItems";
+import { keywords } from "./completionItems";
+import { MondLibrary, MondSymbol, getLibrary } from "./definitions";
 import { Declaration, flattenDeclarations, isInCommentOrString, scan } from "./mondScanner";
 
 // completions are grouped by how likely they are to be what you want, closest scope first
@@ -39,7 +33,7 @@ function symbolKindToCompletionKind(symbol: MondSymbol): vscode.CompletionItemKi
 function createItem(symbol: MondSymbol, group: SortGroup, detail?: string): vscode.CompletionItem {
     const item = new vscode.CompletionItem(symbol.name, symbolKindToCompletionKind(symbol));
     item.sortText = group + symbol.name;
-    item.detail = detail ?? symbol.signature;
+    item.detail = detail ?? symbol.signatures?.[0];
 
     if (symbol.documentation) {
         item.documentation = new vscode.MarkdownString(symbol.documentation);
@@ -52,22 +46,45 @@ const keywordItems = keywords
     .filter(k => k.name !== '__declare_globals')
     .map(k => createItem(k, SortGroup.Keyword, k.kind === 'keyword' ? 'keyword' : undefined));
 
-const globalItems = globals.map(g => createItem(g, SortGroup.Global));
+interface LibraryItems {
+    readonly globals: vscode.CompletionItem[];
+    readonly instanceMembers: vscode.CompletionItem[];
+    readonly moduleMembers: Map<string, vscode.CompletionItem[]>;
+    readonly classNames: Set<string>;
+}
 
-const instanceMemberItems = instanceMembers.map(m => {
-    const item = createItem(m, SortGroup.Member);
-    item.documentation = new vscode.MarkdownString(`Defined on ${m.owners.join(', ')}.`);
-    return item;
-});
+// building the items is cheap but not free, so they are rebuilt only when the definitions reload
+let itemCache: { revision: number; items: LibraryItems } | undefined;
 
-const moduleMemberItems = new Map(
-    modules.map(container => [
-        container.name,
-        container.members.map(m => createItem(m, SortGroup.Member)),
-    ])
-);
+function libraryItems(): LibraryItems {
+    const library = getLibrary();
+    if (itemCache?.revision === library.revision) {
+        return itemCache.items;
+    }
 
-const classNames = new Set(classes.map(c => c.name));
+    const items = buildLibraryItems(library);
+    itemCache = { revision: library.revision, items };
+    return items;
+}
+
+function buildLibraryItems(library: MondLibrary): LibraryItems {
+    return {
+        globals: library.globals.map(g => createItem(g, SortGroup.Global)),
+        instanceMembers: library.instanceMembers.map(m => {
+            const item = createItem(m, SortGroup.Member);
+            item.documentation = new vscode.MarkdownString(
+                `${m.documentation ? m.documentation + '\n\n' : ''}Defined on ${m.owners.join(', ')}.`);
+            return item;
+        }),
+        moduleMembers: new Map(
+            library.modules.map(container => [
+                container.name,
+                container.members.map(m => createItem(m, SortGroup.Member)),
+            ])
+        ),
+        classNames: new Set(library.classes.map(c => c.name)),
+    };
+}
 
 function declarationKind(declaration: Declaration): vscode.CompletionItemKind {
     switch (declaration.kind) {
@@ -131,40 +148,33 @@ export function activateCompletionProvider(context: vscode.ExtensionContext) {
                         return undefined;
                     }
 
-                    const config = vscode.workspace.getConfiguration('mond.standardLibraries');
-                    const standardLibrariesEnabled = config.get<boolean>('enableCompletion') ?? true;
-
+                    const library = libraryItems();
                     const linePrefix = document.getText(
                         new vscode.Range(position.with({ character: 0 }), position)
                     );
 
                     const memberAccess = memberAccessPattern.exec(linePrefix);
                     if (memberAccess) {
-                        if (!standardLibrariesEnabled) {
-                            return undefined;
-                        }
-
                         const receiver = memberAccess[1];
-                        const moduleMembers = receiver ? moduleMemberItems.get(receiver) : undefined;
+                        const moduleMembers = receiver ? library.moduleMembers.get(receiver) : undefined;
                         if (moduleMembers) {
                             return moduleMembers;
                         }
 
                         // constructors only expose instance methods through their instances, so
                         // there is nothing sensible to offer for `TaskCompletionSource.`
-                        if (receiver && classNames.has(receiver)) {
+                        if (receiver && library.classNames.has(receiver)) {
                             return undefined;
                         }
 
-                        return instanceMemberItems;
+                        return library.instanceMembers;
                     }
 
-                    const items = [...localItems(document, offset), ...keywordItems];
-                    if (standardLibrariesEnabled) {
-                        items.push(...globalItems);
-                    }
-
-                    return items;
+                    return [
+                        ...localItems(document, offset),
+                        ...keywordItems,
+                        ...library.globals,
+                    ];
                 },
             },
             "."

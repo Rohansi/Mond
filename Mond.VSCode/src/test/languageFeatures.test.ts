@@ -42,6 +42,19 @@ describe('completion', () => {
 		assert.ok(!labels.includes('serialize'), 'unrelated module members leaked in');
 	});
 
+	it('offers prototype methods after an unknown receiver', async () => {
+		const document = await openMond('var text = "hello";\ntext.');
+		const position = new vscode.Position(1, 5);
+
+		const list = await vscode.commands.executeCommand<vscode.CompletionList>(
+			'vscode.executeCompletionItemProvider', document.uri, position, '.');
+
+		const labels = list.items.map(labelOf);
+		assert.ok(labels.includes('charCodeAt'), 'String method missing');
+		assert.ok(labels.includes('removeAt'), 'Array method missing');
+		assert.ok(labels.includes('getType'), 'Value method missing');
+	});
+
 	it('stays quiet inside comments', async () => {
 		const document = await openMond('printLn(1);\n// write something here');
 		const position = new vscode.Position(1, 12);
@@ -107,7 +120,20 @@ describe('hover', () => {
 		const text = hovers.flatMap(h => h.contents)
 			.map(c => (typeof c === 'string' ? c : c.value))
 			.join('\n');
-		assert.ok(text.includes('Math.atan2(y, x)'), `unexpected hover: ${text}`);
+		assert.ok(text.includes('Math.atan2(y: number, x: number): number'), `unexpected hover: ${text}`);
+	});
+
+	it('lists every overload', async () => {
+		const document = await openMond('Math.log(1);');
+
+		const hovers = await vscode.commands.executeCommand<vscode.Hover[]>(
+			'vscode.executeHoverProvider', document.uri, new vscode.Position(0, 6));
+
+		const text = hovers.flatMap(h => h.contents)
+			.map(c => (typeof c === 'string' ? c : c.value))
+			.join('\n');
+		assert.ok(text.includes('Math.log(d: number): number'), `unexpected hover: ${text}`);
+		assert.ok(text.includes('Math.log(d: number, b: number): number'), `unexpected hover: ${text}`);
 	});
 
 	it('describes local declarations', async () => {

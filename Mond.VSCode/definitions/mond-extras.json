@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "globals": [
+    {
+      "name": "Math",
+      "kind": "module",
+      "members": [
+        {
+          "name": "PI",
+          "kind": "constant",
+          "documentation": "The ratio of a circle's circumference to its diameter."
+        },
+        {
+          "name": "E",
+          "kind": "constant",
+          "documentation": "The base of the natural logarithm."
+        }
+      ]
+    }
+  ],
+  "prototypes": []
+}

@@ -1,0 +1,1019 @@
+{
+  "version": 1,
+  "globals": [
+    {
+      "name": "Async",
+      "kind": "module",
+      "members": [
+        {
+          "name": "run",
+          "kind": "method",
+          "signatures": [
+            "run(): bool"
+          ]
+        },
+        {
+          "name": "runToCompletion",
+          "kind": "method",
+          "signatures": [
+            "runToCompletion()"
+          ]
+        },
+        {
+          "name": "start",
+          "kind": "method",
+          "signatures": [
+            "start(value: any): any"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Char",
+      "kind": "module",
+      "members": [
+        {
+          "name": "convertFromUtf32",
+          "kind": "method",
+          "signatures": [
+            "convertFromUtf32(utf32: number): string"
+          ]
+        },
+        {
+          "name": "convertToUtf32",
+          "kind": "method",
+          "signatures": [
+            "convertToUtf32(s: string, index?: number): number"
+          ]
+        },
+        {
+          "name": "fromNumber",
+          "kind": "method",
+          "signatures": [
+            "fromNumber(num: number): string"
+          ]
+        },
+        {
+          "name": "getNumericValue",
+          "kind": "method",
+          "signatures": [
+            "getNumericValue(s: string, index?: number): number"
+          ]
+        },
+        {
+          "name": "getUnicodeCategory",
+          "kind": "method",
+          "signatures": [
+            "getUnicodeCategory(s: string, index?: number): string"
+          ]
+        },
+        {
+          "name": "isControl",
+          "kind": "method",
+          "signatures": [
+            "isControl(s: string, index?: number): bool"
+          ]
+        },
+        {
+          "name": "isDigit",
+          "kind": "method",
+          "signatures": [
+            "isDigit(s: string, index?: number): bool"
+          ]
+        },
+        {
+          "name": "isHighSurrogate",
+          "kind": "method",
+          "signatures": [
+            "isHighSurrogate(s: string, index?: number): bool"
+          ]
+        },
+        {
+          "name": "isLetter",
+          "kind": "method",
+          "signatures": [
+            "isLetter(s: string, index?: number): bool"
+          ]
+        },
+        {
+          "name": "isLetterOrDigit",
+          "kind": "method",
+          "signatures": [
+            "isLetterOrDigit(s: string, index?: number): bool"
+          ]
+        },
+        {
+          "name": "isLowSurrogate",
+          "kind": "method",
+          "signatures": [
+            "isLowSurrogate(s: string, index?: number): bool"
+          ]
+        },
+        {
+          "name": "isLower",
+          "kind": "method",
+          "signatures": [
+            "isLower(s: string, index?: number): bool"
+          ]
+        },
+        {
+          "name": "isNumber",
+          "kind": "method",
+          "signatures": [
+            "isNumber(s: string, index?: number): bool"
+          ]
+        },
+        {
+          "name": "isPunctuation",
+          "kind": "method",
+          "signatures": [
+            "isPunctuation(s: string, index?: number): bool"
+          ]
+        },
+        {
+          "name": "isSeparator",
+          "kind": "method",
+          "signatures": [
+            "isSeparator(s: string, index?: number): bool"
+          ]
+        },
+        {
+          "name": "isSurrogate",
+          "kind": "method",
+          "signatures": [
+            "isSurrogate(s: string, index?: number): bool"
+          ]
+        },
+        {
+          "name": "isSurrogatePair",
+          "kind": "method",
+          "signatures": [
+            "isSurrogatePair(s: string, index?: number): bool"
+          ]
+        },
+        {
+          "name": "isSymbol",
+          "kind": "method",
+          "signatures": [
+            "isSymbol(s: string, index?: number): bool"
+          ]
+        },
+        {
+          "name": "isUpper",
+          "kind": "method",
+          "signatures": [
+            "isUpper(s: string, index?: number): bool"
+          ]
+        },
+        {
+          "name": "isWhiteSpace",
+          "kind": "method",
+          "signatures": [
+            "isWhiteSpace(s: string, index?: number): bool"
+          ]
+        },
+        {
+          "name": "toNumber",
+          "kind": "method",
+          "signatures": [
+            "toNumber(s: string, index?: number): number"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "readLn",
+      "kind": "function",
+      "signatures": [
+        "readLn(): string"
+      ]
+    },
+    {
+      "name": "print",
+      "kind": "function",
+      "signatures": [
+        "print(...arguments)"
+      ]
+    },
+    {
+      "name": "printLn",
+      "kind": "function",
+      "signatures": [
+        "printLn(...arguments)"
+      ]
+    },
+    {
+      "name": "error",
+      "kind": "function",
+      "signatures": [
+        "error(message: string)"
+      ]
+    },
+    {
+      "name": "try",
+      "kind": "function",
+      "signatures": [
+        "try(function: any, ...arguments): any"
+      ]
+    },
+    {
+      "name": "Json",
+      "kind": "module",
+      "members": [
+        {
+          "name": "deserialize",
+          "kind": "method",
+          "signatures": [
+            "deserialize(text: string): any"
+          ]
+        },
+        {
+          "name": "serialize",
+          "kind": "method",
+          "signatures": [
+            "serialize(value: any): string"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Math",
+      "kind": "module",
+      "members": [
+        {
+          "name": "abs",
+          "kind": "method",
+          "signatures": [
+            "abs(value: number): number"
+          ]
+        },
+        {
+          "name": "acos",
+          "kind": "method",
+          "signatures": [
+            "acos(d: number): number"
+          ]
+        },
+        {
+          "name": "asin",
+          "kind": "method",
+          "signatures": [
+            "asin(d: number): number"
+          ]
+        },
+        {
+          "name": "atan",
+          "kind": "method",
+          "signatures": [
+            "atan(d: number): number"
+          ]
+        },
+        {
+          "name": "atan2",
+          "kind": "method",
+          "signatures": [
+            "atan2(y: number, x: number): number"
+          ]
+        },
+        {
+          "name": "ceiling",
+          "kind": "method",
+          "signatures": [
+            "ceiling(d: number): number"
+          ]
+        },
+        {
+          "name": "clamp",
+          "kind": "method",
+          "signatures": [
+            "clamp(value: number, min: number, max: number): number"
+          ]
+        },
+        {
+          "name": "cos",
+          "kind": "method",
+          "signatures": [
+            "cos(d: number): number"
+          ]
+        },
+        {
+          "name": "cosh",
+          "kind": "method",
+          "signatures": [
+            "cosh(d: number): number"
+          ]
+        },
+        {
+          "name": "exp",
+          "kind": "method",
+          "signatures": [
+            "exp(d: number): number"
+          ]
+        },
+        {
+          "name": "floor",
+          "kind": "method",
+          "signatures": [
+            "floor(d: number): number"
+          ]
+        },
+        {
+          "name": "log",
+          "kind": "method",
+          "signatures": [
+            "log(d: number): number",
+            "log(d: number, b: number): number"
+          ]
+        },
+        {
+          "name": "log10",
+          "kind": "method",
+          "signatures": [
+            "log10(d: number): number"
+          ]
+        },
+        {
+          "name": "max",
+          "kind": "method",
+          "signatures": [
+            "max(x: number, y: number): number"
+          ]
+        },
+        {
+          "name": "min",
+          "kind": "method",
+          "signatures": [
+            "min(x: number, y: number): number"
+          ]
+        },
+        {
+          "name": "pow",
+          "kind": "method",
+          "signatures": [
+            "pow(x: number, y: number): number"
+          ]
+        },
+        {
+          "name": "round",
+          "kind": "method",
+          "signatures": [
+            "round(d: number): number"
+          ]
+        },
+        {
+          "name": "sign",
+          "kind": "method",
+          "signatures": [
+            "sign(d: number): number"
+          ]
+        },
+        {
+          "name": "sin",
+          "kind": "method",
+          "signatures": [
+            "sin(d: number): number"
+          ]
+        },
+        {
+          "name": "sinh",
+          "kind": "method",
+          "signatures": [
+            "sinh(d: number): number"
+          ]
+        },
+        {
+          "name": "sqrt",
+          "kind": "method",
+          "signatures": [
+            "sqrt(d: number): number"
+          ]
+        },
+        {
+          "name": "tan",
+          "kind": "method",
+          "signatures": [
+            "tan(d: number): number"
+          ]
+        },
+        {
+          "name": "tanh",
+          "kind": "method",
+          "signatures": [
+            "tanh(d: number): number"
+          ]
+        },
+        {
+          "name": "truncate",
+          "kind": "method",
+          "signatures": [
+            "truncate(d: number): number"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "parseFloat",
+      "kind": "function",
+      "signatures": [
+        "parseFloat(str: string): any"
+      ]
+    },
+    {
+      "name": "parseHex",
+      "kind": "function",
+      "signatures": [
+        "parseHex(str: string): any"
+      ]
+    },
+    {
+      "name": "parseInt",
+      "kind": "function",
+      "signatures": [
+        "parseInt(str: string): any"
+      ]
+    },
+    {
+      "name": "proxyCreate",
+      "kind": "function",
+      "signatures": [
+        "proxyCreate(target: any, handler: any): any"
+      ]
+    },
+    {
+      "name": "require",
+      "kind": "function",
+      "signatures": [
+        "require(fileName: string): any"
+      ]
+    },
+    {
+      "name": "Task",
+      "kind": "module",
+      "members": [
+        {
+          "name": "delay",
+          "kind": "method",
+          "signatures": [
+            "delay(seconds: number, cancellationToken?: any?): any"
+          ]
+        },
+        {
+          "name": "whenAll",
+          "kind": "method",
+          "signatures": [
+            "whenAll(...tasks): any"
+          ]
+        },
+        {
+          "name": "whenAny",
+          "kind": "method",
+          "signatures": [
+            "whenAny(...tasks): any"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CancellationToken",
+      "kind": "class",
+      "signatures": [
+        "CancellationToken(canceled: bool)"
+      ],
+      "members": [
+        {
+          "name": "isCancellationRequested",
+          "kind": "method",
+          "signatures": [
+            "isCancellationRequested(): bool"
+          ]
+        },
+        {
+          "name": "register",
+          "kind": "method",
+          "signatures": [
+            "register(function: any)"
+          ]
+        },
+        {
+          "name": "throwIfCancellationRequested",
+          "kind": "method",
+          "signatures": [
+            "throwIfCancellationRequested()"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CancellationTokenSource",
+      "kind": "class",
+      "signatures": [
+        "CancellationTokenSource()",
+        "CancellationTokenSource(seconds: number)"
+      ],
+      "members": [
+        {
+          "name": "cancel",
+          "kind": "method",
+          "signatures": [
+            "cancel()"
+          ]
+        },
+        {
+          "name": "cancelAfter",
+          "kind": "method",
+          "signatures": [
+            "cancelAfter(seconds: number)"
+          ]
+        },
+        {
+          "name": "getToken",
+          "kind": "method",
+          "signatures": [
+            "getToken(): any"
+          ]
+        },
+        {
+          "name": "isCancellationRequested",
+          "kind": "method",
+          "signatures": [
+            "isCancellationRequested(): bool"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Random",
+      "kind": "class",
+      "signatures": [
+        "Random()",
+        "Random(seed: number)"
+      ],
+      "members": [
+        {
+          "name": "next",
+          "kind": "method",
+          "signatures": [
+            "next(): number",
+            "next(maxValue: number): number",
+            "next(minValue: number, maxValue: number): number"
+          ]
+        },
+        {
+          "name": "nextDouble",
+          "kind": "method",
+          "signatures": [
+            "nextDouble(): number"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "TaskCompletionSource",
+      "kind": "class",
+      "signatures": [
+        "TaskCompletionSource()"
+      ],
+      "members": [
+        {
+          "name": "getTask",
+          "kind": "method",
+          "signatures": [
+            "getTask(): any"
+          ]
+        },
+        {
+          "name": "setCanceled",
+          "kind": "method",
+          "signatures": [
+            "setCanceled()"
+          ]
+        },
+        {
+          "name": "setException",
+          "kind": "method",
+          "signatures": [
+            "setException(message: string)"
+          ]
+        },
+        {
+          "name": "setResult",
+          "kind": "method",
+          "signatures": [
+            "setResult(result: any)"
+          ]
+        }
+      ]
+    }
+  ],
+  "prototypes": [
+    {
+      "name": "Array",
+      "members": [
+        {
+          "name": "add",
+          "kind": "method",
+          "signatures": [
+            "add(item: any)"
+          ],
+          "documentation": "add(item)"
+        },
+        {
+          "name": "clear",
+          "kind": "method",
+          "signatures": [
+            "clear()"
+          ],
+          "documentation": "clear()"
+        },
+        {
+          "name": "contains",
+          "kind": "method",
+          "signatures": [
+            "contains(item: any): bool"
+          ],
+          "documentation": "contains(item): bool"
+        },
+        {
+          "name": "getEnumerator",
+          "kind": "method",
+          "signatures": [
+            "getEnumerator(): any"
+          ],
+          "documentation": "getEnumerator(): object"
+        },
+        {
+          "name": "indexOf",
+          "kind": "method",
+          "signatures": [
+            "indexOf(item: any): number"
+          ],
+          "documentation": "indexOf(item): number"
+        },
+        {
+          "name": "insert",
+          "kind": "method",
+          "signatures": [
+            "insert(index: number, item: any)"
+          ],
+          "documentation": "insert(index: number, item)"
+        },
+        {
+          "name": "lastIndexOf",
+          "kind": "method",
+          "signatures": [
+            "lastIndexOf(item: any): number"
+          ],
+          "documentation": "lastIndexOf(item): number"
+        },
+        {
+          "name": "length",
+          "kind": "method",
+          "signatures": [
+            "length(): number"
+          ],
+          "documentation": "length(): number"
+        },
+        {
+          "name": "remove",
+          "kind": "method",
+          "signatures": [
+            "remove(item: any): any"
+          ],
+          "documentation": "remove(item): bool"
+        },
+        {
+          "name": "removeAt",
+          "kind": "method",
+          "signatures": [
+            "removeAt(index: number)"
+          ],
+          "documentation": "removeAt(index: number)"
+        },
+        {
+          "name": "sort",
+          "kind": "method",
+          "signatures": [
+            "sort()",
+            "sort(index: number, count: number)"
+          ],
+          "documentation": "sort()"
+        },
+        {
+          "name": "sortDescending",
+          "kind": "method",
+          "signatures": [
+            "sortDescending()",
+            "sortDescending(index: number, count: number)"
+          ],
+          "documentation": "sortDescending()"
+        }
+      ]
+    },
+    {
+      "name": "Function",
+      "members": [
+        {
+          "name": "getName",
+          "kind": "method",
+          "signatures": [
+            "getName(): any"
+          ],
+          "documentation": "getName(): string|undefined"
+        }
+      ]
+    },
+    {
+      "name": "Number",
+      "members": [
+        {
+          "name": "isNaN",
+          "kind": "method",
+          "signatures": [
+            "isNaN(): any"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Object",
+      "members": [
+        {
+          "name": "add",
+          "kind": "method",
+          "signatures": [
+            "add(key: any, value: any)"
+          ],
+          "documentation": "add(key, value)"
+        },
+        {
+          "name": "clear",
+          "kind": "method",
+          "signatures": [
+            "clear()"
+          ],
+          "documentation": "clear()"
+        },
+        {
+          "name": "containsKey",
+          "kind": "method",
+          "signatures": [
+            "containsKey(key: any): bool"
+          ],
+          "documentation": "containsKey(key): bool"
+        },
+        {
+          "name": "containsValue",
+          "kind": "method",
+          "signatures": [
+            "containsValue(value: any): bool"
+          ],
+          "documentation": "containsValue(value): bool"
+        },
+        {
+          "name": "get",
+          "kind": "method",
+          "signatures": [
+            "get(key: any): any"
+          ],
+          "documentation": "get(key): any"
+        },
+        {
+          "name": "getEnumerator",
+          "kind": "method",
+          "signatures": [
+            "getEnumerator(): any"
+          ],
+          "documentation": "getEnumerator(): object"
+        },
+        {
+          "name": "length",
+          "kind": "method",
+          "signatures": [
+            "length(): number"
+          ],
+          "documentation": "length(): number"
+        },
+        {
+          "name": "lock",
+          "kind": "method",
+          "signatures": [
+            "lock(): any"
+          ],
+          "documentation": "lock(): object"
+        },
+        {
+          "name": "remove",
+          "kind": "method",
+          "signatures": [
+            "remove(key: any): bool"
+          ],
+          "documentation": "remove(key): bool"
+        },
+        {
+          "name": "setPrototype",
+          "kind": "method",
+          "signatures": [
+            "setPrototype(value: any): any"
+          ],
+          "documentation": "setPrototype(value: any) : object"
+        },
+        {
+          "name": "setPrototypeAndLock",
+          "kind": "method",
+          "signatures": [
+            "setPrototypeAndLock(value: any): any"
+          ],
+          "documentation": "setPrototypeAndLock(value: any): object"
+        }
+      ]
+    },
+    {
+      "name": "String",
+      "members": [
+        {
+          "name": "charAt",
+          "kind": "method",
+          "signatures": [
+            "charAt(index: number): string"
+          ],
+          "documentation": "charAt(index: number): string"
+        },
+        {
+          "name": "charCodeAt",
+          "kind": "method",
+          "signatures": [
+            "charCodeAt(index: number): number"
+          ],
+          "documentation": "charCodeAt(index: number): number"
+        },
+        {
+          "name": "contains",
+          "kind": "method",
+          "signatures": [
+            "contains(value: string): bool"
+          ],
+          "documentation": "contains(value: string): bool"
+        },
+        {
+          "name": "endsWith",
+          "kind": "method",
+          "signatures": [
+            "endsWith(value: string): bool"
+          ],
+          "documentation": "endsWith(value: string): bool"
+        },
+        {
+          "name": "format",
+          "kind": "method",
+          "signatures": [
+            "format(...arguments): string"
+          ],
+          "documentation": "format(): string"
+        },
+        {
+          "name": "getEnumerator",
+          "kind": "method",
+          "signatures": [
+            "getEnumerator(): any"
+          ],
+          "documentation": "getEnumerator(): object"
+        },
+        {
+          "name": "indexOf",
+          "kind": "method",
+          "signatures": [
+            "indexOf(value: string): number"
+          ],
+          "documentation": "indexOf(value: string): number"
+        },
+        {
+          "name": "insert",
+          "kind": "method",
+          "signatures": [
+            "insert(index: number, value: string): string"
+          ],
+          "documentation": "insert(index: number, value: string): string"
+        },
+        {
+          "name": "lastIndexOf",
+          "kind": "method",
+          "signatures": [
+            "lastIndexOf(value: string): number"
+          ],
+          "documentation": "lastIndexOf(value: string): number"
+        },
+        {
+          "name": "length",
+          "kind": "method",
+          "signatures": [
+            "length(): number"
+          ],
+          "documentation": "length(): number"
+        },
+        {
+          "name": "normalize",
+          "kind": "method",
+          "signatures": [
+            "normalize(): string"
+          ],
+          "documentation": "normalize(): string"
+        },
+        {
+          "name": "replace",
+          "kind": "method",
+          "signatures": [
+            "replace(oldValue: string, newValue: string): string"
+          ],
+          "documentation": "replace(oldValue: string, newValue: string): string"
+        },
+        {
+          "name": "split",
+          "kind": "method",
+          "signatures": [
+            "split(separator: string): any"
+          ],
+          "documentation": "split(separator: string): array"
+        },
+        {
+          "name": "startsWith",
+          "kind": "method",
+          "signatures": [
+            "startsWith(value: string): bool"
+          ],
+          "documentation": "startsWith(value: string): bool"
+        },
+        {
+          "name": "substring",
+          "kind": "method",
+          "signatures": [
+            "substring(startIndex: number): string",
+            "substring(startIndex: number, length: number): string"
+          ],
+          "documentation": "substring(startIndex: number): string"
+        },
+        {
+          "name": "toLower",
+          "kind": "method",
+          "signatures": [
+            "toLower(): string"
+          ],
+          "documentation": "toLower(): string"
+        },
+        {
+          "name": "toUpper",
+          "kind": "method",
+          "signatures": [
+            "toUpper(): string"
+          ],
+          "documentation": "toUpper(): string"
+        },
+        {
+          "name": "trim",
+          "kind": "method",
+          "signatures": [
+            "trim(): string"
+          ],
+          "documentation": "trim(): string"
+        }
+      ]
+    },
+    {
+      "name": "Value",
+      "documentation": "Contains members common to ALL values.",
+      "members": [
+        {
+          "name": "getPrototype",
+          "kind": "method",
+          "signatures": [
+            "getPrototype(): any"
+          ],
+          "documentation": "getPrototype(): object"
+        },
+        {
+          "name": "getType",
+          "kind": "method",
+          "signatures": [
+            "getType(): string"
+          ],
+          "documentation": "getType(): string"
+        },
+        {
+          "name": "serialize",
+          "kind": "method",
+          "signatures": [
+            "serialize(): string"
+          ],
+          "documentation": "serialize(): string"
+        },
+        {
+          "name": "toString",
+          "kind": "method",
+          "signatures": [
+            "toString(): string"
+          ],
+          "documentation": "toString(): string"
+        }
+      ]
+    }
+  ]
+}

@@ -4,7 +4,7 @@ import { homedir } from 'os';
 import * as path from 'path';
 import { platform } from 'process';
 import * as vscode from 'vscode';
-import { errorMessage } from './utility';
+import { errorMessage, resolveVariables } from './utility';
 
 /** NuGet package id of the REPL, which is packed as a dotnet tool. */
 const toolPackageId = 'Mond.Repl';
@@ -77,15 +77,6 @@ function getConfiguredPath(): string | undefined {
 	}
 
 	return path.normalize(resolveVariables(configured));
-}
-
-/** Supports the `${workspaceFolder}` and `${userHome}` variables so the setting can be committed. */
-function resolveVariables(value: string): string {
-	const folder = vscode.workspace.workspaceFolders?.[0];
-
-	return value
-		.replace(/\$\{workspaceFolder\}/g, folder?.uri.fsPath ?? '')
-		.replace(/\$\{userHome\}/g, homedir());
 }
 
 function isExecutable(filePath: string): boolean {

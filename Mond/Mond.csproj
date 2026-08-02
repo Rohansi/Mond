@@ -36,6 +36,19 @@
     <None Include="$(OutputPath)\..\..\..\Mond.SourceGenerator\bin\$(Configuration)\netstandard2.0\Mond.SourceGenerator.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
 
+  <!--
+    Have the binding generator describe the standard library for the VS Code extension. Restricted to
+    a single target framework so the two compilations do not race over the same file, and skipped for
+    design time builds so an open editor never rewrites it.
+  -->
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0' AND '$(DesignTimeBuild)' != 'true'">
+    <MondDefinitionsFile>$(MSBuildProjectDirectory)\..\Mond.VSCode\definitions\mond-stdlib.json</MondDefinitionsFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <CompilerVisibleProperty Include="MondDefinitionsFile" />
+  </ItemGroup>
+
   <ItemGroup>
     <None Include="..\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>

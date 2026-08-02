@@ -1,12 +1,6 @@
 import * as vscode from "vscode";
-import {
-    MondSymbol,
-    findClass,
-    findGlobal,
-    findKeyword,
-    findModule,
-    instanceMembers,
-} from "./completionItems";
+import { findKeyword } from "./completionItems";
+import { MondSymbol, findClass, findGlobal, findModule, getLibrary } from "./definitions";
 import { Declaration, TokenKind, flattenDeclarations, forgetDocument, scan } from "./mondScanner";
 
 const regionStart = /^\/\/\s*#?region\b/;
@@ -128,10 +122,10 @@ const foldingRangeProvider: vscode.FoldingRangeProvider = {
 
 function describe(symbol: MondSymbol, owner?: string): vscode.MarkdownString {
     const prefix = owner ? `${owner}.` : '';
-    const signature = symbol.signature ?? symbol.name;
+    const signatures = symbol.signatures?.length ? symbol.signatures : [symbol.name];
 
     const markdown = new vscode.MarkdownString();
-    markdown.appendCodeblock(`${prefix}${signature}`, 'mond');
+    markdown.appendCodeblock(signatures.map(s => `${prefix}${s}`).join('\n'), 'mond');
 
     if (symbol.documentation) {
         markdown.appendMarkdown(symbol.documentation);
@@ -172,7 +166,7 @@ const hoverProvider: vscode.HoverProvider = {
             const owner = receiver?.kind === TokenKind.Identifier ? findModule(receiver.text) : undefined;
 
             const member = owner?.members.find(m => m.name === word)
-                ?? instanceMembers.find(m => m.name === word);
+                ?? getLibrary().instanceMembers.find(m => m.name === word);
             if (!member) {
                 return undefined;
             }

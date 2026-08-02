@@ -1,5 +1,16 @@
 import WebSocket from 'isomorphic-ws';
+import { homedir } from 'os';
+import * as vscode from 'vscode';
 import { ValueType } from './connector/protocol/RpcResponses';
+
+/** Supports the `${workspaceFolder}` and `${userHome}` variables so settings can be committed. */
+export function resolveVariables(value: string, folder?: vscode.WorkspaceFolder): string {
+	const target = folder ?? vscode.workspace.workspaceFolders?.[0];
+
+	return value
+		.replace(/\$\{workspaceFolder\}/g, target?.uri.fsPath ?? '')
+		.replace(/\$\{userHome\}/g, homedir());
+}
 
 export function connect(endpoint: string): Promise<WebSocket> {
 	return new Promise<WebSocket>((resolve, reject) => {

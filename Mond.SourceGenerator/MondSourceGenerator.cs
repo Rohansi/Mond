@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Mond.SourceGenerator;
 
@@ -29,12 +30,16 @@ public partial class MondSourceGenerator : IIncrementalGenerator
             .Where(static candidate => candidate != null)
             .Collect();
 
+        var input = context.CompilationProvider
+            .Combine(candidates)
+            .Combine(context.AnalyzerConfigOptionsProvider);
+
         context.RegisterSourceOutput(
-            context.CompilationProvider.Combine(candidates),
-            static (spc, source) => Execute(spc, source.Left, source.Right));
+            input,
+            static (spc, source) => Execute(spc, source.Left.Left, source.Left.Right, source.Right));
     }
 
-    private static void Execute(SourceProductionContext context, Compilation compilation, ImmutableArray<BindingCandidate> candidates)
+    private static void Execute(SourceProductionContext context, Compilation compilation, ImmutableArray<BindingCandidate> candidates, AnalyzerConfigOptionsProvider options)
     {
         if (!TypeLookup.TryCreate(context, compilation, out var types))
         {
@@ -112,6 +117,8 @@ public partial class MondSourceGenerator : IIncrementalGenerator
 
             context.AddSource($"{FullName(klass)}.Class.g.cs", GenerateWith(context, types, klass, ClassBindings));
         }
+
+        EmitDefinitions(context, options, types, modules, classes, prototypes);
 
         static string FullName(INamedTypeSymbol type)
         {

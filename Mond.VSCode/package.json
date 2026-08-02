@@ -103,10 +103,19 @@
             "scope": "machine-overridable",
             "markdownDescription": "Path to the Mond REPL executable used to run and debug scripts. When empty, the extension looks for `mond` on your `PATH` and then for the `Mond.Repl` dotnet tool. Supports the `${workspaceFolder}` and `${userHome}` variables."
           },
-          "mond.standardLibraries.enableCompletion": {
+          "mond.definitions.includeStandardLibrary": {
             "type": "boolean",
             "default": true,
-            "description": "Enable completion for symbols from the Mond standard library"
+            "markdownDescription": "Include the bundled definitions for the Mond standard library in completions and hovers. Turn this off if you embed Mond with the standard libraries removed."
+          },
+          "mond.definitions.paths": {
+            "type": "array",
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "scope": "resource",
+            "markdownDescription": "Additional definition files describing modules, classes and prototypes that your host application adds to Mond. Later files override earlier ones, and the bundled standard library comes first. Relative paths are resolved against the workspace, and `${workspaceFolder}` and `${userHome}` are supported.\n\nGenerate one by setting the `MondDefinitionsFile` MSBuild property on the project that contains your bindings."
           }
         }
       }

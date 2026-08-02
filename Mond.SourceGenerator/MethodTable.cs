@@ -20,6 +20,16 @@ internal partial class MethodTable
         Methods = methods;
         ParamsMethods = paramsMethods;
     }
+
+    /// <summary>Every overload in the table, without the arity based duplication.</summary>
+    public IEnumerable<Method> AllMethods()
+    {
+        return Methods
+            .SelectMany(l => l)
+            .Concat(ParamsMethods)
+            .Distinct()
+            .OrderBy(m => m.MondParameterCount);
+    }
 }
 
 internal class Method : IComparable<Method>

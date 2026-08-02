@@ -64,6 +64,9 @@ jobs:
     # the tests drive a real VS Code instance, which needs a display
     - name: Test
       run: xvfb-run -a npm test
+    # building Mond regenerates these, so a difference means the commit is stale
+    - name: Check standard library definitions are up to date
+      run: git diff --exit-code -- definitions/mond-stdlib.json
     - name: Package
       run: npx vsce package --out mond-vscode.vsix
     - name: Upload Artifacts

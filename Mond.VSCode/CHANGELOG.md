@@ -12,6 +12,9 @@
 - Indentation rules, comment continuation, auto-closing pair guards inside strings and comments, and `// #region` folding markers.
 - Pause support while a script is running.
 - Extension tests, including a debug adapter integration test.
+- Standard library completions and hovers are now generated from the Mond sources instead of being maintained by hand, so they carry real parameter names, types, return types and every overload.
+- `mond.definitions.paths` loads extra definition files, so a host application that adds its own modules to Mond can describe them to the editor. Set the `MondDefinitionsFile` MSBuild property on the project holding your bindings to generate one.
+- `mond.definitions.includeStandardLibrary` turns the bundled definitions off for hosts that embed Mond without the standard libraries.
 
 ### Changed
 
@@ -19,6 +22,7 @@
 - Completion items carry a kind, signature and sort order, and are suppressed inside strings and comments.
 - Standard library metadata corrected: `Task` is its own module, and the task and cancellation members moved onto `TaskCompletionSource`, `CancellationTokenSource` and `CancellationToken`. `Random` methods and the `String`, `Array`, `Object`, `Number` and `Function` prototypes were added.
 - Bundling moved from webpack to esbuild, and `vscode-debugadapter` was replaced by `@vscode/debugadapter`.
+- `mond.standardLibraries.enableCompletion` was replaced by `mond.definitions.includeStandardLibrary`, which also applies to hover.
 
 ### Fixed
 
