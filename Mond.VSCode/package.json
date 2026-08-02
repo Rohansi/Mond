@@ -1,7 +1,7 @@
 {
   "name": "mond-vscode",
   "displayName": "Mond",
-  "version": "0.0.5",
+  "version": "0.1.0",
   "publisher": "Rohansi",
   "description": "Language support for the Mond scripting language",
   "author": {
