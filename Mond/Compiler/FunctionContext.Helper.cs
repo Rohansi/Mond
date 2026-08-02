@@ -27,6 +27,11 @@ namespace Mond.Compiler
             if (Compiler.Options.DebugInfo < MondDebugInfoLevel.Full)
                 return;
 
+            // synthetic expressions have no source position and never get a checkpoint, so recording them
+            // only shadows the real statement sharing their address - debug info is deduplicated by address
+            if (start.Line <= 0 || end.Line <= 0)
+                return;
+
             Emit(new Instruction(InstructionType.Statement, new IInstructionOperand[]
             {
                 new ImmediateOperand(start.Line),
@@ -35,8 +40,7 @@ namespace Mond.Compiler
                 new ImmediateOperand(end.Column + end.Contents.Length - 1)
             }));
 
-            if (start.Line > 0 && end.Line > 0)
-                Emit(new Instruction(InstructionType.DebugCheckpoint));
+            Emit(new Instruction(InstructionType.DebugCheckpoint));
         }
 
         public void Statement(Expression expression)

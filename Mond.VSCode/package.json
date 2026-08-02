@@ -32,7 +32,7 @@
     "vscode:prepublish": "npm run package-ext",
     "compile": "tsc -p ./",
     "lint": "eslint src/",
-    "watch": "webpack --watch --devtool nosources-source-map --info-verbosity verbose --config ./build/extension.webpack.config.js",
+    "watch": "webpack --watch --devtool nosources-source-map --config ./build/extension.webpack.config.js",
     "watch2": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
     "package": "vsce package",
@@ -71,6 +71,15 @@
   "activationEvents": [
     "onDebugResolve:mond"
   ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": true
+    },
+    "virtualWorkspaces": {
+      "supported": false,
+      "description": "Running and debugging Mond scripts requires access to the local file system."
+    }
+  },
   "contributes": {
     "configuration": [
       {
@@ -103,6 +112,12 @@
         "language": "mond",
         "scopeName": "source.mond",
         "path": "./syntaxes/mond.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "mond",
+        "path": "./snippets/mond-snippets.json"
       }
     ],
     "menus": {
@@ -154,8 +169,6 @@
       {
         "type": "mond",
         "label": "Mond",
-        "program": "./out/debugAdapter.js",
-        "runtime": "node",
         "configurationAttributes": {
           "launch": {
             "required": [

@@ -920,7 +920,7 @@ namespace Mond.VirtualMachine
 #if !NO_DEBUG
                                 if (Debugger != null)
                                 {
-                                    DebuggerBreak(program, locals, functionAddress, ip, initialCallDepth);
+                                    DebuggerBreak(program, locals, functionAddress, ip - 1, initialCallDepth);
                                 }
 #endif
                                 break;
@@ -931,15 +931,19 @@ namespace Mond.VirtualMachine
 #if !NO_DEBUG
                                 if (Debugger != null)
                                 {
+                                    // ip was already advanced past this instruction, but debug info records
+                                    // statements at the address of the checkpoint itself
+                                    var checkpointAddress = ip - 1;
+
                                     var shouldStopAtStmt =
                                         (_debugAction == MondDebugAction.StepInto) ||
                                         (_debugAction == MondDebugAction.StepOver && _debugDepth == 0) ||
                                         (_debugAction == MondDebugAction.StepOut && _debugDepth < 0);
 
-                                    var shouldBreak = shouldStopAtStmt || Debugger.ShouldBreak(program, ip);
+                                    var shouldBreak = shouldStopAtStmt || Debugger.ShouldBreak(program, checkpointAddress);
 
                                     if (shouldBreak)
-                                        DebuggerBreak(program, locals, functionAddress, ip, initialCallDepth);
+                                        DebuggerBreak(program, locals, functionAddress, checkpointAddress, initialCallDepth);
                                 }
 #endif
                                 break;

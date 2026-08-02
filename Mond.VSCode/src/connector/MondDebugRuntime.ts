@@ -10,10 +10,11 @@ import type { RpcRequestTypeToResponse } from './protocol/RpcMapping';
 import type { BreakpointTarget, RpcRequest } from './protocol/RpcRequests';
 import type { BreakpointLocation, EvalResponse, RpcResponse, StackFrame } from './protocol/RpcResponses';
 
-const protocolVersion = 1;
+const protocolVersion = 2;
 
 export class MondDebugRuntime extends EventEmitter {
 	private _noDebug = false;
+	private _closed = false;
 	private _socket: WebSocket | null = null;
     private _seq: number = 0;
 	private _repl: ChildProcessWithoutNullStreams | null = null;
@@ -63,6 +64,7 @@ export class MondDebugRuntime extends EventEmitter {
 
 		this._repl.on('error', e => {
 			console.error('Mond REPL process error: ', e);
+			this.emit('output', 'stderr', `Failed to run Mond REPL: ${e.message}\n`);
 			this._repl?.kill();
 			this.close();
 		});
@@ -108,6 +110,9 @@ export class MondDebugRuntime extends EventEmitter {
 		};
 
 		socket.onerror = e => {
+			const message = e instanceof Error ? e.message : String(e);
+			console.error('Mond debugger connection error: ', e);
+			this.emit('output', 'stderr', `Mond debugger connection error: ${message}\n`);
 			this.close();
 		};
 
@@ -116,15 +121,31 @@ export class MondDebugRuntime extends EventEmitter {
 	}
 
 	public close(terminate = false): void {
-		this._socket?.close();
+		const socket = this._socket;
 		this._socket = null;
+		socket?.close();
 
-		if (terminate) {
-			this._repl?.kill();
+		if (terminate && this._repl) {
+			this._repl.kill();
+			this._repl = null;
 		}
-		this._repl = null;
 
+		this.failPendingCalls('Debug session ended before a response was received.');
+
+		if (this._closed) {
+			return;
+		}
+
+		this._closed = true;
 		this.emit('end');
+	}
+
+	public async pause() {
+		if (this._noDebug) {
+			return;
+		}
+
+		await this.call({ type: 'action', action: 'break' });
 	}
 
 	public async continue() {
@@ -179,7 +200,11 @@ export class MondDebugRuntime extends EventEmitter {
 		return response.locations;
 	}
 
-	public async setBreakpoints(programPath: string, breakpoints: BreakpointTarget[]): Promise<[number, BreakpointLocation[]]> {
+	public async setBreakpoints(programPath: string, breakpoints: BreakpointTarget[]): Promise<[number, (BreakpointLocation | null)[]]> {
+		if (this._noDebug) {
+			return [-1, breakpoints.map(() => null)];
+		}
+
 		const response = await this.call({ type: 'setBreakpoints', programPath, breakpoints });
 		return [response.programId, response.breakpoints];
 	}
@@ -212,6 +237,19 @@ export class MondDebugRuntime extends EventEmitter {
 		}
 	}
 
+	private failPendingCalls(reason: string): void {
+		if (this._calls.size === 0) {
+			return;
+		}
+
+		const calls = [...this._calls.values()];
+		this._calls.clear();
+
+		for (const call of calls) {
+			call.fail(new RpcError(call.method, call.seq, reason));
+		}
+	}
+
 	private async handleMessage(data: string) {
 		try {
 			console.log(data);
@@ -230,7 +268,9 @@ export class MondDebugRuntime extends EventEmitter {
 
 			if (message.type === 'initialState') {
 				if (message.version !== protocolVersion) {
-					console.error(`Incompatible Mond debug protocol (expected ${protocolVersion}, got ${message.version})`);
+					const error = `Incompatible Mond debug protocol (expected ${protocolVersion}, got ${message.version}). Update the Mond extension or the Mond runtime.`;
+					console.error(error);
+					this.emit('output', 'stderr', `${error}\n`);
 					this.close();
 					return;
 				}

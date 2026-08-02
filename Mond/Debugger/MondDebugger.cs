@@ -107,18 +107,21 @@ namespace Mond.Debugger
         {
             lock (SyncRoot)
             {
-                if (IsBreakRequested)
-                {
-                    IsBreakRequested = false;
-                    return true;
-                }
-
+                // register the program before anything else can return - otherwise a break requested
+                // before the program ever hit a breakpoint (eg. --wait) would leave it unknown to the
+                // debugger, so clients could not resolve it by path to set breakpoints in it
                 var breakpointsFound = ProgramBreakpoints.TryGetValue(program, out var breakpoints);
                 if (!breakpointsFound)
                 {
                     ProgramBreakpoints.Add(program, new List<int>());
                     Programs.Add(program);
                     OnProgramAdded(program);
+                }
+
+                if (IsBreakRequested)
+                {
+                    IsBreakRequested = false;
+                    return true;
                 }
 
                 return breakpointsFound && breakpoints.Contains(address);

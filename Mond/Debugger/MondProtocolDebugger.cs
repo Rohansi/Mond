@@ -12,7 +12,7 @@ namespace Mond.Debugger;
 /// </summary>
 public abstract class MondProtocolDebugger : MondDebugger
 {
-    public const int ProtocolVersion = 1;
+    public const int ProtocolVersion = 2;
 
     private SemaphoreSlim _evalSemaphore;
     private bool _evalTimedOut;
@@ -91,8 +91,7 @@ public abstract class MondProtocolDebugger : MondDebugger
                         var programId = GetProgramId();
                         var breakpoints = obj["breakpoints"].AsList
                             .Select(o => (Line: (int)o["line"], Column: Utility.GetInt(o, "column")))
-                            .Distinct()
-                        .ToList();
+                            .ToList();
 
                         var breakpointStatements = SetBreakpoints(programId, breakpoints);
 
@@ -272,34 +271,68 @@ public abstract class MondProtocolDebugger : MondDebugger
         _breaker?.SetResult(action);
     }
 
-    private List<MondDebugInfo.Statement> SetBreakpoints(int programId, List<(int Line, int? Column)> breakpoints)
+    /// <summary>
+    /// Resolves each requested breakpoint to the statement it will actually break on. The returned list
+    /// always has one entry per request, in the same order, and contains null where nothing could be bound.
+    /// </summary>
+    private List<MondDebugInfo.Statement?> SetBreakpoints(int programId, List<(int Line, int? Column)> breakpoints)
     {
         lock (SyncRoot)
         {
+            var resolved = new List<MondDebugInfo.Statement?>(breakpoints.Count);
+
             if (programId < 0 || programId >= Programs.Count)
-                return new List<MondDebugInfo.Statement>();
-
-            var program = Programs[programId];
-            ClearBreakpoints(program);
-
-            var linesQuery = breakpoints
-                .Where(bp => bp.Column == null)
-                .SelectMany(bp => program.DebugInfo.Lines.Where(l => l.LineNumber == bp.Line).OrderBy(l => l.Address).Take(1))
-                .Select(l => new MondDebugInfo.Statement(l.Address, l.LineNumber, int.MinValue, int.MinValue, int.MinValue));
-
-            var statementsQuery = breakpoints
-                .Where(bp => bp.Column != null)
-                .SelectMany(bp => program.DebugInfo.Statements.Where(s => s.StartLineNumber == bp.Line && s.StartColumnNumber == bp.Column).Take(1));
-
-            var statements = linesQuery.Concat(statementsQuery).ToList();
-
-            foreach (var statement in statements)
             {
-                AddBreakpoint(program, statement.Address);
+                for (var i = 0; i < breakpoints.Count; i++)
+                {
+                    resolved.Add(null);
+                }
+
+                return resolved;
             }
 
-            return statements;
+            var program = Programs[programId];
+            var statements = program.DebugInfo?.Statements;
+            ClearBreakpoints(program);
+
+            var candidates = breakpoints
+                .Select(bp => statements == null ? null : FindBreakpointStatement(statements, bp.Line, bp.Column))
+                .ToList();
+
+            // several requests can land on the same statement, which would otherwise leave the client
+            // showing a pile of breakpoints on one line - only the first one to claim a statement binds
+            var claimed = new HashSet<int>();
+
+            foreach (var candidate in candidates)
+            {
+                if (candidate != null && claimed.Add(candidate.Value.Address))
+                {
+                    AddBreakpoint(program, candidate.Value.Address);
+                    resolved.Add(candidate);
+                }
+                else
+                {
+                    resolved.Add(null);
+                }
+            }
+
+            return resolved;
         }
+    }
+
+    private static MondDebugInfo.Statement? FindBreakpointStatement(IEnumerable<MondDebugInfo.Statement> statements, int line, int? column)
+    {
+        // the VM only breaks on checkpoint instructions, which line up with statement addresses, so a
+        // breakpoint only binds if the requested line actually starts a statement - it never moves to
+        // another line, otherwise blank lines would stack their breakpoints onto the next line of code
+        var candidates = column == null
+            ? statements.Where(s => s.StartLineNumber == line)
+            : statements.Where(s => s.StartLineNumber == line && s.StartColumnNumber == column);
+
+        return candidates
+            .OrderBy(s => s.StartColumnNumber)
+            .Select(s => (MondDebugInfo.Statement?)s)
+            .FirstOrDefault();
     }
 
     private List<MondDebugInfo.Statement> GetBreakpointLocations(int programId, int startLine, int startColumn, int endLine, int endColumn)
@@ -488,6 +521,11 @@ public abstract class MondProtocolDebugger : MondDebugger
             return field.Type == MondValueType.Number
                 ? (int)field
                 : null;
+        }
+
+        public static MondValue JsonBreakpoint(MondDebugInfo.Statement? statement)
+        {
+            return statement == null ? MondValue.Null : JsonBreakpoint(statement.Value);
         }
 
         public static MondValue JsonBreakpoint(MondDebugInfo.Statement statement)

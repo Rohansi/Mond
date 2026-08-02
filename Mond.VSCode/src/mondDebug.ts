@@ -6,10 +6,9 @@ import {
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { basename } from 'path';
-import { find } from 'lodash-es';
 import { MondDebugRuntime } from './connector/MondDebugRuntime';
 import { buildIndexerValue, isComplexType } from './utility';
-import { StringHandles } from './StringHandles';
+import { VariableHandles } from './VariableHandles';
 
 interface ILaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
 	/** An absolute path to the 'program' to debug. */
@@ -29,14 +28,21 @@ interface IAttachRequestArguments extends DebugProtocol.AttachRequestArguments {
 	trace?: boolean;
 }
 
+const genericErrorId = 1001;
+const frameNotSupportedErrorId = 1002;
+
 export class MondDebugSession extends LoggingDebugSession {
 	// we don't support multiple threads, so we can use a hardcoded ID for the default thread
 	private static threadID = 1;
 
 	private _runtime: MondDebugRuntime;
-	private _variableHandles = new StringHandles();
+	private _variableHandles = new VariableHandles();
 	private _launchedScript = false;
 	private _stopOnEntry = false;
+
+	/** Frame ids handed out by the last `stackTrace` request, in call stack order. */
+	private _frameIds: number[] = [];
+	private _nextFrameId = 1;
 
 	public constructor() {
 		super();
@@ -55,17 +61,20 @@ export class MondDebugSession extends LoggingDebugSession {
 		});
 		this._runtime.on('continue', () => {
 			this.sendEvent(new ContinuedEvent(MondDebugSession.threadID));
-			this._variableHandles.reset();
+			this.invalidateStopState();
 		});
 		this._runtime.on('stopOnEntry', () => {
+			this.invalidateStopState();
 			if (!this._launchedScript || this._stopOnEntry) {
 				this.sendEvent(new StoppedEvent('entry', MondDebugSession.threadID));
 			}
 		});
 		this._runtime.on('stopOnStep', () => {
+			this.invalidateStopState();
 			this.sendEvent(new StoppedEvent('step', MondDebugSession.threadID));
 		});
 		this._runtime.on('stopOnBreakpoint', () => {
+			this.invalidateStopState();
 			this.sendEvent(new StoppedEvent('breakpoint', MondDebugSession.threadID));
 		});
 		this._runtime.on('output', (type, data) => {
@@ -88,13 +97,18 @@ export class MondDebugSession extends LoggingDebugSession {
 		this.sendResponse(response);
 	}
 
-	protected configurationDoneRequest(
+	protected async configurationDoneRequest(
 		response: DebugProtocol.ConfigurationDoneResponse,
 		args: DebugProtocol.ConfigurationDoneArguments,
 		request?: DebugProtocol.Request
-	): void {
+	): Promise<void> {
 		if (this._launchedScript && !this._stopOnEntry) {
-			this._runtime.continue();
+			try {
+				await this._runtime.continue();
+			} catch (e: any) {
+				console.error(e);
+				this.sendEvent(new OutputEvent(`Failed to start the script: ${e?.message ?? e}\n`, 'stderr'));
+			}
 		}
 
 		super.configurationDoneRequest(response, args, request);
@@ -111,8 +125,7 @@ export class MondDebugSession extends LoggingDebugSession {
 			await this._runtime.start(args.program, !!args.noDebug);
 			this.sendResponse(response);
 		} catch (e: any) {
-			console.error(e);
-			this.sendErrorResponse(response, 0, e.message);
+			this.sendError(response, e);
 		}
 	}
 
@@ -126,8 +139,7 @@ export class MondDebugSession extends LoggingDebugSession {
 			await this._runtime.attach(args.endpoint);
 			this.sendResponse(response);
 		} catch (e: any) {
-			console.error(e);
-			this.sendErrorResponse(response, 0, e.message);
+			this.sendError(response, e);
 		}
 	}
 
@@ -136,8 +148,7 @@ export class MondDebugSession extends LoggingDebugSession {
 			this._runtime.close(true);
 			this.sendResponse(response);
 		} catch (e: any) {
-			console.error(e);
-			this.sendErrorResponse(response, 0, e.message);
+			this.sendError(response, e);
 		}
 	}
 
@@ -146,8 +157,7 @@ export class MondDebugSession extends LoggingDebugSession {
 			this._runtime.close(args.terminateDebuggee);
 			this.sendResponse(response);
 		} catch (e: any) {
-			console.error(e);
-			this.sendErrorResponse(response, 0, e.message);
+			this.sendError(response, e);
 		}
 	}
 
@@ -165,19 +175,26 @@ export class MondDebugSession extends LoggingDebugSession {
 			const [programId, createdBreakpoints] = await this._runtime.setBreakpoints(path, breakpointRequests);
 			const source = this.createSource(programId, path);
 
-			const breakpointResponses: Breakpoint[] = [];
-			for (const req of breakpointRequests) {
-				const valid = !!find(createdBreakpoints, bp => bp.line === req.line && bp.column === req.column);
-				breakpointResponses.push(new Breakpoint(valid, req.line, req.column, source));
-			}
+			// the runtime snaps breakpoints onto the nearest statement it can actually stop at, so report
+			// the resolved position back instead of the requested one and let VS Code move the marker
+			const breakpointResponses = breakpointRequests.map((req, i) => {
+				const created = createdBreakpoints[i];
+				if (!created) {
+					return new Breakpoint(false, req.line, req.column, source);
+				}
+
+				const breakpoint = new Breakpoint(true, created.line, created.column, source) as DebugProtocol.Breakpoint;
+				breakpoint.endLine = created.endLine;
+				breakpoint.endColumn = created.endColumn;
+				return breakpoint;
+			});
 
 			response.body = {
 				breakpoints: breakpointResponses,
 			};
 			this.sendResponse(response);
 		} catch (e: any) {
-			console.error(e);
-			this.sendErrorResponse(response, 0, e.message);
+			this.sendError(response, e);
 		}
 	}
 
@@ -197,8 +214,7 @@ export class MondDebugSession extends LoggingDebugSession {
 				};
 				this.sendResponse(response);
 			} catch (e: any) {
-				console.error(e);
-				this.sendErrorResponse(response, 0, e.message);
+				this.sendError(response, e);
 			}
 		} else {
 			response.body = {
@@ -212,9 +228,11 @@ export class MondDebugSession extends LoggingDebugSession {
 		try {
 			const stack = await this._runtime.stack();
 
+			this._frameIds = stack.map(() => this._nextFrameId++);
+
 			response.body = {
 				stackFrames: stack.map((f, i) => {
-					const sf = new StackFrame(i, f.function, this.createSource(f.programId, f.fileName), this.convertDebuggerLineToClient(f.line));
+					const sf = new StackFrame(this._frameIds[i], f.function, this.createSource(f.programId, f.fileName), this.convertDebuggerLineToClient(f.line));
 					if (typeof f.column === 'number') {
 						sf.column = this.convertDebuggerColumnToClient(f.column);
 					}
@@ -230,8 +248,16 @@ export class MondDebugSession extends LoggingDebugSession {
 			};
 			this.sendResponse(response);
 		} catch (e: any) {
-			console.error(e);
-			this.sendErrorResponse(response, 0, e.message);
+			this.sendError(response, e);
+		}
+	}
+
+	protected async pauseRequest(response: DebugProtocol.PauseResponse, args: DebugProtocol.PauseArguments): Promise<void> {
+		try {
+			await this._runtime.pause();
+			this.sendResponse(response);
+		} catch (e: any) {
+			this.sendError(response, e);
 		}
 	}
 
@@ -240,8 +266,7 @@ export class MondDebugSession extends LoggingDebugSession {
 			await this._runtime.continue();
 			this.sendResponse(response);
 		} catch (e: any) {
-			console.error(e);
-			this.sendErrorResponse(response, 0, e.message);
+			this.sendError(response, e);
 		}
 	}
 
@@ -250,8 +275,7 @@ export class MondDebugSession extends LoggingDebugSession {
 			await this._runtime.step();
 			this.sendResponse(response);
 		} catch (e: any) {
-			console.error(e);
-			this.sendErrorResponse(response, 0, e.message);
+			this.sendError(response, e);
 		}
 	}
 
@@ -260,8 +284,7 @@ export class MondDebugSession extends LoggingDebugSession {
 			await this._runtime.stepIn();
 			this.sendResponse(response);
 		} catch (e: any) {
-			console.error(e);
-			this.sendErrorResponse(response, 0, e.message);
+			this.sendError(response, e);
 		}
 	}
 
@@ -270,13 +293,20 @@ export class MondDebugSession extends LoggingDebugSession {
 			await this._runtime.stepOut();
 			this.sendResponse(response);
 		} catch (e: any) {
-			console.error(e);
-			this.sendErrorResponse(response, 0, e.message);
+			this.sendError(response, e);
 		}
 	}
 
 	protected async evaluateRequest(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments): Promise<void> {
 		try {
+			if (!this.isTopFrame(args.frameId)) {
+				this.sendErrorResponse(response, {
+					id: frameNotSupportedErrorId,
+					format: 'Mond can only evaluate expressions in the topmost stack frame.',
+				});
+				return;
+			}
+
 			const result = await this._runtime.eval(args.expression);
 			const hasChildren = isComplexType(result.type);
 
@@ -284,26 +314,26 @@ export class MondDebugSession extends LoggingDebugSession {
 				result: result.value,
 				type: result.type,
 				variablesReference: hasChildren
-					? this._variableHandles.create(args.expression)
+					? this._variableHandles.create(this.topFrameId, args.expression)
 					: 0,
 			};
 			this.sendResponse(response);
 		} catch (e: any) {
-			console.error(e);
-			this.sendErrorResponse(response, 0, e.message);
+			this.sendError(response, e);
 		}
 	}
 
 	protected async variablesRequest(response: DebugProtocol.VariablesResponse, args: DebugProtocol.VariablesArguments, request?: DebugProtocol.Request) {
 		try {
-			const expression = this._variableHandles.get(args.variablesReference);
+			const reference = this._variableHandles.get(args.variablesReference);
 
-			if (typeof expression !== 'string') {
+			if (!reference || !this.isTopFrame(reference.frameId)) {
 				response.body = { variables: [] };
 				this.sendResponse(response);
 				return;
 			}
 
+			const { frameId, expression } = reference;
 			const result = await this._runtime.eval(expression);
 			const variables: DebugProtocol.Variable[] = result.properties.map(p => {
 				const hasChildren = isComplexType(p.valueType);
@@ -315,7 +345,7 @@ export class MondDebugSession extends LoggingDebugSession {
 					value: p.value,
 					type: p.valueType,
 					variablesReference: hasChildren
-						? this._variableHandles.create(subExpr)
+						? this._variableHandles.create(frameId, subExpr)
 						: 0,
 				};
 			});
@@ -323,18 +353,21 @@ export class MondDebugSession extends LoggingDebugSession {
 			response.body = { variables };
 			this.sendResponse(response);
 		} catch (e: any) {
-			console.error(e);
-			this.sendErrorResponse(response, 0, e.message);
+			this.sendError(response, e);
 		}
 	}
 
 	protected scopesRequest(response: DebugProtocol.ScopesResponse, args: DebugProtocol.ScopesArguments): void {
-		response.body = {
-			scopes: [
-				new Scope('Local', this._variableHandles.create(''), false),
-				new Scope('Global', this._variableHandles.create('global'), true)
-			],
-		};
+		const scopes: Scope[] = [];
+
+		// the Mond debugger can only resolve locals for the frame it broke in, so callers get globals only
+		if (this.isTopFrame(args.frameId)) {
+			scopes.push(new Scope('Local', this._variableHandles.create(args.frameId, ''), false));
+		}
+
+		scopes.push(new Scope('Global', this._variableHandles.create(this.topFrameId, 'global'), true));
+
+		response.body = { scopes };
 		this.sendResponse(response);
 	}
 
@@ -348,6 +381,32 @@ export class MondDebugSession extends LoggingDebugSession {
 	}
 
 	//---- helpers
+
+	private get topFrameId(): number {
+		return this._frameIds.length > 0 ? this._frameIds[0] : 0;
+	}
+
+	/** Frame ids are only handed out by `stackTrace`; an unset id means "wherever the debugger is". */
+	private isTopFrame(frameId: number | undefined): boolean {
+		return frameId === undefined || this._frameIds.length === 0 || frameId === this._frameIds[0];
+	}
+
+	/** Discards frame and variable handles that are no longer valid because execution moved. */
+	private invalidateStopState(): void {
+		this._frameIds = [];
+		this._variableHandles.reset();
+	}
+
+	private sendError(response: DebugProtocol.Response, e: any): void {
+		console.error(e);
+
+		// the message is passed as a variable because sendErrorResponse treats the format as a template
+		this.sendErrorResponse(response, {
+			id: genericErrorId,
+			format: '{_error}',
+			variables: { _error: e?.message ?? String(e) },
+		});
+	}
 
 	private createSource(fileId: number, filePath: string): Source {
 		return new Source(basename(filePath), this.convertDebuggerPathToClient(filePath), fileId, undefined, 'mond-adapter-data');

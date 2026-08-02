@@ -19,7 +19,8 @@ export interface RpcFailure {
 
 export interface SetBreakpointsResponse extends RpcSuccess {
     readonly programId: number;
-    readonly breakpoints: BreakpointLocation[];
+    /** One entry per requested breakpoint, in request order. Null when the breakpoint could not be bound. */
+    readonly breakpoints: (BreakpointLocation | null)[];
 }
 
 export interface GetBreakpointLocationsResponse extends RpcSuccess {

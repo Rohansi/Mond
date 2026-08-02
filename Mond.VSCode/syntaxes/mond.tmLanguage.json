@@ -77,11 +77,11 @@
 			"patterns": [
 				{
 					"name": "constant.numeric.mond",
-					"match": "0[xX][0-9a-fA-F](_?[0-9a-fA-F])+"
+					"match": "0[xX][0-9a-fA-F](_?[0-9a-fA-F])*"
 				},
 				{
 					"name": "constant.numeric.mond",
-					"match": "0[bB][0-9](_?[0-9])+"
+					"match": "0[bB][01](_?[01])*"
 				},
 				{
 					"name": "constant.numeric.mond",
