@@ -12,7 +12,7 @@ namespace Mond
     public sealed class MondProgram
     {
         private const uint MagicId = 0xFA57C0DE;
-        private const byte FormatVersion = 13;
+        private const byte FormatVersion = 14;
 
         internal readonly int[] Bytecode;
         internal readonly MondValue[] Numbers;
