@@ -10,20 +10,31 @@
   },
   "license": "MIT",
   "keywords": [
+    "mond",
+    "mnd",
+    "scripting",
+    "language",
+    "debugger",
     "multi-root ready"
   ],
   "engines": {
     "vscode": "^1.97.0"
   },
   "icon": "images/mond-icon.png",
+  "galleryBanner": {
+    "color": "#1e1e1e",
+    "theme": "dark"
+  },
   "categories": [
     "Programming Languages",
-    "Debuggers"
+    "Debuggers",
+    "Snippets"
   ],
-  "private": true,
+  "homepage": "https://github.com/Rohansi/Mond/tree/master/Mond.VSCode",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Rohansi/Mond.git"
+    "url": "https://github.com/Rohansi/Mond.git",
+    "directory": "Mond.VSCode"
   },
   "bugs": {
     "url": "https://github.com/Rohansi/Mond/issues"
@@ -31,41 +42,41 @@
   "scripts": {
     "vscode:prepublish": "npm run package-ext",
     "compile": "tsc -p ./",
+    "check-types": "tsc -p ./ --noEmit",
     "lint": "eslint src/",
-    "watch": "webpack --watch --devtool nosources-source-map --config ./build/extension.webpack.config.js",
-    "watch2": "tsc -watch -p ./",
-    "pretest": "npm run compile && npm run lint",
+    "bundle": "node build/esbuild.mjs",
+    "package-ext": "node build/esbuild.mjs --production",
+    "watch": "node build/esbuild.mjs --watch",
+    "watch-types": "tsc -watch -p ./",
+    "build-repl": "node build/buildRepl.mjs",
+    "pretest": "npm run compile && npm run bundle && npm run lint && npm run build-repl",
+    "test": "vscode-test",
     "package": "vsce package",
-    "publish": "vsce publish",
-    "package-ext": "webpack --mode production --config ./build/extension.webpack.config.js"
+    "publish": "vsce publish"
   },
   "dependencies": {
+    "@vscode/debugadapter": "^1.68.0",
+    "@vscode/debugprotocol": "^1.68.0",
     "isomorphic-ws": "^5.0.0",
-    "vscode-debugadapter": "^1.51.0",
-    "ws": "^8.18.0",
-    "lodash-es": "^4.17.21"
+    "ws": "^8.18.0"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.6",
     "utf-8-validate": "^5.0.8"
   },
   "devDependencies": {
-    "@types/glob": "^8.1.0",
-    "@types/mocha": "^9.0.0",
+    "@eslint/js": "^9.20.0",
+    "@types/mocha": "^10.0.10",
     "@types/node": "^22.13.2",
     "@types/vscode": "^1.97.0",
     "@types/ws": "^8.5.14",
-    "@types/lodash-es": "^4.17.12",
-    "@eslint/js": "^9.20.0",
-    "typescript-eslint": "^8.24.0",
-    "glob": "^11.0.1",
-    "mocha": "^11.1.0",
-    "ts-loader": "^9.5.2",
+    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^3.9.2",
+    "esbuild": "^0.25.12",
+    "mocha": "^11.7.6",
     "typescript": "^5.7.3",
-    "vsce": "^2.15.0",
-    "vscode-debugadapter-testsupport": "^1.51.0",
-    "webpack": "^5.98.0",
-    "webpack-cli": "^6.0.1"
+    "typescript-eslint": "^8.24.0"
   },
   "main": "./dist/ext/extension.js",
   "activationEvents": [
@@ -86,6 +97,12 @@
         "title": "Mond",
         "type": "object",
         "properties": {
+          "mond.replPath": {
+            "type": "string",
+            "default": "",
+            "scope": "machine-overridable",
+            "markdownDescription": "Path to the Mond REPL executable used to run and debug scripts. When empty, the extension looks for `mond` on your `PATH` and then for the `Mond.Repl` dotnet tool. Supports the `${workspaceFolder}` and `${userHome}` variables."
+          },
           "mond.standardLibraries.enableCompletion": {
             "type": "boolean",
             "default": true,

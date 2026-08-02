@@ -1,5 +1,3 @@
-import { platform } from 'process';
-import { exec } from 'child_process';
 import WebSocket from 'isomorphic-ws';
 import { ValueType } from './connector/protocol/RpcResponses';
 
@@ -23,26 +21,21 @@ export function connect(endpoint: string): Promise<WebSocket> {
 	});
 }
 
-export function findMondAsync() {
-	//return 'C:\\Git\\Mond\\Mond.Repl\\bin\\Debug\\net8.0\\Mond.Repl.exe';
-
-	const command = platform === 'win32'
-		? 'where'
-		: 'which';
-
-	return new Promise<string>((resolve, reject) => {
-		exec(`${command} mond`, (error, stdout) => {
-			if (error) {
-				reject(error);
-			} else {
-				resolve(stdout.trim());
-			}
-		});
-	});
-}
-
 export function delay(ms: number) {
 	return new Promise<void>(resolve => setTimeout(resolve, ms));
+}
+
+/** Turns whatever a `catch` produced into something safe to show a user. */
+export function errorMessage(e: unknown): string {
+	if (e instanceof Error) {
+		return e.message;
+	}
+
+	if (typeof e === 'string') {
+		return e;
+	}
+
+	return JSON.stringify(e) ?? 'unknown error';
 }
 
 export function buildIndexerValue(value: string, valueType: ValueType) {

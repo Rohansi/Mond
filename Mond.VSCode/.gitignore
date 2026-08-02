@@ -3,6 +3,6 @@ dist
 node_modules
 .vscode-test/
 npm-debug.log
-mock-debug.txt
 *.vsix
+sampleWorkspace/.vscode/settings.json
 .DS_Store

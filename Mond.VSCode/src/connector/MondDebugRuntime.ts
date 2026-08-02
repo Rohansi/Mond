@@ -3,7 +3,8 @@ import { EventEmitter } from 'events';
 import WebSocket from 'isomorphic-ws';
 import { PendingCall } from './PendingCall';
 import { RpcError } from './RpcError';
-import { connect, delay, findMondAsync } from '../utility';
+import { connect, delay, errorMessage } from '../utility';
+import { findMondAsync, MondNotFoundError } from '../mondLocator';
 
 import type { DebuggerState } from './protocol/DebuggerState';
 import type { RpcRequestTypeToResponse } from './protocol/RpcMapping';
@@ -24,18 +25,24 @@ export class MondDebugRuntime extends EventEmitter {
 		super();
 	}
 
+	/** True between attaching to the debugger and the connection dropping. */
+	public get isConnected(): boolean {
+		return this._socket !== null;
+	}
+
 	public async getLaunchConfig(program: string, noDebug: boolean) {
-		let mondPath: string | undefined = undefined;
+		let mondPath: string;
 		try {
 			mondPath = await findMondAsync();
 		} catch (e) {
 			console.error(e);
-			throw new Error(`Failed to locate Mond REPL: ${e}`);
-		}
 
-		if (!mondPath) {
-			mondPath = undefined;
-			throw new Error('Mond REPL not found on system - will not be able to run scripts');
+			// the locator already explained itself, so do not bury its message in a generic one
+			if (e instanceof MondNotFoundError) {
+				throw e;
+			}
+
+			throw new Error(`Failed to locate the Mond REPL: ${errorMessage(e)}`);
 		}
 
 		console.log(`Mond REPL found: ${mondPath}`);
@@ -74,11 +81,11 @@ export class MondDebugRuntime extends EventEmitter {
 			this.close();
 		});
 
-		this._repl.stdout.on('data', data => {
+		this._repl.stdout.on('data', (data: Buffer) => {
 			this.emit('output', 'stdout', data.toString());
 		});
 
-		this._repl.stderr.on('data', data => {
+		this._repl.stderr.on('data', (data: Buffer) => {
 			this.emit('output', 'stderr', data.toString());
 		});
 
@@ -110,9 +117,8 @@ export class MondDebugRuntime extends EventEmitter {
 		};
 
 		socket.onerror = e => {
-			const message = e instanceof Error ? e.message : String(e);
 			console.error('Mond debugger connection error: ', e);
-			this.emit('output', 'stderr', `Mond debugger connection error: ${message}\n`);
+			this.emit('output', 'stderr', `Mond debugger connection error: ${e.message}\n`);
 			this.close();
 		};
 
@@ -192,7 +198,9 @@ export class MondDebugRuntime extends EventEmitter {
 		endLine?: number,
 		endColumn?: number,
 	): Promise<BreakpointLocation[]> {
-		if (this._noDebug) {
+		// VS Code asks about breakpoints whenever the editor changes, which includes before we have
+		// attached and after the session ended - there is nothing to report, and it is not an error
+		if (this._noDebug || !this.isConnected) {
 			return [];
 		}
 
@@ -201,7 +209,8 @@ export class MondDebugRuntime extends EventEmitter {
 	}
 
 	public async setBreakpoints(programPath: string, breakpoints: BreakpointTarget[]): Promise<[number, (BreakpointLocation | null)[]]> {
-		if (this._noDebug) {
+		// same as above - report them as unverified rather than failing the request
+		if (this._noDebug || !this.isConnected) {
 			return [-1, breakpoints.map(() => null)];
 		}
 
@@ -250,7 +259,7 @@ export class MondDebugRuntime extends EventEmitter {
 		}
 	}
 
-	private async handleMessage(data: string) {
+	private handleMessage(data: string): void {
 		try {
 			console.log(data);
 			const message = JSON.parse(data) as (DebuggerState | RpcResponse);

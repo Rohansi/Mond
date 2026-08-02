@@ -10,7 +10,7 @@ import {
 import { Declaration, flattenDeclarations, isInCommentOrString, scan } from "./mondScanner";
 
 // completions are grouped by how likely they are to be what you want, closest scope first
-const enum SortGroup {
+enum SortGroup {
     Local = '1',
     Member = '2',
     Keyword = '3',

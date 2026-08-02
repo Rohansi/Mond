@@ -3,11 +3,11 @@ import {
 	LoggingDebugSession,
 	InitializedEvent, TerminatedEvent, StoppedEvent, OutputEvent,
 	Thread, StackFrame, Source, ContinuedEvent, Breakpoint, Scope,
-} from 'vscode-debugadapter';
-import { DebugProtocol } from 'vscode-debugprotocol';
+} from '@vscode/debugadapter';
+import { DebugProtocol } from '@vscode/debugprotocol';
 import { basename } from 'path';
 import { MondDebugRuntime } from './connector/MondDebugRuntime';
-import { buildIndexerValue, isComplexType } from './utility';
+import { buildIndexerValue, errorMessage, isComplexType } from './utility';
 import { VariableHandles } from './VariableHandles';
 
 interface ILaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
@@ -77,12 +77,12 @@ export class MondDebugSession extends LoggingDebugSession {
 			this.invalidateStopState();
 			this.sendEvent(new StoppedEvent('breakpoint', MondDebugSession.threadID));
 		});
-		this._runtime.on('output', (type, data) => {
+		this._runtime.on('output', (type: string, data: string) => {
 			this.sendEvent(new OutputEvent(data, type));
 		});
 	}
 
-	protected initializeRequest(response: DebugProtocol.InitializeResponse, args: DebugProtocol.InitializeRequestArguments): void {
+	protected initializeRequest(response: DebugProtocol.InitializeResponse, _args: DebugProtocol.InitializeRequestArguments): void {
 		// build and return the capabilities of this debug adapter:
 		response.body = response.body ?? {};
 
@@ -105,9 +105,9 @@ export class MondDebugSession extends LoggingDebugSession {
 		if (this._launchedScript && !this._stopOnEntry) {
 			try {
 				await this._runtime.continue();
-			} catch (e: any) {
+			} catch (e) {
 				console.error(e);
-				this.sendEvent(new OutputEvent(`Failed to start the script: ${e?.message ?? e}\n`, 'stderr'));
+				this.sendEvent(new OutputEvent(`Failed to start the script: ${errorMessage(e)}\n`, 'stderr'));
 			}
 		}
 
@@ -124,12 +124,12 @@ export class MondDebugSession extends LoggingDebugSession {
 			this._stopOnEntry = !!args.stopOnEntry;
 			await this._runtime.start(args.program, !!args.noDebug);
 			this.sendResponse(response);
-		} catch (e: any) {
+		} catch (e) {
 			this.sendError(response, e);
 		}
 	}
 
-	protected async attachRequest(response: DebugProtocol.AttachResponse, args: IAttachRequestArguments, request?: DebugProtocol.Request): Promise<void> {
+	protected async attachRequest(response: DebugProtocol.AttachResponse, args: IAttachRequestArguments): Promise<void> {
 		try {
 			// make sure to 'Stop' the buffered logging if 'trace' is not set
 			logger.setup(args.trace ? Logger.LogLevel.Verbose : Logger.LogLevel.Stop, false);
@@ -138,25 +138,25 @@ export class MondDebugSession extends LoggingDebugSession {
 			this._stopOnEntry = true;
 			await this._runtime.attach(args.endpoint);
 			this.sendResponse(response);
-		} catch (e: any) {
+		} catch (e) {
 			this.sendError(response, e);
 		}
 	}
 
-	protected terminateRequest(response: DebugProtocol.TerminateResponse, args: DebugProtocol.TerminateArguments, request?: DebugProtocol.Request): void {
+	protected terminateRequest(response: DebugProtocol.TerminateResponse): void {
 		try {
 			this._runtime.close(true);
 			this.sendResponse(response);
-		} catch (e: any) {
+		} catch (e) {
 			this.sendError(response, e);
 		}
 	}
 
-	protected disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments, request?: DebugProtocol.Request): void {
+	protected disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments): void {
 		try {
 			this._runtime.close(args.terminateDebuggee);
 			this.sendResponse(response);
-		} catch (e: any) {
+		} catch (e) {
 			this.sendError(response, e);
 		}
 	}
@@ -171,7 +171,6 @@ export class MondDebugSession extends LoggingDebugSession {
 			const breakpointRequests = args.breakpoints?.map(b => ({ line: b.line, column: b.column }))
 				?? args.lines?.map(l => ({ line: l, column: undefined }))
 				?? [];
-
 			const [programId, createdBreakpoints] = await this._runtime.setBreakpoints(path, breakpointRequests);
 			const source = this.createSource(programId, path);
 
@@ -193,7 +192,7 @@ export class MondDebugSession extends LoggingDebugSession {
 				breakpoints: breakpointResponses,
 			};
 			this.sendResponse(response);
-		} catch (e: any) {
+		} catch (e) {
 			this.sendError(response, e);
 		}
 	}
@@ -201,11 +200,10 @@ export class MondDebugSession extends LoggingDebugSession {
 	protected async breakpointLocationsRequest(
 		response: DebugProtocol.BreakpointLocationsResponse,
 		args: DebugProtocol.BreakpointLocationsArguments,
-		request?: DebugProtocol.Request,
 	): Promise<void> {
 		if (args.source.path) {
 			try {
-				const path = this.convertClientPathToDebugger(args.source.path as string);
+				const path = this.convertClientPathToDebugger(args.source.path);
 	
 				const locations = await this._runtime.getBreakpointLocations(path, args.line, args.column, args.endLine, args.endColumn);
 
@@ -213,7 +211,7 @@ export class MondDebugSession extends LoggingDebugSession {
 					breakpoints: locations,
 				};
 				this.sendResponse(response);
-			} catch (e: any) {
+			} catch (e) {
 				this.sendError(response, e);
 			}
 		} else {
@@ -224,11 +222,15 @@ export class MondDebugSession extends LoggingDebugSession {
 		}
 	}
 
-	protected async stackTraceRequest(response: DebugProtocol.StackTraceResponse, args: DebugProtocol.StackTraceArguments): Promise<void> {
+	protected async stackTraceRequest(response: DebugProtocol.StackTraceResponse): Promise<void> {
 		try {
 			const stack = await this._runtime.stack();
 
-			this._frameIds = stack.map(() => this._nextFrameId++);
+			// ids must stay stable for as long as we are stopped - the client hands them back in
+			// `scopes` and `evaluate`, and it may ask for the stack more than once per stop
+			if (this._frameIds.length !== stack.length) {
+				this._frameIds = stack.map(() => this._nextFrameId++);
+			}
 
 			response.body = {
 				stackFrames: stack.map((f, i) => {
@@ -247,52 +249,52 @@ export class MondDebugSession extends LoggingDebugSession {
 				totalFrames: stack.length,
 			};
 			this.sendResponse(response);
-		} catch (e: any) {
+		} catch (e) {
 			this.sendError(response, e);
 		}
 	}
 
-	protected async pauseRequest(response: DebugProtocol.PauseResponse, args: DebugProtocol.PauseArguments): Promise<void> {
+	protected async pauseRequest(response: DebugProtocol.PauseResponse): Promise<void> {
 		try {
 			await this._runtime.pause();
 			this.sendResponse(response);
-		} catch (e: any) {
+		} catch (e) {
 			this.sendError(response, e);
 		}
 	}
 
-	protected async continueRequest(response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments): Promise<void> {
+	protected async continueRequest(response: DebugProtocol.ContinueResponse): Promise<void> {
 		try {
 			await this._runtime.continue();
 			this.sendResponse(response);
-		} catch (e: any) {
+		} catch (e) {
 			this.sendError(response, e);
 		}
 	}
 
-	protected async nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments): Promise<void> {
+	protected async nextRequest(response: DebugProtocol.NextResponse): Promise<void> {
 		try {
 			await this._runtime.step();
 			this.sendResponse(response);
-		} catch (e: any) {
+		} catch (e) {
 			this.sendError(response, e);
 		}
 	}
 
-	protected async stepInRequest(response: DebugProtocol.StepInResponse, args: DebugProtocol.StepInArguments): Promise<void> {
+	protected async stepInRequest(response: DebugProtocol.StepInResponse): Promise<void> {
 		try {
 			await this._runtime.stepIn();
 			this.sendResponse(response);
-		} catch (e: any) {
+		} catch (e) {
 			this.sendError(response, e);
 		}
 	}
 
-	protected async stepOutRequest(response: DebugProtocol.StepOutResponse, args: DebugProtocol.StepOutArguments): Promise<void> {
+	protected async stepOutRequest(response: DebugProtocol.StepOutResponse): Promise<void> {
 		try {
 			await this._runtime.stepOut();
 			this.sendResponse(response);
-		} catch (e: any) {
+		} catch (e) {
 			this.sendError(response, e);
 		}
 	}
@@ -318,12 +320,12 @@ export class MondDebugSession extends LoggingDebugSession {
 					: 0,
 			};
 			this.sendResponse(response);
-		} catch (e: any) {
+		} catch (e) {
 			this.sendError(response, e);
 		}
 	}
 
-	protected async variablesRequest(response: DebugProtocol.VariablesResponse, args: DebugProtocol.VariablesArguments, request?: DebugProtocol.Request) {
+	protected async variablesRequest(response: DebugProtocol.VariablesResponse, args: DebugProtocol.VariablesArguments) {
 		try {
 			const reference = this._variableHandles.get(args.variablesReference);
 
@@ -352,7 +354,7 @@ export class MondDebugSession extends LoggingDebugSession {
 
 			response.body = { variables };
 			this.sendResponse(response);
-		} catch (e: any) {
+		} catch (e) {
 			this.sendError(response, e);
 		}
 	}
@@ -397,14 +399,14 @@ export class MondDebugSession extends LoggingDebugSession {
 		this._variableHandles.reset();
 	}
 
-	private sendError(response: DebugProtocol.Response, e: any): void {
+	private sendError(response: DebugProtocol.Response, e: unknown): void {
 		console.error(e);
 
 		// the message is passed as a variable because sendErrorResponse treats the format as a template
 		this.sendErrorResponse(response, {
 			id: genericErrorId,
 			format: '{_error}',
-			variables: { _error: e?.message ?? String(e) },
+			variables: { _error: errorMessage(e) },
 		});
 	}
 

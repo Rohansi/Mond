@@ -160,7 +160,14 @@ namespace Mond.Debugger
                     Func<MondValue> getter;
                     Action<MondValue> setter;
 
-                    if (ident.IsCaptured)
+                    if (ident.IsGlobal)
+                    {
+                        // globals (including the standard libraries) live on the state's global
+                        // object, they never occupy a slot in the frame
+                        getter = () => _state[name];
+                        setter = value => _state[name] = value;
+                    }
+                    else if (ident.IsCaptured)
                     {
                         getter = () => _args.Closure.Upvalues[frameIndex][localId];
                         setter = value => _args.Closure.Upvalues[frameIndex][localId] = value;

@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { keywordNames } from './completionItems';
 
-export const enum TokenKind {
+export enum TokenKind {
 	Comment,
 	String,
 	Number,
@@ -9,7 +9,6 @@ export const enum TokenKind {
 	Keyword,
 	Punctuation,
 }
-
 export interface Token {
 	readonly kind: TokenKind;
 	readonly text: string;

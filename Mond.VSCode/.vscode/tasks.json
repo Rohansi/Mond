@@ -9,17 +9,21 @@
                 "kind": "build",
                 "isDefault": true
             },
-            "problemMatcher": "$tsc-watch"
+            "problemMatcher": "$tsc"
         },
         {
             "type": "npm",
             "script": "watch",
             "group": "build",
             "isBackground": true,
-            "problemMatcher": [
-                "$ts-webpack-watch",
-                "$tslint-webpack-watch"
-            ]
+            "problemMatcher": "$esbuild-watch"
+        },
+        {
+            "type": "npm",
+            "script": "watch-types",
+            "group": "build",
+            "isBackground": true,
+            "problemMatcher": "$tsc-watch"
         }
     ]
 }

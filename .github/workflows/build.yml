@@ -18,9 +18,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: |
-            8.0.x
-            9.0.x
+        dotnet-version: 10.0.x
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
@@ -32,6 +30,47 @@ jobs:
       with:
         name: NuGet_packages
         path: '**/*.nupkg'
+        if-no-files-found: error
+        retention-days: 30
+        overwrite: true
+        compression-level: 0
+
+  extension:
+    name: VS Code extension
+
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: Mond.VSCode
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22
+        cache: npm
+        cache-dependency-path: Mond.VSCode/package-lock.json
+    # the debug adapter tests run against a REPL built from this repository, which `npm test` builds
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.0.x
+    - name: Install dependencies
+      run: npm ci
+    - name: Lint
+      run: npm run lint
+    # the tests drive a real VS Code instance, which needs a display
+    - name: Test
+      run: xvfb-run -a npm test
+    - name: Package
+      run: npx vsce package --out mond-vscode.vsix
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4.3.1
+      with:
+        name: VSCode_extension
+        path: Mond.VSCode/mond-vscode.vsix
         if-no-files-found: error
         retention-days: 30
         overwrite: true

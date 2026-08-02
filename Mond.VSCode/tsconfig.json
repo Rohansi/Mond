@@ -1,27 +1,33 @@
 {
 	"compilerOptions": {
-		"module": "commonjs",
-		"target": "es6",
-		"outDir": "out",
+		"module": "Node16",
+		"moduleResolution": "Node16",
+		"target": "ES2022",
 		"lib": [
-			"es6"
+			"ES2022"
 		],
-		"sourceMap": true,
+		"outDir": "out",
 		"rootDir": "src",
+		"sourceMap": true,
 		"strict": true,
 		"esModuleInterop": true,
 		"skipLibCheck": true,
 
-		"noImplicitAny": false,
-		"removeComments": false,
-		"noUnusedLocals": true,
+		"noImplicitAny": true,
 		"noImplicitThis": true,
-		"inlineSourceMap": false,
-		"preserveConstEnums": true,
 		"strictNullChecks": true,
-		"noUnusedParameters": false
+		"noUnusedLocals": true,
+		"noUnusedParameters": false,
+		"removeComments": false,
+		"inlineSourceMap": false,
+		// esbuild transpiles one file at a time, so nothing may depend on cross-file type info
+		"isolatedModules": true
 	},
+	"include": [
+		"src/**/*.ts"
+	],
 	"exclude": [
-		"node_modules"
+		"node_modules",
+		".vscode-test"
 	]
 }
