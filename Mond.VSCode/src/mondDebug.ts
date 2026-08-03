@@ -168,18 +168,27 @@ export class MondDebugSession extends LoggingDebugSession {
 		}
 	}
 
-	protected terminateRequest(response: DebugProtocol.TerminateResponse): void {
+	protected async terminateRequest(response: DebugProtocol.TerminateResponse): Promise<void> {
 		try {
 			this._runtime.close(true);
+
+			// the client treats this response as the end of the session, so do not report back until
+			// the debuggee is really gone
+			await this._runtime.waitForExit();
 			this.sendResponse(response);
 		} catch (e) {
 			this.sendError(response, e);
 		}
 	}
 
-	protected disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments): void {
+	protected async disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments): Promise<void> {
 		try {
 			this._runtime.close(args.terminateDebuggee);
+
+			if (args.terminateDebuggee) {
+				await this._runtime.waitForExit();
+			}
+
 			this.sendResponse(response);
 		} catch (e) {
 			this.sendError(response, e);

@@ -12,23 +12,39 @@ export function resolveVariables(value: string, folder?: vscode.WorkspaceFolder)
 		.replace(/\$\{userHome\}/g, homedir());
 }
 
-export function connect(endpoint: string): Promise<WebSocket> {
+export function connect(endpoint: string, timeoutMs = 5000): Promise<WebSocket> {
 	return new Promise<WebSocket>((resolve, reject) => {
 		const socket = new WebSocket(endpoint);
+		let settled = false;
 
-		socket.onopen = () => {
+		const settle = (action: () => void) => {
+			if (settled) {
+				return;
+			}
+
+			settled = true;
+			clearTimeout(timer);
 			socket.onopen = () => {};
 			socket.onclose = () => {};
 			socket.onerror = () => {};
-			resolve(socket);
+			action();
 		};
 
+		// a listener that accepts the connection but never finishes the upgrade would otherwise leave
+		// us waiting forever - the client has no handshake timeout of its own
+		const timer = setTimeout(() => {
+			settle(() => reject(new Error(`Timed out connecting to WebSocket at ${endpoint}`)));
+			socket.close();
+		}, timeoutMs);
+
+		socket.onopen = () => settle(() => resolve(socket));
+
 		socket.onerror = e => {
-			reject(new Error(`Failed to connect to WebSocket at ${endpoint} (${e.message})`));
+			settle(() => reject(new Error(`Failed to connect to WebSocket at ${endpoint} (${e.message})`)));
 			socket.close();
 		};
 
-		socket.onclose = () => reject(new Error(`Failed to connect to WebSocket at ${endpoint}`));
+		socket.onclose = () => settle(() => reject(new Error(`Failed to connect to WebSocket at ${endpoint}`)));
 	});
 }
 

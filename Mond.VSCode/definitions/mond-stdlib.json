@@ -614,70 +614,80 @@
           "kind": "method",
           "signatures": [
             "add(item: any)"
-          ]
+          ],
+          "documentation": "add(item)"
         },
         {
           "name": "clear",
           "kind": "method",
           "signatures": [
             "clear()"
-          ]
+          ],
+          "documentation": "clear()"
         },
         {
           "name": "contains",
           "kind": "method",
           "signatures": [
             "contains(item: any): bool"
-          ]
+          ],
+          "documentation": "contains(item): bool"
         },
         {
           "name": "getEnumerator",
           "kind": "method",
           "signatures": [
             "getEnumerator(): any"
-          ]
+          ],
+          "documentation": "getEnumerator(): object"
         },
         {
           "name": "indexOf",
           "kind": "method",
           "signatures": [
             "indexOf(item: any): number"
-          ]
+          ],
+          "documentation": "indexOf(item): number"
         },
         {
           "name": "insert",
           "kind": "method",
           "signatures": [
             "insert(index: number, item: any)"
-          ]
+          ],
+          "documentation": "insert(index: number, item)"
         },
         {
           "name": "lastIndexOf",
           "kind": "method",
           "signatures": [
             "lastIndexOf(item: any): number"
-          ]
+          ],
+          "documentation": "lastIndexOf(item): number"
         },
         {
           "name": "length",
           "kind": "method",
           "signatures": [
             "length(): number"
-          ]
+          ],
+          "documentation": "length(): number"
         },
         {
           "name": "remove",
           "kind": "method",
           "signatures": [
             "remove(item: any): any"
-          ]
+          ],
+          "documentation": "remove(item): bool"
         },
         {
           "name": "removeAt",
           "kind": "method",
           "signatures": [
             "removeAt(index: number)"
-          ]
+          ],
+          "documentation": "removeAt(index: number)"
         },
         {
           "name": "sort",
@@ -685,7 +695,8 @@
           "signatures": [
             "sort()",
             "sort(index: number, count: number)"
-          ]
+          ],
+          "documentation": "sort()"
         },
         {
           "name": "sortDescending",
@@ -693,7 +704,8 @@
           "signatures": [
             "sortDescending()",
             "sortDescending(index: number, count: number)"
-          ]
+          ],
+          "documentation": "sortDescending()"
         }
       ]
     },
@@ -705,7 +717,8 @@
           "kind": "method",
           "signatures": [
             "getName(): any"
-          ]
+          ],
+          "documentation": "getName(): string|undefined"
         }
       ]
     },
@@ -729,77 +742,88 @@
           "kind": "method",
           "signatures": [
             "add(key: any, value: any)"
-          ]
+          ],
+          "documentation": "add(key, value)"
         },
         {
           "name": "clear",
           "kind": "method",
           "signatures": [
             "clear()"
-          ]
+          ],
+          "documentation": "clear()"
         },
         {
           "name": "containsKey",
           "kind": "method",
           "signatures": [
             "containsKey(key: any): bool"
-          ]
+          ],
+          "documentation": "containsKey(key): bool"
         },
         {
           "name": "containsValue",
           "kind": "method",
           "signatures": [
             "containsValue(value: any): bool"
-          ]
+          ],
+          "documentation": "containsValue(value): bool"
         },
         {
           "name": "get",
           "kind": "method",
           "signatures": [
             "get(key: any): any"
-          ]
+          ],
+          "documentation": "get(key): any"
         },
         {
           "name": "getEnumerator",
           "kind": "method",
           "signatures": [
             "getEnumerator(): any"
-          ]
+          ],
+          "documentation": "getEnumerator(): object"
         },
         {
           "name": "length",
           "kind": "method",
           "signatures": [
             "length(): number"
-          ]
+          ],
+          "documentation": "length(): number"
         },
         {
           "name": "lock",
           "kind": "method",
           "signatures": [
             "lock(): any"
-          ]
+          ],
+          "documentation": "lock(): object"
         },
         {
           "name": "remove",
           "kind": "method",
           "signatures": [
             "remove(key: any): bool"
-          ]
+          ],
+          "documentation": "remove(key): bool"
         },
         {
           "name": "setPrototype",
           "kind": "method",
           "signatures": [
             "setPrototype(value: any): any"
-          ]
+          ],
+          "documentation": "setPrototype(value: any) : object"
         },
         {
           "name": "setPrototypeAndLock",
           "kind": "method",
           "signatures": [
             "setPrototypeAndLock(value: any): any"
-          ]
+          ],
+          "documentation": "setPrototypeAndLock(value: any): object"
         }
       ]
     },
@@ -811,98 +835,112 @@
           "kind": "method",
           "signatures": [
             "charAt(index: number): string"
-          ]
+          ],
+          "documentation": "charAt(index: number): string"
         },
         {
           "name": "charCodeAt",
           "kind": "method",
           "signatures": [
             "charCodeAt(index: number): number"
-          ]
+          ],
+          "documentation": "charCodeAt(index: number): number"
         },
         {
           "name": "contains",
           "kind": "method",
           "signatures": [
             "contains(value: string): bool"
-          ]
+          ],
+          "documentation": "contains(value: string): bool"
         },
         {
           "name": "endsWith",
           "kind": "method",
           "signatures": [
             "endsWith(value: string): bool"
-          ]
+          ],
+          "documentation": "endsWith(value: string): bool"
         },
         {
           "name": "format",
           "kind": "method",
           "signatures": [
             "format(...arguments): string"
-          ]
+          ],
+          "documentation": "format(): string"
         },
         {
           "name": "getEnumerator",
           "kind": "method",
           "signatures": [
             "getEnumerator(): any"
-          ]
+          ],
+          "documentation": "getEnumerator(): object"
         },
         {
           "name": "indexOf",
           "kind": "method",
           "signatures": [
             "indexOf(value: string): number"
-          ]
+          ],
+          "documentation": "indexOf(value: string): number"
         },
         {
           "name": "insert",
           "kind": "method",
           "signatures": [
             "insert(index: number, value: string): string"
-          ]
+          ],
+          "documentation": "insert(index: number, value: string): string"
         },
         {
           "name": "lastIndexOf",
           "kind": "method",
           "signatures": [
             "lastIndexOf(value: string): number"
-          ]
+          ],
+          "documentation": "lastIndexOf(value: string): number"
         },
         {
           "name": "length",
           "kind": "method",
           "signatures": [
             "length(): number"
-          ]
+          ],
+          "documentation": "length(): number"
         },
         {
           "name": "normalize",
           "kind": "method",
           "signatures": [
             "normalize(): string"
-          ]
+          ],
+          "documentation": "normalize(): string"
         },
         {
           "name": "replace",
           "kind": "method",
           "signatures": [
             "replace(oldValue: string, newValue: string): string"
-          ]
+          ],
+          "documentation": "replace(oldValue: string, newValue: string): string"
         },
         {
           "name": "split",
           "kind": "method",
           "signatures": [
             "split(separator: string): any"
-          ]
+          ],
+          "documentation": "split(separator: string): array"
         },
         {
           "name": "startsWith",
           "kind": "method",
           "signatures": [
             "startsWith(value: string): bool"
-          ]
+          ],
+          "documentation": "startsWith(value: string): bool"
         },
         {
           "name": "substring",
@@ -910,61 +948,70 @@
           "signatures": [
             "substring(startIndex: number): string",
             "substring(startIndex: number, length: number): string"
-          ]
+          ],
+          "documentation": "substring(startIndex: number): string"
         },
         {
           "name": "toLower",
           "kind": "method",
           "signatures": [
             "toLower(): string"
-          ]
+          ],
+          "documentation": "toLower(): string"
         },
         {
           "name": "toUpper",
           "kind": "method",
           "signatures": [
             "toUpper(): string"
-          ]
+          ],
+          "documentation": "toUpper(): string"
         },
         {
           "name": "trim",
           "kind": "method",
           "signatures": [
             "trim(): string"
-          ]
+          ],
+          "documentation": "trim(): string"
         }
       ]
     },
     {
       "name": "Value",
+      "documentation": "Contains members common to ALL values.",
       "members": [
         {
           "name": "getPrototype",
           "kind": "method",
           "signatures": [
             "getPrototype(): any"
-          ]
+          ],
+          "documentation": "getPrototype(): object"
         },
         {
           "name": "getType",
           "kind": "method",
           "signatures": [
             "getType(): string"
-          ]
+          ],
+          "documentation": "getType(): string"
         },
         {
           "name": "serialize",
           "kind": "method",
           "signatures": [
             "serialize(): string"
-          ]
+          ],
+          "documentation": "serialize(): string"
         },
         {
           "name": "toString",
           "kind": "method",
           "signatures": [
             "toString(): string"
-          ]
+          ],
+          "documentation": "toString(): string"
         }
       ]
     }

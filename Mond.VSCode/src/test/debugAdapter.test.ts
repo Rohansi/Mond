@@ -54,6 +54,25 @@ function mondReplAvailable(): boolean {
 	}
 }
 
+function waitForTermination(session: vscode.DebugSession, timeoutMs = 15000): Promise<void> {
+	return new Promise<void>((resolve, reject) => {
+		const timer = setTimeout(() => {
+			subscription.dispose();
+			reject(new Error(`Timed out waiting for the '${session.name}' session to terminate.`));
+		}, timeoutMs);
+
+		const subscription = vscode.debug.onDidTerminateDebugSession(ended => {
+			if (ended.id !== session.id) {
+				return;
+			}
+
+			clearTimeout(timer);
+			subscription.dispose();
+			resolve();
+		});
+	});
+}
+
 describe('debug adapter', function () {
 	let program: string;
 	let available = false;
@@ -71,7 +90,14 @@ describe('debug adapter', function () {
 	});
 
 	afterEach(async () => {
+		// the debugger listens on a fixed port, so the next test cannot start until this session and
+		// the process behind it are really gone
+		const session = vscode.debug.activeDebugSession;
+		const terminated = session ? waitForTermination(session) : Promise.resolve();
+
 		await vscode.debug.stopDebugging();
+		await terminated;
+
 		vscode.debug.removeBreakpoints(vscode.debug.breakpoints);
 	});
 

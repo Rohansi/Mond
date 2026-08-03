@@ -13,12 +13,23 @@ import type { BreakpointLocation, EvalResponse, RpcResponse, StackFrame } from '
 
 const protocolVersion = 2;
 
+const defaultEndpoint = 'ws://127.0.0.1:1597';
+
+/** How long to keep trying to reach the debugger inside a REPL we just spawned. */
+const attachTimeoutMs = 20000;
+
+/** Budget for one connection attempt, so a slow start does not stall the whole thing. */
+const attachConnectTimeoutMs = 2000;
+
+const attachRetryDelayMs = 250;
+
 export class MondDebugRuntime extends EventEmitter {
 	private _noDebug = false;
 	private _closed = false;
 	private _socket: WebSocket | null = null;
     private _seq: number = 0;
 	private _repl: ChildProcessWithoutNullStreams | null = null;
+	private _replExited: Promise<void> | null = null;
     private readonly _calls: Map<number, PendingCall> = new Map();
 
 	constructor() {
@@ -69,6 +80,8 @@ export class MondDebugRuntime extends EventEmitter {
 		this._repl = spawn(command, args, { windowsHide: true });
 		console.log(`Spawned Mond REPL (PID=${this._repl.pid})`, command, args);
 
+		this._replExited = new Promise<void>(resolve => this._repl?.once('exit', () => resolve()));
+
 		this._repl.on('error', e => {
 			console.error('Mond REPL process error: ', e);
 			this.emit('output', 'stderr', `Failed to run Mond REPL: ${e.message}\n`);
@@ -90,21 +103,41 @@ export class MondDebugRuntime extends EventEmitter {
 		});
 
 		if (!noDebug) {
-			for (let i = 0; i < 9; i++) {
-				try {
-					await this.attach();
-					return;
-				} catch {
-					await delay(1000);
-				}
-			}
-
-			await this.attach();
+			await this.attachToSpawnedRepl();
 		}
 	}
 
-	public async attach(endpoint = 'ws://127.0.0.1:1597'): Promise<void> {
-		const socket = await connect(endpoint);
+	/**
+	 * The REPL needs a moment to start listening, and on a cold or loaded machine that moment can be
+	 * several seconds, so keep retrying until it answers, dies, or we run out of patience.
+	 */
+	private async attachToSpawnedRepl(): Promise<void> {
+		const deadline = Date.now() + attachTimeoutMs;
+		let lastError: unknown;
+
+		for (;;) {
+			if (this._closed) {
+				throw new Error('The Mond REPL exited before the debugger could attach.');
+			}
+
+			try {
+				await this.attach(defaultEndpoint, attachConnectTimeoutMs);
+				return;
+			} catch (e) {
+				// the early attempts are expected to fail, so only the last one is worth reporting
+				lastError = e;
+			}
+
+			if (Date.now() >= deadline) {
+				throw new Error(`Timed out waiting for the Mond REPL debugger: ${errorMessage(lastError)}`);
+			}
+
+			await delay(attachRetryDelayMs);
+		}
+	}
+
+	public async attach(endpoint = defaultEndpoint, connectTimeoutMs?: number): Promise<void> {
+		const socket = await connect(endpoint, connectTimeoutMs);
 		
 		socket.onmessage = e => {
 			if (typeof e.data === 'string') {
@@ -124,6 +157,16 @@ export class MondDebugRuntime extends EventEmitter {
 
 		this._socket = socket;
 		this.emit('ready');
+	}
+
+	/**
+	 * Waits for a REPL we spawned to actually exit. The debugger listens on a fixed port, so the next
+	 * session would otherwise connect to a process that is on its way out.
+	 */
+	public async waitForExit(timeoutMs = 5000): Promise<void> {
+		if (this._replExited) {
+			await Promise.race([this._replExited, delay(timeoutMs)]);
+		}
 	}
 
 	public close(terminate = false): void {

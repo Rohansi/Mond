@@ -5,6 +5,8 @@ export default defineConfig({
 	workspaceFolder: './sampleWorkspace',
 	mocha: {
 		ui: 'bdd',
-		timeout: 60000,
+		// comfortably longer than the waits inside the tests, so a failure reports what it was
+		// waiting for instead of a bare mocha timeout
+		timeout: 120000,
 	},
 });
