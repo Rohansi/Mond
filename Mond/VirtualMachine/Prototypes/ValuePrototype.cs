@@ -17,7 +17,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// getType(): string
+        /// Returns the name of the value's type, such as "number" or "object".
         /// </summary>
         [MondFunction]
         public static string GetType([MondInstance] MondValue instance)
@@ -26,7 +26,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// toString(): string
+        /// Returns a human readable string for the value.
         /// </summary>
         [MondFunction]
         public static string ToString([MondInstance] MondValue instance)
@@ -35,7 +35,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// serialize(): string
+        /// Returns the value written as Mond source, so it can be read back later.
         /// </summary>
         [MondFunction]
         public static string Serialize([MondInstance] MondValue instance)
@@ -44,7 +44,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// getPrototype(): object
+        /// Returns the object this value inherits its members from.
         /// </summary>
         [MondFunction]
         public static MondValue GetPrototype([MondInstance] MondValue instance)

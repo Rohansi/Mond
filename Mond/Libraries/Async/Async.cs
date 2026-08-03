@@ -7,6 +7,9 @@ using Mond.Binding;
 
 namespace Mond.Libraries.Async
 {
+    /// <summary>
+    /// Runs asynchronous functions and drives the task scheduler.
+    /// </summary>
     [MondModule("Async")]
     internal partial class AsyncClass
     {
@@ -25,6 +28,9 @@ namespace Mond.Libraries.Async
             _exceptions = new Queue<Exception>();
         }
 
+        /// <summary>
+        /// Begins running an asynchronous function and returns a task for its completion.
+        /// </summary>
         [MondFunction]
         public MondValue Start(MondState state, MondValue value)
         {
@@ -66,6 +72,9 @@ namespace Mond.Libraries.Async
             return AsyncUtil.ToObject(waitTask());
         }
 
+        /// <summary>
+        /// Runs pending work once and returns whether any tasks are still outstanding.
+        /// </summary>
         [MondFunction]
         public bool Run()
         {
@@ -95,6 +104,9 @@ namespace Mond.Libraries.Async
                 return _activeTasks > 0 || _exceptions.Count > 0;
         }
 
+        /// <summary>
+        /// Blocks until every started task has finished.
+        /// </summary>
         [MondFunction]
         public void RunToCompletion()
         {

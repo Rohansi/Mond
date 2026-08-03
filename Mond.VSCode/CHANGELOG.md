@@ -13,6 +13,7 @@
 - Pause support while a script is running.
 - Extension tests, including a debug adapter integration test.
 - Standard library completions and hovers are now generated from the Mond sources instead of being maintained by hand, so they carry real parameter names, types, return types and every overload.
+- Standard library symbols carry a short description, shown under the signature in hovers and completions.
 - `mond.definitions.paths` loads extra definition files, so a host application that adds its own modules to Mond can describe them to the editor. Set the `MondDefinitionsFile` MSBuild property on the project holding your bindings to generate one.
 - `mond.definitions.includeStandardLibrary` turns the bundled definitions off for hosts that embed Mond without the standard libraries.
 - Conditional breakpoints, hit count breakpoints and logpoints. The Mond runtime does not know about conditions, so the extension evaluates them while stopped and resumes when the stop was not wanted.
@@ -36,6 +37,8 @@
 - Stack frame ids stay stable while stopped, so the Local scope no longer disappears when the stack is requested more than once.
 - Setting or querying a breakpoint no longer fails with `Socket is not open` when no debugger is attached - while running without debugging, before the session connects, or after it ends. Breakpoints are reported as unverified instead.
 - The debug session no longer emits multiple terminated events, and in-flight requests are rejected when the connection drops instead of hanging.
+- Connecting to the debugger can no longer wait forever. A REPL that accepts the connection but never completes the handshake now fails quickly and is retried, and giving up reports what actually went wrong.
+- Ending a session now waits for the REPL it launched to exit. The debugger listens on a fixed port, so starting another session straight away could attach to the previous one on its way out.
 - `0x1` and `0b1` are highlighted as numbers.
 
 ## 0.0.5

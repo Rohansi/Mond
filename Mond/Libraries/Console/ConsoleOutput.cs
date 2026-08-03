@@ -13,6 +13,9 @@ namespace Mond.Libraries.Console
             _consoleOutput = consoleOutput ?? throw new ArgumentNullException(nameof(consoleOutput));
         }
 
+        /// <summary>
+        /// Writes each argument to the console as a string.
+        /// </summary>
         [MondFunction]
         public void Print(params Span<MondValue> arguments)
         {
@@ -22,6 +25,9 @@ namespace Mond.Libraries.Console
             }
         }
 
+        /// <summary>
+        /// Writes each argument to the console as a string, followed by a line break.
+        /// </summary>
         [MondFunction]
         public void PrintLn(params Span<MondValue> arguments)
         {

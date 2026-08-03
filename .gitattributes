@@ -1,0 +1,3 @@
+# the binding generator always writes LF, so let git check these out the same way - otherwise
+# autocrlf rewrites them to CRLF on Windows and every build shows the file as modified
+Mond.VSCode/definitions/*.json text eol=lf

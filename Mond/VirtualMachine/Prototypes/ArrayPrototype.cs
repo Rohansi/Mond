@@ -3,6 +3,9 @@ using Mond.Binding;
 
 namespace Mond.VirtualMachine.Prototypes
 {
+    /// <summary>
+    /// Contains members available on every array.
+    /// </summary>
     [MondPrototype("Array")]
     internal static partial class ArrayPrototype
     {
@@ -18,7 +21,7 @@ namespace Mond.VirtualMachine.Prototypes
         private const string IndexOutOfBounds = "Array.{0}: index out of bounds";
 
         /// <summary>
-        /// add(item)
+        /// Appends an item to the end of the array.
         /// </summary>
         [MondFunction]
         public static void Add([MondInstance] MondValue instance, MondValue item)
@@ -29,7 +32,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// clear()
+        /// Removes every item from the array.
         /// </summary>
         [MondFunction]
         public static void Clear([MondInstance] MondValue instance)
@@ -40,7 +43,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// contains(item): bool
+        /// Returns true when the array holds an item equal to the given one.
         /// </summary>
         [MondFunction]
         public static bool Contains([MondInstance] MondValue instance, MondValue item)
@@ -51,7 +54,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// indexOf(item): number
+        /// Returns the index of the first matching item, or -1 when there is none.
         /// </summary>
         [MondFunction]
         public static int IndexOf([MondInstance] MondValue instance, MondValue item)
@@ -62,7 +65,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// insert(index: number, item)
+        /// Inserts an item at the given index, shifting the following items along.
         /// </summary>
         [MondFunction]
         public static void Insert([MondInstance] MondValue instance, int index, MondValue item)
@@ -76,7 +79,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// lastIndexOf(item): number
+        /// Returns the index of the last matching item, or -1 when there is none.
         /// </summary>
         [MondFunction]
         public static int LastIndexOf([MondInstance] MondValue instance, MondValue item)
@@ -87,7 +90,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// remove(item): bool
+        /// Removes the first matching item and returns whether one was found.
         /// </summary>
         [MondFunction]
         public static MondValue Remove([MondInstance] MondValue instance, MondValue item)
@@ -98,7 +101,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// removeAt(index: number)
+        /// Removes the item at the given index.
         /// </summary>
         [MondFunction]
         public static void RemoveAt([MondInstance] MondValue instance, int index)
@@ -112,28 +115,28 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// sort()
+        /// Sorts the array, or a range of it, in ascending order.
         /// </summary>
         [MondFunction]
         public static void Sort([MondInstance] MondValue instance) =>
             SortImpl("sort", instance, 0, instance.ArrayValue.Count, false);
 
         /// <summary>
-        /// sort(index: number, count: number)
+        /// Sorts the array, or a range of it, in ascending order.
         /// </summary>
         [MondFunction]
         public static void Sort([MondInstance] MondValue instance, int index, int count) =>
             SortImpl("sort", instance, index, count, false);
 
         /// <summary>
-        /// sortDescending()
+        /// Sorts the array, or a range of it, in descending order.
         /// </summary>
         [MondFunction]
         public static void SortDescending([MondInstance] MondValue instance) =>
             SortImpl("sortDescending", instance, 0, instance.ArrayValue.Count, true);
 
         /// <summary>
-        /// sortDescending(index: number, count: number)
+        /// Sorts the array, or a range of it, in descending order.
         /// </summary>
         [MondFunction]
         public static void SortDescending([MondInstance] MondValue instance, int index, int count) =>
@@ -154,7 +157,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// length(): number
+        /// Returns the number of items in the array.
         /// </summary>
         [MondFunction]
         public static int Length([MondInstance] MondValue instance)
@@ -165,7 +168,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// getEnumerator(): object
+        /// Returns an enumerator that walks the array, as used by foreach.
         /// </summary>
         [MondFunction]
         public static MondValue GetEnumerator([MondInstance] MondValue instance)

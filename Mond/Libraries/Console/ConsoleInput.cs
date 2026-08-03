@@ -13,6 +13,9 @@ namespace Mond.Libraries.Console
             _consoleInput = consoleInput ?? throw new ArgumentNullException(nameof(consoleInput));
         }
 
+        /// <summary>
+        /// Reads a line of text from the console, or null at the end of the input.
+        /// </summary>
         [MondFunction]
         public string ReadLn()
         {

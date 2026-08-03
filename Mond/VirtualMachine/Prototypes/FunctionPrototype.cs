@@ -2,6 +2,9 @@
 
 namespace Mond.VirtualMachine.Prototypes
 {
+    /// <summary>
+    /// Contains members available on every function.
+    /// </summary>
     [MondPrototype("Function")]
     internal static partial class FunctionPrototype
     {
@@ -16,7 +19,7 @@ namespace Mond.VirtualMachine.Prototypes
         private const string MustBeAFunction = "Function.{0}: must be called on a function";
 
         /// <summary>
-        /// getName(): string|undefined
+        /// Returns the declared name of the function, or undefined when it has none.
         /// </summary>
         [MondFunction]
         public static MondValue GetName([MondInstance] MondValue instance)

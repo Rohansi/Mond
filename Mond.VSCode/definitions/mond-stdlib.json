@@ -4,180 +4,206 @@
     {
       "name": "Async",
       "kind": "module",
+      "documentation": "Runs asynchronous functions and drives the task scheduler.",
       "members": [
         {
           "name": "run",
           "kind": "method",
           "signatures": [
             "run(): bool"
-          ]
+          ],
+          "documentation": "Runs pending work once and returns whether any tasks are still outstanding."
         },
         {
           "name": "runToCompletion",
           "kind": "method",
           "signatures": [
             "runToCompletion()"
-          ]
+          ],
+          "documentation": "Blocks until every started task has finished."
         },
         {
           "name": "start",
           "kind": "method",
           "signatures": [
             "start(value: any): any"
-          ]
+          ],
+          "documentation": "Begins running an asynchronous function and returns a task for its completion."
         }
       ]
     },
     {
       "name": "Char",
       "kind": "module",
+      "documentation": "Inspects and converts individual characters of a string.",
       "members": [
         {
           "name": "convertFromUtf32",
           "kind": "method",
           "signatures": [
             "convertFromUtf32(utf32: number): string"
-          ]
+          ],
+          "documentation": "Returns the string for a Unicode code point, which may be a surrogate pair."
         },
         {
           "name": "convertToUtf32",
           "kind": "method",
           "signatures": [
             "convertToUtf32(s: string, index?: number): number"
-          ]
+          ],
+          "documentation": "Returns the Unicode code point at the given index, combining surrogate pairs."
         },
         {
           "name": "fromNumber",
           "kind": "method",
           "signatures": [
             "fromNumber(num: number): string"
-          ]
+          ],
+          "documentation": "Returns the single character string for the given character code."
         },
         {
           "name": "getNumericValue",
           "kind": "method",
           "signatures": [
             "getNumericValue(s: string, index?: number): number"
-          ]
+          ],
+          "documentation": "Returns the numeric value the character represents, or -1 when it has none."
         },
         {
           "name": "getUnicodeCategory",
           "kind": "method",
           "signatures": [
             "getUnicodeCategory(s: string, index?: number): string"
-          ]
+          ],
+          "documentation": "Returns the name of the Unicode category the character belongs to."
         },
         {
           "name": "isControl",
           "kind": "method",
           "signatures": [
             "isControl(s: string, index?: number): bool"
-          ]
+          ],
+          "documentation": "Returns true when the character is a control character."
         },
         {
           "name": "isDigit",
           "kind": "method",
           "signatures": [
             "isDigit(s: string, index?: number): bool"
-          ]
+          ],
+          "documentation": "Returns true when the character is a decimal digit."
         },
         {
           "name": "isHighSurrogate",
           "kind": "method",
           "signatures": [
             "isHighSurrogate(s: string, index?: number): bool"
-          ]
+          ],
+          "documentation": "Returns true when the character is the first half of a surrogate pair."
         },
         {
           "name": "isLetter",
           "kind": "method",
           "signatures": [
             "isLetter(s: string, index?: number): bool"
-          ]
+          ],
+          "documentation": "Returns true when the character is a letter."
         },
         {
           "name": "isLetterOrDigit",
           "kind": "method",
           "signatures": [
             "isLetterOrDigit(s: string, index?: number): bool"
-          ]
+          ],
+          "documentation": "Returns true when the character is a letter or a decimal digit."
         },
         {
           "name": "isLowSurrogate",
           "kind": "method",
           "signatures": [
             "isLowSurrogate(s: string, index?: number): bool"
-          ]
+          ],
+          "documentation": "Returns true when the character is the second half of a surrogate pair."
         },
         {
           "name": "isLower",
           "kind": "method",
           "signatures": [
             "isLower(s: string, index?: number): bool"
-          ]
+          ],
+          "documentation": "Returns true when the character is a lower case letter."
         },
         {
           "name": "isNumber",
           "kind": "method",
           "signatures": [
             "isNumber(s: string, index?: number): bool"
-          ]
+          ],
+          "documentation": "Returns true when the character is any kind of number, including fractions and subscripts."
         },
         {
           "name": "isPunctuation",
           "kind": "method",
           "signatures": [
             "isPunctuation(s: string, index?: number): bool"
-          ]
+          ],
+          "documentation": "Returns true when the character is punctuation."
         },
         {
           "name": "isSeparator",
           "kind": "method",
           "signatures": [
             "isSeparator(s: string, index?: number): bool"
-          ]
+          ],
+          "documentation": "Returns true when the character is a space, line, or paragraph separator."
         },
         {
           "name": "isSurrogate",
           "kind": "method",
           "signatures": [
             "isSurrogate(s: string, index?: number): bool"
-          ]
+          ],
+          "documentation": "Returns true when the character is either half of a surrogate pair."
         },
         {
           "name": "isSurrogatePair",
           "kind": "method",
           "signatures": [
             "isSurrogatePair(s: string, index?: number): bool"
-          ]
+          ],
+          "documentation": "Returns true when the character and the one after it form a surrogate pair."
         },
         {
           "name": "isSymbol",
           "kind": "method",
           "signatures": [
             "isSymbol(s: string, index?: number): bool"
-          ]
+          ],
+          "documentation": "Returns true when the character is a symbol, such as a currency or math sign."
         },
         {
           "name": "isUpper",
           "kind": "method",
           "signatures": [
             "isUpper(s: string, index?: number): bool"
-          ]
+          ],
+          "documentation": "Returns true when the character is an upper case letter."
         },
         {
           "name": "isWhiteSpace",
           "kind": "method",
           "signatures": [
             "isWhiteSpace(s: string, index?: number): bool"
-          ]
+          ],
+          "documentation": "Returns true when the character is whitespace."
         },
         {
           "name": "toNumber",
           "kind": "method",
           "signatures": [
             "toNumber(s: string, index?: number): number"
-          ]
+          ],
+          "documentation": "Returns the character code of the character at the given index."
         }
       ]
     },
@@ -186,136 +212,156 @@
       "kind": "function",
       "signatures": [
         "readLn(): string"
-      ]
+      ],
+      "documentation": "Reads a line of text from the console, or null at the end of the input."
     },
     {
       "name": "print",
       "kind": "function",
       "signatures": [
         "print(...arguments)"
-      ]
+      ],
+      "documentation": "Writes each argument to the console as a string."
     },
     {
       "name": "printLn",
       "kind": "function",
       "signatures": [
         "printLn(...arguments)"
-      ]
+      ],
+      "documentation": "Writes each argument to the console as a string, followed by a line break."
     },
     {
       "name": "error",
       "kind": "function",
       "signatures": [
         "error(message: string)"
-      ]
+      ],
+      "documentation": "Throws a runtime error with the given message."
     },
     {
       "name": "try",
       "kind": "function",
       "signatures": [
         "try(function: any, ...arguments): any"
-      ]
+      ],
+      "documentation": "Calls the function and returns an object holding either its result or the error it threw."
     },
     {
       "name": "Json",
       "kind": "module",
+      "documentation": "Converts values to and from JSON text.",
       "members": [
         {
           "name": "deserialize",
           "kind": "method",
           "signatures": [
             "deserialize(text: string): any"
-          ]
+          ],
+          "documentation": "Reads JSON text and returns the value it describes."
         },
         {
           "name": "serialize",
           "kind": "method",
           "signatures": [
             "serialize(value: any): string"
-          ]
+          ],
+          "documentation": "Converts the value to JSON text."
         }
       ]
     },
     {
       "name": "Math",
       "kind": "module",
+      "documentation": "Common mathematical functions, along with the constants PI and E.",
       "members": [
         {
           "name": "abs",
           "kind": "method",
           "signatures": [
             "abs(value: number): number"
-          ]
+          ],
+          "documentation": "Returns the value without its sign."
         },
         {
           "name": "acos",
           "kind": "method",
           "signatures": [
             "acos(d: number): number"
-          ]
+          ],
+          "documentation": "Returns the angle in radians whose cosine is the given value."
         },
         {
           "name": "asin",
           "kind": "method",
           "signatures": [
             "asin(d: number): number"
-          ]
+          ],
+          "documentation": "Returns the angle in radians whose sine is the given value."
         },
         {
           "name": "atan",
           "kind": "method",
           "signatures": [
             "atan(d: number): number"
-          ]
+          ],
+          "documentation": "Returns the angle in radians whose tangent is the given value."
         },
         {
           "name": "atan2",
           "kind": "method",
           "signatures": [
             "atan2(y: number, x: number): number"
-          ]
+          ],
+          "documentation": "Returns the angle in radians to the point (x, y), using both signs to pick the quadrant."
         },
         {
           "name": "ceiling",
           "kind": "method",
           "signatures": [
             "ceiling(d: number): number"
-          ]
+          ],
+          "documentation": "Rounds the value up to the nearest whole number."
         },
         {
           "name": "clamp",
           "kind": "method",
           "signatures": [
             "clamp(value: number, min: number, max: number): number"
-          ]
+          ],
+          "documentation": "Returns the value limited to the range between min and max."
         },
         {
           "name": "cos",
           "kind": "method",
           "signatures": [
             "cos(d: number): number"
-          ]
+          ],
+          "documentation": "Returns the cosine of an angle given in radians."
         },
         {
           "name": "cosh",
           "kind": "method",
           "signatures": [
             "cosh(d: number): number"
-          ]
+          ],
+          "documentation": "Returns the hyperbolic cosine of the value."
         },
         {
           "name": "exp",
           "kind": "method",
           "signatures": [
             "exp(d: number): number"
-          ]
+          ],
+          "documentation": "Returns E raised to the given power."
         },
         {
           "name": "floor",
           "kind": "method",
           "signatures": [
             "floor(d: number): number"
-          ]
+          ],
+          "documentation": "Rounds the value down to the nearest whole number."
         },
         {
           "name": "log",
@@ -323,91 +369,104 @@
           "signatures": [
             "log(d: number): number",
             "log(d: number, b: number): number"
-          ]
+          ],
+          "documentation": "Returns the logarithm of the value, in base E unless another base is given."
         },
         {
           "name": "log10",
           "kind": "method",
           "signatures": [
             "log10(d: number): number"
-          ]
+          ],
+          "documentation": "Returns the base 10 logarithm of the value."
         },
         {
           "name": "max",
           "kind": "method",
           "signatures": [
             "max(x: number, y: number): number"
-          ]
+          ],
+          "documentation": "Returns the larger of the two values."
         },
         {
           "name": "min",
           "kind": "method",
           "signatures": [
             "min(x: number, y: number): number"
-          ]
+          ],
+          "documentation": "Returns the smaller of the two values."
         },
         {
           "name": "pow",
           "kind": "method",
           "signatures": [
             "pow(x: number, y: number): number"
-          ]
+          ],
+          "documentation": "Returns x raised to the power of y."
         },
         {
           "name": "round",
           "kind": "method",
           "signatures": [
             "round(d: number): number"
-          ]
+          ],
+          "documentation": "Rounds the value to the nearest whole number."
         },
         {
           "name": "sign",
           "kind": "method",
           "signatures": [
             "sign(d: number): number"
-          ]
+          ],
+          "documentation": "Returns -1, 0, or 1 depending on the sign of the value."
         },
         {
           "name": "sin",
           "kind": "method",
           "signatures": [
             "sin(d: number): number"
-          ]
+          ],
+          "documentation": "Returns the sine of an angle given in radians."
         },
         {
           "name": "sinh",
           "kind": "method",
           "signatures": [
             "sinh(d: number): number"
-          ]
+          ],
+          "documentation": "Returns the hyperbolic sine of the value."
         },
         {
           "name": "sqrt",
           "kind": "method",
           "signatures": [
             "sqrt(d: number): number"
-          ]
+          ],
+          "documentation": "Returns the square root of the value."
         },
         {
           "name": "tan",
           "kind": "method",
           "signatures": [
             "tan(d: number): number"
-          ]
+          ],
+          "documentation": "Returns the tangent of an angle given in radians."
         },
         {
           "name": "tanh",
           "kind": "method",
           "signatures": [
             "tanh(d: number): number"
-          ]
+          ],
+          "documentation": "Returns the hyperbolic tangent of the value."
         },
         {
           "name": "truncate",
           "kind": "method",
           "signatures": [
             "truncate(d: number): number"
-          ]
+          ],
+          "documentation": "Discards the fractional part of the value."
         }
       ]
     },
@@ -416,60 +475,69 @@
       "kind": "function",
       "signatures": [
         "parseFloat(str: string): any"
-      ]
+      ],
+      "documentation": "Parses the string as a decimal number, returning undefined when it is not one."
     },
     {
       "name": "parseHex",
       "kind": "function",
       "signatures": [
         "parseHex(str: string): any"
-      ]
+      ],
+      "documentation": "Parses the string as a hexadecimal number, returning undefined when it is not one."
     },
     {
       "name": "parseInt",
       "kind": "function",
       "signatures": [
         "parseInt(str: string): any"
-      ]
+      ],
+      "documentation": "Parses the string as a whole number, returning undefined when it is not one."
     },
     {
       "name": "proxyCreate",
       "kind": "function",
       "signatures": [
         "proxyCreate(target: any, handler: any): any"
-      ]
+      ],
+      "documentation": "Wraps the target in an object that routes member access through the handler."
     },
     {
       "name": "require",
       "kind": "function",
       "signatures": [
         "require(fileName: string): any"
-      ]
+      ],
+      "documentation": "Loads another script and returns its exports, reusing the result on later calls."
     },
     {
       "name": "Task",
       "kind": "module",
+      "documentation": "Creates and combines tasks for use with await.",
       "members": [
         {
           "name": "delay",
           "kind": "method",
           "signatures": [
             "delay(seconds: number, cancellationToken?: any?): any"
-          ]
+          ],
+          "documentation": "Returns a task that completes after the given number of seconds."
         },
         {
           "name": "whenAll",
           "kind": "method",
           "signatures": [
             "whenAll(...tasks): any"
-          ]
+          ],
+          "documentation": "Returns a task that completes once every given task has, with all of their results."
         },
         {
           "name": "whenAny",
           "kind": "method",
           "signatures": [
             "whenAny(...tasks): any"
-          ]
+          ],
+          "documentation": "Returns a task that completes as soon as any given task does, with that task."
         }
       ]
     },
@@ -479,27 +547,31 @@
       "signatures": [
         "CancellationToken(canceled: bool)"
       ],
+      "documentation": "Signals to running tasks that they should stop.",
       "members": [
         {
           "name": "isCancellationRequested",
           "kind": "method",
           "signatures": [
             "isCancellationRequested(): bool"
-          ]
+          ],
+          "documentation": "Returns true once cancellation has been requested."
         },
         {
           "name": "register",
           "kind": "method",
           "signatures": [
             "register(function: any)"
-          ]
+          ],
+          "documentation": "Calls the given function when cancellation is requested."
         },
         {
           "name": "throwIfCancellationRequested",
           "kind": "method",
           "signatures": [
             "throwIfCancellationRequested()"
-          ]
+          ],
+          "documentation": "Throws an error when cancellation has been requested, otherwise does nothing."
         }
       ]
     },
@@ -510,34 +582,39 @@
         "CancellationTokenSource()",
         "CancellationTokenSource(seconds: number)"
       ],
+      "documentation": "Hands out cancellation tokens and decides when they are cancelled.",
       "members": [
         {
           "name": "cancel",
           "kind": "method",
           "signatures": [
             "cancel()"
-          ]
+          ],
+          "documentation": "Requests cancellation immediately."
         },
         {
           "name": "cancelAfter",
           "kind": "method",
           "signatures": [
             "cancelAfter(seconds: number)"
-          ]
+          ],
+          "documentation": "Requests cancellation after the given number of seconds."
         },
         {
           "name": "getToken",
           "kind": "method",
           "signatures": [
             "getToken(): any"
-          ]
+          ],
+          "documentation": "Returns the token that this source cancels."
         },
         {
           "name": "isCancellationRequested",
           "kind": "method",
           "signatures": [
             "isCancellationRequested(): bool"
-          ]
+          ],
+          "documentation": "Returns true once cancellation has been requested."
         }
       ]
     },
@@ -548,6 +625,7 @@
         "Random()",
         "Random(seed: number)"
       ],
+      "documentation": "Generates pseudo random numbers, optionally from a fixed seed.",
       "members": [
         {
           "name": "next",
@@ -556,14 +634,16 @@
             "next(): number",
             "next(maxValue: number): number",
             "next(minValue: number, maxValue: number): number"
-          ]
+          ],
+          "documentation": "Returns a whole number, below maxValue and at or above minValue when those are given."
         },
         {
           "name": "nextDouble",
           "kind": "method",
           "signatures": [
             "nextDouble(): number"
-          ]
+          ],
+          "documentation": "Returns a number from 0 up to but not including 1."
         }
       ]
     },
@@ -573,34 +653,39 @@
       "signatures": [
         "TaskCompletionSource()"
       ],
+      "documentation": "Produces a task whose result is supplied by hand, for bridging callback based code.",
       "members": [
         {
           "name": "getTask",
           "kind": "method",
           "signatures": [
             "getTask(): any"
-          ]
+          ],
+          "documentation": "Returns the task controlled by this source."
         },
         {
           "name": "setCanceled",
           "kind": "method",
           "signatures": [
             "setCanceled()"
-          ]
+          ],
+          "documentation": "Completes the task as cancelled."
         },
         {
           "name": "setException",
           "kind": "method",
           "signatures": [
             "setException(message: string)"
-          ]
+          ],
+          "documentation": "Completes the task with an error carrying the given message."
         },
         {
           "name": "setResult",
           "kind": "method",
           "signatures": [
             "setResult(result: any)"
-          ]
+          ],
+          "documentation": "Completes the task with the given result."
         }
       ]
     }
@@ -608,6 +693,7 @@
   "prototypes": [
     {
       "name": "Array",
+      "documentation": "Contains members available on every array.",
       "members": [
         {
           "name": "add",
@@ -615,7 +701,7 @@
           "signatures": [
             "add(item: any)"
           ],
-          "documentation": "add(item)"
+          "documentation": "Appends an item to the end of the array."
         },
         {
           "name": "clear",
@@ -623,7 +709,7 @@
           "signatures": [
             "clear()"
           ],
-          "documentation": "clear()"
+          "documentation": "Removes every item from the array."
         },
         {
           "name": "contains",
@@ -631,7 +717,7 @@
           "signatures": [
             "contains(item: any): bool"
           ],
-          "documentation": "contains(item): bool"
+          "documentation": "Returns true when the array holds an item equal to the given one."
         },
         {
           "name": "getEnumerator",
@@ -639,7 +725,7 @@
           "signatures": [
             "getEnumerator(): any"
           ],
-          "documentation": "getEnumerator(): object"
+          "documentation": "Returns an enumerator that walks the array, as used by foreach."
         },
         {
           "name": "indexOf",
@@ -647,7 +733,7 @@
           "signatures": [
             "indexOf(item: any): number"
           ],
-          "documentation": "indexOf(item): number"
+          "documentation": "Returns the index of the first matching item, or -1 when there is none."
         },
         {
           "name": "insert",
@@ -655,7 +741,7 @@
           "signatures": [
             "insert(index: number, item: any)"
           ],
-          "documentation": "insert(index: number, item)"
+          "documentation": "Inserts an item at the given index, shifting the following items along."
         },
         {
           "name": "lastIndexOf",
@@ -663,7 +749,7 @@
           "signatures": [
             "lastIndexOf(item: any): number"
           ],
-          "documentation": "lastIndexOf(item): number"
+          "documentation": "Returns the index of the last matching item, or -1 when there is none."
         },
         {
           "name": "length",
@@ -671,7 +757,7 @@
           "signatures": [
             "length(): number"
           ],
-          "documentation": "length(): number"
+          "documentation": "Returns the number of items in the array."
         },
         {
           "name": "remove",
@@ -679,7 +765,7 @@
           "signatures": [
             "remove(item: any): any"
           ],
-          "documentation": "remove(item): bool"
+          "documentation": "Removes the first matching item and returns whether one was found."
         },
         {
           "name": "removeAt",
@@ -687,7 +773,7 @@
           "signatures": [
             "removeAt(index: number)"
           ],
-          "documentation": "removeAt(index: number)"
+          "documentation": "Removes the item at the given index."
         },
         {
           "name": "sort",
@@ -696,7 +782,7 @@
             "sort()",
             "sort(index: number, count: number)"
           ],
-          "documentation": "sort()"
+          "documentation": "Sorts the array, or a range of it, in ascending order."
         },
         {
           "name": "sortDescending",
@@ -705,12 +791,13 @@
             "sortDescending()",
             "sortDescending(index: number, count: number)"
           ],
-          "documentation": "sortDescending()"
+          "documentation": "Sorts the array, or a range of it, in descending order."
         }
       ]
     },
     {
       "name": "Function",
+      "documentation": "Contains members available on every function.",
       "members": [
         {
           "name": "getName",
@@ -718,24 +805,27 @@
           "signatures": [
             "getName(): any"
           ],
-          "documentation": "getName(): string|undefined"
+          "documentation": "Returns the declared name of the function, or undefined when it has none."
         }
       ]
     },
     {
       "name": "Number",
+      "documentation": "Contains members available on every number.",
       "members": [
         {
           "name": "isNaN",
           "kind": "method",
           "signatures": [
             "isNaN(): any"
-          ]
+          ],
+          "documentation": "Returns true when the number is the result of an undefined operation, such as 0 / 0."
         }
       ]
     },
     {
       "name": "Object",
+      "documentation": "Contains members available on every object.",
       "members": [
         {
           "name": "add",
@@ -743,7 +833,7 @@
           "signatures": [
             "add(key: any, value: any)"
           ],
-          "documentation": "add(key, value)"
+          "documentation": "Stores a value under the given key, replacing any existing entry."
         },
         {
           "name": "clear",
@@ -751,7 +841,7 @@
           "signatures": [
             "clear()"
           ],
-          "documentation": "clear()"
+          "documentation": "Removes every entry from the object."
         },
         {
           "name": "containsKey",
@@ -759,7 +849,7 @@
           "signatures": [
             "containsKey(key: any): bool"
           ],
-          "documentation": "containsKey(key): bool"
+          "documentation": "Returns true when the object has an entry under the given key."
         },
         {
           "name": "containsValue",
@@ -767,7 +857,7 @@
           "signatures": [
             "containsValue(value: any): bool"
           ],
-          "documentation": "containsValue(value): bool"
+          "documentation": "Returns true when any entry holds a value equal to the given one."
         },
         {
           "name": "get",
@@ -775,7 +865,7 @@
           "signatures": [
             "get(key: any): any"
           ],
-          "documentation": "get(key): any"
+          "documentation": "Returns the value stored under the given key, or undefined when there is none."
         },
         {
           "name": "getEnumerator",
@@ -783,7 +873,7 @@
           "signatures": [
             "getEnumerator(): any"
           ],
-          "documentation": "getEnumerator(): object"
+          "documentation": "Returns an enumerator that yields each entry as a key and value pair."
         },
         {
           "name": "length",
@@ -791,7 +881,7 @@
           "signatures": [
             "length(): number"
           ],
-          "documentation": "length(): number"
+          "documentation": "Returns the number of entries in the object."
         },
         {
           "name": "lock",
@@ -799,7 +889,7 @@
           "signatures": [
             "lock(): any"
           ],
-          "documentation": "lock(): object"
+          "documentation": "Makes the object read only and returns it."
         },
         {
           "name": "remove",
@@ -807,7 +897,7 @@
           "signatures": [
             "remove(key: any): bool"
           ],
-          "documentation": "remove(key): bool"
+          "documentation": "Removes the entry under the given key and returns whether one was found."
         },
         {
           "name": "setPrototype",
@@ -815,7 +905,7 @@
           "signatures": [
             "setPrototype(value: any): any"
           ],
-          "documentation": "setPrototype(value: any) : object"
+          "documentation": "Sets the object this one inherits its members from and returns the object."
         },
         {
           "name": "setPrototypeAndLock",
@@ -823,12 +913,13 @@
           "signatures": [
             "setPrototypeAndLock(value: any): any"
           ],
-          "documentation": "setPrototypeAndLock(value: any): object"
+          "documentation": "Sets the prototype, makes the object read only, and returns it."
         }
       ]
     },
     {
       "name": "String",
+      "documentation": "Contains members available on every string.",
       "members": [
         {
           "name": "charAt",
@@ -836,7 +927,7 @@
           "signatures": [
             "charAt(index: number): string"
           ],
-          "documentation": "charAt(index: number): string"
+          "documentation": "Returns the character at the given index as a string."
         },
         {
           "name": "charCodeAt",
@@ -844,7 +935,7 @@
           "signatures": [
             "charCodeAt(index: number): number"
           ],
-          "documentation": "charCodeAt(index: number): number"
+          "documentation": "Returns the character code of the character at the given index."
         },
         {
           "name": "contains",
@@ -852,7 +943,7 @@
           "signatures": [
             "contains(value: string): bool"
           ],
-          "documentation": "contains(value: string): bool"
+          "documentation": "Returns true when the string contains the given substring."
         },
         {
           "name": "endsWith",
@@ -860,7 +951,7 @@
           "signatures": [
             "endsWith(value: string): bool"
           ],
-          "documentation": "endsWith(value: string): bool"
+          "documentation": "Returns true when the string ends with the given substring."
         },
         {
           "name": "format",
@@ -868,7 +959,7 @@
           "signatures": [
             "format(...arguments): string"
           ],
-          "documentation": "format(): string"
+          "documentation": "Treats the string as a template and fills its numbered placeholders with the arguments."
         },
         {
           "name": "getEnumerator",
@@ -876,7 +967,7 @@
           "signatures": [
             "getEnumerator(): any"
           ],
-          "documentation": "getEnumerator(): object"
+          "documentation": "Returns an enumerator that yields each character of the string."
         },
         {
           "name": "indexOf",
@@ -884,7 +975,7 @@
           "signatures": [
             "indexOf(value: string): number"
           ],
-          "documentation": "indexOf(value: string): number"
+          "documentation": "Returns the index of the first occurrence of the substring, or -1 when there is none."
         },
         {
           "name": "insert",
@@ -892,7 +983,7 @@
           "signatures": [
             "insert(index: number, value: string): string"
           ],
-          "documentation": "insert(index: number, value: string): string"
+          "documentation": "Returns a new string with the given value inserted at the given index."
         },
         {
           "name": "lastIndexOf",
@@ -900,7 +991,7 @@
           "signatures": [
             "lastIndexOf(value: string): number"
           ],
-          "documentation": "lastIndexOf(value: string): number"
+          "documentation": "Returns the index of the last occurrence of the substring, or -1 when there is none."
         },
         {
           "name": "length",
@@ -908,7 +999,7 @@
           "signatures": [
             "length(): number"
           ],
-          "documentation": "length(): number"
+          "documentation": "Returns the number of characters in the string."
         },
         {
           "name": "normalize",
@@ -916,7 +1007,7 @@
           "signatures": [
             "normalize(): string"
           ],
-          "documentation": "normalize(): string"
+          "documentation": "Returns the string in Unicode normalization form C, so equivalent text compares equal."
         },
         {
           "name": "replace",
@@ -924,7 +1015,7 @@
           "signatures": [
             "replace(oldValue: string, newValue: string): string"
           ],
-          "documentation": "replace(oldValue: string, newValue: string): string"
+          "documentation": "Returns a new string with every occurrence of one substring swapped for another."
         },
         {
           "name": "split",
@@ -932,7 +1023,7 @@
           "signatures": [
             "split(separator: string): any"
           ],
-          "documentation": "split(separator: string): array"
+          "documentation": "Splits the string on the given separator and returns the parts as an array."
         },
         {
           "name": "startsWith",
@@ -940,7 +1031,7 @@
           "signatures": [
             "startsWith(value: string): bool"
           ],
-          "documentation": "startsWith(value: string): bool"
+          "documentation": "Returns true when the string starts with the given substring."
         },
         {
           "name": "substring",
@@ -949,7 +1040,7 @@
             "substring(startIndex: number): string",
             "substring(startIndex: number, length: number): string"
           ],
-          "documentation": "substring(startIndex: number): string"
+          "documentation": "Returns the part of the string starting at the given index, optionally limited to a length."
         },
         {
           "name": "toLower",
@@ -957,7 +1048,7 @@
           "signatures": [
             "toLower(): string"
           ],
-          "documentation": "toLower(): string"
+          "documentation": "Returns the string converted to lower case."
         },
         {
           "name": "toUpper",
@@ -965,7 +1056,7 @@
           "signatures": [
             "toUpper(): string"
           ],
-          "documentation": "toUpper(): string"
+          "documentation": "Returns the string converted to upper case."
         },
         {
           "name": "trim",
@@ -973,7 +1064,7 @@
           "signatures": [
             "trim(): string"
           ],
-          "documentation": "trim(): string"
+          "documentation": "Returns the string with leading and trailing whitespace removed."
         }
       ]
     },
@@ -987,7 +1078,7 @@
           "signatures": [
             "getPrototype(): any"
           ],
-          "documentation": "getPrototype(): object"
+          "documentation": "Returns the object this value inherits its members from."
         },
         {
           "name": "getType",
@@ -995,7 +1086,7 @@
           "signatures": [
             "getType(): string"
           ],
-          "documentation": "getType(): string"
+          "documentation": "Returns the name of the value's type, such as \"number\" or \"object\"."
         },
         {
           "name": "serialize",
@@ -1003,7 +1094,7 @@
           "signatures": [
             "serialize(): string"
           ],
-          "documentation": "serialize(): string"
+          "documentation": "Returns the value written as Mond source, so it can be read back later."
         },
         {
           "name": "toString",
@@ -1011,7 +1102,7 @@
           "signatures": [
             "toString(): string"
           ],
-          "documentation": "toString(): string"
+          "documentation": "Returns a human readable string for the value."
         }
       ]
     }

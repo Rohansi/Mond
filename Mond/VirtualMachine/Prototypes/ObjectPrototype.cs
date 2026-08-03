@@ -3,6 +3,9 @@ using Mond.Binding;
 
 namespace Mond.VirtualMachine.Prototypes
 {
+    /// <summary>
+    /// Contains members available on every object.
+    /// </summary>
     [MondPrototype("Object")]
     internal static partial class ObjectPrototype
     {
@@ -18,7 +21,7 @@ namespace Mond.VirtualMachine.Prototypes
         private const string LockedError = "Object.{0}: " + RuntimeError.ObjectIsLocked;
 
         /// <summary>
-        /// add(key, value)
+        /// Stores a value under the given key, replacing any existing entry.
         /// </summary>
         [MondFunction]
         public static void Add([MondInstance] MondValue instance, MondValue key, MondValue value)
@@ -33,7 +36,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// clear()
+        /// Removes every entry from the object.
         /// </summary>
         [MondFunction]
         public static void Clear([MondInstance] MondValue instance)
@@ -47,7 +50,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// containsKey(key): bool
+        /// Returns true when the object has an entry under the given key.
         /// </summary>
         [MondFunction]
         public static bool ContainsKey([MondInstance] MondValue instance, MondValue key)
@@ -58,7 +61,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// containsValue(value): bool
+        /// Returns true when any entry holds a value equal to the given one.
         /// </summary>
         [MondFunction]
         public static bool ContainsValue([MondInstance] MondValue instance, MondValue value)
@@ -69,7 +72,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// get(key): any
+        /// Returns the value stored under the given key, or undefined when there is none.
         /// </summary>
         [MondFunction]
         public static MondValue Get([MondInstance] MondValue instance, MondValue key)
@@ -83,7 +86,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// remove(key): bool
+        /// Removes the entry under the given key and returns whether one was found.
         /// </summary>
         [MondFunction]
         public static bool Remove([MondInstance] MondValue instance, MondValue key)
@@ -97,7 +100,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// length(): number
+        /// Returns the number of entries in the object.
         /// </summary>
         [MondFunction]
         public static int Length([MondInstance] MondValue instance)
@@ -108,7 +111,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// getEnumerator(): object
+        /// Returns an enumerator that yields each entry as a key and value pair.
         /// </summary>
         [MondFunction]
         public static MondValue GetEnumerator([MondInstance] MondValue instance)
@@ -140,7 +143,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// setPrototype(value: any) : object
+        /// Sets the object this one inherits its members from and returns the object.
         /// </summary>
         [MondFunction]
         public static MondValue SetPrototype([MondInstance] MondValue instance, MondValue value)
@@ -156,7 +159,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// lock(): object
+        /// Makes the object read only and returns it.
         /// </summary>
         [MondFunction]
         public static MondValue Lock([MondInstance] MondValue instance)
@@ -168,7 +171,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// setPrototypeAndLock(value: any): object
+        /// Sets the prototype, makes the object read only, and returns it.
         /// </summary>
         [MondFunction]
         public static MondValue SetPrototypeAndLock([MondInstance] MondValue instance, MondValue value)

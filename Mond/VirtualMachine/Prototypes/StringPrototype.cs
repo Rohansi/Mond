@@ -4,6 +4,9 @@ using Mond.Binding;
 
 namespace Mond.VirtualMachine.Prototypes
 {
+    /// <summary>
+    /// Contains members available on every string.
+    /// </summary>
     [MondPrototype("String")]
     internal static partial class StringPrototype
     {
@@ -18,7 +21,7 @@ namespace Mond.VirtualMachine.Prototypes
         private const string IndexOutOfBounds = "String.{0}: index out of bounds";
 
         /// <summary>
-        /// charAt(index: number): string
+        /// Returns the character at the given index as a string.
         /// </summary>
         [MondFunction]
         public static string CharAt([MondInstance] MondValue instance, int index)
@@ -32,7 +35,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// charCodeAt(index: number): number
+        /// Returns the character code of the character at the given index.
         /// </summary>
         [MondFunction]
         public static int CharCodeAt([MondInstance] MondValue instance, int index)
@@ -46,7 +49,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// contains(value: string): bool
+        /// Returns true when the string contains the given substring.
         /// </summary>
         [MondFunction]
         public static bool Contains([MondInstance] MondValue instance, string value)
@@ -55,7 +58,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// endsWith(value: string): bool
+        /// Returns true when the string ends with the given substring.
         /// </summary>
         [MondFunction]
         public static bool EndsWith([MondInstance] MondValue instance, string value)
@@ -64,7 +67,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// indexOf(value: string): number
+        /// Returns the index of the first occurrence of the substring, or -1 when there is none.
         /// </summary>
         [MondFunction]
         public static int IndexOf([MondInstance] MondValue instance, string value)
@@ -73,7 +76,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// insert(index: number, value: string): string
+        /// Returns a new string with the given value inserted at the given index.
         /// </summary>
         [MondFunction]
         public static string Insert([MondInstance] MondValue instance, int index, string value)
@@ -87,7 +90,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// lastIndexOf(value: string): number
+        /// Returns the index of the last occurrence of the substring, or -1 when there is none.
         /// </summary>
         [MondFunction]
         public static int LastIndexOf([MondInstance] MondValue instance, string value)
@@ -96,7 +99,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// replace(oldValue: string, newValue: string): string
+        /// Returns a new string with every occurrence of one substring swapped for another.
         /// </summary>
         [MondFunction]
         public static string Replace([MondInstance] MondValue instance, string oldValue, string newValue)
@@ -108,7 +111,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// split(separator: string): array
+        /// Splits the string on the given separator and returns the parts as an array.
         /// </summary>
         [MondFunction]
         public static MondValue Split([MondInstance] MondValue instance, string separator)
@@ -118,7 +121,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// startsWith(value: string): bool
+        /// Returns true when the string starts with the given substring.
         /// </summary>
         [MondFunction]
         public static bool StartsWith([MondInstance] MondValue instance, string value)
@@ -127,7 +130,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// substring(startIndex: number): string
+        /// Returns the part of the string starting at the given index, optionally limited to a length.
         /// </summary>
         [MondFunction]
         public static string Substring([MondInstance] MondValue instance, int startIndex)
@@ -141,7 +144,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// substring(startIndex: number, length: number): string
+        /// Returns the part of the string starting at the given index, optionally limited to a length.
         /// </summary>
         [MondFunction]
         public static string Substring([MondInstance] MondValue instance, int startIndex, int length)
@@ -158,7 +161,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// toUpper(): string
+        /// Returns the string converted to upper case.
         /// </summary>
         [MondFunction]
         public static string ToUpper([MondInstance] MondValue instance)
@@ -167,7 +170,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// toLower(): string
+        /// Returns the string converted to lower case.
         /// </summary>
         [MondFunction]
         public static string ToLower([MondInstance] MondValue instance)
@@ -176,7 +179,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// trim(): string
+        /// Returns the string with leading and trailing whitespace removed.
         /// </summary>
         [MondFunction]
         public static string Trim([MondInstance] MondValue instance)
@@ -185,7 +188,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// normalize(): string
+        /// Returns the string in Unicode normalization form C, so equivalent text compares equal.
         /// </summary>
         [MondFunction]
         public static string Normalize([MondInstance] MondValue instance)
@@ -194,7 +197,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// format(): string
+        /// Treats the string as a template and fills its numbered placeholders with the arguments.
         /// </summary>
         [MondFunction]
         public static string Format([MondInstance] MondValue instance, params Span<MondValue> arguments)
@@ -221,7 +224,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// length(): number
+        /// Returns the number of characters in the string.
         /// </summary>
         [MondFunction]
         public static int Length([MondInstance] MondValue instance)
@@ -230,7 +233,7 @@ namespace Mond.VirtualMachine.Prototypes
         }
 
         /// <summary>
-        /// getEnumerator(): object
+        /// Returns an enumerator that yields each character of the string.
         /// </summary>
         [MondFunction]
         public static MondValue GetEnumerator([MondInstance] MondValue instance)

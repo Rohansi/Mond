@@ -9,6 +9,15 @@
     <IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net10.0'))">true</IsAotCompatible>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 
+    <!--
+      The binding generator reads XML doc comments, and the compiler only parses them when it is
+      asked to produce a documentation file. Without this the generated definitions would depend on
+      how the project was built, because the IDE parses them and the command line does not.
+    -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- CS1591: the documentation file exists for the generator, not to document every public member -->
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+
     <PackageId>Mond</PackageId>
     <PackageVersion>$(AssemblyVersion)</PackageVersion>
     <Authors>Rohans</Authors>

@@ -11,6 +11,9 @@ namespace Mond.Libraries.Json
     {
         private const string DeserializePrefix = "Json.deserialize: ";
 
+        /// <summary>
+        /// Reads JSON text and returns the value it describes.
+        /// </summary>
         [MondFunction]
         public static MondValue Deserialize(string text)
         {

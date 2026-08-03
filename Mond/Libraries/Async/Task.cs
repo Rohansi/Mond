@@ -4,9 +4,15 @@ using Mond.Binding;
 
 namespace Mond.Libraries.Async
 {
+    /// <summary>
+    /// Creates and combines tasks for use with await.
+    /// </summary>
     [MondModule("Task")]
     internal static partial class TaskModule
     {
+        /// <summary>
+        /// Returns a task that completes after the given number of seconds.
+        /// </summary>
         [MondFunction]
         public static MondValue Delay(double seconds, MondValue? cancellationToken = null)
         {
@@ -24,6 +30,9 @@ namespace Mond.Libraries.Async
             return AsyncUtil.ToObject(Task.Delay(timeSpan, ct.Value));
         }
 
+        /// <summary>
+        /// Returns a task that completes once every given task has, with all of their results.
+        /// </summary>
         [MondFunction]
         public static MondValue WhenAll(MondState state, params Span<MondValue> tasks)
         {
@@ -41,6 +50,9 @@ namespace Mond.Libraries.Async
             return AsyncUtil.ToObject(task);
         }
 
+        /// <summary>
+        /// Returns a task that completes as soon as any given task does, with that task.
+        /// </summary>
         [MondFunction]
         public static MondValue WhenAny(MondState state, params Span<MondValue> tasks)
         {

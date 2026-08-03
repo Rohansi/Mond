@@ -16,6 +16,9 @@ namespace Mond.Libraries.Core
             _require = require ?? throw new ArgumentNullException(nameof(require));
         }
 
+        /// <summary>
+        /// Loads another script and returns its exports, reusing the result on later calls.
+        /// </summary>
         [MondFunction]
         public MondValue Require(MondState state, string fileName)
         {

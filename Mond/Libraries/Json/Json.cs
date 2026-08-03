@@ -4,12 +4,18 @@ using Mond.Binding;
 
 namespace Mond.Libraries.Json
 {
+    /// <summary>
+    /// Converts values to and from JSON text.
+    /// </summary>
     [MondModule("Json")]
     internal static partial class JsonModule
     {
         private const string SerializePrefix = "Json.serialize: ";
         private const string CantSerializePrefix = SerializePrefix + "can't serialize ";
 
+        /// <summary>
+        /// Converts the value to JSON text.
+        /// </summary>
         [MondFunction]
         public static string Serialize(MondValue value)
         {
