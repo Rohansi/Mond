@@ -64,6 +64,11 @@ if (!executable) {
 
 // this file is generated, not committed - the path is absolute and platform specific
 mkdirSync(path.dirname(settingsPath), { recursive: true });
-writeFileSync(settingsPath, `${JSON.stringify({ 'mond.replPath': executable }, null, '\t')}\n`);
+writeFileSync(settingsPath, `${JSON.stringify({
+	'mond.replPath': executable,
+	// other tests leave untitled documents behind, and starting a debug session saves dirty editors
+	// by default - saving an untitled one means a Save As dialog that nothing is there to answer
+	'debug.saveBeforeStart': 'none',
+}, null, '\t')}\n`);
 
 console.log(`Mond REPL built: ${executable}`);
